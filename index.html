@@ -349,18 +349,25 @@
 
         // --- 2. 전역 변수 설정 ---
         // 웹페이지 전체에서 사용할 변수들을 미리 선언합니다.
-        let bossSchedule = []; // 파싱된 보스 정보를 저장할 배열
-        let fixedBossSchedule = [ // 고정 알림 보스 목록 (하드코딩)
-            { time: "12:00", name: "대륙 침략자", alerted_5min: false, alerted_1min: false, alerted_0min: false },
-            { time: "20:00", name: "대륙 침략자", alerted_5min: false, alerted_1min: false, alerted_0min: false },
-            { time: "13:00", name: "발할라", alerted_5min: false, alerted_1min: false, alerted_0min: false },
-            { time: "18:00", name: "발할라", alerted_5min: false, alerted_1min: false, alerted_0min: false },
-            { time: "21:00", name: "발할라", alerted_5min: false, alerted_1min: false, alerted_0min: false },
-        ];
-        let fixedAlarmStates = { // 고정 알림 스위치 상태 (로컬 스토리지 저장용)
-            global: false, // 고정 알림 전체 ON/OFF
-            individual: fixedBossSchedule.map(() => false) // 각 고정 알림 개별 ON/OFF
-        };
+
+        const BossDataManager = (() => {
+            let bossSchedule = []; // 파싱된 보스 정보를 저장할 배열
+            let fixedBossSchedule = [ // 고정 알림 보스 목록 (하드코딩)
+                { time: "12:00", name: "대륙 침략자", alerted_5min: false, alerted_1min: false, alerted_0min: false },
+                { time: "20:00", name: "대륙 침략자", alerted_5min: false, alerted_1min: false, alerted_0min: false },
+                { time: "13:00", name: "발할라", alerted_5min: false, alerted_1min: false, alerted_0min: false },
+                { time: "18:00", name: "발할라", alerted_5min: false, alerted_1min: false, alerted_0min: false },
+                { time: "21:00", name: "발할라", alerted_5min: false, alerted_1min: false, alerted_0min: false },
+            ];
+
+            return {
+                getBossSchedule: () => bossSchedule,
+                setBossSchedule: (newSchedule) => { bossSchedule = newSchedule; },
+                getFixedBossSchedule: () => fixedBossSchedule,
+                // setFixedBossSchedule: (newSchedule) => { fixedBossSchedule = newSchedule; } // Fixed schedule is hardcoded, no setter needed for now
+            };
+        })();
+
         let alertTimerId = null; // 1초마다 알람을 체크하는 타이머의 ID (나중에 중지시킬 때 필요)
         let isAlarmRunning = false; // 알람이 현재 실행 중인지 상태를 저장하는 변수 (토글용)
 
@@ -528,9 +535,9 @@
                 }
             });
             
-            bossSchedule = newBossSchedule;
+            BossDataManager.setBossSchedule(newBossSchedule);
 
-            log(`${bossSchedule.filter(item => item.type === 'boss').length}개의 보스 일정을 불러왔습니다.`);
+            log(`${BossDataManager.getBossSchedule().filter(item => item.type === 'boss').length}개의 보스 일정을 불러왔습니다.`);
             if (removedPastBossCount > 0) {
                 log(`${removedPastBossCount}개의 지난 보스 일정을 목록에서 제거했습니다.`, true);
             }
@@ -540,6 +547,7 @@
         // --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 ---
         // bossSchedule 배열의 내용을 기반으로 텍스트 영역을 업데이트합니다.
         function updateBossListTextarea() {
+            const bossSchedule = BossDataManager.getBossSchedule(); // Get from manager
             const outputLines = [];
             for (let i = 0; i < bossSchedule.length; i++) {
                 const currentItem = bossSchedule[i];
@@ -553,14 +561,14 @@
                     outputLines.push(`${currentItem.time} ${currentItem.name}`);
                 }
             }
-            bossListInput.value = outputLines.join('\n');
+            DOM.bossListInput.value = outputLines.join('\n');
 
             // 다음 보스 표시 업데이트
             const nextBoss = bossSchedule.find(item => item.type === 'boss');
             if (nextBoss) {
-                nextBossDisplay.textContent = `다음 보스: ${nextBoss.time} ${nextBoss.name}`;
+                DOM.nextBossDisplay.textContent = `다음 보스: ${nextBoss.time} ${nextBoss.name}`;
             } else {
-                nextBossDisplay.textContent = '다음 보스 없음';
+                DOM.nextBossDisplay.textContent = '다음 보스 없음';
             }
         }
 
@@ -569,7 +577,7 @@
         function renderFixedAlarms(targetDiv) { // 인자로 targetDiv를 받도록 수정
             targetDiv.innerHTML = ''; // 기존 목록 초기화
 
-            fixedBossSchedule.forEach((boss, index) => {
+            BossDataManager.getFixedBossSchedule().forEach((boss, index) => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'fixed-alarm-item';
                 itemDiv.id = `fixed-alarm-item-${index}`; // 개별 항목 ID
@@ -758,7 +766,7 @@
                 speak("보스 알리미를 시작합니다.");
                 
                 // Add this line to log the number of bosses after the system starts
-                log(`${bossSchedule.filter(item => item.type === 'boss').length}개의 보스가 목록에 있습니다.`, true);
+                log(`${BossDataManager.getBossSchedule().filter(item => item.type === 'boss').length}개의 보스가 목록에 있습니다.`, true);
                 
                 // 1초마다 checkAlarms 함수 실행 시작
                 alertTimerId = setInterval(checkAlarms, 1000);
