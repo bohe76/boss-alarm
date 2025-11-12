@@ -453,16 +453,21 @@
             
             const newBossSchedule = [];
 
-            text.split(/\r?\n/)
-                .map(line => line.trim())
-                .filter(line => line)
-                .forEach(line => {
-                    const parts = line.split(/\s+/);
-                    if (parts.length >= 2) {
-                        initialBossCount++;
-                        const [bossHour, bossMinute] = parts[0].split(':').map(Number);
-                        const bossTimeInMinutes = bossHour * 60 + bossMinute;
-
+                        // Normalize whitespace and line endings before splitting
+                        const normalizedText = text
+                            .replace(/\r\n|\r/g, '\n') // Convert all line endings to LF
+                            .replace(/[^\S\n]+/g, ' ') // Replace sequences of non-newline whitespace with a single space
+                            .trim(); // Trim leading/trailing whitespace from the whole block
+            
+                        normalizedText.split('\n') // Now we can safely split by just '\n'
+                            .map(line => line.trim())
+                            .filter(line => line)
+                            .forEach(line => {
+                                const parts = line.split(' '); // Split by single space after normalization
+                                if (parts.length >= 2) {
+                                    initialBossCount++;
+                                    const [bossHour, bossMinute] = parts[0].split(':').map(Number);
+                                    const bossTimeInMinutes = bossHour * 60 + bossMinute;
                         // Check for day transition (e.g., 23:00 then 01:00)
                         if (bossTimeInMinutes < lastBossTimeInMinutes) {
                             currentDayOffset++;
