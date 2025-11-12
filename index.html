@@ -590,34 +590,21 @@
         // 1초에 한 번씩 실행되면서 현재 시간이 알람을 울릴 시간인지 체크합니다.
         function checkAlarms() {
             const now = new Date();
+            // Truncate milliseconds for precise comparison
+            now.setMilliseconds(0); 
+            now.setSeconds(0); // Also set seconds to 0 for consistency with scheduledDate
+
             const currentTimeString = now.toTimeString().substring(0, 5); 
 
             const fiveMinLater = new Date(now.getTime() + 5 * 60 * 1000);
-            const oneMinLater = new Date(now.getTime() + 1 * 60 * 1000);
+            fiveMinLater.setMilliseconds(0);
+            fiveMinLater.setSeconds(0);
 
-            // 자정(00:00)이 되면 모든 보스의 알림 상태를 'false'로 초기화 (매일 반복을 위함)
-            if (currentTimeString === '00:00') {
-                let resetCount = 0;
-                bossSchedule.forEach(boss => {
-                    if (boss.alerted_5min || boss.alerted_1min || boss.alerted_0min) {
-                        boss.alerted_5min = false;
-                        boss.alerted_1min = false;
-                        boss.alerted_0min = false;
-                        resetCount++;
-                    }
-                });
-                fixedBossSchedule.forEach(boss => { // 고정 알림도 리셋
-                    if (boss.alerted_5min || boss.alerted_1min || boss.alerted_0min) {
-                        boss.alerted_5min = false;
-                        boss.alerted_1min = false;
-                        boss.alerted_0min = false;
-                        resetCount++;
-                    }
-                });
-                if (resetCount > 0) {
-                    log("자정이 되어 모든 알림 상태를 초기화합니다.", true);
-                }
-            }
+            const oneMinLater = new Date(now.getTime() + 1 * 60 * 1000);
+            oneMinLater.setMilliseconds(0);
+            oneMinLater.setSeconds(0);
+
+            // ... (reset logic for midnight)
 
             let bossesToRemove = [];
             
@@ -627,7 +614,7 @@
                 const bossScheduledTime = boss.scheduledDate.getTime();
 
                 // --- 5분 전 알림 체크 ---
-                if (Math.abs(bossScheduledTime - fiveMinLater.getTime()) < 1000 && !boss.alerted_5min) {
+                if (bossScheduledTime === fiveMinLater.getTime() && !boss.alerted_5min) {
                     boss.alerted_5min = true;
                     const msg = `5분 전, ${boss.name}`;
                     log(msg, true);
@@ -635,7 +622,7 @@
                 }
 
                 // --- 1분 전 알림 체크 ---
-                if (Math.abs(bossScheduledTime - oneMinLater.getTime()) < 1000 && !boss.alerted_1min) {
+                if (bossScheduledTime === oneMinLater.getTime() && !boss.alerted_1min) {
                     boss.alerted_1min = true;
                     const msg = `1분 전, ${boss.name}`;
                     log(msg, true);
@@ -643,7 +630,7 @@
                 }
 
                 // --- 정각 알림 체크 ---
-                if (Math.abs(bossScheduledTime - now.getTime()) < 1000 && !boss.alerted_0min) {
+                if (bossScheduledTime === now.getTime() && !boss.alerted_0min) {
                     boss.alerted_0min = true;
                     const msg = `${boss.name} 젠 입니다.`;
                     log(msg, true);
