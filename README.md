@@ -1,7 +1,6 @@
 # Odin Boss Alarm (오딘 보스 알리미)
 
-![Odin Boss Alarm Screenshot](https://via.placeholder.com/600x300?text=Odin+Boss+Alarm+Screenshot)
-*(Replace this with an actual screenshot of your application)*
+![Odin Boss Alarm Screenshot](https://i.postimg.cc/9f4Tx78r/odin-boss-alarm.png)
 
 ## 🚀 프로젝트 소개 (Project Introduction)
 
