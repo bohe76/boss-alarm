@@ -328,17 +328,24 @@
     <div id="log-container"></div>
 
     <script>
-        // --- 1. DOM 요소 가져오기 ---
-        const bossListInput = document.getElementById('bossListInput');
-        const startButton = document.getElementById('startButton');
-        const logContainer = document.getElementById('log-container');
-        const shareButton = document.getElementById('shareButton');
-        const shareLinkInput = document.getElementById('shareLinkInput');
-        const copyButton = document.getElementById('copyButton');
-        const nextBossDisplay = document.getElementById('nextBossDisplay');
-        const globalFixedAlarmToggle = document.getElementById('globalFixedAlarmToggle');
-        // const fixedAlarmListDiv = document.getElementById('fixedAlarmList'); // 페이지 로드 시점에 가져오도록 변경
-        const logVisibilityToggle = document.getElementById('logVisibilityToggle');
+        // --- 1. DOM 요소 초기화 함수 ---
+        function initDomElements() {
+            return {
+                bossListInput: document.getElementById('bossListInput'),
+                startButton: document.getElementById('startButton'),
+                logContainer: document.getElementById('log-container'),
+                shareButton: document.getElementById('shareButton'),
+                shareLinkInput: document.getElementById('shareLinkInput'),
+                copyButton: document.getElementById('copyButton'),
+                nextBossDisplay: document.getElementById('nextBossDisplay'),
+                globalFixedAlarmToggle: document.getElementById('globalFixedAlarmToggle'),
+                fixedAlarmListDiv: document.getElementById('fixedAlarmList'),
+                logVisibilityToggle: document.getElementById('logVisibilityToggle'),
+            };
+        }
+
+        // DOM 요소들을 한 번만 초기화하여 사용
+        const DOM = initDomElements();
 
         // --- 2. 전역 변수 설정 ---
         // 웹페이지 전체에서 사용할 변수들을 미리 선언합니다.
@@ -434,10 +441,10 @@
             entry.textContent = `[${now.toLocaleTimeString()}] ${message}`;
             
             // 완성된 로그 메시지를 로그 컨테이너에 추가
-            logContainer.appendChild(entry);
+            DOM.logContainer.appendChild(entry);
             
             // 항상 최신 로그가 보이도록 스크롤을 맨 아래로 이동
-            logContainer.scrollTop = logContainer.scrollHeight;
+            DOM.logContainer.scrollTop = DOM.logContainer.scrollHeight;
         }
 
 
@@ -596,7 +603,7 @@
 
         // --- 5.3. 고정 알림 비주얼 업데이트 함수 (faded 효과) ---
         function updateFixedAlarmVisuals() {
-            const fixedAlarmListDivElement = document.getElementById('fixedAlarmList'); // Re-get the element
+            const fixedAlarmListDivElement = DOM.fixedAlarmListDiv; // Re-get the element
             if (!fixedAlarmListDivElement) return; // Guard against null if element not found
 
             const fixedAlarmItems = fixedAlarmListDivElement.querySelectorAll('.fixed-alarm-item');
@@ -744,7 +751,7 @@
 
                 // (중요) 텍스트 상자의 최신 내용으로 목록을 다시 파싱
                 parseBossList(); 
-                const fixedAlarmListDivElement = document.getElementById('fixedAlarmList');
+                const fixedAlarmListDivElement = DOM.fixedAlarmListDiv;
                 renderFixedAlarms(fixedAlarmListDivElement); // 고정 알림 목록도 다시 렌더링
 
                 log("알림 시스템을 시작합니다.");
@@ -904,10 +911,10 @@
 
             // 고정 알림 상태 로드 및 렌더링
             loadFixedAlarmStates();
-            globalFixedAlarmToggle.checked = fixedAlarmStates.global; // 전역 스위치 상태 반영
+            DOM.globalFixedAlarmToggle.checked = fixedAlarmStates.global; // 전역 스위치 상태 반영
             
             // fixedAlarmListDiv를 여기서 다시 가져와서 renderFixedAlarms에 전달
-            const fixedAlarmListDivElement = document.getElementById('fixedAlarmList'); // Renamed to avoid conflict
+            const fixedAlarmListDivElement = DOM.fixedAlarmListDiv; // Renamed to avoid conflict
             renderFixedAlarms(fixedAlarmListDivElement);
             // 알림 로그 가시성 상태 로드 및 적용
             loadLogVisibilityState();
