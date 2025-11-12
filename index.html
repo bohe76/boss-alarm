@@ -469,11 +469,29 @@
                         }
                         lastBossTimeInMinutes = bossTimeInMinutes;
 
-                        const scheduledDate = new Date(now); // Start with current date
-                        scheduledDate.setHours(bossHour, bossMinute, 0, 0); // Set time
-                        scheduledDate.setDate(now.getDate() + currentDayOffset); // Apply day offset
+                        let scheduledDate = new Date(now);
+                        scheduledDate.setHours(bossHour, bossMinute, 0, 0);
 
-                        // Filter out bosses whose scheduledDate is in the past
+                        // If the boss's scheduled time (HH:MM) is earlier than the current time (HH:MM)
+                        // AND it's not already for a future day due to currentDayOffset,
+                        // then this boss must be for the next day.
+                        // This handles cases like current time 00:30, boss time 23:00 (should be tomorrow).
+                        if (scheduledDate.getTime() < now.getTime() && currentDayOffset === 0) {
+                            scheduledDate.setDate(scheduledDate.getDate() + 1);
+                        }
+                        
+                        // Apply the currentDayOffset for bosses that span across midnight within the list.
+                        // This logic should be independent of the "today vs tomorrow" for an individual boss.
+                        if (bossTimeInMinutes < lastBossTimeInMinutes) {
+                            currentDayOffset++;
+                        }
+                        lastBossTimeInMinutes = bossTimeInMinutes;
+
+                        if (currentDayOffset > 0) {
+                            scheduledDate.setDate(scheduledDate.getDate() + currentDayOffset);
+                        }
+
+                        // Finally, filter out bosses whose scheduledDate is truly in the past.
                         if (scheduledDate.getTime() <= now.getTime()) {
                             removedPastBossCount++;
                             return; // Skip this boss
