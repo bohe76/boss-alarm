@@ -412,118 +412,9 @@
             };
         })();
 
+        import { speak } from './src/speech.js'; // Import speak function
 
-        // --- 3. 음성 재생 함수 ---
-        // 텍스트를 받아서 AI 음성으로 읽어주는 기능을 합니다.
-        function speak(text) {
-            // 브라우저가 음성 출력(TTS) 기능을 지원하지 않으면 함수를 즉시 종료
-            if (!window.speechSynthesis) {
-                console.warn("이 브라우저는 음성 합성을 지원하지 않습니다.");
-                return;
-            }
-            
-            // 혹시 이전에 재생 중인 음성이 있다면 즉시 취소 (중복 재생 방지)
-            window.speechSynthesis.cancel();
-            
-            // 읽어줄 내용(text)으로 음성 객체(utterance)를 생성
-            const utterance = new SpeechSynthesisUtterance(text);
-            
-            // 언어를 한국어로 설정
-            utterance.lang = 'ko-KR';
-            
-            // 음성 재생 시작
-            window.speechSynthesis.speak(utterance);
-        }
-
-
-        // --- 5. 텍스트 파싱 함수 ---
-        // 사용자가 입력한 텍스트 상자의 내용을 읽어 bossSchedule 배열 형태로 가공합니다.
-        function parseBossList() {
-            const text = bossListInput.value;
-            const now = new Date();
-            now.setSeconds(0);
-            now.setMilliseconds(0);
-
-            let baseDate = null;
-            let dayOffset = 0;
-            let lastBossTimeInMinutes = -1;
-            
-            let removedPastBossCount = 0;
-            const newBossSchedule = [];
-
-            const normalizedText = text.replace(/\r\n|\r/g, '\n').replace(/[^\S\n]+/g, ' ').trim();
-            const lines = normalizedText.split('\n').map(line => line.trim()).filter(line => line);
-
-            // First, find a base date from the first line if it exists
-            if (lines.length > 0) {
-                const firstDateMatch = lines[0].match(/^(\d{1,2})\.(\d{1,2})$/);
-                if (firstDateMatch) {
-                    const month = parseInt(firstDateMatch[1], 10) - 1;
-                    const day = parseInt(firstDateMatch[2], 10);
-                    baseDate = new Date(now.getFullYear(), month, day);
-                }
-            }
-            // If no date was found in the whole file, default to today
-            if (!baseDate) {
-                baseDate = new Date(now);
-            }
-            baseDate.setHours(0,0,0,0); // Start at midnight for calculations
-
-            lines.forEach(line => {
-                const dateMatch = line.match(/^(\d{1,2})\.(\d{1,2})$/);
-                if (dateMatch) {
-                    // When we find a date marker, we reset our base date and offsets
-                    const month = parseInt(dateMatch[1], 10) - 1;
-                    const day = parseInt(dateMatch[2], 10);
-                    baseDate = new Date(now.getFullYear(), month, day);
-                    baseDate.setHours(0,0,0,0);
-                    dayOffset = 0;
-                    lastBossTimeInMinutes = -1; // Reset for the new day's chronological check
-                    newBossSchedule.push({ type: 'date', value: line });
-                    return;
-                }
-
-                const parts = line.split(' ');
-                if (parts.length >= 2) {
-                    const [bossHour, bossMinute] = parts[0].split(':').map(Number);
-                    const bossTimeInMinutes = bossHour * 60 + bossMinute;
-
-                    // Handle chronological wrap-around (e.g., 23:00 -> 01:00)
-                    if (lastBossTimeInMinutes !== -1 && bossTimeInMinutes < lastBossTimeInMinutes) {
-                        dayOffset++;
-                    }
-                    lastBossTimeInMinutes = bossTimeInMinutes;
-
-                    let scheduledDate = new Date(baseDate);
-                    scheduledDate.setDate(baseDate.getDate() + dayOffset);
-                    scheduledDate.setHours(bossHour, bossMinute);
-
-                    // Final, single filter for past bosses
-                    if (scheduledDate.getTime() < now.getTime()) {
-                        removedPastBossCount++;
-                        return; // Skip this boss
-                    }
-
-                    newBossSchedule.push({
-                        type: 'boss',
-                        time: parts[0],
-                        name: parts.slice(1).join(' '),
-                        scheduledDate: scheduledDate,
-                        alerted_5min: false,
-                        alerted_1min: false,
-                        alerted_0min: false,
-                    });
-                }
-            });
-            
-            BossDataManager.setBossSchedule(newBossSchedule);
-
-            log(`${BossDataManager.getBossSchedule().filter(item => item.type === 'boss').length}개의 보스 일정을 불러왔습니다.`);
-            if (removedPastBossCount > 0) {
-                log(`${removedPastBossCount}개의 지난 보스 일정을 목록에서 제거했습니다.`, true);
-            }
-            updateBossListTextarea();
-        }
+        import { parseBossList } from './src/boss-parser.js';
 
         // --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 ---
         // bossSchedule 배열의 내용을 기반으로 텍스트 영역을 업데이트합니다.
@@ -739,7 +630,7 @@
                 if (alertTimerId) clearInterval(alertTimerId); // 만약의 타이머 제거
 
                 // (중요) 텍스트 상자의 최신 내용으로 목록을 다시 파싱
-                parseBossList(); 
+                parseBossList(DOM.bossListInput, BossDataManager); 
                 const fixedAlarmListDivElement = DOM.fixedAlarmListDiv;
                 renderFixedAlarms(fixedAlarmListDivElement); // 고정 알림 목록도 다시 렌더링
 
@@ -896,7 +787,7 @@
             }
 
             // 페이지 로드 시 보스 목록을 파싱하고 지난 보스를 제거
-            parseBossList();
+            parseBossList(DOM.bossListInput, BossDataManager);
 
             // 고정 알림 상태 로드 및 렌더링
             LocalStorageManager.init();

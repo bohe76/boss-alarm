@@ -16,7 +16,7 @@
   - [x] **`dom-elements.js`:** 모든 DOM 요소 참조를 관리하는 모듈.
   - [x] **`logger.js`:** `log` 함수와 `logContainer` 관련 로직을 캡슐화.
   - [x] **`speech-synth.js`:** `speak` 함수와 `window.speechSynthesis` 관련 로직을 캡슐화.
-  - [ ] **`boss-parser.js`:** `parseBossList` 함수와 보스 목록 파싱 및 날짜 계산 로직을 캡슐화. `bossSchedule` 상태를 관리.
+  - [x] **`boss-parser.js`:** `parseBossList` 함수와 보스 목록 파싱 및 날짜 계산 로직을 캡슐화. `bossSchedule` 상태를 관리.
   - [ ] **`alarm-scheduler.js`:** `checkAlarms` 함수와 `setInterval` 타이머 관리, 알림 로직(5분 전, 1분 전, 정각)을 캡슐화. `bossSchedule`과 `fixedBossSchedule`을 인자로 받아 처리.
   - [ ] **`ui-renderer.js`:** `updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `nextBossDisplay` 업데이트 등 UI 렌더링 및 업데이트 로직을 캡슐화.
   - [ ] **`api-service.js`:** `getShortUrl` 함수와 TinyURL API 호출 로직을 캡슐화.
