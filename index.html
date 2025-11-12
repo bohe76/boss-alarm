@@ -489,10 +489,8 @@
                         let scheduledDate = new Date(currentBaseDate);
                         scheduledDate.setHours(bossHour, bossMinute, 0, 0);
 
-                        // If the calculated date is in the past, assume it's for the next day
-                        if (scheduledDate.getTime() < now.getTime()) {
-                            scheduledDate.setDate(scheduledDate.getDate() + 1);
-                        }
+                        // The date is now explicit from the MM.DD line, so we no longer need to infer the next day.
+                        // The final filter below is sufficient.
 
                         // Final filter: Remove bosses that are still in the past after all adjustments.
                         if (scheduledDate.getTime() < now.getTime()) {
