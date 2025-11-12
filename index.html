@@ -445,67 +445,55 @@
         function parseBossList() {
             const text = bossListInput.value;
             const now = new Date();
-            let currentDayOffset = 0; // 0 for today, 1 for tomorrow, etc.
-            let lastBossTimeInMinutes = -1; // To track if time goes backward (indicating next day)
+            now.setSeconds(0);
+            now.setMilliseconds(0);
 
-            let initialBossCount = 0;
+            let currentBaseDate = null; // Will hold the date from the last MM.DD line
             let removedPastBossCount = 0;
-            
             const newBossSchedule = [];
 
-                        // Normalize whitespace and line endings before splitting
-                        const normalizedText = text
-                            .replace(/\r\n|\r/g, '\n') // Convert all line endings to LF
-                            .replace(/[^\S\n]+/g, ' ') // Replace sequences of non-newline whitespace with a single space
-                            .trim(); // Trim leading/trailing whitespace from the whole block
-            
-                        normalizedText.split('\n') // Now we can safely split by just '\n'
-                            .map(line => line.trim())
-                            .filter(line => line)
-                            .forEach(line => {
-                                const parts = line.split(' '); // Split by single space after normalization
-                                if (parts.length >= 2) {
-                                    initialBossCount++;
-                                    const [bossHour, bossMinute] = parts[0].split(':').map(Number);
-                                    const bossTimeInMinutes = bossHour * 60 + bossMinute;
-                        // Check for day transition (e.g., 23:00 then 01:00)
-                        if (bossTimeInMinutes < lastBossTimeInMinutes) {
-                            currentDayOffset++;
-                        }
-                        lastBossTimeInMinutes = bossTimeInMinutes;
+            const normalizedText = text
+                .replace(/\r\n|\r/g, '\n')
+                .replace(/[^\S\n]+/g, ' ')
+                .trim();
 
-                        let scheduledDate = new Date(now);
+            normalizedText.split('\n')
+                .map(line => line.trim())
+                .filter(line => line)
+                .forEach(line => {
+                    // Check if the line is a date declaration (e.g., 11.13)
+                    const dateMatch = line.match(/^(\d{1,2})\.(\d{1,2})$/);
+                    if (dateMatch) {
+                        const month = parseInt(dateMatch[1], 10) - 1; // Month is 0-indexed
+                        const day = parseInt(dateMatch[2], 10);
+                        // Use current year. This might need adjustment if spanning a new year, but is fine for now.
+                        currentBaseDate = new Date(now.getFullYear(), month, day);
+                        return; // Continue to the next line
+                    }
+
+                    // If it's not a date, it must be a boss time
+                    const parts = line.split(' ');
+                    if (parts.length >= 2) {
+                        const [bossHour, bossMinute] = parts[0].split(':').map(Number);
+
+                        // If we haven't found a date yet, use today as the base
+                        if (!currentBaseDate) {
+                            currentBaseDate = new Date(now);
+                        }
+
+                        let scheduledDate = new Date(currentBaseDate);
                         scheduledDate.setHours(bossHour, bossMinute, 0, 0);
 
-                        // If the boss's scheduled time (HH:MM) is earlier than the current time (HH:MM)
-                        // AND it's not already for a future day due to currentDayOffset,
-                        // then this boss must be for the next day.
-                        // This handles cases like current time 00:30, boss time 23:00 (should be tomorrow).
-                        if (scheduledDate.getTime() < now.getTime() && currentDayOffset === 0) {
-                            scheduledDate.setDate(scheduledDate.getDate() + 1);
-                        }
-                        
-                        // Apply the currentDayOffset for bosses that span across midnight within the list.
-                        // This logic should be independent of the "today vs tomorrow" for an individual boss.
-                        if (bossTimeInMinutes < lastBossTimeInMinutes) {
-                            currentDayOffset++;
-                        }
-                        lastBossTimeInMinutes = bossTimeInMinutes;
-
-                        if (currentDayOffset > 0) {
-                            scheduledDate.setDate(scheduledDate.getDate() + currentDayOffset);
-                        }
-
-                        // Finally, filter out bosses whose scheduledDate is truly in the past.
-                        if (scheduledDate.getTime() <= now.getTime()) {
+                        // Final filter: Remove bosses that are still in the past after all adjustments.
+                        if (scheduledDate.getTime() < now.getTime()) {
                             removedPastBossCount++;
                             return; // Skip this boss
                         }
 
                         newBossSchedule.push({
-                            time: parts[0], // Keep original HH:MM string for textarea display
-                            name: parts[1],
-                            scheduledDate: scheduledDate, // Store full Date object
+                            time: parts[0],
+                            name: parts.slice(1).join(' '), // Join the rest of the parts for the name
+                            scheduledDate: scheduledDate,
                             alerted_5min: false,
                             alerted_1min: false,
                             alerted_0min: false,
@@ -513,16 +501,14 @@
                     }
                 });
             
-            bossSchedule = newBossSchedule; // Update the global bossSchedule
-
-            // Sort bossSchedule by scheduledDate to ensure nextBossDisplay is accurate
+            bossSchedule = newBossSchedule;
             bossSchedule.sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime());
 
             log(`${bossSchedule.length}개의 보스 일정을 불러왔습니다.`);
             if (removedPastBossCount > 0) {
                 log(`${removedPastBossCount}개의 지난 보스 일정을 목록에서 제거했습니다.`, true);
             }
-            updateBossListTextarea(); // Always update textarea after parsing and filtering
+            updateBossListTextarea();
         }
 
         // --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 ---
