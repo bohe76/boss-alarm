@@ -719,6 +719,9 @@
                 log("알림 시스템을 시작합니다.");
                 speak("보스 알리미를 시작합니다.");
                 
+                // Add this line to log the number of bosses after the system starts
+                log(`${bossSchedule.length}개의 보스가 목록에 있습니다.`, true);
+                
                 // 1초마다 checkAlarms 함수 실행 시작
                 alertTimerId = setInterval(checkAlarms, 1000);
 
