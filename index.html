@@ -371,41 +371,57 @@
         let alertTimerId = null; // 1초마다 알람을 체크하는 타이머의 ID (나중에 중지시킬 때 필요)
         let isAlarmRunning = false; // 알람이 현재 실행 중인지 상태를 저장하는 변수 (토글용)
 
-        // --- 2.1. 로컬 스토리지 관리 함수 ---
-        function saveFixedAlarmStates() {
-            localStorage.setItem('fixedAlarmStates', JSON.stringify(fixedAlarmStates));
-        }
+        const LocalStorageManager = (() => {
+            let fixedAlarmStates = { // 고정 알림 스위치 상태 (로컬 스토리지 저장용)
+                global: false, // 고정 알림 전체 ON/OFF
+                individual: BossDataManager.getFixedBossSchedule().map(() => false) // 각 고정 알림 개별 ON/OFF
+            };
+            let logVisibilityState = true; // 기본값: ON
 
-        function loadFixedAlarmStates() {
-            const savedStates = localStorage.getItem('fixedAlarmStates');
-            if (savedStates) {
-                fixedAlarmStates = JSON.parse(savedStates);
-            } else {
-                // 기본값: 모두 OFF
-                fixedAlarmStates = {
-                    global: false,
-                    individual: fixedBossSchedule.map(() => false)
-                };
-                saveFixedAlarmStates();
+            function saveFixedAlarmStates() {
+                localStorage.setItem('fixedAlarmStates', JSON.stringify(fixedAlarmStates));
             }
-        }
 
-        let logVisibilityState = true; // 기본값: ON
-
-        function saveLogVisibilityState() {
-            localStorage.setItem('logVisibilityState', JSON.stringify(logVisibilityState));
-        }
-
-        function loadLogVisibilityState() {
-            const savedState = localStorage.getItem('logVisibilityState');
-            if (savedState !== null) { // Check for null to distinguish from 'false'
-                logVisibilityState = JSON.parse(savedState);
-            } else {
-                // 기본값: ON
-                logVisibilityState = true;
-                saveLogVisibilityState();
+            function loadFixedAlarmStates() {
+                const savedStates = localStorage.getItem('fixedAlarmStates');
+                if (savedStates) {
+                    fixedAlarmStates = JSON.parse(savedStates);
+                } else {
+                    // 기본값: 모두 OFF
+                    fixedAlarmStates = {
+                        global: false,
+                        individual: BossDataManager.getFixedBossSchedule().map(() => false)
+                    };
+                    saveFixedAlarmStates();
+                }
             }
-        }
+
+            function saveLogVisibilityState() {
+                localStorage.setItem('logVisibilityState', JSON.stringify(logVisibilityState));
+            }
+
+            function loadLogVisibilityState() {
+                const savedState = localStorage.getItem('logVisibilityState');
+                if (savedState !== null) { // Check for null to distinguish from 'false'
+                    logVisibilityState = JSON.parse(savedState);
+                } else {
+                    // 기본값: ON
+                    logVisibilityState = true;
+                    saveLogVisibilityState();
+                }
+            }
+
+            return {
+                getFixedAlarmStates: () => fixedAlarmStates,
+                setFixedAlarmStates: (states) => { fixedAlarmStates = states; saveFixedAlarmStates(); },
+                getLogVisibilityState: () => logVisibilityState,
+                setLogVisibilityState: (state) => { logVisibilityState = state; saveLogVisibilityState(); },
+                init: () => {
+                    loadFixedAlarmStates();
+                    loadLogVisibilityState();
+                }
+            };
+        })();
 
 
         // --- 3. 음성 재생 함수 ---
@@ -615,7 +631,7 @@
             if (!fixedAlarmListDivElement) return; // Guard against null if element not found
 
             const fixedAlarmItems = fixedAlarmListDivElement.querySelectorAll('.fixed-alarm-item');
-            if (!fixedAlarmStates.global) {
+            if (!LocalStorageManager.getFixedAlarmStates().global) {
                 fixedAlarmItems.forEach(item => item.classList.add('faded'));
             } else {
                 fixedAlarmItems.forEach(item => item.classList.remove('faded'));
@@ -696,9 +712,9 @@
             }
 
             // --- 고정 알림 보스 체크 ---
-            if (fixedAlarmStates.global) { // 전역 고정 알림이 활성화된 경우에만 체크
-                fixedBossSchedule.forEach((boss, index) => {
-                    if (fixedAlarmStates.individual[index]) { // 개별 고정 알림이 활성화된 경우에만 체크
+            if (LocalStorageManager.getFixedAlarmStates().global) { // 전역 고정 알림이 활성화된 경우에만 체크
+                BossDataManager.getFixedBossSchedule().forEach((boss, index) => { // Use BossDataManager
+                    if (LocalStorageManager.getFixedAlarmStates().individual[index]) { // 개별 고정 알림이 활성화된 경우에만 체크
                         const [bossHour, bossMinute] = boss.time.split(':').map(Number);
                         
                         // 고정 알림은 매일 반복되므로, 현재 날짜 기준으로 scheduledDate를 계산
@@ -789,20 +805,20 @@
 
 
         // --- 7.1. 고정 알림 전체 ON/OFF 토글 버튼 이벤트 ---
-        globalFixedAlarmToggle.addEventListener('change', (event) => {
-            fixedAlarmStates.global = event.target.checked;
-            saveFixedAlarmStates();
+        DOM.globalFixedAlarmToggle.addEventListener('change', (event) => {
+            const currentStates = LocalStorageManager.getFixedAlarmStates();
+            currentStates.global = event.target.checked;
+            LocalStorageManager.setFixedAlarmStates(currentStates);
             updateFixedAlarmVisuals(); // 비주얼 업데이트
         });
 
         // --- 7.2. 알림 로그 가시성 토글 버튼 이벤트 ---
-        logVisibilityToggle.addEventListener('change', (event) => {
-            logVisibilityState = event.target.checked;
-            saveLogVisibilityState();
-            if (logVisibilityState) {
-                logContainer.classList.remove('hidden');
+        DOM.logVisibilityToggle.addEventListener('change', (event) => {
+            LocalStorageManager.setLogVisibilityState(event.target.checked);
+            if (LocalStorageManager.getLogVisibilityState()) {
+                DOM.logContainer.classList.remove('hidden');
             } else {
-                logContainer.classList.add('hidden');
+                DOM.logContainer.classList.add('hidden');
             }
         });
 
@@ -918,19 +934,18 @@
             parseBossList();
 
             // 고정 알림 상태 로드 및 렌더링
-            loadFixedAlarmStates();
-            DOM.globalFixedAlarmToggle.checked = fixedAlarmStates.global; // 전역 스위치 상태 반영
+            LocalStorageManager.init();
+            DOM.globalFixedAlarmToggle.checked = LocalStorageManager.getFixedAlarmStates().global; // 전역 스위치 상태 반영
             
             // fixedAlarmListDiv를 여기서 다시 가져와서 renderFixedAlarms에 전달
             const fixedAlarmListDivElement = DOM.fixedAlarmListDiv; // Renamed to avoid conflict
             renderFixedAlarms(fixedAlarmListDivElement);
             // 알림 로그 가시성 상태 로드 및 적용
-            loadLogVisibilityState();
-            logVisibilityToggle.checked = logVisibilityState; // 스위치 상태 반영
-            if (logVisibilityState) {
-                logContainer.classList.remove('hidden');
+            DOM.logVisibilityToggle.checked = LocalStorageManager.getLogVisibilityState(); // 스위치 상태 반영
+            if (LocalStorageManager.getLogVisibilityState()) {
+                DOM.logContainer.classList.remove('hidden');
             } else {
-                logContainer.classList.add('hidden');
+                DOM.logContainer.classList.add('hidden');
             }
         });
 

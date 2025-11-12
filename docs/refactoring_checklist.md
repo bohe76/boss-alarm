@@ -9,7 +9,7 @@
   - [x] 모든 `document.getElementById()` 호출을 한 곳으로 모아 초기화 함수를 만듭니다.
     > **참고:** `file://` 프로토콜 환경에서는 `type="module"` 스크립트 로딩 시 CORS 문제로 인해 외부 JS 파일 분리가 어렵습니다. 이 단계에서는 `index.html` 내의 스크립트 블록 안에서 DOM 요소 초기화 함수를 만드는 방식으로 진행합니다. 실제 모듈 분리는 웹 서버 환경에서 가능합니다.
   - [x] `bossSchedule`, `fixedBossSchedule`, `isAlarmRunning`, `alertTimerId`, `fixedAlarmStates`, `logVisibilityState` 등의 전역 변수들을 관련 로직을 캡슐화하는 객체나 모듈 내부로 이동시킵니다.
-  - [ ] `localStorage` 접근 로직(`saveFixedAlarmStates`, `loadFixedAlarmStates`, `saveLogVisibilityState`, `loadLogVisibilityState`)을 별도의 유틸리티 모듈로 분리합니다.
+  - [x] `localStorage` 접근 로직(`saveFixedAlarmStates`, `loadFixedAlarmStates`, `saveLogVisibilityState`, `loadLogVisibilityState`)을 별도의 유틸리티 모듈로 분리합니다.
 
 ### 2단계: 기능별 모듈 분리
 - [ ] **목표:** SRP에 따라 각 기능을 독립적인 JavaScript 파일(모듈)로 분리합니다.
