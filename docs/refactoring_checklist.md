@@ -13,7 +13,7 @@
 
 ### 2단계: 기능별 모듈 분리
 - [ ] **목표:** SRP에 따라 각 기능을 독립적인 JavaScript 파일(모듈)로 분리합니다.
-  - [ ] **`dom-elements.js`:** 모든 DOM 요소 참조를 관리하는 모듈.
+  - [x] **`dom-elements.js`:** 모든 DOM 요소 참조를 관리하는 모듈.
   - [ ] **`logger.js`:** `log` 함수와 `logContainer` 관련 로직을 캡슐화.
   - [ ] **`speech-synth.js`:** `speak` 함수와 `window.speechSynthesis` 관련 로직을 캡슐화.
   - [ ] **`boss-parser.js`:** `parseBossList` 함수와 보스 목록 파싱 및 날짜 계산 로직을 캡슐화. `bossSchedule` 상태를 관리.

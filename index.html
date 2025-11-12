@@ -327,22 +327,8 @@
     
     <div id="log-container"></div>
 
-    <script>
-        // --- 1. DOM 요소 초기화 함수 ---
-        function initDomElements() {
-            return {
-                bossListInput: document.getElementById('bossListInput'),
-                startButton: document.getElementById('startButton'),
-                logContainer: document.getElementById('log-container'),
-                shareButton: document.getElementById('shareButton'),
-                shareLinkInput: document.getElementById('shareLinkInput'),
-                copyButton: document.getElementById('copyButton'),
-                nextBossDisplay: document.getElementById('nextBossDisplay'),
-                globalFixedAlarmToggle: document.getElementById('globalFixedAlarmToggle'),
-                fixedAlarmListDiv: document.getElementById('fixedAlarmList'),
-                logVisibilityToggle: document.getElementById('logVisibilityToggle'),
-            };
-        }
+    <script type="module">
+        import { initDomElements } from './src/dom-elements.js';
 
         // DOM 요소들을 한 번만 초기화하여 사용
         const DOM = initDomElements();
