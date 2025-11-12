@@ -466,8 +466,10 @@
                     if (dateMatch) {
                         const month = parseInt(dateMatch[1], 10) - 1; // Month is 0-indexed
                         const day = parseInt(dateMatch[2], 10);
-                        // Use current year. This might need adjustment if spanning a new year, but is fine for now.
                         currentBaseDate = new Date(now.getFullYear(), month, day);
+                        
+                        // Add date object to the schedule
+                        newBossSchedule.push({ type: 'date', value: line });
                         return; // Continue to the next line
                     }
 
@@ -479,10 +481,17 @@
                         // If we haven't found a date yet, use today as the base
                         if (!currentBaseDate) {
                             currentBaseDate = new Date(now);
+                            // Add today's date to the top of the schedule if it's not explicitly there
+                            newBossSchedule.push({ type: 'date', value: `${now.getMonth() + 1}.${now.getDate()}` });
                         }
 
                         let scheduledDate = new Date(currentBaseDate);
                         scheduledDate.setHours(bossHour, bossMinute, 0, 0);
+
+                        // If the calculated date is in the past, assume it's for the next day
+                        if (scheduledDate.getTime() < now.getTime()) {
+                            scheduledDate.setDate(scheduledDate.getDate() + 1);
+                        }
 
                         // Final filter: Remove bosses that are still in the past after all adjustments.
                         if (scheduledDate.getTime() < now.getTime()) {
@@ -491,6 +500,7 @@
                         }
 
                         newBossSchedule.push({
+                            type: 'boss',
                             time: parts[0],
                             name: parts.slice(1).join(' '), // Join the rest of the parts for the name
                             scheduledDate: scheduledDate,
@@ -514,13 +524,24 @@
         // --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 ---
         // bossSchedule 배열의 내용을 기반으로 텍스트 영역을 업데이트합니다.
         function updateBossListTextarea() {
-            bossListInput.value = bossSchedule
-                .map(boss => `${boss.time} ${boss.name}`)
-                .join('\n');
+            const outputLines = [];
+            for (let i = 0; i < bossSchedule.length; i++) {
+                const currentItem = bossSchedule[i];
+                if (currentItem.type === 'date') {
+                    // Peek ahead: only show date if it has bosses under it
+                    const nextItem = bossSchedule[i + 1];
+                    if (nextItem && nextItem.type === 'boss') {
+                        outputLines.push(currentItem.value);
+                    }
+                } else if (currentItem.type === 'boss') {
+                    outputLines.push(`${currentItem.time} ${currentItem.name}`);
+                }
+            }
+            bossListInput.value = outputLines.join('\n');
 
             // 다음 보스 표시 업데이트
-            if (bossSchedule.length > 0) {
-                const nextBoss = bossSchedule[0]; // bossSchedule은 이미 시간순으로 정렬되어 있다고 가정
+            const nextBoss = bossSchedule.find(item => item.type === 'boss');
+            if (nextBoss) {
                 nextBossDisplay.textContent = `다음 보스: ${nextBoss.time} ${nextBoss.name}`;
             } else {
                 nextBossDisplay.textContent = '다음 보스 없음';
@@ -602,6 +623,8 @@
             // --- 일반 보스 알림 체크 ---
             for (let i = 0; i < bossSchedule.length; i++) {
                 const boss = bossSchedule[i];
+                if (boss.type !== 'boss') continue; // Skip date markers
+
                 const bossScheduledTime = boss.scheduledDate.getTime();
 
                 // --- 5분 전 알림 체크 ---
@@ -706,7 +729,7 @@
                 speak("보스 알리미를 시작합니다.");
                 
                 // Add this line to log the number of bosses after the system starts
-                log(`${bossSchedule.length}개의 보스가 목록에 있습니다.`, true);
+                log(`${bossSchedule.filter(item => item.type === 'boss').length}개의 보스가 목록에 있습니다.`, true);
                 
                 // 1초마다 checkAlarms 함수 실행 시작
                 alertTimerId = setInterval(checkAlarms, 1000);
