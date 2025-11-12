@@ -513,9 +513,11 @@
                 });
             
             bossSchedule = newBossSchedule;
-            bossSchedule.sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime());
+            // The list is assumed to be chronological based on user input.
+            // A more complex sort would be needed if we couldn't trust the input order.
+            // bossSchedule.sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime());
 
-            log(`${bossSchedule.length}개의 보스 일정을 불러왔습니다.`);
+            log(`${bossSchedule.filter(item => item.type === 'boss').length}개의 보스 일정을 불러왔습니다.`);
             if (removedPastBossCount > 0) {
                 log(`${removedPastBossCount}개의 지난 보스 일정을 목록에서 제거했습니다.`, true);
             }
