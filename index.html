@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>보스 알리미</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+                Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+            line-height: 1.6;
+            background-color: #f4f7f6;
+            color: #333;
+            padding: 20px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        h1, h2, h3 {
+            color: #111;
+        }
+        textarea {
+            width: 95%;
+            height: 250px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        /* 공통 버튼 스타일 */
+        button {
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 95%;
+            margin-bottom: 10px;
+        }
+        
+        /* 알림 시작/중지 버튼 */
+        #startButton { background-color: #007aff; color: white; }
+        #startButton:hover { background-color: #0056b3; }
+        #startButton.running { background-color: #d90007; }
+        #startButton.running:hover { background-color: #b30006; }
+
+        /* 공유 링크 생성 버튼 */
+        #shareButton { background-color: #34c759; color: white; }
+        #shareButton:hover { background-color: #2a9e48; }
+        #shareButton:disabled { background-color: #aaa; cursor: not-allowed; }
+        
+        /* 링크 입력창 + 복사 버튼 그룹 */
+        .input-group {
+            display: flex;
+            width: 95%;
+            align-items: center;
+        }
+        
+        /* 링크 표시창 */
+        #shareLinkInput {
+            flex-grow: 1; /* 남는 공간을 모두 차지 */
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px 0 0 8px; /* 왼쪽 모서리 */
+            background-color: #eee;
+            margin: 0;
+            /* input 태그의 기본 스타일 초기화 */
+            border-right: none;
+        }
+        
+        /* 복사 버튼 */
+        #copyButton {
+            width: auto; /* 내용에 맞게 너비 조절 */
+            padding: 10px 15px;
+            font-size: 14px;
+            margin: 0;
+            border-radius: 0 8px 8px 0; /* 오른쪽 모서리 */
+            background-color: #6c757d;
+            color: white;
+        }
+        #copyButton:hover {
+            background-color: #5a6268;
+        }
+
+        /* 알림 로그 창 */
+        #log-container {
+            margin-top: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+        }
+        .log-entry { 
+            padding: 5px 0; 
+            border-bottom: 1px dashed #eee; 
+        }
+        .log-entry.important { 
+            font-weight: bold; 
+            color: #d90007; 
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎙️ 보스 알리미</h1>
+    <p>
+        목록을 수정한 뒤 '공유 링크 생성' 버튼을 누르면 짧은 URL이 생성됩니다.<br>
+        생성된 링크 옆의 '복사' 버튼을 눌러 공유하세요.<br>
+        듣고 싶지 않은 보스는 알림 중지 후, 텍스트에서 삭제하고, 다시 알람을 활성화 해주세요.
+    </p>
+
+    <textarea id="bossListInput">
+11:00 셀로비아
+11:00 니드호그
+11:01 라타토스크
+11:02 지감4층
+11:13 지감7층
+11:17 헤르모드
+11:22 페티
+11:25 수드리
+11:27 샤무크
+11:30 토르
+11:33 비요른
+11:40 드라우그
+11:46 모네가름
+11:52 스칼라니르
+12:09 지감10층
+13:06 파르바
+13:07 브륀힐드
+13:13 바우티
+13:17 수르트
+13:51 라이노르
+14:18 티르
+14:39 야른
+14:53 엘드룬
+14:59 스바르트
+16:35 흐니르
+16:36 메기르
+17:39 스칼드메르
+19:34 신마라
+19:42 우로보로스
+20:08 탕그리스니르
+20:13 두라스로르
+20:13 헤르가름
+20:59 굴베이그
+21:43 화신그로아
+22:01 오딘
+23:00 셀로비아
+23:00 니드호그
+23:01 라타토스크
+23:02 지감4층
+23:17 헤르모드
+23:22 페티
+23:25 수드리
+23:29 노트
+23:33 비요른
+23:52 스칼라니르
+01:06 파르바
+01:07 브륀힐드
+01:13 바우티
+01:51 라이노르
+02:39 야른
+03:50 미미르
+04:35 흐니르
+05:50 발리
+    </textarea>
+
+    <br>
+    
+    <button id="startButton">알림 시작</button>
+    
+    <h3>공유하기</h3>
+    
+    <button id="shareButton">공유 링크 생성 (Short URL)</button>
+    
+    <div class="input-group">
+        <input type="text" id="shareLinkInput" value="목록 수정 후 버튼을 누르세요" readonly>
+        <button id="copyButton">복사</button>
+    </div>
+
+    <h2>알림 로그</h2>
+    
+    <div id="log-container"></div>
+
+    <script>
+        // --- 1. DOM 요소 가져오기 ---
+        const bossListInput = document.getElementById('bossListInput');
+        const startButton = document.getElementById('startButton');
+        const logContainer = document.getElementById('log-container');
+        const shareButton = document.getElementById('shareButton');
+        const shareLinkInput = document.getElementById('shareLinkInput');
+        const copyButton = document.getElementById('copyButton');
+
+        // --- 2. 전역 변수 설정 ---
+        // 웹페이지 전체에서 사용할 변수들을 미리 선언합니다.
+        let bossSchedule = []; // 파싱된 보스 정보를 저장할 배열
+        let alertTimerId = null; // 1초마다 알람을 체크하는 타이머의 ID (나중에 중지시킬 때 필요)
+        let isAlarmRunning = false; // 알람이 현재 실행 중인지 상태를 저장하는 변수 (토글용)
+
+
+        // --- 3. 음성 재생 함수 ---
+        // 텍스트를 받아서 AI 음성으로 읽어주는 기능을 합니다.
+        function speak(text) {
+            // 브라우저가 음성 출력(TTS) 기능을 지원하지 않으면 함수를 즉시 종료
+            if (!window.speechSynthesis) {
+                console.warn("이 브라우저는 음성 합성을 지원하지 않습니다.");
+                return;
+            }
+            
+            // 혹시 이전에 재생 중인 음성이 있다면 즉시 취소 (중복 재생 방지)
+            window.speechSynthesis.cancel();
+            
+            // 읽어줄 내용(text)으로 음성 객체(utterance)를 생성
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // 언어를 한국어로 설정
+            utterance.lang = 'ko-KR';
+            
+            // 음성 재생 시작
+            window.speechSynthesis.speak(utterance);
+        }
+
+
+        // --- 4. 로그 기록 함수 ---
+        // 페이지 하단의 로그 창에 메시지를 추가하는 기능을 합니다.
+        function log(message, isImportant = false) {
+            // 새로운 div 요소를 생성
+            const entry = document.createElement('div');
+            entry.className = 'log-entry'; // 기본 스타일 클래스 적용
+            
+            // isImportant가 true이면, 'important' 클래스를 추가해 글씨를 강조
+            if (isImportant) {
+                entry.classList.add('important');
+            }
+            
+            // 현재 시간을 가져와서 메시지 앞에 붙여줌 (예: [11:17:30])
+            const now = new Date();
+            entry.textContent = `[${now.toLocaleTimeString()}] ${message}`;
+            
+            // 완성된 로그 메시지를 로그 컨테이너에 추가
+            logContainer.appendChild(entry);
+            
+            // 항상 최신 로그가 보이도록 스크롤을 맨 아래로 이동
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+
+        // --- 5. 텍스트 파싱 함수 ---
+        // 사용자가 입력한 텍스트 상자의 내용을 읽어 bossSchedule 배열 형태로 가공합니다.
+        function parseBossList() {
+            const text = bossListInput.value; // 텍스트 상자의 전체 텍스트를 가져옴
+            
+            bossSchedule = text
+                .split('\n')                // 1. 줄바꿈(\n)을 기준으로 나눠서 배열로 만듦
+                .map(line => line.trim())   // 2. 각 줄의 앞뒤 공백을 제거
+                .filter(line => line)       // 3. 내용이 없는 빈 줄은 배열에서 제거
+                .map(line => {              // 4. 각 줄을 시간과 이름으로 분리하여 객체로 만듦
+                    const parts = line.split(/\s+/); // 공백(스페이스, 탭 등)을 기준으로 나눔
+                    if (parts.length >= 2) {
+                        // "11:00", "셀로비아" 같은 형식이 맞으면 객체로 변환
+                        return {
+                            time: parts[0],
+                            name: parts[1],
+                            alerted_5min: false, // 5분 전 알림을 했는지 여부
+                            alerted_1min: false, // 1분 전 알림을 했는지 여부
+                            alerted_0min: false, // 정각 알림을 했는지 여부
+                        };
+                    }
+                    return null; // 형식이 맞지 않으면 null로 반환
+                })
+                .filter(item => item);      // 5. null로 반환된 항목(형식 오류)을 최종 배열에서 제거
+            
+            // 파싱이 끝난 후 로그를 남김
+            log(`${bossSchedule.length}개의 보스 일정을 불러왔습니다.`);
+        }
+
+
+        // --- 6. 알림 체크 핵심 함수 ---
+        // 1초에 한 번씩 실행되면서 현재 시간이 알람을 울릴 시간인지 체크합니다.
+        function checkAlarms() {
+            const now = new Date();
+            // "HH:MM" 형식으로 현재, 5분 뒤, 1분 뒤 시간을 만듦
+            const currentTime = now.toTimeString().substring(0, 5);
+            const fiveMinLater = new Date(now.getTime() + 5 * 60 * 1000); // 5분 = 300,000 밀리초
+            const fiveMinLaterTime = fiveMinLater.toTimeString().substring(0, 5);
+            const oneMinLater = new Date(now.getTime() + 1 * 60 * 1000); // 1분 = 60,000 밀리초
+            const oneMinLaterTime = oneMinLater.toTimeString().substring(0, 5);
+
+            // 자정(00:00)이 되면 모든 보스의 알림 상태를 'false'로 초기화 (매일 반복을 위함)
+            if (currentTime === '00:00') {
+                let resetCount = 0;
+                bossSchedule.forEach(boss => {
+                    if (boss.alerted_5min || boss.alerted_1min || boss.alerted_0min) {
+                        boss.alerted_5min = false;
+                        boss.alerted_1min = false;
+                        boss.alerted_0min = false;
+                        resetCount++;
+                    }
+                });
+                // 초기화된 보스가 1개 이상 있을 때만 로그를 남김
+                if (resetCount > 0) {
+                    log("자정이 되어 모든 알림 상태를 초기화합니다.", true);
+                }
+            }
+
+            // 모든 보스 목록을 하나씩 확인
+            for (const boss of bossSchedule) {
+                
+                // --- 5분 전 알림 체크 ---
+                // 보스 시간이 '5분 뒤 시간'과 같고, 아직 5분 전 알림을 안 했다면
+                if (boss.time === fiveMinLaterTime && !boss.alerted_5min) {
+                    boss.alerted_5min = true; // 알림 상태를 true로 바꿔서 중복 알림 방지
+                    const msg = `5분 전, ${boss.name}`;
+                    log(msg, true);
+                    speak(msg);
+                }
+
+                // --- 1분 전 알림 체크 ---
+                // 보스 시간이 '1분 뒤 시간'과 같고, 아직 1분 전 알림을 안 했다면
+                if (boss.time === oneMinLaterTime && !boss.alerted_1min) {
+                    boss.alerted_1min = true; // 알림 상태를 true로 변경
+                    const msg = `1분 전, ${boss.name}`;
+                    log(msg, true);
+                    speak(msg);
+                }
+
+                // --- 정각 알림 체크 ---
+                // 보스 시간이 '현재 시간'과 같고, 아직 정각 알림을 안 했다면
+                if (boss.time === currentTime && !boss.alerted_0min) {
+                    boss.alerted_0min = true; // 알림 상태를 true로 변경
+                    const msg = `${boss.name} 젠 입니다.`;
+                    log(msg, true);
+                    speak(msg);
+                }
+            }
+        }
+
+
+        // --- 7. '알림 시작/중지' 토글 버튼 이벤트 ---
+        startButton.addEventListener('click', () => {
+            // 알림 실행 상태를 반대로 변경 (true -> false, false -> true)
+            isAlarmRunning = !isAlarmRunning; 
+
+            if (isAlarmRunning) {
+                // --- 알림을 켜는 경우 ---
+                startButton.textContent = "알림 중지 (실행 중)";
+                startButton.classList.add('running'); // 빨간색 스타일 적용
+                
+                if (alertTimerId) clearInterval(alertTimerId); // 만약의 타이머 제거
+
+                // (중요) 텍스트 상자의 최신 내용으로 목록을 다시 파싱
+                parseBossList(); 
+                
+                log("알림 시스템을 시작합니다.");
+                speak("보스 알리미를 시작합니다.");
+                
+                // 1초마다 checkAlarms 함수 실행 시작
+                alertTimerId = setInterval(checkAlarms, 1000);
+
+            } else {
+                // --- 알림을 끄는 경우 ---
+                startButton.textContent = "알림 시작";
+                startButton.classList.remove('running'); // 기본 스타일로 복귀
+                
+                // 1초마다 실행되던 타이머를 중지
+                if (alertTimerId) {
+                    clearInterval(alertTimerId);
+                    alertTimerId = null;
+                }
+                
+                log("알림 시스템을 중지합니다.");
+                speak("알리미를 중지합니다.");
+            }
+        });
+
+
+        // --- 8. URL 단축 함수 (TinyURL API) ---
+        // API 호출을 기다려야 하므로 async/await 사용
+        async function getShortUrl(longUrl) {
+            // TinyURL의 무료 API 주소
+            const apiUrl = `https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`;
+            
+            try {
+                // fetch: API에 네트워크 요청(GET)을 보냄
+                const response = await fetch(apiUrl);
+                
+                if (response.ok) { // 응답이 성공(200)이면
+                    const shortUrl = await response.text(); // 응답 내용을 텍스트로 받음 (이게 단축 URL)
+                    return shortUrl;
+                } else {
+                    // 서버가 404, 500 등 에러를 반환한 경우
+                    throw new Error('API 응답 실패');
+                }
+            } catch (error) {
+                // 네트워크 연결 오류 또는 위에서 발생시킨 에러
+                console.error("URL 단축 실패:", error);
+                return null; // 실패 시 null 반환
+            }
+        }
+
+
+        // --- 9. '공유 링크 생성' 버튼 이벤트 ---
+        // API를 호출해야 하므로 async 함수로 정의
+        shareButton.addEventListener('click', async () => {
+            
+            // 1. 버튼 비활성화 (중복 클릭 방지)
+            shareButton.disabled = true;
+            shareButton.textContent = "단축 URL 생성 중...";
+            shareLinkInput.value = "잠시만 기다려주세요...";
+
+            // 2. 원본 긴 URL 생성
+            const currentData = bossListInput.value;
+            const encodedData = encodeURIComponent(currentData); // 데이터를 URL에 쓸 수 있게 인코딩
+            const baseUrl = window.location.href.split('?')[0]; // 현재 주소에서 ? 앞부분만 가져옴
+            const longUrl = `${baseUrl}?data=${encodedData}`;
+
+            // 3. URL 단축 시도 (getShortUrl 함수가 끝날 때까지 기다림)
+            const shortUrl = await getShortUrl(longUrl);
+
+            if (shortUrl) {
+                // 4-1. 단축 성공 시
+                shareLinkInput.value = shortUrl;
+                log("단축 URL이 생성되었습니다. '복사' 버튼을 눌러주세요.", true);
+            } else {
+                // 4-2. 단축 실패 시 (긴 URL을 대신 사용)
+                shareLinkInput.value = longUrl;
+                log("URL 단축 실패. 대신 원본 URL을 생성합니다.", true);
+            }
+
+            // 5. 버튼 다시 활성화
+            shareButton.disabled = false;
+            shareButton.textContent = "공유 링크 생성 (Short URL)";
+        });
+
+
+        // --- 10. '복사' 버튼 이벤트 ---
+        copyButton.addEventListener('click', () => {
+            const urlToCopy = shareLinkInput.value;
+            
+            // 복사할 내용이 있는지, 초기 텍스트가 아닌지 확인
+            if (urlToCopy && urlToCopy !== "목록 수정 후 버튼을 누르세요" && urlToCopy !== "잠시만 기다려주세요...") {
+                
+                // navigator.clipboard.writeText : 클립보드에 텍스트를 쓰는 표준 API
+                navigator.clipboard.writeText(urlToCopy).then(() => {
+                    // 복사 성공 시
+                    log("링크가 클립보드에 복사되었습니다.", true);
+                    
+                    // 사용자 피드백: 버튼 텍스트를 잠시 변경
+                    const originalText = copyButton.textContent;
+                    copyButton.textContent = '복사됨!';
+                    setTimeout(() => {
+                        copyButton.textContent = originalText;
+                    }, 1500); // 1.5초 후에 원래 텍스트로 복귀
+                
+                }).catch(err => {
+                    // 복사 실패 시 (예: http 환경, 오래된 브라우저 등)
+                    log("복사에 실패했습니다. 수동으로 복사해주세요.", true);
+                    console.error('클립보드 복사 실패:', err);
+                });
+            } else {
+                log("복사할 링크가 없습니다. 먼저 링크를 생성해주세요.", false);
+            }
+        });
+
+
+        // --- 11. 페이지가 처음 로드될 때 실행되는 함수 ---
+        window.addEventListener('load', () => {
+            // 현재 페이지의 URL 파라미터(물음표 뒤)를 가져옴
+            const params = new URLSearchParams(window.location.search);
+            
+            // 'data'라는 이름의 파라미터가 있는지 확인
+            if (params.has('data')) {
+                // 'data' 값을 가져와서 '압축 해제' (디코딩)
+                const decodedData = decodeURIComponent(params.get('data'));
+                
+                // 텍스트 상자(textarea)의 내용을 URL에서 가져온 데이터로 채움
+                bossListInput.value = decodedData;
+                
+                log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
+            } else {
+                // URL에 data가 없으면
+                log("기본 보스 목록을 불러왔습니다. (URL 데이터 없음)");
+            }
+        });
+
+    </script>
+</body>
+</html>
