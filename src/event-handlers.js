@@ -15,16 +15,10 @@ async function loadMarkdownContent(DOM, filePath, targetElement) {
 
     try {
 
-        const response = await fetch(filePath);
-
-        if (!response.ok) {
-
-            throw new Error(`HTTP error! status: ${response.status}`);
-
-        }
-
         const cacheBuster = Date.now(); // Or a version number if preferred
         const response = await fetch(`${filePath}?v=${cacheBuster}`);
+
+        const markdown = await response.text(); // Get text from the first response
 
         targetElement.innerHTML = `<pre>${markdown}</pre>`; // Revert to displaying raw text
 
