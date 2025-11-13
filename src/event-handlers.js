@@ -23,7 +23,8 @@ async function loadMarkdownContent(DOM, filePath, targetElement) {
 
         }
 
-        const markdown = await response.text();
+        const cacheBuster = Date.now(); // Or a version number if preferred
+        const response = await fetch(`${filePath}?v=${cacheBuster}`);
 
         targetElement.innerHTML = `<pre>${markdown}</pre>`; // Revert to displaying raw text
 
