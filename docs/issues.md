@@ -17,4 +17,4 @@
     $OutputEncoding = [System.Text.Encoding]::UTF8
     ```
     - 변경 후 PowerShell을 다시 시작해야 합니다.
-- **관련 커밋:** (해당 커밋 해시 추가 예정)
+- **관련 커밋:** `1934f137ab9c0821d5c19cf09ae00f086b87616b`

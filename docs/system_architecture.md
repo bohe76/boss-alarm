@@ -88,9 +88,22 @@
     - `initEventHandlers()`: `DOM` 요소에 이벤트 리스너를 등록.
     - `initApp()`: 애플리케이션 초기화 로직을 포함하며, URL 파라미터에서 보스 목록 로드, `LocalStorageManager` 초기화, `parseBossList` 호출, `initEventHandlers` 호출 등을 수행.
 
+### 3.11. `src/default-boss-list.js`
+- **역할:** 애플리케이션의 기본 보스 목록 데이터를 제공합니다.
+- **주요 기능:**
+    - 하드코딩된 보스 목록 텍스트를 상수로 내보냅니다.
+    - `event-handlers.js`에서 URL 파라미터가 없을 때 초기 보스 목록으로 사용됩니다.
+
+### 3.12. `src/style.css`
+- **역할:** 애플리케이션의 모든 시각적 스타일을 정의합니다.
+- **주요 기능:**
+    - `index.html`에서 `<link>` 태그를 통해 로드되어 UI 요소의 레이아웃, 색상, 폰트 등을 제어합니다.
+    - HTML 구조와 분리되어 유지보수성과 가독성을 높입니다.
+
 ## 4. 모듈 간 의존성
 
 - `index.html` -> `src/event-handlers.js` (`initApp` 호출)
+- `index.html` -> `src/style.css` (CSS 로드)
 - `src/event-handlers.js` -> `src/dom-elements.js` (`initDomElements` 호출)
 - `src/event-handlers.js` -> `src/logger.js` (`log`, `initLogger` 호출)
 - `src/event-handlers.js` -> `src/boss-parser.js` (`parseBossList` 호출)
@@ -98,6 +111,7 @@
 - `src/event-handlers.js` -> `src/ui-renderer.js` (`updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals` 호출)
 - `src/event-handlers.js` -> `src/api-service.js` (`getShortUrl` 호출)
 - `src/event-handlers.js` -> `src/data-managers.js` (`LocalStorageManager` 호출)
+- `src/event-handlers.js` -> `src/default-boss-list.js` (`defaultBossList` 가져오기)
 
 - `src/boss-parser.js` -> `src/logger.js` (`log` 호출)
 - `src/boss-parser.js` -> `src/data-managers.js` (`BossDataManager` 호출)
@@ -115,9 +129,9 @@
 ## 5. 데이터 흐름
 
 1.  **초기 로드:** `index.html` 로드 -> `initApp` 호출 (`event-handlers.js`).
-2.  **URL 데이터 처리:** `initApp`은 URL 파라미터에서 보스 목록 데이터를 확인하고 `DOM.bossListInput`에 설정.
-3.  **보스 목록 파싱:** `initApp`은 `parseBossList(DOM.bossListInput)`를 호출하여 텍스트를 파싱하고 `BossDataManager`에 저장.
-4.  **UI 렌더링:** `initApp`은 `LocalStorageManager`를 초기화하고, `renderFixedAlarms` 및 `updateFixedAlarmVisuals`를 호출하여 고정 알림 UI를 렌더링.
+2.  **URL 데이터 처리 및 기본 목록 로드:** `initApp`은 URL 파라미터에서 보스 목록 데이터를 확인합니다. `data` 파라미터가 없으면 `src/default-boss-list.js`에서 `defaultBossList`를 가져와 `DOM.bossListInput`에 설정합니다. `data` 파라미터가 있으면 해당 데이터를 `DOM.bossListInput`에 설정합니다.
+3.  **보스 목록 파싱:** `initApp`은 `parseBossList(DOM.bossListInput)`를 호출하여 `DOM.bossListInput`의 텍스트를 파싱하고 `BossDataManager`에 저장합니다.
+4.  **UI 렌더링:** `initApp`은 `LocalStorageManager`를 초기화하고, `renderFixedAlarms` 및 `updateFixedAlarmVisuals`를 호출하여 고정 알림 UI를 렌더링합니다.
 5.  **알림 시작:** 사용자가 "알림 시작" 버튼 클릭 -> `event-handlers.js`에서 `startAlarm()` 호출.
 6.  **주기적 알림 확인:** `alarm-scheduler.js`의 `checkAlarms`가 주기적으로 실행되며 `BossDataManager`의 보스 일정을 확인.
 7.  **알림 트리거:** 조건 충족 시 `speech.js`를 통해 음성 알림, `logger.js`를 통해 로그 기록.
