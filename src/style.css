@@ -26,6 +26,9 @@ body {
             margin-bottom: 10px;
             font-size: 1.1em;
         }
+        .remaining-time {
+            color: #007aff; /* Blue color for remaining time */
+        }
         /* 공통 버튼 스타일 */
         button {
             border: none;

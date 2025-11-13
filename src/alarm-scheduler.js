@@ -62,6 +62,8 @@ function checkAlarms() { // Removed updateBossListTextarea parameter
     }
 
     let bossesToRemove = [];
+    let nextBoss = null;
+    let minTimeDiff = Infinity;
     
     // --- 일반 보스 알림 체크 ---
     const currentBossSchedule = BossDataManager.getBossSchedule(); // Get from manager
@@ -70,6 +72,13 @@ function checkAlarms() { // Removed updateBossListTextarea parameter
         if (boss.type !== 'boss') continue; // Skip date markers
 
         const bossScheduledTime = boss.scheduledDate.getTime();
+
+        // 다음 보스까지의 시간 차이 계산 (nextBoss 찾기)
+        const timeDiff = bossScheduledTime - now.getTime();
+        if (timeDiff > 0 && timeDiff < minTimeDiff) {
+            minTimeDiff = timeDiff;
+            nextBoss = boss;
+        }
 
         // --- 5분 전 알림 체크 ---
         if (Math.abs(bossScheduledTime - fiveMinLater.getTime()) < 1000 && !boss.alerted_5min) {
@@ -120,6 +129,13 @@ function checkAlarms() { // Removed updateBossListTextarea parameter
 
                 const fixedBossScheduledTime = fixedScheduledDate.getTime();
 
+                // 다음 보스까지의 시간 차이 계산 (nextBoss 찾기)
+                const timeDiff = fixedBossScheduledTime - now.getTime();
+                if (timeDiff > 0 && timeDiff < minTimeDiff) {
+                    minTimeDiff = timeDiff;
+                    nextBoss = { ...boss, scheduledDate: fixedScheduledDate }; // 고정 보스에 대해 fixedScheduledDate 사용
+                }
+
                 // --- 5분 전 알림 체크 ---
                 if (Math.abs(fixedBossScheduledTime - fiveMinLater.getTime()) < 1000 && !boss.alerted_5min) {
                     boss.alerted_5min = true;
@@ -147,6 +163,9 @@ function checkAlarms() { // Removed updateBossListTextarea parameter
             }
         });
     }
+
+    // 다음 보스 정보를 BossDataManager에 저장
+    BossDataManager.setNextBossInfo(nextBoss, minTimeDiff);
 
     // 매초 다음 보스 표시를 업데이트
     updateBossListTextarea();

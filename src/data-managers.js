@@ -9,12 +9,18 @@ export const BossDataManager = (() => {
         { time: "18:00", name: "발할라", alerted_5min: false, alerted_1min: false, alerted_0min: false },
         { time: "21:00", name: "발할라", alerted_5min: false, alerted_1min: false, alerted_0min: false },
     ];
+    let _nextBoss = null; // 다음 보스 정보를 저장할 변수
+    let _minTimeDiff = Infinity; // 다음 보스까지 남은 시간을 저장할 변수
 
     return {
         getBossSchedule: () => bossSchedule,
         setBossSchedule: (newSchedule) => { bossSchedule = newSchedule; },
         getFixedBossSchedule: () => fixedBossSchedule,
-        // setFixedBossSchedule: (newSchedule) => { fixedBossSchedule = newSchedule; } // Fixed schedule is hardcoded, no setter needed for now
+        setNextBossInfo: (nextBoss, minTimeDiff) => {
+            _nextBoss = nextBoss;
+            _minTimeDiff = minTimeDiff;
+        },
+        getNextBossInfo: () => ({ nextBoss: _nextBoss, minTimeDiff: _minTimeDiff }),
     };
 })();
 

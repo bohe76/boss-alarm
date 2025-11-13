@@ -5,9 +5,21 @@ import { initDomElements } from './dom-elements.js'; // Import DOM initializer
 
 const DOM = initDomElements(); // Initialize DOM elements once
 
+// Helper function to format time difference
+function formatTimeDifference(ms) {
+    if (ms <= 0 || ms === Infinity) return '(00:00:00)'; // Handle Infinity for no next boss
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const pad = (num) => num.toString().padStart(2, '0');
+    return `(${pad(hours)}:${pad(minutes)}:${pad(seconds)})`;
+}
+
 // --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 ---
 // bossSchedule 배열의 내용을 기반으로 텍스트 영역을 업데이트합니다.
-export function updateBossListTextarea() { // Removed DOM parameter
+export function updateBossListTextarea() { // Function signature remains unchanged
     const bossSchedule = BossDataManager.getBossSchedule(); // Get from manager
     const outputLines = [];
     for (let i = 0; i < bossSchedule.length; i++) {
@@ -25,9 +37,10 @@ export function updateBossListTextarea() { // Removed DOM parameter
     DOM.bossListInput.value = outputLines.join('\n');
 
     // 다음 보스 표시 업데이트
-    const nextBoss = bossSchedule.find(item => item.type === 'boss');
+    const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo(); // Retrieve from BossDataManager
     if (nextBoss) {
-        DOM.nextBossDisplay.textContent = `다음 보스: ${nextBoss.time} ${nextBoss.name}`;
+        const remainingTimeString = formatTimeDifference(minTimeDiff);
+        DOM.nextBossDisplay.innerHTML = `다음 보스: ${nextBoss.time} ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span>`;
     } else {
         DOM.nextBossDisplay.textContent = '다음 보스 없음';
     }
