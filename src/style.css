@@ -219,9 +219,6 @@ body {
 
         /* Help Button */
         .help-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
             width: auto;
             padding: 8px 15px;
             background-color: #6c757d;
@@ -229,9 +226,18 @@ body {
             font-size: 14px;
             border-radius: 5px;
             z-index: 1000; /* Ensure it's above other content */
+            margin-left: auto; /* Pushes the button to the right */
         }
         .help-button:hover {
             background-color: #5a6268;
+        }
+
+        /* Header Container for H1 and Help Button */
+        .header-container {
+            display: flex;
+            align-items: center; /* Vertically center items */
+            justify-content: space-between; /* Space out items */
+            margin-bottom: 10px; /* Adjust as needed */
         }
 
         /* Modal Styles */
