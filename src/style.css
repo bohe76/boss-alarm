@@ -35,7 +35,7 @@ body {
             border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.2s;
-            width: 95%;
+            width: 100%;
             margin-bottom: 10px;
         }
         
@@ -53,7 +53,7 @@ body {
         /* 링크 입력창 + 복사 버튼 그룹 */
         .input-group {
             display: flex;
-            width: 95%;
+            width: 100%;
             align-items: center;
         }
         
@@ -227,6 +227,7 @@ body {
             border-radius: 5px;
             z-index: 1000; /* Ensure it's above other content */
             margin-left: auto; /* Pushes the button to the right */
+            margin-top: 12px;
         }
         .help-button:hover {
             background-color: #5a6268;
@@ -239,6 +240,9 @@ body {
             justify-content: space-between; /* Space out items */
             margin-bottom: 10px; /* Adjust as needed */
         }
+        .header-container h1 {
+            margin: 0; /* Remove default h1 margins for proper vertical alignment */
+        }
 
         /* Modal Styles */
         .modal {
@@ -250,70 +254,90 @@ body {
             width: 100%; /* Full width */
             height: 100%; /* Full height */
             overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            background-color: rgba(0,0,0,0.6); /* Darker overlay */
+            backdrop-filter: blur(3px); /* Frosted glass effect */
             padding-top: 60px;
         }
 
         .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto; /* 15% from the top and centered */
-            padding: 20px;
+            background-color: #f4f7f6;
+            margin: 5% auto;
+            padding: 0; /* Remove padding from here, add to modal-body */
             border: 1px solid #888;
-            width: 80%; /* Could be more or less, depending on screen size */
+            width: 80%;
             max-width: 800px;
-            border-radius: 10px;
+            border-radius: 12px; /* Softer look */
             position: relative;
+            display: flex; /* Use flexbox for layout */
+            flex-direction: column; /* Stack children vertically */
+            height: 600px; /* Fixed height */
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2); /* Add shadow for depth */
         }
 
         .close-button {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
+            color: #666; /* More integrated color */
+            font-size: 32px; /* Slightly larger */
+            font-weight: normal; /* Less bold */
             position: absolute;
             top: 10px;
-            right: 20px;
+            right: 15px;
+            cursor: pointer;
+            transition: color 0.2s;
         }
 
         .close-button:hover,
         .close-button:focus {
-            color: black;
+            color: #333;
             text-decoration: none;
-            cursor: pointer;
         }
 
         /* Tab Styles */
         .tab-container {
-            display: flex;
             border-bottom: 1px solid #ddd;
-            margin-bottom: 15px;
+            overflow: hidden;
+            background-color: #f9f9f9; /* Slightly different background */
+            border-radius: 12px 12px 0 0; /* Match modal-content top radius */
+            padding: 10px 20px 0; /* Padding for tabs */
+            flex-shrink: 0; /* Prevent shrinking */
         }
 
         .tab-button {
-            background-color: #f1f1f1;
+            background-color: #e0e0e0; /* Softer default */
             border: none;
             outline: none;
             cursor: pointer;
-            padding: 10px 20px;
-            transition: 0.3s;
+            padding: 10px 0;
+            transition: background-color 0.3s, color 0.3s, border-bottom 0.3s;
             font-size: 16px;
             border-radius: 5px 5px 0 0;
-            margin-right: 5px;
+            margin-right: 8px; /* Slightly more space */
+            float: left;
+            width: 150px;
+            text-align: center;
+            font-weight: normal;
         }
 
         .tab-button:hover {
-            background-color: #ddd;
+            background-color: #d0d0d0;
         }
 
         .tab-button.active {
             background-color: #007aff;
             color: white;
-            border-bottom: 1px solid #007aff;
+            border-bottom: 3px solid #0056b3; /* Stronger active indicator */
+            font-weight: bold;
+        }
+
+        /* Modal Body for scrollable content */
+        .modal-body {
+            flex-grow: 1; /* Take remaining space */
+            overflow-y: auto; /* Scrollable content */
+            padding: 20px; /* Padding for the content */
         }
 
         .tab-content {
             display: none;
-            padding: 6px 12px;
+            /* padding: 6px 12px; Removed padding from here, moved to modal-body */
             border-top: none;
         }
 
@@ -322,10 +346,10 @@ body {
         }
 
         .tab-content pre {
-            white-space: pre-wrap; /* Ensures long lines wrap */
-            word-wrap: break-word; /* Breaks long words */
+            white-space: pre-wrap;
+            word-wrap: break-word;
             background-color: #f8f8f8;
-            border: 1px solid #eee;
+            border: none; /* Remove border */
             padding: 10px;
             border-radius: 5px;
             font-size: 0.9em;

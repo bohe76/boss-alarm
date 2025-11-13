@@ -9,60 +9,99 @@ import { BossDataManager, LocalStorageManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
 import { defaultBossList } from './default-boss-list.js'; // Import defaultBossList
 
-const DOM = initDomElements(); // Initialize DOM elements once
-
 // Helper function to load markdown content
-async function loadMarkdownContent(filePath, targetElement) {
+
+async function loadMarkdownContent(DOM, filePath, targetElement) {
+
     try {
+
         const response = await fetch(filePath);
+
         if (!response.ok) {
+
             throw new Error(`HTTP error! status: ${response.status}`);
+
         }
+
         const markdown = await response.text();
-        // For now, just display as pre-formatted text.
-        // A markdown parser library could be integrated here for richer rendering.
-        targetElement.innerHTML = `<pre>${markdown}</pre>`;
+
+        targetElement.innerHTML = `<pre>${markdown}</pre>`; // Revert to displaying raw text
+
     } catch (error) {
+
         console.error(`Failed to load markdown from ${filePath}:`, error);
+
         targetElement.innerHTML = `<p>콘텐츠를 불러오는 데 실패했습니다.</p>`;
+
     }
+
 }
 
 // Function to open the help modal
-function openHelpModal() {
+
+function openHelpModal(DOM) {
+
     DOM.helpModal.style.display = 'block';
+
     // Ensure feature guide is loaded and active by default when opening
-    switchHelpTab('featureGuide');
+
+    switchHelpTab(DOM, 'featureGuide');
+
 }
+
+
 
 // Function to close the help modal
-function closeHelpModal() {
+
+function closeHelpModal(DOM) {
+
     DOM.helpModal.style.display = 'none';
+
 }
 
+
+
 // Function to switch between help tabs
-function switchHelpTab(tabName) {
+
+function switchHelpTab(DOM, tabName) {
+
     // Deactivate all tab buttons and content
+
     DOM.featureGuideTabButton.classList.remove('active');
+
     DOM.versionHistoryTabButton.classList.remove('active');
+
     DOM.featureGuideContent.classList.remove('active');
+
     DOM.versionHistoryContent.classList.remove('active');
 
+
+
     // Activate the selected tab button and content
+
     if (tabName === 'featureGuide') {
+
         DOM.featureGuideTabButton.classList.add('active');
+
         DOM.featureGuideContent.classList.add('active');
-        loadMarkdownContent('docs/feature_guide.md', DOM.featureGuideContent);
+
+        loadMarkdownContent(DOM, 'docs/feature_guide.txt', DOM.featureGuideContent);
+
     } else if (tabName === 'versionHistory') {
+
         DOM.versionHistoryTabButton.classList.add('active');
+
         DOM.versionHistoryContent.classList.add('active');
-        loadMarkdownContent('docs/version_history.md', DOM.versionHistoryContent);
+
+        loadMarkdownContent(DOM, 'docs/version_history.txt', DOM.versionHistoryContent);
+
     }
+
 }
 
 
 // Function to initialize all event handlers
-function initEventHandlers() {
+function initEventHandlers(DOM) {
     // --- 7. '알림 시작/중지' 토글 버튼 이벤트 ---
     DOM.startButton.addEventListener('click', () => {
         if (!getIsAlarmRunning()) {
@@ -147,19 +186,21 @@ function initEventHandlers() {
     });
 
     // --- Help Modal Event Listeners ---
-    DOM.helpButton.addEventListener('click', openHelpModal);
-    DOM.closeButton.addEventListener('click', closeHelpModal);
+    DOM.helpButton.addEventListener('click', () => openHelpModal(DOM));
+    DOM.closeButton.addEventListener('click', () => closeHelpModal(DOM));
     window.addEventListener('click', (event) => {
         if (event.target === DOM.helpModal) {
-            closeHelpModal();
+            closeHelpModal(DOM);
         }
     });
-    DOM.featureGuideTabButton.addEventListener('click', () => switchHelpTab('featureGuide'));
-    DOM.versionHistoryTabButton.addEventListener('click', () => switchHelpTab('versionHistory'));
+    DOM.featureGuideTabButton.addEventListener('click', () => switchHelpTab(DOM, 'featureGuide'));
+    DOM.versionHistoryTabButton.addEventListener('click', () => switchHelpTab(DOM, 'versionHistory'));
 }
 
 // Function to initialize the application
 export function initApp() {
+    const DOM = initDomElements(); // Initialize DOM elements here
+
     // Initialize logger with the log container
     initLogger(DOM.logContainer);
 
@@ -200,5 +241,5 @@ export function initApp() {
     }
 
     // Initialize all event handlers
-    initEventHandlers();
+    initEventHandlers(DOM);
 }
