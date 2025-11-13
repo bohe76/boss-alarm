@@ -47,6 +47,7 @@
     - **`BossDataManager`:**
         - `bossSchedule` (현재 보스 일정) 상태 관리.
         - `setBossSchedule(schedule)`, `getBossSchedule()`, `clearBossSchedule()` 등의 메서드 제공.
+        - **`_nextBoss` 및 `_minTimeDiff`:** 다음 보스 정보와 해당 보스까지 남은 시간을 저장하고 관리합니다. `setNextBossInfo(nextBoss, minTimeDiff)` 및 `getNextBossInfo()` 메서드를 통해 접근합니다.
     - **`LocalStorageManager`:**
         - `fixedAlarmStates` (고정 알림 설정) 및 `logVisibilityState` (로그 가시성 설정) 상태 관리.
         - `init()`: 로컬 스토리지에서 초기 상태 로드.
@@ -92,6 +93,7 @@
         - 각 보스에 대해 5분 전, 1분 전, 정각 알림을 확인하고 트리거.
         - 알림 트리거 시 `speech.js`를 통해 음성 알림, `logger.js`를 통해 로그 메시지 출력.
         - 자정(새로운 날)이 되면 보스 일정을 초기화하고 다시 파싱.
+        - **다음 보스 정보 관리:** 현재 시간 기준으로 가장 가까운 다음 보스를 식별하고, 해당 보스 정보와 남은 시간을 `BossDataManager`에 저장합니다.
 - **알림 로직 상세:**
     - `setInterval`을 사용하여 매초 `checkAlarms` 함수를 호출하여 알림을 확인합니다.
     - 각 보스에 대해 5분 전, 1분 전, 정각(0분)의 세 가지 알림 단계를 처리합니다.
@@ -109,6 +111,7 @@
     - `renderFixedAlarms(container)`: 고정 알림 목록을 렌더링.
     - `updateFixedAlarmVisuals()`: 고정 알림 UI의 시각적 상태 업데이트.
     - `nextBossDisplay(nextBoss)`: 다음 보스 정보를 UI에 표시.
+    - **다음 보스 남은 시간 표시:** `BossDataManager`에서 다음 보스 정보와 남은 시간을 가져와 `(HH:MM:SS)` 형식으로 UI에 표시합니다.
 - **UI 업데이트 책임:** 보스 목록 텍스트 영역, 다음 보스 표시, 고정 알림 목록 등 애플리케이션의 다양한 UI 요소를 업데이트하고 렌더링하는 역할을 합니다.
 - **날짜 마커 표시 로직:** `updateBossListTextarea` 함수는 'MM.DD' 날짜 마커 뒤에 실제 보스 항목이 있을 경우에만 해당 마커를 텍스트 영역에 표시하여 고아 날짜 마커가 표시되지 않도록 합니다.
 - **DOM 초기화 의존성:** 이 모듈의 함수들은 `initApp`에서 초기화된 `DOM` 객체를 인수로 받아 사용함으로써, DOM 요소가 완전히 로드된 후에만 접근하도록 보장합니다.
@@ -156,6 +159,7 @@
     - **도움말 버튼:** `header-container` 내에서 `display: flex`를 통해 `h1`과 수평으로 정렬되고 수직 중앙에 위치합니다.
     - **모달:** 고정된 높이(`600px`)와 `overflow-y: auto`를 통해 스크롤 가능한 콘텐츠 영역을 제공합니다.
     - **탭:** 고정된 너비(`150px`)와 왼쪽 정렬을 통해 닫기 버튼과의 겹침 문제를 해결합니다.
+    - **남은 시간 표시:** 다음 보스까지 남은 시간을 표시하는 텍스트에 파란색(`color: #007aff;`) 스타일을 적용합니다.
 
 ### 3.13. `docs/version_history.txt`
 - **역할:** 애플리케이션의 버전별 주요 기능 업데이트 내역을 기록합니다.
@@ -190,13 +194,13 @@
 - `src/boss-parser.js` -> `src/logger.js` (`log` 호출)
 - `src/boss-parser.js` -> `src/data-managers.js` (`BossDataManager` 호출)
 
-- `src/alarm-scheduler.js` -> `src/data-managers.js` (`BossDataManager` 호출)
+- `src/alarm-scheduler.js` -> `src/data-managers.js` (`BossDataManager` 호출, `setNextBossInfo` 사용)
 - `src/alarm-scheduler.js` -> `src/speech.js` (`speak` 호출)
 - `src/alarm-scheduler.js` -> `src/logger.js` (`log` 호출)
-- `src/alarm-scheduler.js` -> `src/ui-renderer.js` (`nextBossDisplay` 호출)
+- `src/alarm-scheduler.js` -> `src/ui-renderer.js` (`updateBossListTextarea` 호출)
 
 - `src/ui-renderer.js` -> `src/dom-elements.js` (DOM 요소 접근)
-- `src/ui-renderer.js` -> `src/data-managers.js` (`BossDataManager`, `LocalStorageManager` 호출)
+- `src/ui-renderer.js` -> `src/data-managers.js` (`BossDataManager` 호출, `getNextBossInfo` 사용, `LocalStorageManager` 호출)
 
 - `src/api-service.js` -> `src/logger.js` (`log` 호출)
 
@@ -208,8 +212,10 @@
 4.  **UI 렌더링:** `initApp`은 `LocalStorageManager`를 초기화하고, `renderFixedAlarms` 및 `updateFixedAlarmVisuals`를 호출하여 고정 알림 UI를 렌더링합니다.
 5.  **알림 시작:** 사용자가 "알림 시작" 버튼 클릭 -> `event-handlers.js`에서 `startAlarm()` 호출.
 6.  **주기적 알림 확인:** `alarm-scheduler.js`의 `checkAlarms`가 주기적으로 실행되며 `BossDataManager`의 보스 일정을 확인.
-7.  **알림 트리거:** 조건 충족 시 `speech.js`를 통해 음성 알림, `logger.js`를 통해 로그 기록.
-8.  **공유 링크 생성:** 사용자가 "공유 링크 생성" 버튼 클릭 -> `event-handlers.js`에서 `api-service.js`의 `getShortUrl` 호출 -> 단축 URL 생성 및 UI에 표시.
+7.  **다음 보스 정보 업데이트:** `checkAlarms`는 현재 시간 기준으로 가장 가까운 다음 보스를 식별하고, 해당 보스 정보와 남은 시간을 `BossDataManager.setNextBossInfo()`를 통해 저장합니다.
+8.  **알림 트리거:** 조건 충족 시 `speech.js`를 통해 음성 알림, `logger.js`를 통해 로그 기록.
+9.  **UI 업데이트:** `updateBossListTextarea()`는 `BossDataManager.getNextBossInfo()`를 통해 다음 보스 정보와 남은 시간을 가져와 UI에 표시합니다.
+10. **공유 링크 생성:** 사용자가 "공유 링크 생성" 버튼 클릭 -> `event-handlers.js`에서 `api-service.js`의 `getShortUrl` 호출 -> 단축 URL 생성 및 UI에 표시.
 
 ## 6. 결론
 
