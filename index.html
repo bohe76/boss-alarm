@@ -9,6 +9,7 @@
 <body>
 
     <h1>🎙️ 보스 알리미</h1>
+    <button id="helpButton" class="help-button">도움말</button>
     <br>
     
     <button id="startButton">알림 시작</button>
@@ -54,6 +55,23 @@
     </div>
     
     <div id="log-container"></div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div class="tab-container">
+                <button class="tab-button active" data-tab="featureGuide">기능 설명서</button>
+                <button class="tab-button" data-tab="versionHistory">버전 관리 기록</button>
+            </div>
+            <div id="featureGuideContent" class="tab-content active">
+                <!-- Feature Guide content will be loaded here -->
+            </div>
+            <div id="versionHistoryContent" class="tab-content">
+                <!-- Version History content will be loaded here -->
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initDomElements } from './src/dom-elements.js';

@@ -11,6 +11,56 @@ import { defaultBossList } from './default-boss-list.js'; // Import defaultBossL
 
 const DOM = initDomElements(); // Initialize DOM elements once
 
+// Helper function to load markdown content
+async function loadMarkdownContent(filePath, targetElement) {
+    try {
+        const response = await fetch(filePath);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const markdown = await response.text();
+        // For now, just display as pre-formatted text.
+        // A markdown parser library could be integrated here for richer rendering.
+        targetElement.innerHTML = `<pre>${markdown}</pre>`;
+    } catch (error) {
+        console.error(`Failed to load markdown from ${filePath}:`, error);
+        targetElement.innerHTML = `<p>콘텐츠를 불러오는 데 실패했습니다.</p>`;
+    }
+}
+
+// Function to open the help modal
+function openHelpModal() {
+    DOM.helpModal.style.display = 'block';
+    // Ensure feature guide is loaded and active by default when opening
+    switchHelpTab('featureGuide');
+}
+
+// Function to close the help modal
+function closeHelpModal() {
+    DOM.helpModal.style.display = 'none';
+}
+
+// Function to switch between help tabs
+function switchHelpTab(tabName) {
+    // Deactivate all tab buttons and content
+    DOM.featureGuideTabButton.classList.remove('active');
+    DOM.versionHistoryTabButton.classList.remove('active');
+    DOM.featureGuideContent.classList.remove('active');
+    DOM.versionHistoryContent.classList.remove('active');
+
+    // Activate the selected tab button and content
+    if (tabName === 'featureGuide') {
+        DOM.featureGuideTabButton.classList.add('active');
+        DOM.featureGuideContent.classList.add('active');
+        loadMarkdownContent('docs/feature_guide.md', DOM.featureGuideContent);
+    } else if (tabName === 'versionHistory') {
+        DOM.versionHistoryTabButton.classList.add('active');
+        DOM.versionHistoryContent.classList.add('active');
+        loadMarkdownContent('docs/version_history.md', DOM.versionHistoryContent);
+    }
+}
+
+
 // Function to initialize all event handlers
 function initEventHandlers() {
     // --- 7. '알림 시작/중지' 토글 버튼 이벤트 ---
@@ -95,6 +145,17 @@ function initEventHandlers() {
             log("복사할 링크가 없습니다. 먼저 링크를 생성해주세요.", false);
         }
     });
+
+    // --- Help Modal Event Listeners ---
+    DOM.helpButton.addEventListener('click', openHelpModal);
+    DOM.closeButton.addEventListener('click', closeHelpModal);
+    window.addEventListener('click', (event) => {
+        if (event.target === DOM.helpModal) {
+            closeHelpModal();
+        }
+    });
+    DOM.featureGuideTabButton.addEventListener('click', () => switchHelpTab('featureGuide'));
+    DOM.versionHistoryTabButton.addEventListener('click', () => switchHelpTab('versionHistory'));
 }
 
 // Function to initialize the application

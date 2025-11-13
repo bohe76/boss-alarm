@@ -12,5 +12,12 @@ export function initDomElements() {
         globalFixedAlarmToggle: document.getElementById('globalFixedAlarmToggle'),
         fixedAlarmListDiv: document.getElementById('fixedAlarmList'),
         logVisibilityToggle: document.getElementById('logVisibilityToggle'),
+        helpButton: document.getElementById('helpButton'),
+        helpModal: document.getElementById('helpModal'),
+        closeButton: document.querySelector('.close-button'),
+        featureGuideTabButton: document.querySelector('.tab-button[data-tab="featureGuide"]'),
+        versionHistoryTabButton: document.querySelector('.tab-button[data-tab="versionHistory"]'),
+        featureGuideContent: document.getElementById('featureGuideContent'),
+        versionHistoryContent: document.getElementById('versionHistoryContent'),
     };
 }
