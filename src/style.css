@@ -221,7 +221,7 @@ body {
         .help-button {
             width: auto;
             padding: 8px 15px;
-            background-color: #6c757d;
+            background-color: #444;
             color: white;
             font-size: 14px;
             border-radius: 5px;
@@ -244,7 +244,6 @@ body {
             margin: 0; /* Remove default h1 margins for proper vertical alignment */
         }
 
-        /* Modal Styles */
         .modal {
             display: none; /* Hidden by default */
             position: fixed; /* Stay in place */
@@ -254,13 +253,13 @@ body {
             width: 100%; /* Full width */
             height: 100%; /* Full height */
             overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.6); /* Darker overlay */
+            background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
             backdrop-filter: blur(3px); /* Frosted glass effect */
             padding-top: 60px;
         }
 
         .modal-content {
-            background-color: #f4f7f6;
+            background-color: #f8f8f8; /* Match textarea background */
             margin: 5% auto;
             padding: 0; /* Remove padding from here, add to modal-body */
             border: 1px solid #888;
@@ -275,34 +274,32 @@ body {
         }
 
         .close-button {
-            color: #666; /* More integrated color */
+            display: inline-block;
+            color: #fff; /* More integrated color */
             font-size: 32px; /* Slightly larger */
             font-weight: normal; /* Less bold */
             position: absolute;
-            top: 10px;
             right: 15px;
             cursor: pointer;
-            transition: color 0.2s;
         }
 
         .close-button:hover,
         .close-button:focus {
-            color: #333;
+            color: #fff;
             text-decoration: none;
         }
 
         /* Tab Styles */
         .tab-container {
-            border-bottom: 1px solid #ddd;
             overflow: hidden;
-            background-color: #f9f9f9; /* Slightly different background */
+            background-color: #333; /* Slightly different background */
             border-radius: 12px 12px 0 0; /* Match modal-content top radius */
             padding: 10px 20px 0; /* Padding for tabs */
             flex-shrink: 0; /* Prevent shrinking */
         }
 
         .tab-button {
-            background-color: #e0e0e0; /* Softer default */
+            background-color: #555; /* Softer default */
             border: none;
             outline: none;
             cursor: pointer;
@@ -311,20 +308,21 @@ body {
             font-size: 16px;
             border-radius: 5px 5px 0 0;
             margin-right: 8px; /* Slightly more space */
+            margin-bottom: 0px;
             float: left;
             width: 150px;
             text-align: center;
             font-weight: normal;
+            color: #999;
         }
 
         .tab-button:hover {
-            background-color: #d0d0d0;
+            background-color: #666;
         }
 
         .tab-button.active {
-            background-color: #007aff;
-            color: white;
-            border-bottom: 3px solid #0056b3; /* Stronger active indicator */
+            background-color: #f8f8f8;
+            color: #333;
             font-weight: bold;
         }
 
