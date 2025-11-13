@@ -17,17 +17,17 @@
   - [x] **`logger.js`:** `log` 함수와 `logContainer` 관련 로직을 캡슐화.
   - [x] **`speech-synth.js`:** `speak` 함수와 `window.speechSynthesis` 관련 로직을 캡슐화.
   - [x] **`boss-parser.js`:** `parseBossList` 함수와 보스 목록 파싱 및 날짜 계산 로직을 캡슐화. `bossSchedule` 상태를 관리.
-  - [ ] **`alarm-scheduler.js`:** `checkAlarms` 함수와 `setInterval` 타이머 관리, 알림 로직(5분 전, 1분 전, 정각)을 캡슐화. `bossSchedule`과 `fixedBossSchedule`을 인자로 받아 처리.
-  - [ ] **`ui-renderer.js`:** `updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `nextBossDisplay` 업데이트 등 UI 렌더링 및 업데이트 로직을 캡슐화.
-  - [ ] **`api-service.js`:** `getShortUrl` 함수와 TinyURL API 호출 로직을 캡슐화.
-  - [ ] **`event-handlers.js`:** `startButton`, `shareButton`, `copyButton`, `globalFixedAlarmToggle`, `logVisibilityToggle` 등 모든 이벤트 리스너를 관리. 각 이벤트 핸들러는 위에서 분리된 모듈의 함수들을 호출하도록 변경.
+  - [x] **`alarm-scheduler.js`:** `checkAlarms` 함수와 `setInterval` 타이머 관리, 알림 로직(5분 전, 1분 전, 정각)을 캡슐화. `bossSchedule`과 `fixedBossSchedule`을 인자로 받아 처리.
+  - [x] **`ui-renderer.js`:** `updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `nextBossDisplay` 업데이트 등 UI 렌더링 및 업데이트 로직을 캡슐화.
+  - [x] **`api-service.js`:** `getShortUrl` 함수와 TinyURL API 호출 로직을 캡슐화.
+  - [x] **`event-handlers.js`:** `startButton`, `shareButton`, `copyButton`, `globalFixedAlarmToggle`, `logVisibilityToggle` 등 모든 이벤트 리스너를 관리. 각 이벤트 핸들러는 위에서 분리된 모듈의 함수들을 호출하도록 변경.
 
 ### 3단계: 의존성 주입 및 이벤트 기반 통신
 - [ ] **목표:** 모듈 간의 직접적인 의존성을 줄이고, 유연성을 높입니다.
-  - [ ] 모듈들이 서로의 전역 변수에 직접 접근하는 대신, 필요한 데이터를 함수 인자로 전달받도록 변경합니다 (의존성 주입).
+  - [x] 모듈들이 서로의 전역 변수에 직접 접근하는 대신, 필요한 데이터를 함수 인자로 전달받도록 변경합니다 (의존성 주입).
   - [ ] 복잡한 상태 변경이나 모듈 간의 통신이 필요한 경우, 커스텀 이벤트(CustomEvent)를 활용한 이벤트 기반 통신 패턴을 고려합니다. (예: `boss-parser`가 `bossSchedule`을 업데이트하면 `ui-renderer`가 이를 감지하여 UI를 업데이트)
 
 ### 4단계: 오류 처리 개선
 - [ ] **목표:** 애플리케이션 전반에 걸쳐 일관되고 견고한 오류 처리 메커니즘을 구축합니다.
-  - [ ] API 호출(`getShortUrl`) 외에도 `parseBossList` 등에서 발생할 수 있는 잠재적 오류(예: 잘못된 입력 형식)에 대한 예외 처리를 강화합니다.
+  - [x] API 호출(`getShortUrl`) 외에도 `parseBossList` 등에서 발생할 수 있는 잠재적 오류(예: 잘못된 입력 형식)에 대한 예외 처리를 강화합니다.
   - [ ] 사용자에게 오류를 명확하게 알리는 UI 피드백 메커니즘을 구현합니다.

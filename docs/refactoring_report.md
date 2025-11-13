@@ -64,6 +64,53 @@
     *   **`api-service.js`:** `getShortUrl` 함수와 TinyURL API 호출 로직을 캡슐화.
     *   **`event-handlers.js`:** `startButton`, `shareButton`, `copyButton`, `globalFixedAlarmToggle`, `logVisibilityToggle` 등 모든 이벤트 리스너를 관리. 각 이벤트 핸들러는 위에서 분리된 모듈의 함수들을 호출하도록 변경.
 
+**진행 상황 업데이트:**
+
+*   **`alarm-scheduler.js` 모듈 분리 완료:**
+    *   `index.html`에서 전역 `alertTimerId` 및 `isAlarmRunning` 변수 제거.
+    *   `index.html`에서 `checkAlarms` 함수 제거.
+    *   `index.html`의 `startButton` 이벤트 리스너를 `alarm-scheduler.js`에서 가져온 `startAlarm`, `stopAlarm`, `getIsAlarmRunning` 함수를 사용하도록 업데이트.
+    *   `LocalStorageManager`의 `loadFixedAlarmStates` 및 `loadLogVisibilityState` 함수 내의 재귀적 `save` 호출 문제 해결.
+    *   `index.html` 내 `renderFixedAlarms` 함수에서 `LocalStorageManager` 접근 방식 수정.
+    *   `index.html` 내 `startButton` 이벤트 리스너의 중복 주석 제거.
+*   **`file://` 프로토콜 문제 해결:**
+    *   `script type="module"`을 사용하는 JavaScript 모듈은 `file://` 프로토콜로 직접 파일을 열 경우 브라우저의 보안 제한(CORS)으로 인해 로드되지 않는 문제 확인.
+    *   VS Code의 Live Server와 같은 로컬 웹 서버를 통해 `index.html`을 실행했을 때 모든 기능이 정상 작동함을 사용자 확인.
+    *   이는 `alarm-scheduler.js` 모듈 분리 및 관련 수정 사항이 성공적으로 적용되었음을 의미함.
+*   **`ui-renderer.js` 모듈 분리 완료:**
+    *   `index.html`에서 `updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals` 함수를 `src/ui-renderer.js`로 이동.
+    *   `index.html`에서 해당 함수들을 `src/ui-renderer.js`에서 import하여 사용하도록 업데이트.
+    *   `updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals` 함수들이 필요한 종속성(`DOM`, `BossDataManager`, `LocalStorageManager`)을 인자로 전달받도록 수정.
+*   **음성 알림 중첩 문제 해결:**
+    *   `src/speech.js`의 `speak` 함수에서 `window.speechSynthesis.cancel()` 호출을 제거하고, 음성 발화 큐잉 메커니즘을 구현하여 여러 알림이 순차적으로 재생되도록 수정.
+    *   테스트 시나리오를 통해 겹치는 알림이 모두 정상적으로 음성 출력됨을 사용자 확인.
+*   **`api-service.js` 모듈 분리 완료:**
+    *   `index.html`에서 `getShortUrl` 함수를 `src/api-service.js`로 이동.
+    *   `index.html`에서 해당 함수를 `src/api-service.js`에서 import하여 사용하도록 업데이트.
+    *   TinyURL API 호출 및 URL 단축 기능이 정상 작동함을 사용자 확인.
+*   **`event-handlers.js` 모듈 분리 완료:**
+    *   `index.html`에 있던 모든 이벤트 리스너(`startButton`, `shareButton`, `copyButton`, `globalFixedAlarmToggle`, `logVisibilityToggle` 관련)를 `src/event-handlers.js`로 이동.
+    *   `src/event-handlers.js`에 `initEventHandlers` 함수를 생성하여 모든 이벤트 리스너를 초기화하도록 캡슐화.
+    *   `src/event-handlers.js`에 `initApp` 함수를 생성하여 애플리케이션 초기화 로직과 `initEventHandlers` 호출을 포함하도록 함.
+    *   `index.html`의 `window.addEventListener('load')`에서 `initApp`을 호출하도록 업데이트.
+    *   모든 이벤트 핸들러 기능이 정상 작동함을 사용자 확인.
+*   **`data-managers.js` 모듈 분리 및 의존성 주입 개선 완료:**
+    *   `index.html`에 직접 정의되어 있던 `BossDataManager`와 `LocalStorageManager` IIFE를 `src/data-managers.js`로 이동 및 모듈화.
+    *   `index.html`에서 `BossDataManager`와 `LocalStorageManager` 정의를 제거하고, `src/data-managers.js`에서 import하여 사용하도록 업데이트.
+    *   `alarm-scheduler.js`, `ui-renderer.js`, `event-handlers.js`, `boss-parser.js` 등 `BossDataManager` 또는 `LocalStorageManager`를 인자로 받던 함수들의 시그니처를 단순화하고, 해당 모듈에서 직접 import하여 사용하도록 변경.
+    *   **버그 수정:** `ui-renderer.js`의 `updateBossListTextarea` 함수가 `DOM` 객체 없이 호출되어 UI 업데이트가 되지 않던 문제 해결. `ui-renderer.js`가 `dom-elements.js`를 직접 import하여 `DOM` 객체를 모듈 스코프에서 초기화하도록 수정.
+    *   모든 기능(다음 보스 표시, 알림 후 보스 삭제 등)이 정상 작동함을 사용자 확인.
+*   **`boss-parser.js` 오류 처리 개선 완료:**
+    *   `parseBossList` 함수에 `try-catch` 블록을 추가하여 일반적인 파싱 오류를 처리.
+    *   시간 형식(`HH:MM`) 및 날짜 값(월 1-12, 일 1-31)에 대한 유효성 검사를 강화하고, 유효하지 않은 입력에 대해 경고 로그를 출력하도록 수정.
+    *   누락된 보스 이름에 대한 검사를 추가하고 경고 로그를 출력하도록 수정.
+    *   빈 보스 목록 입력에 대한 처리 및 로그 메시지 추가.
+    *   개선된 오류 처리 기능이 정상 작동함을 사용자 확인.
+*   **CSS 분리 완료:**
+    *   `index.html` 파일 내에 인라인으로 포함되어 있던 모든 CSS 스타일을 `src/style.css` 파일로 분리.
+    *   `index.html`에서 `<style>` 태그를 제거하고 `src/style.css`를 참조하는 `<link rel="stylesheet" href="src/style.css">` 태그로 대체.
+    *   CSS 분리 후에도 애플리케이션의 모든 스타일이 정상적으로 적용됨을 사용자 확인.
+
 **3단계: 의존성 주입 및 이벤트 기반 통신**
 *   **목표:** 모듈 간의 직접적인 의존성을 줄이고, 유연성을 높입니다.
 *   **세부 계획:**
