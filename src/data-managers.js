@@ -21,6 +21,34 @@ export const BossDataManager = (() => {
             _minTimeDiff = minTimeDiff;
         },
         getNextBossInfo: () => ({ nextBoss: _nextBoss, minTimeDiff: _minTimeDiff }),
+        getUpcomingBosses: (count) => {
+            const now = Date.now();
+            const upcoming = [];
+            let addedCount = 0;
+
+            // Combine bossSchedule and fixedBossSchedule, filter out past bosses, and sort
+            const allBosses = [...bossSchedule, ...fixedBossSchedule].map(boss => {
+                const [hours, minutes] = boss.time.split(':').map(Number);
+                const date = new Date();
+                date.setHours(hours, minutes, 0, 0);
+                // If the boss time has already passed today, set it for tomorrow
+                if (date.getTime() < now) {
+                    date.setDate(date.getDate() + 1);
+                }
+                return { ...boss, timestamp: date.getTime() };
+            }).filter(boss => boss.timestamp > now)
+              .sort((a, b) => a.timestamp - b.timestamp);
+
+            for (const boss of allBosses) {
+                if (addedCount < count) {
+                    upcoming.push(boss);
+                    addedCount++;
+                } else {
+                    break;
+                }
+            }
+            return upcoming;
+        },
     };
 })();
 
@@ -31,6 +59,8 @@ export const LocalStorageManager = (() => {
         individual: BossDataManager.getFixedBossSchedule().map(() => false) // 각 고정 알림 개별 ON/OFF
     };
     let logVisibilityState = true; // 기본값: ON
+    let alarmRunningState = false; // 알람 실행 상태 (기본값: OFF)
+    let sidebarExpandedState = false; // 사이드바 확장 상태 (기본값: 접힘)
 
     function saveFixedAlarmStates() {
         localStorage.setItem('fixedAlarmStates', JSON.stringify(fixedAlarmStates));
@@ -63,14 +93,52 @@ export const LocalStorageManager = (() => {
         }
     }
 
+    function saveAlarmRunningState() {
+        localStorage.setItem('alarmRunningState', JSON.stringify(alarmRunningState));
+    }
+
+    function loadAlarmRunningState() {
+        const savedState = localStorage.getItem('alarmRunningState');
+        if (savedState !== null) {
+            alarmRunningState = JSON.parse(savedState);
+        } else {
+            alarmRunningState = false; // 기본값: OFF
+        }
+    }
+
+    function saveSidebarExpandedState() {
+        localStorage.setItem('sidebarExpandedState', JSON.stringify(sidebarExpandedState));
+    }
+
+    function loadSidebarExpandedState() {
+        const savedState = localStorage.getItem('sidebarExpandedState');
+        if (savedState !== null) {
+            sidebarExpandedState = JSON.parse(savedState);
+        } else {
+            sidebarExpandedState = false; // 기본값: 접힘
+        }
+    }        const savedState = localStorage.getItem('alarmRunningState');
+        if (savedState !== null) {
+            alarmRunningState = JSON.parse(savedState);
+        } else {
+            alarmRunningState = false; // 기본값: OFF
+        }
+    }
+
     return {
         getFixedAlarmStates: () => fixedAlarmStates,
         setFixedAlarmStates: (states) => { fixedAlarmStates = states; saveFixedAlarmStates(); },
         getLogVisibilityState: () => logVisibilityState,
         setLogVisibilityState: (state) => { logVisibilityState = state; saveLogVisibilityState(); },
+        getAlarmRunningState: () => alarmRunningState,
+        setAlarmRunningState: (state) => { alarmRunningState = state; saveAlarmRunningState(); },
+        getSidebarExpandedState: () => sidebarExpandedState,
+        setSidebarExpandedState: (state) => { sidebarExpandedState = state; saveSidebarExpandedState(); },
         init: () => {
             loadFixedAlarmStates();
             loadLogVisibilityState();
+            loadAlarmRunningState(); // Load alarm running state
+            loadSidebarExpandedState(); // Load sidebar expanded state
         }
     };
 })();

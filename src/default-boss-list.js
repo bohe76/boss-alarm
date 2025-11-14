@@ -1,6 +1,9 @@
 // src/default-boss-list.js
 
-export const defaultBossList = `11:00 셀로비아
+export const bossPresets = [
+    {
+        name: "기본 보스 목록",
+        list: `11:00 셀로비아
 11:00 니드호그
 11:01 라타토스크
 11:02 지감4층
@@ -53,4 +56,20 @@ export const defaultBossList = `11:00 셀로비아
 03:50 미미르
 04:35 흐니르
 05:50 발리
-`;
+`
+    },
+    {
+        name: "예시 프리셋 1",
+        list: `09:00 예시보스1
+10:00 예시보스2
+11:00 예시보스3
+`
+    },
+    {
+        name: "예시 프리셋 2",
+        list: `14:00 예시보스A
+15:00 예시보스B
+16:00 예시보스C
+`
+    }
+];

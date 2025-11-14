@@ -4,10 +4,193 @@ body {
             line-height: 1.6;
             background-color: #f4f7f6;
             color: #333;
-            padding: 20px;
-            max-width: 700px;
-            margin: 0 auto;
+            margin: 0; /* Remove default body margin */
+            display: flex; /* Use flexbox for overall layout */
+            flex-direction: column; /* Stack header, main, footer vertically */
+            min-height: 100vh; /* Ensure body takes full viewport height */
         }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            flex-shrink: 0; /* Prevent header from shrinking */
+        }
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px; /* Max width for content */
+            margin: 0 auto; /* Center content */
+        }
+
+        .header-container h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        .alarm-toggle-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            margin-left: 15px;
+            margin-right: auto; /* Push help button to the right */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .alarm-icon {
+            width: 28px;
+            height: 28px;
+            color: #ccc; /* Default color (off state) */
+            transition: color 0.3s ease;
+        }
+
+        .alarm-toggle-button.alarm-on .alarm-icon {
+            color: #34c759; /* Green for on state */
+        }
+
+        .alarm-toggle-button.alarm-off .alarm-icon {
+            color: #d90007; /* Red for off state */
+        }
+
+        .help-button {
+            width: auto;
+            padding: 8px 15px;
+            background-color: #555;
+            color: white;
+            font-size: 14px;
+            border-radius: 5px;
+            z-index: 1000;
+            margin-left: 15px; /* Space from alarm button */
+        }
+        .help-button:hover {
+            background-color: #666;
+        }
+
+        #full-height-content { /* New container for sidebar and main content */
+            display: flex;
+            flex: 1; /* Take remaining vertical space */
+            max-width: 1200px; /* Max width for content */
+            margin: 0 auto; /* Center content */
+            width: 100%;
+        }
+
+        nav.sidebar {
+            width: 60px; /* Collapsed width */
+            background-color: #222;
+            color: white;
+            padding-top: 20px;
+            transition: width 0.3s ease;
+            flex-shrink: 0; /* Prevent sidebar from shrinking */
+            overflow-x: hidden; /* Hide overflow when collapsed */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        nav.sidebar.expanded {
+            width: 200px; /* Expanded width */
+            align-items: flex-start;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            margin-bottom: 20px;
+            color: white;
+            align-self: flex-end; /* Align to the right in collapsed state */
+        }
+
+        nav.sidebar.expanded .sidebar-toggle {
+            align-self: flex-end; /* Align to the right in expanded state */
+        }
+
+        .sidebar-toggle-icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            color: #ccc;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .sidebar-menu a:hover {
+            background-color: #555;
+            color: white;
+        }
+
+        .sidebar-menu a.active {
+            background-color: #007aff;
+            color: white;
+        }
+
+        .menu-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            fill: currentColor;
+        }
+
+        nav.sidebar:not(.expanded) .menu-text {
+            display: none; /* Hide text when sidebar is collapsed */
+        }
+
+        nav.sidebar.expanded .menu-text {
+            white-space: nowrap; /* Prevent text wrapping */
+        }
+
+        main {
+            flex: 1; /* Take remaining horizontal space */
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto; /* Enable scrolling for main content */
+        }
+
+        .screen {
+            display: none; /* Hide all screens by default */
+        }
+
+        .screen.active {
+            display: block; /* Show active screen */
+        }
+
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 0.9em;
+            flex-shrink: 0; /* Prevent footer from shrinking */
+        }
+
+
+
         h1, h2, h3 {
             color: #111;
         }
@@ -105,20 +288,6 @@ body {
             font-weight: bold; 
             color: #d90007; 
         }
-        footer {
-            margin-top: 50px; /* Increased margin for better separation */
-            padding: 20px 0; /* Add some padding */
-            text-align: center;
-            font-size: 0.9em; /* Slightly larger font */
-            color: white; /* Text color to white */
-            border-top: 1px solid #eee; /* Subtle top border */
-            background-color: #333; /* Dark background color */
-            width: 100%; /* Make it full width */
-            margin-left: 0; /* Remove left margin */
-            margin-right: 0; /* Remove right margin */
-            box-sizing: border-box; /* Include padding in width calculation */
-        }
-
         /* Switch styles */
         .switch {
             position: relative;
@@ -218,33 +387,6 @@ body {
 
         .hidden {
             display: none !important; /* Use !important to ensure it overrides other display properties */
-        }
-
-        /* Help Button */
-        .help-button {
-            width: auto;
-            padding: 8px 15px;
-            background-color: #444;
-            color: white;
-            font-size: 14px;
-            border-radius: 5px;
-            z-index: 1000; /* Ensure it's above other content */
-            margin-left: auto; /* Pushes the button to the right */
-            margin-top: 12px;
-        }
-        .help-button:hover {
-            background-color: #5a6268;
-        }
-
-        /* Header Container for H1 and Help Button */
-        .header-container {
-            display: flex;
-            align-items: center; /* Vertically center items */
-            justify-content: space-between; /* Space out items */
-            margin-bottom: 10px; /* Adjust as needed */
-        }
-        .header-container h1 {
-            margin: 0; /* Remove default h1 margins for proper vertical alignment */
         }
 
         .modal {

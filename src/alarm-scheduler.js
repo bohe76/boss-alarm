@@ -10,6 +10,7 @@ let isAlarmRunning = false;
 
 export function startAlarm() { // Removed updateBossListTextarea parameter
     isAlarmRunning = true;
+    LocalStorageManager.setAlarmRunningState(true); // Save state
     log("알림 시스템을 시작합니다.");
     speak("보스 알리미를 시작합니다.");
     log(`${BossDataManager.getBossSchedule().filter(item => item.type === 'boss').length}개의 보스가 목록에 있습니다.`, true);
@@ -18,6 +19,7 @@ export function startAlarm() { // Removed updateBossListTextarea parameter
 
 export function stopAlarm() {
     isAlarmRunning = false;
+    LocalStorageManager.setAlarmRunningState(false); // Save state
     if (alertTimerId) {
         clearInterval(alertTimerId);
         alertTimerId = null;
@@ -27,7 +29,7 @@ export function stopAlarm() {
 }
 
 export function getIsAlarmRunning() {
-    return isAlarmRunning;
+    return LocalStorageManager.getAlarmRunningState(); // Get state from LocalStorageManager
 }
 
 function checkAlarms() { // Removed updateBossListTextarea parameter

@@ -2,6 +2,7 @@
 
 import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Import managers
 import { initDomElements } from './dom-elements.js'; // Import DOM initializer
+import { bossPresets } from './default-boss-list.js'; // Import bossPresets
 
 const DOM = initDomElements(); // Initialize DOM elements once
 
@@ -15,6 +16,88 @@ function formatTimeDifference(ms) {
 
     const pad = (num) => num.toString().padStart(2, '0');
     return `(${pad(hours)}:${pad(minutes)}:${pad(seconds)})`;
+}
+
+// --- Dashboard Rendering Functions ---
+function updateNextBossDisplay() {
+    const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
+    if (nextBoss) {
+        const remainingTimeString = formatTimeDifference(minTimeDiff);
+        DOM.nextBossDisplay.innerHTML = `다음 보스: ${nextBoss.time} ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span>`;
+    } else {
+        DOM.nextBossDisplay.textContent = '다음 보스 없음';
+    }
+}
+
+function renderUpcomingBossList() {
+    const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
+    const upcomingBosses = BossDataManager.getUpcomingBosses(3); // Get next 3 bosses
+    let html = '<ul>';
+    if (upcomingBosses.length > 0) {
+        upcomingBosses.forEach(boss => {
+            const timeDiff = boss.timestamp - Date.now();
+            const remaining = formatTimeDifference(timeDiff);
+            html += `<li>${boss.time} ${boss.name} ${remaining}</li>`;
+        });
+    } else {
+        html += '<li>예정된 보스가 없습니다.</li>';
+    }
+    html += '</ul>';
+    DOM.upcomingBossList.innerHTML = html;
+}
+
+function renderAlarmStatusSummary() {
+    const isAlarmRunning = LocalStorageManager.getIsAlarmRunning();
+    let statusText = isAlarmRunning ? '알림 실행 중' : '알림 중지됨';
+    let nextAlarmTime = 'N/A';
+
+    if (isAlarmRunning) {
+        const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
+        if (nextBoss && minTimeDiff > 0) {
+            const nextAlarmTimestamp = nextBoss.timestamp;
+            const fiveMinBefore = nextAlarmTimestamp - (5 * 60 * 1000);
+            const oneMinBefore = nextAlarmTimestamp - (1 * 60 * 1000);
+
+            const now = Date.now();
+            if (now < fiveMinBefore) {
+                nextAlarmTime = `5분 전 알림: ${new Date(fiveMinBefore).toLocaleTimeString()}`;
+            } else if (now < oneMinBefore) {
+                nextAlarmTime = `1분 전 알림: ${new Date(oneMinBefore).toLocaleTimeString()}`;
+            } else if (now < nextAlarmTimestamp) {
+                nextAlarmTime = `보스 출현 알림: ${new Date(nextAlarmTimestamp).toLocaleTimeString()}`;
+            } else {
+                nextAlarmTime = '곧 다음 알림 예정';
+            }
+        }
+    }
+
+    DOM.alarmStatusSummary.innerHTML = `
+        <p>상태: <strong>${statusText}</strong></p>
+        <p>다음 알림: ${nextAlarmTime}</p>
+    `;
+}
+
+function renderRecentAlarmLog() {
+    const logs = LocalStorageManager.getLogs(); // Assuming getLogs returns an array of log entries
+    let html = '<ul>';
+    if (logs.length > 0) {
+        // Display last 3 logs
+        const recentLogs = logs.slice(-3).reverse(); // Get last 3 and reverse to show newest first
+        recentLogs.forEach(logEntry => {
+            html += `<li>${logEntry}</li>`;
+        });
+    } else {
+        html += '<li>최근 알림 기록 없음</li>';
+    }
+    html += '</ul>';
+    DOM.recentAlarmLog.innerHTML = html;
+}
+
+export function renderDashboard() {
+    updateNextBossDisplay();
+    renderUpcomingBossList();
+    renderAlarmStatusSummary();
+    renderRecentAlarmLog();
 }
 
 // --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 ---
@@ -35,15 +118,20 @@ export function updateBossListTextarea() { // Function signature remains unchang
         }
     }
     DOM.bossListInput.value = outputLines.join('\n');
+}
 
-    // 다음 보스 표시 업데이트
-    const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo(); // Retrieve from BossDataManager
-    if (nextBoss) {
-        const remainingTimeString = formatTimeDifference(minTimeDiff);
-        DOM.nextBossDisplay.innerHTML = `다음 보스: ${nextBoss.time} ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span>`;
-    } else {
-        DOM.nextBossDisplay.textContent = '다음 보스 없음';
-    }
+// --- Boss Management Screen Rendering Functions ---
+export function renderBossPresets() {
+    if (!DOM.presetBossListSelect) return;
+
+    DOM.presetBossListSelect.innerHTML = ''; // Clear existing options
+
+    bossPresets.forEach((preset, index) => {
+        const option = document.createElement('option');
+        option.value = index; // Use index as value to easily retrieve the preset
+        option.textContent = preset.name;
+        DOM.presetBossListSelect.appendChild(option);
+    });
 }
 
 
@@ -94,5 +182,16 @@ export function updateFixedAlarmVisuals() { // Removed DOM parameter
         fixedAlarmItems.forEach(item => item.classList.add('faded'));
     } else {
         fixedAlarmItems.forEach(item => item.classList.remove('faded'));
+    }
+}
+
+// --- Version Info Screen Rendering Functions ---
+export function renderVersionInfo() {
+    const footer = document.querySelector('footer p');
+    if (footer) {
+        const versionMatch = footer.textContent.match(/v(\d+\.\d+\.\d+)/);
+        if (versionMatch && DOM.appVersion) {
+            DOM.appVersion.textContent = `현재 버전: ${versionMatch[0]}`;
+        }
     }
 }
