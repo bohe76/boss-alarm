@@ -13,17 +13,18 @@
 
 **사용된 기술:**
 *   HTML5
-*   CSS3 (내장)
-*   바닐라 자바스크립트 (내장)
+*   CSS3 (외부 파일 `src/style.css`로 링크)
+*   바닐라 자바스크립트 (모듈화된 파일 `src/` 폴더 내에서 import하여 사용)
 *   웹 음성 API (`window.speechSynthesis`)
 *   TinyURL API (URL 단축용)
 
 ## 빌드 및 실행
 
-이 프로젝트는 단일 HTML 파일이며, 특별한 빌드 단계나 서버 측 구성 요소가 필요하지 않습니다.
+이 프로젝트는 클라이언트 측 웹 애플리케이션으로, HTML, CSS, JavaScript 모듈로 구성됩니다. 특별한 빌드 단계나 서버 측 구성 요소는 필요하지 않습니다.
 
 애플리케이션 실행 방법:
-1.  `index.html` 파일을 최신 웹 브라우저(예: Chrome, Firefox, Edge)에서 직접 엽니다.
+1.  `index.html` 파일을 최신 웹 브라우저(예: Chrome, Firefox, Edge)에서 엽니다.
+2.  **참고:** `file://` 프로토콜로 `index.html`을 직접 열 경우, 일부 브라우저에서 보안상의 이유로 `fetch` 요청(예: TinyURL API 호출, 도움말 문서 로드)이 CORS 오류로 실패할 수 있습니다. 모든 기능을 정상적으로 사용하려면, 로컬 웹 서버(예: VS Code Live Server 확장)를 사용하여 애플리케이션을 실행하는 것을 권장합니다.
 
 ## 사용법
 
@@ -37,6 +38,7 @@
 
 ## 개발 규칙
 
+*   **모듈화된 아키텍처:** 애플리케이션은 HTML, CSS, JavaScript로 구성된 클라이언트 측 단일 페이지 애플리케이션(SPA) 형태로, JavaScript 코드는 기능별로 `src/` 폴더 내의 여러 모듈 파일들로 분리되어 있습니다. 각 모듈은 명확한 책임을 가지며, 자세한 내용은 `docs/system_architecture.md`를 참조하십시오.
 *   애플리케이션의 기본 구조는 `index.html`에 정의되어 있으며, CSS는 외부 파일(`src/style.css`)로 링크되고, JavaScript 로직은 `src/` 폴더 내의 여러 모듈 파일들로 분리되어 `index.html`에서 import하여 사용됩니다.
 *   자바스크립트 코드는 다양한 기능 섹션(예: DOM 요소, 전역 변수, 음성 기능, 로깅, 파싱, 알림 확인, 이벤트 리스너)을 나타내는 주석과 함께 구조화되어 있습니다.
 *   TinyURL API와 같은 API 호출과 같은 비동기 작업을 처리하기 위해 `async/await`를 사용합니다.
