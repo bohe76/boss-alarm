@@ -117,12 +117,6 @@ export const LocalStorageManager = (() => {
         } else {
             sidebarExpandedState = false; // 기본값: 접힘
         }
-    }        const savedState = localStorage.getItem('alarmRunningState');
-        if (savedState !== null) {
-            alarmRunningState = JSON.parse(savedState);
-        } else {
-            alarmRunningState = false; // 기본값: OFF
-        }
     }
 
     return {

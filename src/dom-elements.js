@@ -39,6 +39,8 @@ export function initDomElements() {
         nextBossDisplay: document.getElementById('nextBossDisplay'),
         upcomingBossList: document.getElementById('upcomingBossList'), // New
         alarmStatusSummary: document.getElementById('alarmStatusSummary'), // New
+        alarmStatusText: document.getElementById('alarmStatusText'), // New
+        nextAlarmTimeDisplay: document.getElementById('nextAlarmTimeDisplay'), // New
         recentAlarmLog: document.getElementById('recentAlarmLog'), // New
 
         // Elements within Notification Settings Screen

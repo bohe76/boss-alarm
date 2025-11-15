@@ -1,10 +1,9 @@
 // src/ui-renderer.js
 
 import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Import managers
-import { initDomElements } from './dom-elements.js'; // Import DOM initializer
+import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRunning
+import { log, getLogs } from './logger.js'; // Import log and getLogs
 import { bossPresets } from './default-boss-list.js'; // Import bossPresets
-
-const DOM = initDomElements(); // Initialize DOM elements once
 
 // Helper function to format time difference
 function formatTimeDifference(ms) {
@@ -19,7 +18,7 @@ function formatTimeDifference(ms) {
 }
 
 // --- Dashboard Rendering Functions ---
-function updateNextBossDisplay() {
+export function updateNextBossDisplay(DOM) {
     const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
     if (nextBoss) {
         const remainingTimeString = formatTimeDifference(minTimeDiff);
@@ -29,7 +28,7 @@ function updateNextBossDisplay() {
     }
 }
 
-function renderUpcomingBossList() {
+export function renderUpcomingBossList(DOM) {
     const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
     const upcomingBosses = BossDataManager.getUpcomingBosses(3); // Get next 3 bosses
     let html = '<ul>';
@@ -46,8 +45,8 @@ function renderUpcomingBossList() {
     DOM.upcomingBossList.innerHTML = html;
 }
 
-function renderAlarmStatusSummary() {
-    const isAlarmRunning = LocalStorageManager.getIsAlarmRunning();
+export function renderAlarmStatusSummary(DOM) {
+    const isAlarmRunning = getIsAlarmRunning(); // Corrected call
     let statusText = isAlarmRunning ? '알림 실행 중' : '알림 중지됨';
     let nextAlarmTime = 'N/A';
 
@@ -71,14 +70,16 @@ function renderAlarmStatusSummary() {
         }
     }
 
-    DOM.alarmStatusSummary.innerHTML = `
-        <p>상태: <strong>${statusText}</strong></p>
-        <p>다음 알림: ${nextAlarmTime}</p>
-    `;
+    if (DOM.alarmStatusText) {
+        DOM.alarmStatusText.textContent = statusText;
+    }
+    if (DOM.nextAlarmTimeDisplay) {
+        DOM.nextAlarmTimeDisplay.textContent = nextAlarmTime;
+    }
 }
 
-function renderRecentAlarmLog() {
-    const logs = LocalStorageManager.getLogs(); // Assuming getLogs returns an array of log entries
+export function renderRecentAlarmLog(DOM) {
+    const logs = getLogs(); // Corrected call
     let html = '<ul>';
     if (logs.length > 0) {
         // Display last 3 logs
@@ -93,16 +94,16 @@ function renderRecentAlarmLog() {
     DOM.recentAlarmLog.innerHTML = html;
 }
 
-export function renderDashboard() {
-    updateNextBossDisplay();
-    renderUpcomingBossList();
-    renderAlarmStatusSummary();
-    renderRecentAlarmLog();
+export function renderDashboard(DOM) {
+    updateNextBossDisplay(DOM);
+    renderUpcomingBossList(DOM);
+    renderAlarmStatusSummary(DOM);
+    renderRecentAlarmLog(DOM);
 }
 
 // --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 ---
 // bossSchedule 배열의 내용을 기반으로 텍스트 영역을 업데이트합니다.
-export function updateBossListTextarea() { // Function signature remains unchanged
+export function updateBossListTextarea(DOM) { // Function signature remains unchanged
     const bossSchedule = BossDataManager.getBossSchedule(); // Get from manager
     const outputLines = [];
     for (let i = 0; i < bossSchedule.length; i++) {
@@ -121,7 +122,7 @@ export function updateBossListTextarea() { // Function signature remains unchang
 }
 
 // --- Boss Management Screen Rendering Functions ---
-export function renderBossPresets() {
+export function renderBossPresets(DOM) {
     if (!DOM.presetBossListSelect) return;
 
     DOM.presetBossListSelect.innerHTML = ''; // Clear existing options
@@ -136,8 +137,8 @@ export function renderBossPresets() {
 
 
 // --- 5.2. 고정 알림 목록 렌더링 함수 ---
-export function renderFixedAlarms(targetDiv) { // Removed DOM parameter
-    targetDiv.innerHTML = ''; // 기존 목록 초기화
+export function renderFixedAlarms(DOM) { // Added DOM parameter back
+    DOM.fixedAlarmListDiv.innerHTML = ''; // 기존 목록 초기화
 
     BossDataManager.getFixedBossSchedule().forEach((boss, index) => {
         const itemDiv = document.createElement('div');
@@ -158,7 +159,7 @@ export function renderFixedAlarms(targetDiv) { // Removed DOM parameter
             const currentStates = LocalStorageManager.getFixedAlarmStates(); // Use LocalStorageManager
             currentStates.individual[index] = event.target.checked;
             LocalStorageManager.setFixedAlarmStates(currentStates); // Use LocalStorageManager
-            updateFixedAlarmVisuals(); // Removed DOM parameter
+            updateFixedAlarmVisuals(DOM); // Added DOM parameter back
         });
         const sliderSpan = document.createElement('span');
         sliderSpan.className = 'slider round';
@@ -167,13 +168,13 @@ export function renderFixedAlarms(targetDiv) { // Removed DOM parameter
         switchLabel.appendChild(sliderSpan);
         itemDiv.appendChild(switchLabel);
 
-        targetDiv.appendChild(itemDiv);
+        DOM.fixedAlarmListDiv.appendChild(itemDiv);
     });
-    updateFixedAlarmVisuals(); // Removed DOM parameter // 초기 비주얼 업데이트
+    updateFixedAlarmVisuals(DOM); // Added DOM parameter back // 초기 비주얼 업데이트
 }
 
 // --- 5.3. 고정 알림 비주얼 업데이트 함수 (faded 효과) ---
-export function updateFixedAlarmVisuals() { // Removed DOM parameter
+export function updateFixedAlarmVisuals(DOM) { // Removed DOM parameter
     const fixedAlarmListDivElement = DOM.fixedAlarmListDiv; // Re-get the element
     if (!fixedAlarmListDivElement) return; // Guard against null if element not found
 
@@ -186,7 +187,7 @@ export function updateFixedAlarmVisuals() { // Removed DOM parameter
 }
 
 // --- Version Info Screen Rendering Functions ---
-export function renderVersionInfo() {
+export function renderVersionInfo(DOM) {
     const footer = document.querySelector('footer p');
     if (footer) {
         const versionMatch = footer.textContent.match(/v(\d+\.\d+\.\d+)/);

@@ -57,12 +57,12 @@ function showScreen(DOM, screenId) {
 
     // Special handling for dashboard screen
     if (screenId === 'dashboard-screen') {
-        renderDashboard(); // Render dashboard content when dashboard screen is active
+        renderDashboard(DOM); // Render dashboard content when dashboard screen is active
     }
 
     // Special handling for version info screen
     if (screenId === 'version-info-screen') {
-        renderVersionInfo();
+        renderVersionInfo(DOM);
     }
 
     // Special handling for help screen tabs
@@ -99,7 +99,7 @@ function initEventHandlers(DOM) {
     // Alarm Toggle Button
     DOM.alarmToggleButton.addEventListener('click', () => {
         if (!getIsAlarmRunning()) {
-            startAlarm();
+            startAlarm(DOM);
             DOM.alarmToggleButton.classList.remove('alarm-off');
             DOM.alarmToggleButton.classList.add('alarm-on');
             log("알림이 시작되었습니다.", true);
@@ -231,257 +231,68 @@ function initEventHandlers(DOM) {
 // Function to initialize the application
 
 export function initApp() {
-
     const DOM = initDomElements(); // Initialize DOM elements here
 
-
-
     // Initialize logger with the log container
-
     initLogger(DOM.logContainer);
 
-
-
     // 현재 페이지의 URL 파라미터(물음표 뒤)를 가져옴
-
     const params = new URLSearchParams(window.location.search);
-
     
-
-        // 'data'라는 이름의 파라미터가 있는지 확인
-
-    
-
-        if (params.has('data')) {
-
-    
-
-            const decodedData = decodeURIComponent(params.get('data'));
-
-    
-
-            DOM.bossListInput.value = decodedData;
-
-    
-
-            log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
-
-    
-
-        } else {
-
-    
-
-            DOM.bossListInput.value = bossPresets[0].list; // Use the first preset as default
-
-    
-
-            log("기본 보스 목록을 불러왔습니다. (URL 데이터 없음)");
-
-    
-
-        }
-
-
-
-    // 페이지 로드 시 보스 목록을 파싱하고 지난 보스를 제거
-
-    parseBossList(DOM.bossListInput);
-
-
-
-    // 고정 알림 상태 로드 및 렌더링
-
-    LocalStorageManager.init();
-
-    DOM.globalFixedAlarmToggle.checked = LocalStorageManager.getFixedAlarmStates().global;
-
-    
-
-    // fixedAlarmListDiv를 여기서 다시 가져와서 renderFixedAlarms에 전달
-
-    const fixedAlarmListDivElement = DOM.fixedAlarmListDiv;
-
-    renderFixedAlarms(fixedAlarmListDivElement);
-
-    // 알림 로그 가시성 상태 로드 및 적용
-
-    DOM.logVisibilityToggle.checked = LocalStorageManager.getLogVisibilityState();
-
-    if (LocalStorageManager.getLogVisibilityState()) {
-
-        DOM.logContainer.classList.remove('hidden');
-
+    // 'data'라는 이름의 파라미터가 있는지 확인
+    if (params.has('data')) {
+        const decodedData = decodeURIComponent(params.get('data'));
+        DOM.bossListInput.value = decodedData;
+        log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
     } else {
-
-        DOM.logContainer.classList.add('hidden');
-
+        DOM.bossListInput.value = bossPresets[0].list; // Use the first preset as default
+        log("기본 보스 목록을 불러왔습니다. (URL 데이터 없음)");
     }
 
+    // 페이지 로드 시 보스 목록을 파싱하고 지난 보스를 제거
+    parseBossList(DOM.bossListInput);
 
-
-        // Set initial alarm button state
-
-
-
-        if (getIsAlarmRunning()) {
-
-
-
-            DOM.alarmToggleButton.classList.add('alarm-on');
-
-
-
-        } else {
-
-
-
-            DOM.alarmToggleButton.classList.add('alarm-off');
-
-
-
-        }
-
-
-
+    // 고정 알림 상태 로드 및 렌더링
+    LocalStorageManager.init();
+    DOM.globalFixedAlarmToggle.checked = LocalStorageManager.getFixedAlarmStates().global;
     
+    // fixedAlarmListDiv를 여기서 다시 가져와서 renderFixedAlarms에 전달
+    renderFixedAlarms(DOM);
+    // 알림 로그 가시성 상태 로드 및 적용
+    DOM.logVisibilityToggle.checked = LocalStorageManager.getLogVisibilityState();
+    if (LocalStorageManager.getLogVisibilityState()) {
+        DOM.logContainer.classList.remove('hidden');
+    } else {
+        DOM.logContainer.classList.add('hidden');
+    }
 
+    // Set initial alarm button state
+    if (getIsAlarmRunning()) {
+        DOM.alarmToggleButton.classList.add('alarm-on');
+        startAlarm(DOM); // Start alarm if it was previously running
+    } else {
+        DOM.alarmToggleButton.classList.add('alarm-off');
+    }
 
+    // Set initial sidebar state
+    if (LocalStorageManager.getSidebarExpandedState()) {
+        DOM.sidebar.classList.add('expanded');
+    } else {
+        DOM.sidebar.classList.remove('expanded');
+    }
 
-        // Set initial sidebar state
+    // Show the initial screen (e.g., Dashboard)
+    showScreen(DOM, 'dashboard-screen');
+    // Set active class for initial navigation link
+    DOM.navDashboard.classList.add('active');
 
-
-
-        if (LocalStorageManager.getSidebarExpandedState()) {
-
-
-
-            DOM.sidebar.classList.add('expanded');
-
-
-
-        } else {
-
-
-
-            DOM.sidebar.classList.remove('expanded');
-
-
-
-        }
-
-
-
+    // Initialize all event handlers
+    initEventHandlers(DOM);
     
-
-
-
-        // Show the initial screen (e.g., Dashboard)
-
-
-
-        showScreen(DOM, 'dashboard-screen');
-
-
-
-        // Set active class for initial navigation link
-
-
-
-        DOM.navDashboard.classList.add('active');
-
-
-
+    // Render boss presets dropdown
+    renderBossPresets(DOM);
     
-
-
-
-                        // Initialize all event handlers
-
-
-
+    // Initial render of the dashboard
+    renderDashboard(DOM);
     
-
-
-
-                        initEventHandlers(DOM);
-
-
-
-    
-
-
-
-                
-
-
-
-    
-
-
-
-                        // Render boss presets dropdown
-
-
-
-    
-
-
-
-                        renderBossPresets();
-
-
-
-    
-
-
-
-                
-
-
-
-    
-
-
-
-                        // Initial render of the dashboard
-
-
-
-    
-
-
-
-                        renderDashboard();
-
-
-
-    
-
-
-
-                
-
-
-
-    
-
-
-
-                        // Update dashboard every second for countdowns
-
-
-
-    
-
-
-
-                        setInterval(renderDashboard, 1000);
-
-
-
-    
-
-
-
-                    }
+}
