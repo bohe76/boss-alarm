@@ -3,7 +3,7 @@
 import { log } from './logger.js';
 import { speak } from './speech.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Import managers
-import { updateBossListTextarea, renderDashboard } from './ui-renderer.js'; // Import UI function, renderDashboard
+import { updateBossListTextarea, renderDashboard, renderAlarmStatusSummary } from './ui-renderer.js'; // Import UI function, renderDashboard, renderAlarmStatusSummary
 
 let alertTimerId = null;
 let dashboardTimerId = null; // New variable for dashboard interval
@@ -16,29 +16,31 @@ export function startAlarm(DOM) { // Added DOM parameter
     speak("보스 알리미를 시작합니다.");
     log(`${BossDataManager.getBossSchedule().filter(item => item.type === 'boss').length}개의 보스가 목록에 있습니다.`, true);
     alertTimerId = setInterval(checkAlarms, 1000); // Simplified setInterval call
-    dashboardTimerId = setInterval(() => renderDashboard(DOM), 1000); // Start dashboard interval
+    dashboardTimerId = setInterval(() => renderDashboard(DOM), 1000); // Reintroduce dashboard interval
+    renderAlarmStatusSummary(DOM); // Update status immediately
 }
 
-export function stopAlarm() {
+export function stopAlarm(DOM) {
     // Removed: isAlarmRunning = false; // No longer needed
     LocalStorageManager.setAlarmRunningState(false); // Save state
     if (alertTimerId) {
         clearInterval(alertTimerId);
         alertTimerId = null;
     }
-    if (dashboardTimerId) { // Clear dashboard interval
+    if (dashboardTimerId) { // Reintroduce clearing dashboard interval
         clearInterval(dashboardTimerId);
         dashboardTimerId = null;
     }
     log("알림 시스템을 중지합니다.");
     speak("알리미를 중지합니다.");
+    renderAlarmStatusSummary(DOM); // Update status immediately
 }
 
 export function getIsAlarmRunning() {
     return LocalStorageManager.getAlarmRunningState(); // Get state from LocalStorageManager
 }
 
-function checkAlarms() { // Removed updateBossListTextarea parameter
+export function checkAlarms() { // Removed updateBossListTextarea parameter
     const now = new Date();
     const currentTimeString = now.toTimeString().substring(0, 5); 
 
@@ -174,7 +176,4 @@ function checkAlarms() { // Removed updateBossListTextarea parameter
 
     // 다음 보스 정보를 BossDataManager에 저장
     BossDataManager.setNextBossInfo(nextBoss, minTimeDiff);
-
-    // 매초 다음 보스 표시를 업데이트
-
 }

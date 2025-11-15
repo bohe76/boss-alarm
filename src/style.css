@@ -11,8 +11,8 @@ body {
         }
 
         header {
-            background-color: #333;
-            color: white;
+            background-color: #f8f8f8;
+            color: #111;
             padding: 10px 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             flex-shrink: 0; /* Prevent header from shrinking */
@@ -29,6 +29,7 @@ body {
         .header-container h1 {
             margin: 0;
             font-size: 1.8em;
+            white-space: nowrap;
         }
 
         .alarm-toggle-button {
@@ -37,25 +38,27 @@ body {
             cursor: pointer;
             padding: 5px;
             margin-left: 15px;
+            margin-bottom: 00px;
+            margin-top: 4px;
             margin-right: auto; /* Push help button to the right */
             display: flex;
-            align-items: center;
-            justify-content: center;
+            align-items: right;
+            justify-content: right;
         }
 
         .alarm-icon {
-            width: 28px;
-            height: 28px;
+            width: 56px;
+            height: 56px;
             color: #ccc; /* Default color (off state) */
             transition: color 0.3s ease;
         }
 
         .alarm-toggle-button.alarm-on .alarm-icon {
-            color: #34c759; /* Green for on state */
+            color: #d90007; /* Red for on state */
         }
 
         .alarm-toggle-button.alarm-off .alarm-icon {
-            color: #d90007; /* Red for off state */
+            color: #333; /* Darker gray for off state */
         }
 
 
@@ -192,10 +195,23 @@ body {
             margin-bottom: 15px;
         }
         .next-boss-highlight {
+            margin-bottom: 10px;
+        }
+        .next-boss-label {
+            font-size: 1.1em;
+            color: #111; /* Black color */
+            font-weight: bold;
+        }
+        .boss-details-highlight {
             color: #d90007; /* Red color */
             font-weight: bold;
-            margin-bottom: 10px;
-            font-size: 1.1em;
+            font-size: 1.5em;
+        }
+        .alarm-status-running {
+            color: #d90007; /* Red color for running state */
+        }
+        #alarmStatusSummary {
+            margin-bottom: 20px; /* Add spacing below alarm status */
         }
         .remaining-time {
             color: #007aff; /* Blue color for remaining time */

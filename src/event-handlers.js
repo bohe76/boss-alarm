@@ -1,8 +1,8 @@
 // src/event-handlers.js
 
 import { parseBossList } from './boss-parser.js';
-import { startAlarm, stopAlarm, getIsAlarmRunning } from './alarm-scheduler.js';
-import { updateBossListTextarea, renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo } from './ui-renderer.js';
+import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-scheduler.js';
+import { updateBossListTextarea, renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary } from './ui-renderer.js';
 import { getShortUrl, loadMarkdownContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js';
@@ -68,7 +68,7 @@ function initEventHandlers(DOM) {
             DOM.alarmToggleButton.classList.add('alarm-on');
             log("알림이 시작되었습니다.", true);
         } else {
-            stopAlarm();
+            stopAlarm(DOM);
             DOM.alarmToggleButton.classList.remove('alarm-on');
             DOM.alarmToggleButton.classList.add('alarm-off');
             log("알림이 중지되었습니다.", true);
@@ -248,12 +248,16 @@ export function initApp() {
     }
 
     // Set initial alarm button state
-    if (getIsAlarmRunning()) {
+    const isAlarmRunningInitially = getIsAlarmRunning();
+    if (isAlarmRunningInitially) {
         DOM.alarmToggleButton.classList.add('alarm-on');
+        DOM.alarmToggleButton.classList.remove('alarm-off'); // Ensure off class is removed
         startAlarm(DOM); // Start alarm if it was previously running
     } else {
         DOM.alarmToggleButton.classList.add('alarm-off');
+        DOM.alarmToggleButton.classList.remove('alarm-on'); // Ensure on class is removed
     }
+    renderAlarmStatusSummary(DOM); // Update status immediately after setting initial state
 
     // Set initial sidebar state
     if (LocalStorageManager.getSidebarExpandedState()) {
@@ -271,6 +275,7 @@ export function initApp() {
     initEventHandlers(DOM);
     
     // Initial render of the dashboard
+    checkAlarms(); // Call checkAlarms once immediately
     renderDashboard(DOM);
     
 }

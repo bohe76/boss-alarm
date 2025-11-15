@@ -12,7 +12,7 @@
             <h1>🎙️ 보스 알리미</h1>
             <button id="alarmToggleButton" class="alarm-toggle-button">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="alarm-icon">
-                    <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.93 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold">ON</text>
                 </svg>
             </button>
 
@@ -97,9 +97,10 @@
                     <!-- Upcoming boss list will be rendered here by JavaScript -->
                 </div>
                 <div id="alarmStatusSummary">
-                    <h3>알림 상태: <span id="alarmStatusText"></span></h3>
-                    <p>다음 알림: <span id="nextAlarmTimeDisplay"></span></p>
+                    <h3>알림 상태</h3>
+                    <div id="alarmStatusText"></div>
                 </div>
+                <span class="next-boss-label">알림 로그</span>
                 <div id="recentAlarmLog">
                     <h3>최근 알림 로그</h3>
                     <!-- Recent alarm log entries will be rendered here by JavaScript -->

@@ -22,7 +22,7 @@ export function updateNextBossDisplay(DOM) {
     const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
     if (nextBoss) {
         const remainingTimeString = formatTimeDifference(minTimeDiff);
-        DOM.nextBossDisplay.innerHTML = `다음 보스: ${nextBoss.time} ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span>`;
+        DOM.nextBossDisplay.innerHTML = `<span class="next-boss-label">다음 보스</span><br><span class="boss-details-highlight">${nextBoss.time} ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span></span>`;
     } else {
         DOM.nextBossDisplay.textContent = '다음 보스 없음';
     }
@@ -46,35 +46,16 @@ export function renderUpcomingBossList(DOM) {
 }
 
 export function renderAlarmStatusSummary(DOM) {
-    const isAlarmRunning = getIsAlarmRunning(); // Corrected call
+    const isAlarmRunning = getIsAlarmRunning();
     let statusText = isAlarmRunning ? '알림 실행 중' : '알림 중지됨';
-    let nextAlarmTime = 'N/A';
-
-    if (isAlarmRunning) {
-        const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
-        if (nextBoss && minTimeDiff > 0) {
-            const nextAlarmTimestamp = nextBoss.timestamp;
-            const fiveMinBefore = nextAlarmTimestamp - (5 * 60 * 1000);
-            const oneMinBefore = nextAlarmTimestamp - (1 * 60 * 1000);
-
-            const now = Date.now();
-            if (now < fiveMinBefore) {
-                nextAlarmTime = `5분 전 알림: ${new Date(fiveMinBefore).toLocaleTimeString()}`;
-            } else if (now < oneMinBefore) {
-                nextAlarmTime = `1분 전 알림: ${new Date(oneMinBefore).toLocaleTimeString()}`;
-            } else if (now < nextAlarmTimestamp) {
-                nextAlarmTime = `보스 출현 알림: ${new Date(nextAlarmTimestamp).toLocaleTimeString()}`;
-            } else {
-                nextAlarmTime = '곧 다음 알림 예정';
-            }
-        }
-    }
 
     if (DOM.alarmStatusText) {
         DOM.alarmStatusText.textContent = statusText;
-    }
-    if (DOM.nextAlarmTimeDisplay) {
-        DOM.nextAlarmTimeDisplay.textContent = nextAlarmTime;
+        if (isAlarmRunning) {
+            DOM.alarmStatusText.classList.add('alarm-status-running');
+        } else {
+            DOM.alarmStatusText.classList.remove('alarm-status-running');
+        }
     }
 }
 
@@ -97,7 +78,6 @@ export function renderRecentAlarmLog(DOM) {
 export function renderDashboard(DOM) {
     updateNextBossDisplay(DOM);
     renderUpcomingBossList(DOM);
-    renderAlarmStatusSummary(DOM);
     renderRecentAlarmLog(DOM);
 }
 
