@@ -1,0 +1,129 @@
+# 오딘 보스 알리미 코드 리팩토링 보고서 (v1.0.0)
+
+**작성자:** Gemini CLI Agent
+**날짜:** 2025년 11월 13일
+
+**개요:**
+현재 "오딘 보스 알리미" 프로젝트는 단일 `index.html` 파일 내에 모든 HTML, CSS, JavaScript 로직이 포함된 형태로 구현되어 있습니다. 이는 초기 프로토타이핑 및 소규모 프로젝트에는 적합할 수 있으나, 기능이 복잡해지고 유지보수 및 확장이 필요해질수록 여러 문제점을 야기합니다. 최근 코드 수정 과정에서 다른 코드에 미치는 영향이 커진다는 사용자님의 피드백은 이러한 문제점들이 현실화되고 있음을 시사합니다. 본 보고서는 현재 코드베이스의 주요 문제점을 진단하고, 시니어 개발자의 관점에서 더 견고하고 유지보수하기 쉬운 구조로 개선하기 위한 리팩토링 방안을 제안합니다.
+
+---
+
+**현재 코드베이스 분석 (문제점):**
+
+1.  **아키텍처 및 구조적 문제:**
+    *   **단일 파일 아키텍처:** 모든 로직(HTML, CSS, JS)이 `index.html` 파일 하나에 응집되어 있어, 특정 기능 수정 시 전체 파일을 탐색해야 하고, 실수로 다른 기능에 영향을 줄 가능성이 매우 높습니다. (사용자님의 "다른 코드에 영향을 많이 미치고 있어"라는 피드백과 일치)
+    *   **전역 변수 남용:** `bossSchedule`, `fixedBossSchedule`, `isAlarmRunning`, `alertTimerId` 등 다수의 변수가 전역 스코프에 선언되어 있습니다. 이는 변수 간의 의도치 않은 충돌, 상태 추적의 어려움, 그리고 코드의 예측 불가능성을 증가시킵니다.
+    *   **강한 결합 (Tight Coupling):**
+        *   JavaScript 로직이 특정 DOM 요소(`bossListInput`, `startButton` 등)에 직접 의존하고 있습니다. DOM 구조가 변경되면 JavaScript 코드도 함께 수정되어야 합니다.
+        *   함수들이 서로의 내부 구현에 깊이 의존하고 있어, 한 함수의 변경이 다른 함수에 연쇄적인 영향을 미칩니다. (예: `parseBossList`가 `updateBossListTextarea`를 직접 호출)
+    *   **관심사 분리 부족 (Lack of Separation of Concerns):**
+        *   `parseBossList` 함수는 텍스트 파싱, 날짜 계산, 과거 보스 필터링, 그리고 `bossSchedule` 업데이트까지 여러 책임을 동시에 가집니다.
+        *   `checkAlarms` 함수는 일반 보스 알림, 고정 알림 체크, 자정 초기화, 그리고 `updateBossListTextarea` 호출까지 다양한 역할을 수행합니다.
+
+2.  **코드 품질 문제 (SOLID 원칙 위반):**
+    *   **단일 책임 원칙 (SRP) 위반:** 위에서 언급했듯이, 대부분의 주요 함수들이 너무 많은 책임을 지고 있습니다. 이는 함수를 이해하고 수정하기 어렵게 만듭니다.
+    *   **개방-폐쇄 원칙 (OCP) 위반:** 새로운 알림 유형을 추가하거나, 알림 로직을 변경할 때 기존 `checkAlarms` 함수를 직접 수정해야 합니다. 이는 확장에 대해 닫혀 있지 않고, 수정에 대해 열려 있는 구조입니다.
+    *   **의존성 역전 원칙 (DIP) 위반:** 고수준 모듈(예: 알람 시스템)이 저수준 모듈(예: 특정 DOM 조작, 전역 변수)에 직접 의존하고 있습니다. 이는 유연성을 떨어뜨리고 테스트를 어렵게 만듭니다.
+
+3.  **유지보수 및 확장성 문제:**
+    *   **재사용성 부족:** 특정 로직(예: 날짜 파싱, DOM 업데이트)이 다른 곳에서 필요할 때, 현재 구조에서는 재사용하기 어렵습니다.
+    *   **테스트 용이성 부족:** 전역 상태와 DOM에 강하게 결합된 함수들은 단위 테스트를 작성하기 매우 어렵습니다.
+    *   **디버깅의 어려움:** 전역 변수가 많고 함수 간의 의존성이 복잡하여 버그 발생 시 원인을 추적하기 어렵습니다.
+
+---
+
+**리팩토링 목표:**
+
+*   **모듈화 및 관심사 분리:** 각 기능이 독립적인 모듈로 존재하며, 명확한 책임만 가지도록 합니다.
+*   **결합도 감소 및 응집도 증가:** 모듈 간의 의존성을 최소화하고, 각 모듈 내의 요소들은 강하게 연관되도록 합니다.
+*   **가독성 및 유지보수성 향상:** 코드를 더 쉽게 이해하고 수정할 수 있도록 합니다.
+*   **확장성 및 테스트 용이성 확보:** 새로운 기능을 추가하거나 기존 기능을 변경할 때, 최소한의 수정으로 가능하도록 합니다.
+
+---
+
+**리팩토링 제안 (단계별 접근):**
+
+본 리팩토링은 점진적으로 진행하는 것이 안전하며, 각 단계마다 기능이 정상 작동하는지 확인해야 합니다.
+
+**1단계: DOM 요소 및 전역 변수 캡슐화**
+*   **목표:** 전역 스코프에 선언된 DOM 요소 참조와 상태 변수들을 특정 모듈 또는 클래스 내로 이동시켜 전역 오염을 줄입니다.
+*   **세부 계획:**
+    *   모든 `document.getElementById()` 호출을 한 곳으로 모아 초기화 함수를 만듭니다.
+    *   `bossSchedule`, `fixedBossSchedule`, `isAlarmRunning`, `alertTimerId`, `fixedAlarmStates`, `logVisibilityState` 등의 전역 변수들을 관련 로직을 캡슐화하는 객체나 모듈 내부로 이동시킵니다.
+    *   `localStorage` 접근 로직(`saveFixedAlarmStates`, `loadFixedAlarmStates`, `saveLogVisibilityState`, `loadLogVisibilityState`)을 별도의 유틸리티 모듈로 분리합니다.
+
+**2단계: 기능별 모듈 분리**
+*   **목표:** SRP에 따라 각 기능을 독립적인 JavaScript 파일(모듈)로 분리합니다.
+*   **세부 계획:**
+    *   **`dom-elements.js`:** 모든 DOM 요소 참조를 관리하는 모듈.
+    *   **`logger.js`:** `log` 함수와 `logContainer` 관련 로직을 캡슐화.
+    *   **`speech-synth.js`:** `speak` 함수와 `window.speechSynthesis` 관련 로직을 캡슐화.
+    *   **`boss-parser.js`:** `parseBossList` 함수와 보스 목록 파싱 및 날짜 계산 로직을 캡슐화. `bossSchedule` 상태를 관리.
+    *   **`alarm-scheduler.js`:** `checkAlarms` 함수와 `setInterval` 타이머 관리, 알림 로직(5분 전, 1분 전, 정각)을 캡슐화. `bossSchedule`과 `fixedBossSchedule`을 인자로 받아 처리.
+    *   **`ui-renderer.js`:** `updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `nextBossDisplay` 업데이트 등 UI 렌더링 및 업데이트 로직을 캡슐화.
+    *   **`api-service.js`:** `getShortUrl` 함수와 TinyURL API 호출 로직을 캡슐화.
+    *   **`event-handlers.js`:** `startButton`, `shareButton`, `copyButton`, `globalFixedAlarmToggle`, `logVisibilityToggle` 등 모든 이벤트 리스너를 관리. 각 이벤트 핸들러는 위에서 분리된 모듈의 함수들을 호출하도록 변경.
+
+**진행 상황 업데이트:**
+
+*   **`alarm-scheduler.js` 모듈 분리 완료:**
+    *   `index.html`에서 전역 `alertTimerId` 및 `isAlarmRunning` 변수 제거.
+    *   `index.html`에서 `checkAlarms` 함수 제거.
+    *   `index.html`의 `startButton` 이벤트 리스너를 `alarm-scheduler.js`에서 가져온 `startAlarm`, `stopAlarm`, `getIsAlarmRunning` 함수를 사용하도록 업데이트.
+    *   `LocalStorageManager`의 `loadFixedAlarmStates` 및 `loadLogVisibilityState` 함수 내의 재귀적 `save` 호출 문제 해결.
+    *   `index.html` 내 `renderFixedAlarms` 함수에서 `LocalStorageManager` 접근 방식 수정.
+    *   `index.html` 내 `startButton` 이벤트 리스너의 중복 주석 제거.
+*   **`file://` 프로토콜 문제 해결:**
+    *   `script type="module"`을 사용하는 JavaScript 모듈은 `file://` 프로토콜로 직접 파일을 열 경우 브라우저의 보안 제한(CORS)으로 인해 로드되지 않는 문제 확인.
+    *   VS Code의 Live Server와 같은 로컬 웹 서버를 통해 `index.html`을 실행했을 때 모든 기능이 정상 작동함을 사용자 확인.
+    *   이는 `alarm-scheduler.js` 모듈 분리 및 관련 수정 사항이 성공적으로 적용되었음을 의미함.
+*   **`ui-renderer.js` 모듈 분리 완료:**
+    *   `index.html`에서 `updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals` 함수를 `src/ui-renderer.js`로 이동.
+    *   `index.html`에서 해당 함수들을 `src/ui-renderer.js`에서 import하여 사용하도록 업데이트.
+    *   `updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals` 함수들이 필요한 종속성(`DOM`, `BossDataManager`, `LocalStorageManager`)을 인자로 전달받도록 수정.
+*   **음성 알림 중첩 문제 해결:**
+    *   `src/speech.js`의 `speak` 함수에서 `window.speechSynthesis.cancel()` 호출을 제거하고, 음성 발화 큐잉 메커니즘을 구현하여 여러 알림이 순차적으로 재생되도록 수정.
+    *   테스트 시나리오를 통해 겹치는 알림이 모두 정상적으로 음성 출력됨을 사용자 확인.
+*   **`api-service.js` 모듈 분리 완료:**
+    *   `index.html`에서 `getShortUrl` 함수를 `src/api-service.js`로 이동.
+    *   `index.html`에서 해당 함수를 `src/api-service.js`에서 import하여 사용하도록 업데이트.
+    *   TinyURL API 호출 및 URL 단축 기능이 정상 작동함을 사용자 확인.
+*   **`event-handlers.js` 모듈 분리 완료:**
+    *   `index.html`에 있던 모든 이벤트 리스너(`startButton`, `shareButton`, `copyButton`, `globalFixedAlarmToggle`, `logVisibilityToggle` 관련)를 `src/event-handlers.js`로 이동.
+    *   `src/event-handlers.js`에 `initEventHandlers` 함수를 생성하여 모든 이벤트 리스너를 초기화하도록 캡슐화.
+    *   `src/event-handlers.js`에 `initApp` 함수를 생성하여 애플리케이션 초기화 로직과 `initEventHandlers` 호출을 포함하도록 함.
+    *   `index.html`의 `window.addEventListener('load')`에서 `initApp`을 호출하도록 업데이트.
+    *   모든 이벤트 핸들러 기능이 정상 작동함을 사용자 확인.
+*   **`data-managers.js` 모듈 분리 및 의존성 주입 개선 완료:**
+    *   `index.html`에 직접 정의되어 있던 `BossDataManager`와 `LocalStorageManager` IIFE를 `src/data-managers.js`로 이동 및 모듈화.
+    *   `index.html`에서 `BossDataManager`와 `LocalStorageManager` 정의를 제거하고, `src/data-managers.js`에서 import하여 사용하도록 업데이트.
+    *   `alarm-scheduler.js`, `ui-renderer.js`, `event-handlers.js`, `boss-parser.js` 등 `BossDataManager` 또는 `LocalStorageManager`를 인자로 받던 함수들의 시그니처를 단순화하고, 해당 모듈에서 직접 import하여 사용하도록 변경.
+    *   **버그 수정:** `ui-renderer.js`의 `updateBossListTextarea` 함수가 `DOM` 객체 없이 호출되어 UI 업데이트가 되지 않던 문제 해결. `ui-renderer.js`가 `dom-elements.js`를 직접 import하여 `DOM` 객체를 모듈 스코프에서 초기화하도록 수정.
+    *   모든 기능(다음 보스 표시, 알림 후 보스 삭제 등)이 정상 작동함을 사용자 확인.
+*   **`boss-parser.js` 오류 처리 개선 완료:**
+    *   `parseBossList` 함수에 `try-catch` 블록을 추가하여 일반적인 파싱 오류를 처리.
+    *   시간 형식(`HH:MM`) 및 날짜 값(월 1-12, 일 1-31)에 대한 유효성 검사를 강화하고, 유효하지 않은 입력에 대해 경고 로그를 출력하도록 수정.
+    *   누락된 보스 이름에 대한 검사를 추가하고 경고 로그를 출력하도록 수정.
+    *   빈 보스 목록 입력에 대한 처리 및 로그 메시지 추가.
+    *   개선된 오류 처리 기능이 정상 작동함을 사용자 확인.
+*   **CSS 분리 완료:**
+    *   `index.html` 파일 내에 인라인으로 포함되어 있던 모든 CSS 스타일을 `src/style.css` 파일로 분리.
+    *   `index.html`에서 `<style>` 태그를 제거하고 `src/style.css`를 참조하는 `<link rel="stylesheet" href="src/style.css">` 태그로 대체.
+    *   CSS 분리 후에도 애플리케이션의 모든 스타일이 정상적으로 적용됨을 사용자 확인.
+
+**3단계: 의존성 주입 및 이벤트 기반 통신**
+*   **목표:** 모듈 간의 직접적인 의존성을 줄이고, 유연성을 높입니다.
+*   **세부 계획:**
+    *   모듈들이 서로의 전역 변수에 직접 접근하는 대신, 필요한 데이터를 함수 인자로 전달받도록 변경합니다 (의존성 주입).
+    *   복잡한 상태 변경이나 모듈 간의 통신이 필요한 경우, 커스텀 이벤트(CustomEvent)를 활용한 이벤트 기반 통신 패턴을 고려합니다. (예: `boss-parser`가 `bossSchedule`을 업데이트하면 `ui-renderer`가 이를 감지하여 UI를 업데이트)
+
+**4단계: 오류 처리 개선**
+*   **목표:** 애플리케이션 전반에 걸쳐 일관되고 견고한 오류 처리 메커니즘을 구축합니다.
+*   **세부 계획:**
+    *   API 호출(`getShortUrl`) 외에도 `parseBossList` 등에서 발생할 수 있는 잠재적 오류(예: 잘못된 입력 형식)에 대한 예외 처리를 강화합니다.
+    *   사용자에게 오류를 명확하게 알리는 UI 피드백 메커니즘을 구현합니다.
+
+---
+
+**결론:**
+제안된 리팩토링은 현재 "오딘 보스 알리미" 프로젝트의 단일 파일 아키텍처와 강한 결합으로 인한 문제점들을 해결하고, 더 모듈화되고 유지보수하기 쉬운 코드를 만드는데 기여할 것입니다. 이는 장기적으로 기능 추가 및 변경에 드는 비용을 줄이고, 코드의 안정성과 품질을 향상시킬 것입니다. 이 과정은 점진적으로 진행되어야 하며, 각 단계마다 충분한 테스트를 통해 기능의 무결성을 확보해야 합니다.
