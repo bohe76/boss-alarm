@@ -129,6 +129,14 @@ function initEventHandlers(DOM) {
 
 
 
+    // --- Boss Management Screen Event Handlers ---
+    // Update boss schedule when textarea input changes
+    DOM.bossListInput.addEventListener('input', () => {
+        parseBossList(DOM.bossListInput);
+        renderDashboard(DOM); // Re-render dashboard to reflect changes
+    });
+
+
     // --- Notification Settings Screen Event Handlers ---
     // The global fixed alarm toggle logic is removed as fixed alarms are now individually managed.
 
