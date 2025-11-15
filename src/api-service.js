@@ -21,3 +21,19 @@ export async function getShortUrl(longUrl) {
         return null; // 실패 시 null 반환
     }
 }
+
+// Helper function to load markdown content
+export async function loadMarkdownContent(filePath) {
+    try {
+        const cacheBuster = Date.now(); // Or a version number if preferred
+        const response = await fetch(`${filePath}?v=${cacheBuster}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const markdown = await response.text();
+        return markdown;
+    } catch (error) {
+        console.error(`Failed to load markdown from ${filePath}:`, error);
+        return `콘텐츠를 불러오는 데 실패했습니다: ${error.message}`;
+    }
+}

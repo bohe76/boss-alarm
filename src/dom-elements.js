@@ -4,7 +4,7 @@ export function initDomElements() {
     return {
         // Global Layout Elements
         alarmToggleButton: document.getElementById('alarmToggleButton'),
-        helpButton: document.getElementById('helpButton'), // Still in header
+
         sidebar: document.getElementById('sidebar'),
         sidebarToggle: document.getElementById('sidebarToggle'), // New
         mainContentArea: document.getElementById('main-content-area'),
@@ -29,9 +29,6 @@ export function initDomElements() {
 
         // Elements within Boss Management Screen
         bossListInput: document.getElementById('bossListInput'),
-        shareButton: document.getElementById('shareButton'),
-        shareLinkInput: document.getElementById('shareLinkInput'),
-        copyButton: document.getElementById('copyButton'),
         presetBossListSelect: document.getElementById('presetBossListSelect'), // New
         applyPresetButton: document.getElementById('applyPresetButton'), // New
 
@@ -52,12 +49,15 @@ export function initDomElements() {
         logVisibilityToggle: document.getElementById('logVisibilityToggle'),
 
         // Elements within Version Info Screen
-        appVersion: document.getElementById('appVersion'), // New
+        versionHistoryContent: document.getElementById('versionHistoryContent'),
+
+        // Elements within Version Info Screen
+        versionHistoryContent: document.getElementById('versionHistoryContent'),
+
+        // Elements within Share Screen
+        shareMessage: document.getElementById('shareMessage'),
 
         // Elements within Help Screen
-        featureGuideTabButton: document.querySelector('#help-screen .tab-button[data-tab="featureGuide"]'),
-        versionHistoryTabButton: document.querySelector('#help-screen .tab-button[data-tab="versionHistory"]'),
         featureGuideContent: document.getElementById('featureGuideContent'),
-        versionHistoryContent: document.getElementById('versionHistoryContent'),
     };
 }

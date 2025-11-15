@@ -4,6 +4,7 @@ import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Im
 import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRunning
 import { log, getLogs } from './logger.js'; // Import log and getLogs
 import { bossPresets } from './default-boss-list.js'; // Import bossPresets
+import { loadMarkdownContent } from './api-service.js'; // Import loadMarkdownContent
 
 // Helper function to format time difference
 function formatTimeDifference(ms) {
@@ -187,12 +188,9 @@ export function updateFixedAlarmVisuals(DOM) { // Removed DOM parameter
 }
 
 // --- Version Info Screen Rendering Functions ---
-export function renderVersionInfo(DOM) {
-    const footer = document.querySelector('footer p');
-    if (footer) {
-        const versionMatch = footer.textContent.match(/v(\d+\.\d+\.\d+)/);
-        if (versionMatch && DOM.appVersion) {
-            DOM.appVersion.textContent = `현재 버전: ${versionMatch[0]}`;
-        }
+export async function renderVersionInfo(DOM) {
+    const versionHistoryContent = await loadMarkdownContent('docs/version_history.txt');
+    if (DOM.versionHistoryContent) {
+        DOM.versionHistoryContent.innerHTML = `<pre>${versionHistoryContent}</pre>`;
     }
 }

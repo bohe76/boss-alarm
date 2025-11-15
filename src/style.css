@@ -58,19 +58,7 @@ body {
             color: #d90007; /* Red for off state */
         }
 
-        .help-button {
-            width: auto;
-            padding: 8px 15px;
-            background-color: #555;
-            color: white;
-            font-size: 14px;
-            border-radius: 5px;
-            z-index: 1000;
-            margin-left: 15px; /* Space from alarm button */
-        }
-        .help-button:hover {
-            background-color: #666;
-        }
+
 
         #full-height-content { /* New container for sidebar and main content */
             display: flex;
@@ -231,44 +219,9 @@ body {
         #startButton.running { background-color: #d90007; }
         #startButton.running:hover { background-color: #b30006; }
 
-        /* 공유 링크 생성 버튼 */
-        #shareButton { background-color: #34c759; color: white; }
-        #shareButton:hover { background-color: #2a9e48; }
-        #shareButton:disabled { background-color: #aaa; cursor: not-allowed; }
+
         
-        /* 링크 입력창 + 복사 버튼 그룹 */
-        .input-group {
-            display: flex;
-            width: 100%;
-            align-items: center;
-        }
-        
-        /* 링크 표시창 */
-        #shareLinkInput {
-            flex-grow: 1; /* 남는 공간을 모두 차지 */
-            padding: 10px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 8px 0 0 8px; /* 왼쪽 모서리 */
-            background-color: #eee;
-            margin: 0;
-            /* input 태그의 기본 스타일 초기화 */
-            border-right: none;
-        }
-        
-        /* 복사 버튼 */
-        #copyButton {
-            width: auto; /* 내용에 맞게 너비 조절 */
-            padding: 10px 15px;
-            font-size: 14px;
-            margin: 0;
-            border-radius: 0 8px 8px 0; /* 오른쪽 모서리 */
-            background-color: #6c757d;
-            color: white;
-        }
-        #copyButton:hover {
-            background-color: #5a6268;
-        }
+
 
         /* 알림 로그 창 */
         #log-container {
@@ -434,65 +387,43 @@ body {
             text-decoration: none;
         }
 
-        /* Tab Styles */
-        .tab-container {
-            overflow: hidden;
-            background-color: #333; /* Slightly different background */
-            border-radius: 12px 12px 0 0; /* Match modal-content top radius */
-            padding: 10px 20px 0; /* Padding for tabs */
-            flex-shrink: 0; /* Prevent shrinking */
-        }
 
-        .tab-button {
-            background-color: #555; /* Softer default */
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 10px 0;
-            transition: background-color 0.3s, color 0.3s, border-bottom 0.3s;
-            font-size: 16px;
-            border-radius: 5px 5px 0 0;
-            margin-right: 8px; /* Slightly more space */
-            margin-bottom: 0px;
-            float: left;
-            width: 150px;
-            text-align: center;
-            font-weight: normal;
-            color: #999;
-        }
 
-        .tab-button:hover {
-            background-color: #666;
-        }
 
-        .tab-button.active {
-            background-color: #f8f8f8;
-            color: #333;
-            font-weight: bold;
-        }
 
-        /* Modal Body for scrollable content */
-        .modal-body {
-            flex-grow: 1; /* Take remaining space */
-            overflow-y: auto; /* Scrollable content */
-            padding: 20px; /* Padding for the content */
-        }
 
-        .tab-content {
-            display: none;
-            /* padding: 6px 12px; Removed padding from here, moved to modal-body */
-            border-top: none;
-        }
 
-        .tab-content.active {
-            display: block;
-        }
+
 
         .tab-content pre {
             white-space: pre-wrap;
             word-wrap: break-word;
             background-color: #f8f8f8;
             border: none; /* Remove border */
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        /* Styles for version history content to ensure text wrapping */
+        #versionHistoryContent pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #f8f8f8;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        /* Styles for feature guide content to ensure text wrapping */
+        #featureGuideContent pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #f8f8f8;
+            border: none;
             padding: 10px;
             border-radius: 5px;
             font-size: 0.9em;

@@ -3,34 +3,13 @@
 import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning } from './alarm-scheduler.js';
 import { updateBossListTextarea, renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderBossPresets, renderVersionInfo } from './ui-renderer.js';
-import { getShortUrl } from './api-service.js';
+import { getShortUrl, loadMarkdownContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
 import { bossPresets } from './default-boss-list.js'; // Import bossPresets
 
-// Helper function to load markdown content
 
-async function loadMarkdownContent(DOM, filePath, targetElement) {
-
-    try {
-
-        const cacheBuster = Date.now(); // Or a version number if preferred
-        const response = await fetch(`${filePath}?v=${cacheBuster}`);
-
-        const markdown = await response.text(); // Get text from the first response
-
-        targetElement.innerHTML = `<pre>${markdown}</pre>`; // Revert to displaying raw text
-
-    } catch (error) {
-
-        console.error(`Failed to load markdown from ${filePath}:`, error);
-
-        targetElement.innerHTML = `<p>콘텐츠를 불러오는 데 실패했습니다.</p>`;
-
-    }
-
-}
 
 // Function to show a specific screen and hide others
 function showScreen(DOM, screenId) {
@@ -65,32 +44,17 @@ function showScreen(DOM, screenId) {
         renderVersionInfo(DOM);
     }
 
-    // Special handling for help screen tabs
+    // Special handling for help screen
     if (screenId === 'help-screen') {
-        // Ensure feature guide is loaded and active by default when opening help screen
-        switchHelpTab(DOM, 'featureGuide');
+        // Directly load feature guide content when opening help screen
+        (async () => {
+            const markdownContent = await loadMarkdownContent('docs/feature_guide.txt');
+            DOM.featureGuideContent.innerHTML = `<pre>${markdownContent}</pre>`;
+        })();
     }
 }
 
-// Function to switch between help tabs (now internal to help screen logic)
-function switchHelpTab(DOM, tabName) {
-    // Deactivate all tab buttons and content
-    DOM.featureGuideTabButton.classList.remove('active');
-    DOM.versionHistoryTabButton.classList.remove('active');
-    DOM.featureGuideContent.classList.remove('active');
-    DOM.versionHistoryContent.classList.remove('active');
 
-    // Activate the selected tab button and content
-    if (tabName === 'featureGuide') {
-        DOM.featureGuideTabButton.classList.add('active');
-        DOM.featureGuideContent.classList.add('active');
-        loadMarkdownContent(DOM, 'docs/feature_guide.txt', DOM.featureGuideContent);
-    } else if (tabName === 'versionHistory') {
-        DOM.versionHistoryTabButton.classList.add('active');
-        DOM.versionHistoryContent.classList.add('active');
-        loadMarkdownContent(DOM, 'docs/version_history.txt', DOM.versionHistoryContent);
-    }
-}
 
 
 // Function to initialize all event handlers
@@ -112,8 +76,7 @@ function initEventHandlers(DOM) {
         // Store alarm state in LocalStorageManager if needed
     });
 
-    // Help Button (now switches to help screen)
-    DOM.helpButton.addEventListener('click', () => showScreen(DOM, 'help-screen'));
+
 
     // --- Sidebar Navigation Event Handlers ---
     DOM.sidebarToggle.addEventListener('click', () => {
@@ -133,7 +96,7 @@ function initEventHandlers(DOM) {
 
     navLinks.forEach(link => {
         if (link) {
-            link.addEventListener('click', (event) => {
+            link.addEventListener('click', async (event) => { // Added async here
                 event.preventDefault(); // Prevent default link behavior
                 const screenId = event.currentTarget.dataset.screen;
                 showScreen(DOM, screenId);
@@ -142,6 +105,30 @@ function initEventHandlers(DOM) {
                 navLinks.forEach(l => l.classList.remove('active'));
                 // Add active class to the clicked link
                 event.currentTarget.classList.add('active');
+
+                if (screenId === 'share-screen') {
+                    DOM.shareMessage.textContent = "링크가 생성 중 입니다. 잠시만 기다려 주세요..";
+                    const currentData = DOM.bossListInput.value;
+                    const encodedData = encodeURIComponent(currentData);
+                    const baseUrl = window.location.href.split('?')[0];
+                    const longUrl = `${baseUrl}?data=${encodedData}`;
+
+                    const shortUrl = await getShortUrl(longUrl);
+
+                    if (shortUrl) {
+                        navigator.clipboard.writeText(shortUrl).then(() => {
+                            DOM.shareMessage.textContent = "클립 보드에 복사 되었습니다.";
+                            log("단축 URL이 클립보드에 복사되었습니다.", true);
+                        }).catch(err => {
+                            DOM.shareMessage.textContent = `클립보드 복사 실패: ${shortUrl}`;
+                            log(`클립보드 복사 실패: ${err}`, false);
+                            console.error('클립보드 복사 실패:', err);
+                        });
+                    } else {
+                        DOM.shareMessage.textContent = `URL 단축 실패: ${longUrl}`;
+                        log("URL 단축 실패. 대신 원본 URL을 표시합니다.", false);
+                    }
+                }
             });
         }
     });
@@ -157,51 +144,7 @@ function initEventHandlers(DOM) {
         }
     });
 
-    // '공유 링크 생성' 버튼 이벤트
-    DOM.shareButton.addEventListener('click', async () => {
-        DOM.shareButton.disabled = true;
-        DOM.shareButton.textContent = "단축 URL 생성 중...";
-        DOM.shareLinkInput.value = "잠시만 기다려주세요...";
 
-        const currentData = DOM.bossListInput.value;
-        const encodedData = encodeURIComponent(currentData);
-        const baseUrl = window.location.href.split('?')[0];
-        const longUrl = `${baseUrl}?data=${encodedData}`;
-
-        const shortUrl = await getShortUrl(longUrl);
-
-        if (shortUrl) {
-            DOM.shareLinkInput.value = shortUrl;
-            log("단축 URL이 생성되었습니다. '복사' 버튼을 눌러주세요.", true);
-        } else {
-            DOM.shareLinkInput.value = longUrl;
-            log("URL 단축 실패. 대신 원본 URL을 생성합니다.", true);
-        }
-
-        DOM.shareButton.disabled = false;
-        DOM.shareButton.textContent = "공유 링크 생성 (Short URL)";
-    });
-
-    // '복사' 버튼 이벤트
-    DOM.copyButton.addEventListener('click', () => {
-        const urlToCopy = DOM.shareLinkInput.value;
-        
-        if (urlToCopy && urlToCopy !== "목록 수정 후 버튼을 누르세요" && urlToCopy !== "잠시만 기다려주세요...") {
-            navigator.clipboard.writeText(urlToCopy).then(() => {
-                log("링크가 클립보드에 복사되었습니다.", true);
-                const originalText = DOM.copyButton.textContent;
-                DOM.copyButton.textContent = '복사됨!';
-                setTimeout(() => {
-                    DOM.copyButton.textContent = originalText;
-                }, 1500);
-            }).catch(err => {
-                log("복사에 실패했습니다. 수동으로 복사해주세요.", true);
-                console.error('클립보드 복사 실패:', err);
-            });
-        } else {
-            log("복사할 링크가 없습니다. 먼저 링크를 생성해주세요.", false);
-        }
-    });
 
     // --- Notification Settings Screen Event Handlers ---
     // 고정 알림 전체 ON/OFF 토글 버튼 이벤트
@@ -225,7 +168,6 @@ function initEventHandlers(DOM) {
 
     // --- Help Screen Event Handlers ---
     DOM.featureGuideTabButton.addEventListener('click', () => switchHelpTab(DOM, 'featureGuide'));
-    DOM.versionHistoryTabButton.addEventListener('click', () => switchHelpTab(DOM, 'versionHistory'));
 }
 
 // Function to initialize the application
