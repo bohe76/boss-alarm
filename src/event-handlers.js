@@ -108,10 +108,14 @@ function initEventHandlers(DOM) {
 
                 if (screenId === 'share-screen') {
                     DOM.shareMessage.textContent = "링크가 생성 중 입니다. 잠시만 기다려 주세요..";
-                    const currentData = DOM.bossListInput.value;
-                    const encodedData = encodeURIComponent(currentData);
+                    const currentBossListData = DOM.bossListInput.value;
+                    const encodedBossListData = encodeURIComponent(currentBossListData);
+
+                    const fixedAlarmsData = LocalStorageManager.exportFixedAlarms();
+                    const encodedFixedAlarmsData = encodeURIComponent(fixedAlarmsData);
+
                     const baseUrl = window.location.href.split('?')[0];
-                    const longUrl = `${baseUrl}?data=${encodedData}`;
+                    const longUrl = `${baseUrl}?data=${encodedBossListData}&fixedData=${encodedFixedAlarmsData}`;
 
                     const shortUrl = await getShortUrl(longUrl);
 
@@ -137,24 +141,84 @@ function initEventHandlers(DOM) {
 
 
     // --- Notification Settings Screen Event Handlers ---
-    // 고정 알림 전체 ON/OFF 토글 버튼 이벤트
-    DOM.globalFixedAlarmToggle.addEventListener('change', (event) => {
-        const currentStates = LocalStorageManager.getFixedAlarmStates();
-        currentStates.global = event.target.checked;
-        LocalStorageManager.setFixedAlarmStates(currentStates);
-        updateFixedAlarmVisuals();
-    });
+    // The global fixed alarm toggle logic is removed as fixed alarms are now individually managed.
+
+    // Helper for time validation
+    const isValidTime = (time) => /^(?:2[0-3]|[01]?[0-9]):[0-5][0-9]$/.test(time);
+
+    // Event delegation for fixed alarm items (edit, delete, individual toggle)
+    if (DOM.fixedAlarmListDiv) { // Defensive check
+        DOM.fixedAlarmListDiv.addEventListener('click', (event) => {
+            const target = event.target;
+
+            // Handle individual toggle change
+            if (target.matches('.switch input[type="checkbox"]')) {
+                const alarmId = target.dataset.id;
+                const fixedAlarms = LocalStorageManager.getFixedAlarms();
+                const alarmToUpdate = fixedAlarms.find(alarm => alarm.id === alarmId);
+                if (alarmToUpdate) {
+                    alarmToUpdate.enabled = target.checked;
+                    LocalStorageManager.updateFixedAlarm(alarmId, alarmToUpdate);
+                    updateFixedAlarmVisuals(DOM);
+                }
+            }
+
+            // Handle edit button click
+            if (target.matches('.edit-fixed-alarm-button')) {
+                const alarmId = target.dataset.id;
+                const fixedAlarms = LocalStorageManager.getFixedAlarms();
+                const alarmToEdit = fixedAlarms.find(alarm => alarm.id === alarmId);
+
+                if (alarmToEdit) {
+                    const newTime = prompt(`"${alarmToEdit.name}"의 새 시간을 입력하세요 (HH:MM):`, alarmToEdit.time);
+                    if (newTime === null) return; // User cancelled
+                    if (!isValidTime(newTime)) {
+                        log("유효하지 않은 시간 형식입니다. HH:MM 형식으로 입력해주세요.", false);
+                        return;
+                    }
+
+                    const newName = prompt(`"${alarmToEdit.name}"의 새 이름을 입력하세요:`, alarmToEdit.name);
+                    if (newName === null) return; // User cancelled
+                    if (!newName.trim()) {
+                        log("이름은 비워둘 수 없습니다.", false);
+                        return;
+                    }
+
+                    LocalStorageManager.updateFixedAlarm(alarmId, { time: newTime, name: newName.trim() });
+                    renderFixedAlarms(DOM); // Re-render to show changes
+                    log(`고정 알림 "${alarmToEdit.name}"이(가) "${newName.trim()} ${newTime}"으로 수정되었습니다.`, true);
+                }
+            }
+
+            // Handle delete button click
+            if (target.matches('.delete-fixed-alarm-button')) {
+                const alarmId = target.dataset.id;
+                const fixedAlarms = LocalStorageManager.getFixedAlarms();
+                const alarmToDelete = fixedAlarms.find(alarm => alarm.id === alarmId);
+
+                if (alarmToDelete && confirm(`고정 알림 "${alarmToDelete.name} ${alarmToDelete.time}"을(를) 삭제하시겠습니까?`)) {
+                    LocalStorageManager.deleteFixedAlarm(alarmId);
+                    renderFixedAlarms(DOM); // Re-render to show changes
+                    log(`고정 알림 "${alarmToDelete.name}"이(가) 삭제되었습니다.`, true);
+                }
+            }
+        });
+    }
+
+    // Handle add new fixed alarm button click (logic moved to ui-renderer.js)
 
     // --- Alarm Log Screen Event Handlers ---
     // 알림 로그 가시성 토글 이벤트
-    DOM.logVisibilityToggle.addEventListener('change', (event) => {
-        LocalStorageManager.setLogVisibilityState(event.target.checked);
-        if (LocalStorageManager.getLogVisibilityState()) {
-            DOM.logContainer.classList.remove('hidden');
-        } else {
-            DOM.logContainer.classList.add('hidden');
-        }
-    });
+    if (DOM.logVisibilityToggle) { // Defensive check
+        DOM.logVisibilityToggle.addEventListener('change', (event) => {
+            LocalStorageManager.setLogVisibilityState(event.target.checked);
+            if (LocalStorageManager.getLogVisibilityState()) {
+                DOM.logContainer.classList.remove('hidden');
+            } else {
+                DOM.logContainer.classList.add('hidden');
+            }
+        });
+    }
 
 
 }
@@ -235,16 +299,27 @@ export function initApp() {
 
     // 고정 알림 상태 로드 및 렌더링
     LocalStorageManager.init();
-    DOM.globalFixedAlarmToggle.checked = LocalStorageManager.getFixedAlarmStates().global;
+
+    // 'fixedData'라는 이름의 파라미터가 있는지 확인하고 고정 알림을 로드
+    if (params.has('fixedData')) {
+        const decodedFixedData = decodeURIComponent(params.get('fixedData'));
+        if (LocalStorageManager.importFixedAlarms(decodedFixedData)) {
+            log("URL에서 고정 알림을 성공적으로 불러왔습니다.");
+        } else {
+            log("URL에서 고정 알림을 불러오는 데 실패했습니다. 기본값을 사용합니다.", false);
+        }
+    }
     
     // fixedAlarmListDiv를 여기서 다시 가져와서 renderFixedAlarms에 전달
     renderFixedAlarms(DOM);
     // 알림 로그 가시성 상태 로드 및 적용
-    DOM.logVisibilityToggle.checked = LocalStorageManager.getLogVisibilityState();
-    if (LocalStorageManager.getLogVisibilityState()) {
-        DOM.logContainer.classList.remove('hidden');
-    } else {
-        DOM.logContainer.classList.add('hidden');
+    if (DOM.logVisibilityToggle) { // Defensive check
+        DOM.logVisibilityToggle.checked = LocalStorageManager.getLogVisibilityState();
+        if (LocalStorageManager.getLogVisibilityState()) {
+            DOM.logContainer.classList.remove('hidden');
+        } else {
+            DOM.logContainer.classList.add('hidden');
+        }
     }
 
     // Set initial alarm button state

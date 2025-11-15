@@ -2,20 +2,12 @@
 
 export const BossDataManager = (() => {
     let bossSchedule = []; // 파싱된 보스 정보를 저장할 배열
-    let fixedBossSchedule = [ // 고정 알림 보스 목록 (하드코딩)
-        { time: "12:00", name: "대륙 침략자", alerted_5min: false, alerted_1min: false, alerted_0min: false },
-        { time: "20:00", name: "대륙 침략자", alerted_5min: false, alerted_1min: false, alerted_0min: false },
-        { time: "13:00", name: "발할라", alerted_5min: false, alerted_1min: false, alerted_0min: false },
-        { time: "18:00", name: "발할라", alerted_5min: false, alerted_1min: false, alerted_0min: false },
-        { time: "21:00", name: "발할라", alerted_5min: false, alerted_1min: false, alerted_0min: false },
-    ];
     let _nextBoss = null; // 다음 보스 정보를 저장할 변수
     let _minTimeDiff = Infinity; // 다음 보스까지 남은 시간을 저장할 변수
 
     return {
         getBossSchedule: () => bossSchedule,
         setBossSchedule: (newSchedule) => { bossSchedule = newSchedule; },
-        getFixedBossSchedule: () => fixedBossSchedule,
         setNextBossInfo: (nextBoss, minTimeDiff) => {
             _nextBoss = nextBoss;
             _minTimeDiff = minTimeDiff;
@@ -26,8 +18,13 @@ export const BossDataManager = (() => {
             const upcoming = [];
             let addedCount = 0;
 
-            // Combine bossSchedule and fixedBossSchedule, filter out non-boss entries and past bosses, then sort
-            const allBosses = [...bossSchedule, ...fixedBossSchedule]
+            // Get fixed bosses from LocalStorageManager
+            const fixedBosses = LocalStorageManager.getFixedAlarms()
+                .filter(alarm => alarm.enabled) // Only consider enabled fixed alarms
+                .map(alarm => ({ time: alarm.time, name: alarm.name, isFixed: true })); // Mark as fixed
+
+            // Combine bossSchedule and fixedBosses, filter out non-boss entries and past bosses, then sort
+            const allBosses = [...bossSchedule, ...fixedBosses]
                 .filter(boss => boss.time) // Filter out entries without a 'time' property (i.e., date entries)
                 .map(boss => {
                     const [hours, minutes] = boss.time.split(':').map(Number);
@@ -56,28 +53,50 @@ export const BossDataManager = (() => {
 
 
 export const LocalStorageManager = (() => {
-    let fixedAlarmStates = { // 고정 알림 스위치 상태 (로컬 스토리지 저장용)
-        global: false, // 고정 알림 전체 ON/OFF
-        individual: BossDataManager.getFixedBossSchedule().map(() => false) // 각 고정 알림 개별 ON/OFF
-    };
+    let fixedAlarms = []; // 고정 알림 목록 (사용자 정의 가능)
     let logVisibilityState = true; // 기본값: ON
     let alarmRunningState = false; // 알람 실행 상태 (기본값: OFF)
     let sidebarExpandedState = false; // 사이드바 확장 상태 (기본값: 접힘)
 
-    function saveFixedAlarmStates() {
-        localStorage.setItem('fixedAlarmStates', JSON.stringify(fixedAlarmStates));
+    function saveFixedAlarms() {
+        localStorage.setItem('fixedAlarms', JSON.stringify(fixedAlarms));
     }
 
-    function loadFixedAlarmStates() {
-        const savedStates = localStorage.getItem('fixedAlarmStates');
-        if (savedStates) {
-            fixedAlarmStates = JSON.parse(savedStates);
+    function loadFixedAlarms() {
+        const savedAlarms = localStorage.getItem('fixedAlarms');
+        if (savedAlarms) {
+            fixedAlarms = JSON.parse(savedAlarms);
         } else {
-            // 기본값: 모두 OFF
-            fixedAlarmStates = {
-                global: false,
-                individual: BossDataManager.getFixedBossSchedule().map(() => false)
-            };
+            // Migration from old fixedAlarmStates format or initial default
+            const oldFixedAlarmStates = localStorage.getItem('fixedAlarmStates');
+            if (oldFixedAlarmStates) {
+                const parsedOldStates = JSON.parse(oldFixedAlarmStates);
+                // Default fixed alarms (hardcoded in old version)
+                const defaultOldFixedBossSchedule = [
+                    { time: "12:00", name: "대륙 침략자" },
+                    { time: "20:00", name: "대륙 침략자" },
+                    { time: "13:00", name: "발할라" },
+                    { time: "18:00", name: "발할라" },
+                    { time: "21:00", name: "발할라" },
+                ];
+                fixedAlarms = defaultOldFixedBossSchedule.map((boss, index) => ({
+                    id: `fixed-${index}`,
+                    name: boss.name,
+                    time: boss.time,
+                    enabled: parsedOldStates.individual[index] || false // Use old individual state if available
+                }));
+                localStorage.removeItem('fixedAlarmStates'); // Clean up old key
+            } else {
+                // Initial default fixed alarms if nothing saved
+                fixedAlarms = [
+                    { id: 'fixed-1', name: '대륙 침략자', time: '12:00', enabled: false },
+                    { id: 'fixed-2', name: '대륙 침략자', time: '20:00', enabled: false },
+                    { id: 'fixed-3', name: '발할라', time: '13:00', enabled: false },
+                    { id: 'fixed-4', name: '발할라', time: '18:00', enabled: false },
+                    { id: 'fixed-5', name: '발할라', time: '21:00', enabled: false },
+                ];
+            }
+            saveFixedAlarms(); // Save the new format immediately
         }
     }
 
@@ -122,8 +141,40 @@ export const LocalStorageManager = (() => {
     }
 
     return {
-        getFixedAlarmStates: () => fixedAlarmStates,
-        setFixedAlarmStates: (states) => { fixedAlarmStates = states; saveFixedAlarmStates(); },
+        getFixedAlarms: () => fixedAlarms,
+        addFixedAlarm: (alarm) => {
+            fixedAlarms.push(alarm);
+            saveFixedAlarms();
+        },
+        updateFixedAlarm: (id, updatedAlarm) => {
+            const index = fixedAlarms.findIndex(alarm => alarm.id === id);
+            if (index !== -1) {
+                fixedAlarms[index] = { ...fixedAlarms[index], ...updatedAlarm };
+                saveFixedAlarms();
+            }
+        },
+        deleteFixedAlarm: (id) => {
+            fixedAlarms = fixedAlarms.filter(alarm => alarm.id !== id);
+            saveFixedAlarms();
+        },
+        exportFixedAlarms: () => {
+            const jsonString = JSON.stringify(fixedAlarms);
+            return btoa(encodeURIComponent(jsonString));
+        },
+        importFixedAlarms: (encodedData) => {
+            try {
+                const decodedJsonString = decodeURIComponent(atob(encodedData));
+                const decoded = JSON.parse(decodedJsonString);
+                if (Array.isArray(decoded) && decoded.every(item => item.id && item.name && item.time)) {
+                    fixedAlarms = decoded;
+                    saveFixedAlarms();
+                    return true;
+                }
+            } catch (e) {
+                console.error("Failed to import fixed alarms:", e);
+            }
+            return false;
+        },
         getLogVisibilityState: () => logVisibilityState,
         setLogVisibilityState: (state) => { logVisibilityState = state; saveLogVisibilityState(); },
         getAlarmRunningState: () => alarmRunningState,
@@ -131,7 +182,7 @@ export const LocalStorageManager = (() => {
         getSidebarExpandedState: () => sidebarExpandedState,
         setSidebarExpandedState: (state) => { sidebarExpandedState = state; saveSidebarExpandedState(); },
         init: () => {
-            loadFixedAlarmStates();
+            loadFixedAlarms();
             loadLogVisibilityState();
             loadAlarmRunningState(); // Load alarm running state
             loadSidebarExpandedState(); // Load sidebar expanded state

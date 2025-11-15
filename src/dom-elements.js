@@ -38,7 +38,6 @@ export function initDomElements() {
         recentAlarmLog: document.getElementById('recentAlarmLog'),
 
         // Elements within Notification Settings Screen
-        globalFixedAlarmToggle: document.getElementById('globalFixedAlarmToggle'),
         fixedAlarmListDiv: document.getElementById('fixedAlarmList'),
 
         // Elements within Alarm Log Screen
