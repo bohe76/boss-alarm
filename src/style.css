@@ -21,7 +21,7 @@ body {
         .header-container {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
             max-width: 1200px; /* Max width for content */
             margin: 0 auto; /* Center content */
         }
@@ -93,19 +93,19 @@ body {
             background: none;
             border: none;
             cursor: pointer;
-            padding: 10px;
-            margin-bottom: 20px;
-            color: white;
-            align-self: flex-end; /* Align to the right in collapsed state */
+            padding: 5px; /* Smaller padding for header */
+            padding-left: 0; /* Ensure no left padding */
+            text-align: left; /* Ensure content is left-aligned */
+            color: #111; /* Match header text color */
+            margin-left: -16px; /* Space between toggle and h1 */
+            margin-top: 12px;
         }
 
-        nav.sidebar.expanded .sidebar-toggle {
-            align-self: flex-end; /* Align to the right in expanded state */
-        }
+
 
         .sidebar-toggle-icon {
-            width: 24px;
-            height: 24px;
+            width: 48px;
+            height: 48px;
             fill: currentColor;
         }
 
@@ -157,7 +157,7 @@ body {
 
         main {
             flex: 1; /* Take remaining horizontal space */
-            padding: 20px;
+            padding: 0 20px;
             background-color: #f8f8f8;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             overflow-y: auto; /* Enable scrolling for main content */
