@@ -75,110 +75,99 @@ export function checkAlarms() { // Removed updateBossListTextarea parameter
     }
 
     let bossesToRemove = [];
+    
+    // Combine dynamic and fixed alarms for checking and next boss determination
+    const allAlarms = [
+        ...BossDataManager.getBossSchedule().filter(boss => boss.type === 'boss'),
+        ...LocalStorageManager.getFixedAlarms().filter(alarm => alarm.enabled).map(alarm => ({ ...alarm, isFixed: true }))
+    ];
+
+    // Sort all alarms by time for consistent processing
+    allAlarms.sort((a, b) => {
+        const [aHour, aMin] = a.time.split(':').map(Number);
+        const [bHour, bMin] = b.time.split(':').map(Number);
+        return (aHour * 60 + aMin) - (bHour * 60 + bMin);
+    });
+
     let nextBoss = null;
     let minTimeDiff = Infinity;
-    
-    // --- 일반 보스 알림 체크 ---
-    const currentBossSchedule = BossDataManager.getBossSchedule(); // Get from manager
-    for (let i = 0; i < currentBossSchedule.length; i++) {
-        const boss = currentBossSchedule[i];
-        if (boss.type !== 'boss') continue; // Skip date markers
 
-        const bossScheduledTime = boss.scheduledDate.getTime();
+    for (const alarm of allAlarms) {
+        const [hours, minutes] = alarm.time.split(':').map(Number);
+        const alarmTimeToday = new Date();
+        alarmTimeToday.setHours(hours, minutes, 0, 0);
 
-        // 다음 보스까지의 시간 차이 계산 (nextBoss 찾기)
-        const timeDiff = bossScheduledTime - now.getTime();
-        if (timeDiff > 0 && timeDiff < minTimeDiff) {
-            minTimeDiff = timeDiff;
-            nextBoss = boss;
+        // If alarm time has already passed today, consider it for tomorrow
+        if (alarmTimeToday.getTime() <= now.getTime() - 1000) { // 1 second grace period
+            alarmTimeToday.setDate(alarmTimeToday.getDate() + 1);
         }
 
+        const bossScheduledTime = alarmTimeToday.getTime();
+
         // --- 5분 전 알림 체크 ---
-        if (Math.abs(bossScheduledTime - fiveMinLater.getTime()) < 1000 && !boss.alerted_5min) {
-            boss.alerted_5min = true;
-            const msg = `5분 전, ${boss.name}`;
+        if (Math.abs(bossScheduledTime - fiveMinLater.getTime()) < 1000 && !alarm.alerted_5min) {
+            alarm.alerted_5min = true;
+            if (alarm.isFixed) LocalStorageManager.updateFixedAlarm(alarm.id, alarm);
+            const msg = `5분 전, ${alarm.name}`;
             log(msg, true);
             speak(msg);
         }
 
         // --- 1분 전 알림 체크 ---
-        if (Math.abs(bossScheduledTime - oneMinLater.getTime()) < 1000 && !boss.alerted_1min) {
-            boss.alerted_1min = true;
-            const msg = `1분 전, ${boss.name}`;
+        if (Math.abs(bossScheduledTime - oneMinLater.getTime()) < 1000 && !alarm.alerted_1min) {
+            alarm.alerted_1min = true;
+            if (alarm.isFixed) LocalStorageManager.updateFixedAlarm(alarm.id, alarm);
+            const msg = `1분 전, ${alarm.name}`;
             log(msg, true);
             speak(msg);
         }
 
         // --- 정각 알림 체크 ---
-        if (Math.abs(bossScheduledTime - now.getTime()) < 1000 && !boss.alerted_0min) {
-            boss.alerted_0min = true;
-            const msg = `${boss.name} 젠 입니다.`;
+        if (Math.abs(bossScheduledTime - now.getTime()) < 1000 && !alarm.alerted_0min) {
+            alarm.alerted_0min = true;
+            if (alarm.isFixed) LocalStorageManager.updateFixedAlarm(alarm.id, alarm);
+            const msg = `${alarm.name} 젠 입니다.`;
             log(msg, true);
             speak(msg);
-            bossesToRemove.push(i);
+            if (!alarm.isFixed) { // Only remove dynamic bosses
+                bossesToRemove.push(alarm); // Store reference to boss object
+            }
         }
     }
 
-    // 알림이 발생한 일반 보스를 bossSchedule에서 제거 (뒤에서부터 제거하여 인덱스 오류 방지)
-    for (let i = bossesToRemove.length - 1; i >= 0; i--) {
-        currentBossSchedule.splice(bossesToRemove[i], 1);
+    // 알림이 발생한 일반 보스를 bossSchedule에서 제거
+    if (bossesToRemove.length > 0) {
+        let currentBossSchedule = BossDataManager.getBossSchedule();
+        currentBossSchedule = currentBossSchedule.filter(boss =>
+            !bossesToRemove.some(removedBoss => removedBoss === boss)
+        );
+        BossDataManager.setBossSchedule(currentBossSchedule);
     }
-    BossDataManager.setBossSchedule(currentBossSchedule); // Update manager after splice
 
-    // --- 고정 알림 보스 체크 ---
-    const fixedAlarms = LocalStorageManager.getFixedAlarms();
-    fixedAlarms.forEach(alarm => {
-        if (alarm.enabled) { // 개별 고정 알림이 활성화된 경우에만 체크
-            const [bossHour, bossMinute] = alarm.time.split(':').map(Number);
-            
-            // 고정 알림은 매일 반복되므로, 현재 날짜 기준으로 scheduledDate를 계산
-            const fixedScheduledDate = new Date(now);
-            fixedScheduledDate.setHours(bossHour, bossMinute, 0, 0);
+    // Determine the next boss for display (simplified and correct)
+    let potentialNextAlarms = allAlarms.map(alarm => {
+        const [hours, minutes] = alarm.time.split(':').map(Number);
+        const alarmTimeToday = new Date();
+        alarmTimeToday.setHours(hours, minutes, 0, 0);
 
-            // 만약 이미 지난 시간이라면 다음 날로 설정 (자정 넘김 처리)
-            if (fixedScheduledDate.getTime() <= now.getTime() - 1000) { // 1초 여유
-                fixedScheduledDate.setDate(fixedScheduledDate.getDate() + 1);
-            }
-
-            const fixedBossScheduledTime = fixedScheduledDate.getTime();
-
-            // 다음 보스까지의 시간 차이 계산 (nextBoss 찾기)
-            const timeDiff = fixedBossScheduledTime - now.getTime();
-            if (timeDiff > 0 && timeDiff < minTimeDiff) {
-                minTimeDiff = timeDiff;
-                nextBoss = { ...alarm, scheduledDate: fixedScheduledDate }; // 고정 보스에 대해 fixedScheduledDate 사용
-            }
-
-            // --- 5분 전 알림 체크 ---
-            if (Math.abs(fixedBossScheduledTime - fiveMinLater.getTime()) < 1000 && !alarm.alerted_5min) {
-                alarm.alerted_5min = true;
-                LocalStorageManager.updateFixedAlarm(alarm.id, alarm); // Save updated state
-                const msg = `5분 전, ${alarm.name}`;
-                log(msg, true);
-                speak(msg);
-            }
-
-            // --- 1분 전 알림 체크 ---
-            if (Math.abs(fixedBossScheduledTime - oneMinLater.getTime()) < 1000 && !alarm.alerted_1min) {
-                alarm.alerted_1min = true;
-                LocalStorageManager.updateFixedAlarm(alarm.id, alarm); // Save updated state
-                const msg = `1분 전, ${alarm.name}`;
-                log(msg, true);
-                speak(msg);
-            }
-
-            // --- 정각 알림 체크 ---
-            if (Math.abs(fixedBossScheduledTime - now.getTime()) < 1000 && !alarm.alerted_0min) {
-                alarm.alerted_0min = true;
-                LocalStorageManager.updateFixedAlarm(alarm.id, alarm); // Save updated state
-                const msg = `${alarm.name} 젠 입니다.`;
-                log(msg, true);
-                speak(msg);
-                // 고정 알림은 목록에서 제거하지 않음
-            }
+        let timeDiff = alarmTimeToday.getTime() - now.getTime();
+        if (timeDiff < 0) {
+            alarmTimeToday.setDate(alarmTimeToday.getDate() + 1);
+            timeDiff = alarmTimeToday.getTime() - now.getTime();
         }
-    });
+        return { ...alarm, timestamp: alarmTimeToday.getTime(), timeDiff: timeDiff };
+    }).filter(alarm => alarm.timeDiff >= 0) // Only consider future alarms
+      .sort((a, b) => a.timeDiff - b.timeDiff); // Sort by closest future alarm
 
-    // 다음 보스 정보를 BossDataManager에 저장
+    if (potentialNextAlarms.length > 0) {
+        const closestAlarm = potentialNextAlarms[0];
+        minTimeDiff = closestAlarm.timeDiff;
+        nextBoss = { ...closestAlarm };
+        delete nextBoss.timeDiff; // Clean up temporary property
+    } else {
+        nextBoss = null;
+        minTimeDiff = Infinity;
+    }
+
     BossDataManager.setNextBossInfo(nextBoss, minTimeDiff);
 }

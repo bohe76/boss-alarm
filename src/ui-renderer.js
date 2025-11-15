@@ -232,6 +232,6 @@ export function updateFixedAlarmVisuals(DOM) {
 export async function renderVersionInfo(DOM) {
     const versionHistoryContent = await loadMarkdownContent('docs/version_history.txt');
     if (DOM.versionHistoryContent) {
-        DOM.versionHistoryContent.innerHTML = `<pre>${versionHistoryContent}</pre>`;
+        DOM.versionHistoryContent.innerHTML = `<pre class="doc-content-pre">${versionHistoryContent}</pre>`;
     }
 }

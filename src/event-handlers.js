@@ -49,7 +49,7 @@ function showScreen(DOM, screenId) {
         // Directly load feature guide content when opening help screen
         (async () => {
             const markdownContent = await loadMarkdownContent('docs/feature_guide.txt');
-            DOM.featureGuideContent.innerHTML = `<pre>${markdownContent}</pre>`;
+            DOM.featureGuideContent.innerHTML = `<pre class="doc-content-pre">${markdownContent}</pre>`;
         })();
     }
 }
@@ -107,7 +107,7 @@ function initEventHandlers(DOM) {
                 event.currentTarget.classList.add('active');
 
                 if (screenId === 'share-screen') {
-                    DOM.shareMessage.textContent = "링크가 생성 중 입니다. 잠시만 기다려 주세요..";
+                    DOM.shareMessage.textContent = "공유 링크 생성 중입니다. 잠시만 기다려 주세요...";
                     const currentBossListData = DOM.bossListInput.value;
                     const encodedBossListData = encodeURIComponent(currentBossListData);
 
@@ -116,22 +116,11 @@ function initEventHandlers(DOM) {
 
                     const baseUrl = window.location.href.split('?')[0];
                     const longUrl = `${baseUrl}?data=${encodedBossListData}&fixedData=${encodedFixedAlarmsData}`;
-
                     const shortUrl = await getShortUrl(longUrl);
 
-                    if (shortUrl) {
-                        navigator.clipboard.writeText(shortUrl).then(() => {
-                            DOM.shareMessage.textContent = "클립 보드에 복사 되었습니다.";
-                            log("단축 URL이 클립보드에 복사되었습니다.", true);
-                        }).catch(err => {
-                            DOM.shareMessage.textContent = `클립 보드 복사 실패: ${shortUrl}`;
-                            log(`클립보드 복사 실패: ${err}`, false);
-                            console.error('클립보드 복사 실패:', err);
-                        });
-                    } else {
-                        DOM.shareMessage.textContent = `URL 단축 실패: ${longUrl}`;
-                        log("URL 단축 실패. 대신 원본 URL을 표시합니다.", false);
-                    }
+                    await navigator.clipboard.writeText(shortUrl || longUrl); // Copy short URL if available, else long URL
+                    DOM.shareMessage.textContent = shortUrl ? "클립보드에 복사되었습니다." : `URL 단축 실패: ${longUrl} (원본 URL 복사됨)`;
+                    log(shortUrl ? "단축 URL이 클립보드에 복사되었습니다." : "URL 단축 실패. 원본 URL이 클립보드에 복사되었습니다.", true);
                 }
             });
         }
