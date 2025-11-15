@@ -3,7 +3,6 @@
 import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Import managers
 import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRunning
 import { log, getLogs } from './logger.js'; // Import log and getLogs
-import { bossPresets } from './default-boss-list.js'; // Import bossPresets
 import { loadMarkdownContent } from './api-service.js'; // Import loadMarkdownContent
 
 // Helper function to format time difference
@@ -31,7 +30,7 @@ export function updateNextBossDisplay(DOM) {
 
 export function renderUpcomingBossList(DOM) {
     const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
-    const upcomingBosses = BossDataManager.getUpcomingBosses(3); // Get next 3 bosses
+    const upcomingBosses = BossDataManager.getUpcomingBosses(10); // Get next 10 bosses
     let html = '<ul>';
     if (upcomingBosses.length > 0) {
         upcomingBosses.forEach(boss => {
@@ -84,7 +83,7 @@ export function renderRecentAlarmLog(DOM) {
     let html = '<ul>';
     if (logs.length > 0) {
         // Display last 3 logs
-        const recentLogs = logs.slice(-3).reverse(); // Get last 3 and reverse to show newest first
+        const recentLogs = logs.slice(-1).reverse(); // Get last 1 and reverse to show newest first
         recentLogs.forEach(logEntry => {
             html += `<li>${logEntry}</li>`;
         });
@@ -122,19 +121,7 @@ export function updateBossListTextarea(DOM) { // Function signature remains unch
     DOM.bossListInput.value = outputLines.join('\n');
 }
 
-// --- Boss Management Screen Rendering Functions ---
-export function renderBossPresets(DOM) {
-    if (!DOM.presetBossListSelect) return;
 
-    DOM.presetBossListSelect.innerHTML = ''; // Clear existing options
-
-    bossPresets.forEach((preset, index) => {
-        const option = document.createElement('option');
-        option.value = index; // Use index as value to easily retrieve the preset
-        option.textContent = preset.name;
-        DOM.presetBossListSelect.appendChild(option);
-    });
-}
 
 
 // --- 5.2. 고정 알림 목록 렌더링 함수 ---

@@ -2,7 +2,7 @@
 
 import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning } from './alarm-scheduler.js';
-import { updateBossListTextarea, renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderBossPresets, renderVersionInfo } from './ui-renderer.js';
+import { updateBossListTextarea, renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo } from './ui-renderer.js';
 import { getShortUrl, loadMarkdownContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js';
@@ -120,7 +120,7 @@ function initEventHandlers(DOM) {
                             DOM.shareMessage.textContent = "클립 보드에 복사 되었습니다.";
                             log("단축 URL이 클립보드에 복사되었습니다.", true);
                         }).catch(err => {
-                            DOM.shareMessage.textContent = `클립보드 복사 실패: ${shortUrl}`;
+                            DOM.shareMessage.textContent = `클립 보드 복사 실패: ${shortUrl}`;
                             log(`클립보드 복사 실패: ${err}`, false);
                             console.error('클립보드 복사 실패:', err);
                         });
@@ -133,16 +133,6 @@ function initEventHandlers(DOM) {
         }
     });
 
-    // --- Boss Management Screen Event Handlers ---
-    // Preset Boss List Apply Button
-    DOM.applyPresetButton.addEventListener('click', () => {
-        const selectedIndex = DOM.presetBossListSelect.value;
-        if (selectedIndex !== null && bossPresets[selectedIndex]) {
-            DOM.bossListInput.value = bossPresets[selectedIndex].list;
-            parseBossList(DOM.bossListInput); // Re-parse the boss list after applying preset
-            log(`프리셋 '${bossPresets[selectedIndex].name}'이(가) 적용되었습니다.`, true);
-        }
-    });
 
 
 
@@ -166,8 +156,7 @@ function initEventHandlers(DOM) {
         }
     });
 
-    // --- Help Screen Event Handlers ---
-    DOM.featureGuideTabButton.addEventListener('click', () => switchHelpTab(DOM, 'featureGuide'));
+
 }
 
 // Function to initialize the application
@@ -187,7 +176,57 @@ export function initApp() {
         DOM.bossListInput.value = decodedData;
         log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
     } else {
-        DOM.bossListInput.value = bossPresets[0].list; // Use the first preset as default
+        const defaultBossList = bossPresets[0].list;
+        let updatedBossList = defaultBossList;
+
+        const hasDateEntries = /^(\d{2}\.\d{2})/m.test(defaultBossList);
+
+        if (!hasDateEntries) {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+
+            const formatMonthDay = (date) => {
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                return `${month}.${day}`;
+            };
+
+            const todayFormatted = formatMonthDay(today);
+            const tomorrowFormatted = formatMonthDay(tomorrow);
+
+            const lines = defaultBossList.split('\n').filter(line => line.trim() !== '');
+            let insertIndex = -1; // Initialize to -1, meaning no wrap-around found yet
+
+            let lastTimeInMinutes = -1; // Track time in minutes
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                const timeMatch = line.match(/^(\d{2}):(\d{2})/);
+                if (timeMatch) {
+                    const currentHour = parseInt(timeMatch[1], 10);
+                    const currentMinute = parseInt(timeMatch[2], 10);
+                    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+                    if (lastTimeInMinutes !== -1 && currentTimeInMinutes < lastTimeInMinutes) { // Check for wrap-around based on full time
+                        insertIndex = i; // Insert tomorrow's date before this line
+                        break;
+                    }
+                    lastTimeInMinutes = currentTimeInMinutes;
+                }
+            }
+
+            // Only add tomorrow's date if a wrap-around point was found
+            if (insertIndex !== -1) {
+                lines.splice(insertIndex, 0, tomorrowFormatted);
+            }
+
+            // Always prepend today's date
+            lines.unshift(todayFormatted);
+
+            updatedBossList = lines.join('\n');
+        }
+
+        DOM.bossListInput.value = updatedBossList;
         log("기본 보스 목록을 불러왔습니다. (URL 데이터 없음)");
     }
 
@@ -230,9 +269,6 @@ export function initApp() {
 
     // Initialize all event handlers
     initEventHandlers(DOM);
-    
-    // Render boss presets dropdown
-    renderBossPresets(DOM);
     
     // Initial render of the dashboard
     renderDashboard(DOM);

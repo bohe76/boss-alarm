@@ -29,8 +29,6 @@ export function initDomElements() {
 
         // Elements within Boss Management Screen
         bossListInput: document.getElementById('bossListInput'),
-        presetBossListSelect: document.getElementById('presetBossListSelect'), // New
-        applyPresetButton: document.getElementById('applyPresetButton'), // New
 
         // Elements within Dashboard Screen
         nextBossDisplay: document.getElementById('nextBossDisplay'),

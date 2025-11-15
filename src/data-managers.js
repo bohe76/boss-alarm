@@ -26,18 +26,20 @@ export const BossDataManager = (() => {
             const upcoming = [];
             let addedCount = 0;
 
-            // Combine bossSchedule and fixedBossSchedule, filter out past bosses, and sort
-            const allBosses = [...bossSchedule, ...fixedBossSchedule].map(boss => {
-                const [hours, minutes] = boss.time.split(':').map(Number);
-                const date = new Date();
-                date.setHours(hours, minutes, 0, 0);
-                // If the boss time has already passed today, set it for tomorrow
-                if (date.getTime() < now) {
-                    date.setDate(date.getDate() + 1);
-                }
-                return { ...boss, timestamp: date.getTime() };
-            }).filter(boss => boss.timestamp > now)
-              .sort((a, b) => a.timestamp - b.timestamp);
+            // Combine bossSchedule and fixedBossSchedule, filter out non-boss entries and past bosses, then sort
+            const allBosses = [...bossSchedule, ...fixedBossSchedule]
+                .filter(boss => boss.time) // Filter out entries without a 'time' property (i.e., date entries)
+                .map(boss => {
+                    const [hours, minutes] = boss.time.split(':').map(Number);
+                    const date = new Date();
+                    date.setHours(hours, minutes, 0, 0);
+                    // If the boss time has already passed today, set it for tomorrow
+                    if (date.getTime() < now) {
+                        date.setDate(date.getDate() + 1);
+                    }
+                    return { ...boss, timestamp: date.getTime() };
+                }).filter(boss => boss.timestamp > now)
+                .sort((a, b) => a.timestamp - b.timestamp);
 
             for (const boss of allBosses) {
                 if (addedCount < count) {
