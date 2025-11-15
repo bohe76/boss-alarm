@@ -50,15 +50,17 @@
         - `_nextBoss` 및 `_minTimeDiff`: 다음 보스 정보와 해당 보스까지 남은 시간을 저장하고 관리합니다. `setNextBossInfo(nextBoss, minTimeDiff)` 및 `getNextBossInfo()` 메서드를 통해 접근합니다.
     - **`LocalStorageManager`:**
         - `fixedAlarmStates` (고정 알림 설정), `logVisibilityState` (로그 가시성 설정), `sidebarState` (사이드바 접힘/펼쳐짐 상태), `activeScreen` (현재 활성화된 화면) 등 다양한 사용자 환경 설정 상태 관리.
+        - `fixedAlarms` (고정 알림 목록): 사용자가 추가, 편집, 삭제할 수 있는 고정 알림 객체 배열을 관리합니다. 각 고정 알림은 `id`, `name`, `time`, `enabled` 속성을 가집니다.
         - `init()`: 로컬 스토리지에서 초기 상태 로드.
         - `set/get` 메서드를 통해 각 설정 상태에 접근.
+        - `addFixedAlarm(alarm)`, `updateFixedAlarm(id, updatedAlarm)`, `deleteFixedAlarm(id)`: 고정 알림을 추가, 업데이트, 삭제하는 메서드를 제공합니다.
+        - `exportFixedAlarms()`, `importFixedAlarms(encodedData)`: 고정 알림 목록을 Base64로 인코딩/디코딩하여 공유 기능을 지원합니다.
 - **데이터 관리 전략:**
     - 싱글톤 데이터 관리자를 위한 IIFE 사용을 설명합니다.
-    - 동적(`bossSchedule`) 데이터와 정적(`fixedBossSchedule`) 데이터를 구분합니다.
-    - `fixedBossSchedule`이 하드코딩되어 있으며 UI를 통해 사용자가 수정할 수 없음을 명확히 합니다.
+    - `BossDataManager`는 동적 보스 일정과 `LocalStorageManager`에서 관리되는 사용자 설정 고정 알림을 통합하여 관리합니다.
 - **로컬 스토리지 사용:**
-    - 저장되는 특정 사용자 환경 설정(`fixedAlarmStates`, `logVisibilityState`, `sidebarState`, `activeScreen`)을 자세히 설명합니다.
-    - `fixedAlarmStates`의 구조(전역 토글, 개별 토글 배열)를 설명합니다.
+    - 저장되는 특정 사용자 환경 설정(`fixedAlarms`, `logVisibilityState`, `sidebarState`, `activeScreen`, `alarmRunningState`)을 자세히 설명합니다.
+    - `fixedAlarms`의 구조(고유 `id`, `name`, `time`, `enabled` 상태)를 설명합니다.
     - 저장된 상태를 로드하기 위한 `init()` 메서드를 언급합니다.
 
 ### 3.6. `src/boss-parser.js`
@@ -89,8 +91,7 @@
     - `stopAlarm()`: 알림 타이머를 중지.
     - `getIsAlarmRunning()`: 현재 알림이 실행 중인지 여부 반환.
     - `checkAlarms()`:
-        - `BossDataManager`에서 현재 보스 일정을 가져옴.
-        - 각 보스에 대해 5분 전, 1분 전, 정각 알림을 확인하고 트리거.
+        - `BossDataManager`의 동적 보스 일정과 `LocalStorageManager`의 고정 알림을 통합하여 각 보스에 대해 5분 전, 1분 전, 정각 알림을 확인하고 트리거.
         - 알림 트리거 시 `speech.js`를 통해 음성 알림, `logger.js`를 통해 로그 메시지 출력.
         - 자정(새로운 날)이 되면 보스 일정을 초기화하고 다시 파싱.
         - **다음 보스 정보 관리:** 현재 시간 기준으로 가장 가까운 다음 보스를 식별하고, 해당 보스 정보와 남은 시간을 `BossDataManager`에 저장합니다.
@@ -102,7 +103,8 @@
 - **보스 삭제 메커니즘:**
     - 일반 보스는 정각 알림(0분)이 트리거된 직후 `BossDataManager`의 스케줄에서 즉시 제거됩니다.
     - 고정 보스는 알림이 트리거되어도 목록에서 제거되지 않으며, 매일 반복됩니다.
-- **고정 알림 처리:** 전역 고정 알림 토글과 개별 고정 알림 토글이 모두 활성화된 경우에만 고정 알림을 확인합니다.
+- **고정 알림 처리:**
+    - `LocalStorageManager`에서 관리되는 고정 알림의 활성화 상태를 확인하고, 활성화된 고정 알림에 대해서만 알림을 처리합니다.
 
 ### 3.8. `src/ui-renderer.js`
 - **역할:** 애플리케이션의 UI 요소를 업데이트하고 렌더링합니다. 특히, 각 화면(Dashboard, Boss Management 등)의 콘텐츠를 동적으로 렌더링하고 업데이트하는 책임을 가집니다.
@@ -111,14 +113,14 @@
     - `updateHeader(alarmRunning)`: 헤더의 알람 상태 토글 UI 업데이트.
     - `updateSidebar(sidebarCollapsed)`: 사이드바의 접힘/펼쳐짐 상태 업데이트.
     - `updateBossListTextarea(bossList)`: 보스 관리 화면의 텍스트 영역 업데이트.
-    - `renderFixedAlarms(container)`: 알림 설정 화면의 고정 알림 목록 렌더링.
-    - `updateFixedAlarmVisuals()`: 고정 알림 UI의 시각적 상태 업데이트.
+    - `renderFixedAlarms()`: 알림 설정 화면의 고정 알림 목록을 동적으로 렌더링하며, 각 알림 카드, 편집/삭제 버튼, 새 알림 추가 폼을 포함합니다.
+    - `updateFixedAlarmVisuals()`: 고정 알림의 활성화/비활성화 상태 등 시각적 피드백을 업데이트합니다.
     - `updateNextBossDisplay(nextBoss)`: 대시보드 화면의 다음 보스 정보 및 카운트다운 업데이트.
     - `updateLogDisplay(logMessages)`: 알림 로그 화면의 로그 메시지 업데이트.
     - `renderHelpContent(tabName, content)`: 도움말 화면의 탭 콘텐츠 렌더링.
     - `updateVersionDisplay(version)`: 버전 정보 화면의 버전 표시 업데이트.
     - `updateShareLink(shortUrl)`: 공유 화면의 단축 URL 표시 업데이트.
-- **UI 업데이트 책임:** 각 화면의 특정 UI 요소들을 업데이트하고 렌더링하는 역할을 합니다.
+- **UI 업데이트 책임:** `LocalStorageManager`에서 관리되는 데이터를 기반으로 각 화면의 특정 UI 요소들을 동적으로 업데이트하고 렌더링하는 역할을 합니다.
 - **DOM 초기화 의존성:** 이 모듈의 함수들은 `initApp`에서 초기화된 `DOM` 객체를 인수로 받아 사용함으로써, DOM 요소가 완전히 로드된 후에만 접근하도록 보장합니다.
 
 ### 3.9. `src/api-service.js`
@@ -140,6 +142,7 @@
     - **화면별 이벤트:**
         - 보스 관리: 보스 목록 텍스트 영역 변경, 프리셋 선택/저장.
         - 알림 설정: 고정 알림 토글 변경.
+            - 고정 알림 추가, 편집, 삭제, 활성화/비활성화 버튼 클릭 이벤트 처리.
         - 공유: 공유 링크 생성 버튼 클릭.
         - 도움말: 탭 클릭.
 - **이벤트 처리 흐름:** `initEventHandlers`는 헤더, 사이드바, 메인 콘텐츠 영역 내의 모든 사용자 인터랙션에 대한 이벤트 리스너를 중앙에서 설정하고 관리합니다.
@@ -151,10 +154,11 @@
         - `dom-elements.js` 초기화.
         - `logger.js` 초기화.
         - `LocalStorageManager` 초기화 및 저장된 상태 로드.
-        - URL 파라미터에서 보스 목록 로드 또는 `defaultBossList` 사용.
+        - URL 파라미터에서 `data` (보스 목록) 및 `fixedData` (고정 알림) 로드 또는 `defaultBossList` 사용.
         - `boss-parser.js`를 통해 보스 목록 파싱.
         - `event-handlers.js` 초기화 및 이벤트 리스너 등록.
         - `ui-renderer.js`를 통해 초기 화면 렌더링 (예: 대시보드).
+        - `ui-renderer.js`를 통해 `LocalStorageManager`의 상태를 기반으로 초기 UI 상태 설정 (예: `DOM.logVisibilityToggle.checked`, `DOM.sidebar.classList`).
         - `alarm-scheduler.js` 시작 (필요시).
     - **라우팅:** URL 해시 또는 History API를 사용하여 화면 전환을 관리하고, `ui-renderer.js`의 `renderScreen`을 호출하여 해당 화면을 표시.
     - **전역 상태 관리:** `BossDataManager` 및 `LocalStorageManager`와 연동하여 애플리케이션의 전역 상태를 관리하고, 변경 시 `ui-renderer.js`를 통해 UI 업데이트를 트리거.
@@ -200,10 +204,10 @@
 *   `index.html` -> `src/boss-parser.js` (`parseBossList` 호출)
 *   `index.html` -> `src/alarm-scheduler.js` (`startAlarm`, `stopAlarm`, `getIsAlarmRunning` 호출)
 *   `index.html` -> `src/ui-renderer.js` (`updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `renderDashboard`, `renderBossPresets`, `renderVersionInfo` 호출)
-*   `index.html` -> `src/api-service.js` (`getShortUrl` 호출)
+*   `index.html` -> `src/api-service.js` (`getShortUrl`, `loadMarkdownContent` 호출)
 *   `index.html` -> `src/default-boss-list.js` (`bossPresets` 사용)
 
-*   `src/event-handlers.js` -> `src/dom-elements.js` (`initDomElements` 호출)
+*   `src/event-handlers.js` -> `src/dom-elements.js` (DOM 요소 접근)
 *   `src/event-handlers.js` -> `src/logger.js` (`initLogger`, `log` 호출)
 *   `src/event-handlers.js` -> `src/boss-parser.js` (`parseBossList` 호출)
 *   `src/event-handlers.js` -> `src/alarm-scheduler.js` (`startAlarm`, `stopAlarm`, `getIsAlarmRunning` 호출)
@@ -211,7 +215,7 @@
 *   `src/event-handlers.js` -> `src/api-service.js` (`getShortUrl` 호출)
 *   `src/event-handlers.js` -> `src/data-managers.js` (`LocalStorageManager` 사용)
 *   `src/event-handlers.js` -> `src/default-boss-list.js` (`bossPresets` 사용)
-
+*   `src/event-handlers.js` -> `src/data-managers.js` (`LocalStorageManager.addFixedAlarm`, `LocalStorageManager.updateFixedAlarm`, `LocalStorageManager.deleteFixedAlarm`, `LocalStorageManager.setFixedAlarmState` 호출)
 *   `src/boss-parser.js` -> `src/logger.js` (`log` 호출)
 *   `src/boss-parser.js` -> `src/data-managers.js` (`BossDataManager` 사용)
 
@@ -220,10 +224,10 @@
 *   `src/alarm-scheduler.js` -> `src/data-managers.js` (`BossDataManager`, `LocalStorageManager` 사용)
 *   `src/alarm-scheduler.js` -> `src/ui-renderer.js` (`renderDashboard` 호출)
 
-*   `src/ui-renderer.js` -> `src/data-managers.js` (`BossDataManager`, `LocalStorageManager` 사용)
+*   `src/ui-renderer.js` -> `src/data-managers.js` (`BossDataManager`, `LocalStorageManager` 사용, `LocalStorageManager.getFixedAlarms` 호출)
 *   `src/ui-renderer.js` -> `src/alarm-scheduler.js` (`getIsAlarmRunning` 호출)
 *   `src/ui-renderer.js` -> `src/logger.js` (`log`, `getLogs` 호출)
-*   `src/ui-renderer.js` -> `src/default-boss-list.js` (`bossPresets` 사용)
+*   `src/ui-renderer.js` -> `src/default-boss-list.js` (`bossPresets` 사용, `LocalStorageManager.setFixedAlarmState` 호출)
 
 *   `src/api-service.js` -> (명시적인 JavaScript 모듈 의존성 없음, 네이티브 `fetch` API 사용)
 
@@ -238,9 +242,10 @@
     *   `initApp`은 `logger.js:initLogger(DOM.logContainer)`를 호출합니다.
     *   `initApp`은 `data-managers.js:LocalStorageManager.init()`를 호출하여 영구 상태(고정 알람, 로그 가시성, 알람 실행, 사이드바 확장)를 로드합니다.
     *   `initApp`은 URL 매개변수에서 `data`를 확인합니다. 존재하면 디코딩하여 `DOM.bossListInput.value`를 설정합니다. 그렇지 않으면 `default-boss-list.js:bossPresets[0].list`를 사용합니다.
+    *   `initApp`은 URL 매개변수에서 `fixedData`를 확인합니다. 존재하면 `LocalStorageManager.importFixedAlarms()`를 호출하여 고정 알림을 로드합니다.
     *   `initApp`은 `boss-parser.js:parseBossList(DOM.bossListInput)`를 호출하여 보스 목록을 파싱하고, 이는 `data-managers.js:BossDataManager.setBossSchedule()`를 호출합니다.
-    *   `initApp`은 `LocalStorageManager`를 기반으로 초기 UI 상태를 설정합니다(예: `DOM.globalFixedAlarmToggle.checked`, `DOM.logVisibilityToggle.checked`, `DOM.sidebar.classList`).
-    *   `initApp`은 초기 UI 렌더링을 위해 `ui-renderer.js:renderFixedAlarms(DOM)`, `ui-renderer.js:renderBossPresets(DOM)`, `ui-renderer.js:renderDashboard(DOM)`를 호출합니다.
+    *   `initApp`은 `LocalStorageManager`를 기반으로 초기 UI 상태를 설정합니다(예: `DOM.logVisibilityToggle.checked`, `DOM.sidebar.classList`).
+    *   `initApp`은 초기 UI 렌더링을 위해 `ui-renderer.js:renderFixedAlarms()`, `ui-renderer.js:renderDashboard()`를 호출합니다.
     *   `initApp`은 모든 이벤트 리스너를 설정하기 위해 `event-handlers.js:initEventHandlers(DOM)`를 호출합니다.
     *   `alarm-scheduler.js:getIsAlarmRunning()`이 true이면 `initApp`은 `alarm-scheduler.js:startAlarm(DOM)`를 호출합니다.
 
@@ -249,9 +254,9 @@
     *   `event-handlers.js`의 클릭 리스너는 `event-handlers.js:showScreen(DOM, screenId)`를 호출합니다.
     *   `showScreen`은 화면 요소의 `classList`를 조작하여 표시/숨김을 처리합니다.
     *   'dashboard-screen'의 경우 `showScreen`은 `ui-renderer.js:renderDashboard(DOM)`를 호출합니다.
-    *   'version-info-screen'의 경우 `showScreen`은 `ui-renderer.js:renderVersionInfo(DOM)`를 호출합니다.
-    *   'help-screen'의 경우 `showScreen`은 `event-handlers.js:switchHelpTab(DOM, 'featureGuide')`를 호출합니다.
-
+    *   'boss-management-screen'의 경우 `showScreen`은 `ui-renderer.js:updateBossListTextarea()`를 호출합니다.
+    *   'notification-settings-screen'의 경우 `showScreen`은 `ui-renderer.js:renderFixedAlarms()`를 호출합니다.
+    *   'alarm-log-screen'의 경우 `showScreen`은 `ui-renderer.js:updateLogDisplay()`를 호출합니다.
 3.  **알람 토글 (`event-handlers.js` -> `alarmToggleButton` 클릭)**:
     *   `event-handlers.js`는 `alarm-scheduler.js:getIsAlarmRunning()`를 호출합니다.
     *   실행 중이 아니면 `alarm-scheduler.js:startAlarm(DOM)`를 호출하고, 이는 `data-managers.js:LocalStorageManager.setAlarmRunningState(true)`를 설정하고, `logger.js:log()`를 호출하고, `speech.js:speak()`를 호출하고, `alarm-scheduler.js:checkAlarms` 및 `ui-renderer.js:renderDashboard`에 대한 `setInterval`을 시작합니다.
@@ -272,13 +277,14 @@
 6.  **공유 링크 생성 (`event-handlers.js` -> `shareButton` 클릭)**:
     *   `event-handlers.js`는 `DOM.bossListInput.value`를 가져옵니다.
     *   `longUrl`을 구성합니다.
+    *   `LocalStorageManager.exportFixedAlarms()`를 호출하여 고정 알림 데이터를 가져와 `longUrl`에 추가합니다.
     *   `api-service.js:getShortUrl(longUrl)`를 호출합니다.
     *   결과로 `DOM.shareLinkInput.value`를 업데이트하고 `logger.js:log()`를 호출합니다.
 
-7.  **고정 알람 토글 (`ui-renderer.js:renderFixedAlarms` -> 개별 토글 변경)**:
-    *   이벤트 리스너( `ui-renderer.js`에 설정됨)는 `data-managers.js:LocalStorageManager.getFixedAlarmStates()`에서 현재 상태를 가져옵니다.
-    *   개별 상태를 업데이트하고 `data-managers.js:LocalStorageManager.setFixedAlarmStates()`를 호출합니다.
-    *   `ui-renderer.js:updateFixedAlarmVisuals(DOM)`를 호출합니다.
+7.  **고정 알람 관리 (`event-handlers.js` -> 고정 알람 관련 버튼 클릭)**:
+    *   `event-handlers.js`의 위임된 이벤트 리스너는 고정 알람 추가, 편집, 삭제, 토글 이벤트를 감지합니다.
+    *   각 이벤트에 따라 `LocalStorageManager.addFixedAlarm()`, `LocalStorageManager.updateFixedAlarm()`, `LocalStorageManager.deleteFixedAlarm()`, `LocalStorageManager.setFixedAlarmState()` 등의 적절한 `LocalStorageManager` 메서드를 호출합니다.
+    *   데이터 변경 후 `ui-renderer.js:renderFixedAlarms()`를 호출하여 고정 알림 목록 UI를 새로 고칩니다.
 
 ## 6. 결론
 
