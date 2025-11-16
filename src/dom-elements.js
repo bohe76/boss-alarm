@@ -13,6 +13,7 @@ export function initDomElements() {
         navDashboard: document.getElementById('nav-dashboard'), // New
         navBossManagement: document.getElementById('nav-boss-management'), // New
         navZenCalculator: document.getElementById('nav-zen-calculator'), // New
+        navBossScheduler: document.getElementById('nav-boss-scheduler'), // New
         navNotificationSettings: document.getElementById('nav-notification-settings'), // New
         navAlarmLog: document.getElementById('nav-alarm-log'), // New
         navVersionInfo: document.getElementById('nav-version-info'), // New
@@ -23,6 +24,7 @@ export function initDomElements() {
         dashboardScreen: document.getElementById('dashboard-screen'),
         bossManagementScreen: document.getElementById('boss-management-screen'),
         zenCalculatorScreen: document.getElementById('zen-calculator-screen'), // New
+        bossSchedulerScreen: document.getElementById('boss-scheduler-screen'), // New
         notificationSettingsScreen: document.getElementById('notification-settings-screen'),
         alarmLogScreen: document.getElementById('alarm-log-screen'),
         versionInfoScreen: document.getElementById('version-info-screen'),
@@ -61,5 +63,11 @@ export function initDomElements() {
         // Elements within Zen Calculator Screen
         remainingTimeInput: document.getElementById('remainingTimeInput'), // New
         bossAppearanceTimeDisplay: document.getElementById('bossAppearanceTimeDisplay'), // New
+
+        // Elements within Boss Scheduler Screen
+        gameSelect: document.getElementById('gameSelect'), // New
+        bossInputsContainer: document.getElementById('bossInputsContainer'), // New
+        clearAllRemainingTimesButton: document.getElementById('clearAllRemainingTimesButton'), // New
+        moveToBossSettingsButton: document.getElementById('moveToBossSettingsButton'), // New
     };
 }

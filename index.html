@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>보스 알리미</title>
-    <link rel="stylesheet" href="src/style.css?v=2.2.0">
+    <link rel="stylesheet" href="src/style.css?v=2.3.0">
     <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -42,6 +42,14 @@
                             <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
                         </svg>
                         <span class="menu-text">보스 설정</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-boss-scheduler" data-screen="boss-scheduler-screen">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
+                            <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5zM7 11h5v5H7z"/>
+                        </svg>
+                        <span class="menu-text">보스 스케줄러</span>
                     </a>
                 </li>
                 <li>
@@ -134,6 +142,11 @@
                 </div>
             </section>
 
+            <section id="boss-scheduler-screen" class="screen">
+                <h2>보스 스케줄러</h2>
+                <!-- Boss Scheduler UI will be rendered here by JavaScript -->
+            </section>
+
             <section id="notification-settings-screen" class="screen">
                 <h2>알림 설정</h2>
                 <div class="fixed-alarm-section">
@@ -183,7 +196,7 @@
     </div>
 
     <script type="module">
-        window.APP_VERSION = "2.2.0"; // Define global app version
+        window.APP_VERSION = "2.3.0"; // Define global app version
 
         import { initDomElements } from './src/dom-elements.js';
 
@@ -204,7 +217,7 @@
         });
     </script>
     <footer>
-        <p>Created by: bohe | v2.2.0</p>
+        <p>Created by: bohe | v2.3.0</p>
     </footer>
 </body>
 </html>

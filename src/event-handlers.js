@@ -2,13 +2,16 @@
 
 import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-scheduler.js';
-import { updateBossListTextarea, renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen } from './ui-renderer.js';
+import { updateBossListTextarea, renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen, renderBossSchedulerScreen, renderBossInputs } from './ui-renderer.js';
 import { getShortUrl, loadMarkdownContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
 import { bossPresets } from './default-boss-list.js'; // Import bossPresets
 import { calculateBossAppearanceTime } from './calculator.js'; // Import calculateBossAppearanceTime
+import { loadBossLists, getGameNames, getBossNamesForGame } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
+
+let _remainingTimes = {}; // Global variable to store remaining times for boss scheduler
 
 
 
@@ -22,7 +25,8 @@ function showScreen(DOM, screenId) {
         DOM.versionInfoScreen,
         DOM.shareScreen,
         DOM.helpScreen,
-        DOM.zenCalculatorScreen // New
+        DOM.zenCalculatorScreen, // New
+        DOM.bossSchedulerScreen // New
     ];
 
     screens.forEach(screen => {
@@ -58,6 +62,11 @@ function showScreen(DOM, screenId) {
     // Special handling for zen calculator screen
     if (screenId === 'zen-calculator-screen') {
         renderCalculatorScreen(DOM);
+    }
+
+    // Special handling for boss scheduler screen
+    if (screenId === 'boss-scheduler-screen') {
+        renderBossSchedulerScreen(DOM, _remainingTimes);
     }
 }
 
@@ -95,6 +104,7 @@ function initEventHandlers(DOM) {
         DOM.navDashboard,
         DOM.navBossManagement,
         DOM.navZenCalculator, // New
+        DOM.navBossScheduler, // New
         DOM.navNotificationSettings,
         DOM.navAlarmLog,
         DOM.navVersionInfo,
@@ -141,6 +151,108 @@ function initEventHandlers(DOM) {
             const bossAppearanceTime = calculateBossAppearanceTime(remainingTime);
             if (DOM.bossAppearanceTimeDisplay) {
                 DOM.bossAppearanceTimeDisplay.textContent = bossAppearanceTime || '--:--:--';
+            }
+        });
+    }
+
+    // --- Boss Scheduler Screen Event Handlers ---
+    if (DOM.bossSchedulerScreen) {
+        // Game selection change
+        DOM.bossSchedulerScreen.addEventListener('change', (event) => {
+            if (event.target === DOM.gameSelect) {
+                renderBossInputs(DOM, DOM.gameSelect.value);
+            }
+        });
+
+        // Remaining time input change (event delegation)
+        DOM.bossSchedulerScreen.addEventListener('input', (event) => {
+            if (event.target.classList.contains('remaining-time-input')) {
+                const inputField = event.target;
+                const remainingTime = inputField.value;
+                const calculatedTimeSpan = inputField.nextElementSibling; // Assuming span is next sibling
+
+                const bossAppearanceTime = calculateBossAppearanceTime(remainingTime);
+                if (calculatedTimeSpan) {
+                    calculatedTimeSpan.textContent = bossAppearanceTime || '--:--:--';
+                }
+            }
+        });
+
+        // Clear all remaining times button
+        DOM.bossSchedulerScreen.addEventListener('click', (event) => {
+            if (event.target === DOM.clearAllRemainingTimesButton) {
+                if (confirm("모든 남은 시간을 삭제하시겠습니까?")) { // Confirmation dialog
+                    DOM.bossInputsContainer.querySelectorAll('.remaining-time-input').forEach(input => {
+                        input.value = '';
+                        input.nextElementSibling.textContent = '--:--:--';
+                    });
+                    log("모든 남은 시간이 삭제되었습니다.", true);
+                }
+            }
+        });
+
+        // Move to Boss Settings button
+        DOM.bossSchedulerScreen.addEventListener('click', (event) => {
+            if (event.target === DOM.moveToBossSettingsButton) {
+                const bossEntries = [];
+                const currentYear = new Date().getFullYear();
+
+                DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
+                    const bossName = item.querySelector('.boss-name').textContent;
+                    const remainingTimeInput = item.querySelector('.remaining-time-input');
+                    const remainingTime = remainingTimeInput.value;
+
+                    if (remainingTime) {
+                        const calculatedTime = calculateBossAppearanceTime(remainingTime);
+                        if (calculatedTime) {
+                            // Calculate full Date object for sorting and date markers
+                            const now = new Date();
+                            const [hours, minutes, seconds] = remainingTime.split(':').map(Number);
+                            now.setHours(now.getHours() + hours);
+                            now.setMinutes(now.getMinutes() + minutes);
+                            now.setSeconds(now.getSeconds() + (seconds || 0));
+
+                            bossEntries.push({
+                                name: bossName,
+                                time: calculatedTime,
+                                timestamp: now.getTime(), // Store timestamp for sorting
+                                date: now // Store full date object
+                            });
+                        }
+                    }
+                });
+
+                // Sort boss entries by timestamp
+                bossEntries.sort((a, b) => a.timestamp - b.timestamp);
+
+                let output = [];
+                let lastDate = null;
+
+                bossEntries.forEach(entry => {
+                    const entryDate = entry.date;
+                    const formattedDate = `${String(entryDate.getMonth() + 1).padStart(2, '0')}.${String(entryDate.getDate()).padStart(2, '0')}`;
+
+                    if (!lastDate || entryDate.toDateString() !== lastDate.toDateString()) {
+                        output.push(formattedDate);
+                        lastDate = entryDate;
+                    }
+                    output.push(`${entry.time} ${entry.name}`);
+                });
+
+                DOM.bossListInput.value = output.join('\n');
+                parseBossList(DOM.bossListInput); // Parse the new boss list
+                renderDashboard(DOM); // Re-render dashboard to reflect changes
+                
+                // Store current remaining times before navigating away
+                _remainingTimes = {}; // Clear previous state
+                DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
+                    const bossName = item.querySelector('.boss-name').textContent;
+                    const remainingTimeInput = item.querySelector('.remaining-time-input');
+                    _remainingTimes[bossName] = remainingTimeInput.value;
+                });
+
+                showScreen(DOM, 'boss-management-screen'); // Navigate to Boss Management screen
+                log("보스 스케줄러에서 보스 설정으로 목록이 전송되었습니다.", true);
             }
         });
     }
@@ -241,11 +353,14 @@ function initEventHandlers(DOM) {
 
 // Function to initialize the application
 
-export function initApp() {
+export async function initApp() { // Made initApp async
     const DOM = initDomElements(); // Initialize DOM elements here
 
     // Initialize logger with the log container
     initLogger(DOM.logContainer);
+
+    // Load boss lists data
+    await loadBossLists();
 
     // 현재 페이지의 URL 파라미터(물음표 뒤)를 가져옴
     const params = new URLSearchParams(window.location.search);

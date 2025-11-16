@@ -2,6 +2,7 @@ import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Im
 import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRunning
 import { log, getLogs } from './logger.js'; // Import log and getLogs
 import { loadMarkdownContent } from './api-service.js'; // Import loadMarkdownContent
+import { getGameNames, getBossNamesForGame } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
 
 // Helper for time validation
 const isValidTime = (time) => /^(?:2[0-3]|[01]?[0-9]):[0-5][0-9]$/.test(time);
@@ -259,4 +260,62 @@ export function renderCalculatorScreen(DOM) {
     if (DOM.bossAppearanceTimeDisplay) {
         DOM.bossAppearanceTimeDisplay.textContent = '--:--:--'; // Reset display
     }
+}
+
+// --- Boss Scheduler Screen Rendering Functions ---
+export function renderBossSchedulerScreen(DOM, remainingTimes = {}) {
+    // Clear previous content
+    DOM.bossSchedulerScreen.innerHTML = `
+        <h2>보스 스케줄러</h2>
+        <div class="boss-scheduler-controls">
+            <label for="gameSelect">게임 선택</label>
+            <select id="gameSelect"></select>
+        </div>
+        <div class="boss-input-header">
+            <span class="boss-name-header">보스이름</span>
+            <span class="remaining-time-header">남은 시간</span>
+            <span class="spawn-time-header">젠 시간</span>
+        </div>
+        <div id="bossInputsContainer" class="boss-inputs-container">
+            <!-- Boss input fields will be rendered here -->
+        </div>
+        <div class="boss-scheduler-actions">
+            <button id="clearAllRemainingTimesButton" class="action-button primary-button">남은 시간 초기화</button>
+            <button id="moveToBossSettingsButton" class="action-button primary-button">보스 설정 적용</button>
+        </div>
+    `;
+
+    // Re-get DOM elements after innerHTML update
+    DOM.gameSelect = DOM.bossSchedulerScreen.querySelector('#gameSelect');
+    DOM.bossInputsContainer = DOM.bossSchedulerScreen.querySelector('#bossInputsContainer');
+    DOM.clearAllRemainingTimesButton = DOM.bossSchedulerScreen.querySelector('#clearAllRemainingTimesButton');
+    DOM.moveToBossSettingsButton = DOM.bossSchedulerScreen.querySelector('#moveToBossSettingsButton');
+
+    // Populate game selection dropdown
+    const gameNames = getGameNames();
+    DOM.gameSelect.innerHTML = gameNames.map(game => `<option value="${game}">${game}</option>`).join('');
+
+    // Render bosses for the initially selected game
+    if (gameNames.length > 0) {
+        renderBossInputs(DOM, gameNames[0], remainingTimes);
+    }
+}
+
+/**
+ * Renders the boss input fields for a selected game.
+ * @param {object} DOM - The DOM elements object.
+ * @param {string} gameName - The name of the selected game.
+ */
+export function renderBossInputs(DOM, gameName, remainingTimes = {}) {
+    const bossNames = getBossNamesForGame(gameName);
+    DOM.bossInputsContainer.innerHTML = bossNames.map(bossName => {
+        const initialValue = remainingTimes[bossName] || '';
+        return `
+            <div class="boss-input-item">
+                <span class="boss-name">${bossName}</span>
+                <input type="text" class="remaining-time-input" data-boss-name="${bossName}" value="${initialValue}">
+                <span class="calculated-spawn-time">--:--:--</span>
+            </div>
+        `;
+    }).join('');
 }
