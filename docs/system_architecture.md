@@ -118,7 +118,7 @@
     - `updateNextBossDisplay(nextBoss)`: 대시보드 화면의 다음 보스 정보 및 카운트다운 업데이트.
     - `updateLogDisplay(logMessages)`: 알림 로그 화면의 로그 메시지 업데이트.
     - `renderHelpContent(tabName, content)`: 도움말 화면의 탭 콘텐츠 렌더링.
-    - `updateVersionDisplay(version)`: 버전 정보 화면의 버전 표시 업데이트.
+    - `updateVersionDisplay(version)`: 릴리즈 노트 화면의 버전 표시 업데이트.
     - `updateShareLink(shortUrl)`: 공유 화면의 단축 URL 표시 업데이트.
 - **UI 업데이트 책임:** `LocalStorageManager`에서 관리되는 데이터를 기반으로 각 화면의 특정 UI 요소들을 동적으로 업데이트하고 렌더링하는 역할을 합니다.
 - **DOM 초기화 의존성:** 이 모듈의 함수들은 `initApp`에서 초기화된 `DOM` 객체를 인수로 받아 사용함으로써, DOM 요소가 완전히 로드된 후에만 접근하도록 보장합니다.

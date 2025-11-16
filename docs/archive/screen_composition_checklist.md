@@ -35,7 +35,7 @@
     *   [x] 사이드바 상태 (접힘/펼쳐짐) 로컬 스토리지 저장/로드 기능 추가
 *   [x] 메뉴 항목 목록 (`<ul>`, `<li>`, `<a>`) 구현:
     *   [x] 각 메뉴 항목에 아이콘 (Heroicons) 및 텍스트 라벨 추가
-    *   [x] 메뉴 항목: 대시보드, 보스 관리, 알림 설정, 알림 로그, 버전 정보, 공유, 도움말
+    *   [x] 메뉴 항목: 대시보드, 보스 관리, 알림 설정, 알림 로그, 릴리즈 노트, 공유, 도움말
     *   [x] 사이드바 접힘 상태에서 아이콘만 표시 및 마우스 오버 시 툴팁으로 메뉴 이름 표시 기능 구현
 *   [x] 메뉴 항목 클릭 시 메인 콘텐츠 영역 변경 로직 구현:
     *   [x] `src/event-handlers.js`에 메뉴 항목 클릭 이벤트 리스너 추가
@@ -86,7 +86,7 @@
         *   [x] "버전 기록" 탭: `docs/version_history.txt` 내용 표시 (`fetch` API 활용)
         *   [x] `src/event-handlers.js`에 탭 클릭 이벤트 리스너 및 콘텐츠 로드 함수 추가
         *   [x] `src/api-service.js`에 파일 내용 로드 함수 추가 (필요시 - *현재는 `event-handlers.js`에서 직접 처리*)
-*   [x] **4.6. 버전 정보 (Version Info) 화면:**
+*   [x] **4.6. 릴리즈 노트 (Version Info) 화면:**
     *   [x] 현재 버전 (`vX.X.X`) 크게 표시 UI
     *   [ ] 업데이트 내역 (`docs/version_history.txt` 기반) 목록 표시 UI (*현재 구현 범위 외*)
         *   [ ] `src/event-handlers.js` 또는 `src/ui-renderer.js`에서 `docs/version_history.txt` 내용을 파싱하여 표시 (*현재 구현 범위 외*)

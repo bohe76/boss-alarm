@@ -25,7 +25,7 @@
     -   알림 로그 (Alarm Log)
     -   알림 설정 (Notification Settings)
     -   도움말 (Help)
-    -   버전 정보 (Version Info)
+    -   릴리즈 노트 (Version Info)
 
 ## 4. 메인 콘텐츠 영역 (Main Content Area)
 
@@ -80,9 +80,9 @@
 -   **제목**: "도움말"
 -   **기능 가이드 콘텐츠**: `docs/feature_guide.txt`의 내용 표시.
 
-### 4.7. 화면: 버전 정보 (Version Info)
+### 4.7. 화면: 릴리즈 노트 (Version Info)
 
--   **제목**: "버전 정보"
+-   **제목**: "릴리즈 노트"
 -   **버전 기록 콘텐츠**: `docs/version_history.txt`의 내용 표시.
 
 ## 5. 푸터 (Footer)
