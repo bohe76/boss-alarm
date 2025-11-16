@@ -11,7 +11,7 @@ export function parseBossList(bossListInput) {
 
     let baseDate = null;
     let dayOffset = 0;
-    let lastBossTimeInMinutes = -1;
+    let lastBossTimeInSeconds = -1;
     
     let removedPastBossCount = 0;
     const newBossSchedule = [];
@@ -59,7 +59,7 @@ export function parseBossList(bossListInput) {
                             }                baseDate = parsedDate;
                 baseDate.setHours(0,0,0,0);
                 dayOffset = 0;
-                lastBossTimeInMinutes = -1; // Reset for the new day's chronological check
+                lastBossTimeInSeconds = -1; // Reset for the new day's chronological check
                 newBossSchedule.push({ type: 'date', value: line });
                 return;
             }
@@ -70,30 +70,31 @@ export function parseBossList(bossListInput) {
                 return;
             }
 
-            const timeMatch = parts[0].match(/^(\d{1,2}):(\d{2})$/);
+            const timeMatch = parts[0].match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
             if (!timeMatch) {
                 log(`경고: 유효하지 않은 시간 형식입니다: ${parts[0]}. 이 줄은 건너뜁니다.`, false);
                 return;
             }
             const bossHour = parseInt(timeMatch[1], 10);
             const bossMinute = parseInt(timeMatch[2], 10);
+            const bossSecond = timeMatch[3] ? parseInt(timeMatch[3], 10) : 0;
 
-            if (isNaN(bossHour) || isNaN(bossMinute) || bossHour < 0 || bossHour > 23 || bossMinute < 0 || bossMinute > 59) {
+            if (isNaN(bossHour) || isNaN(bossMinute) || isNaN(bossSecond) || bossHour < 0 || bossHour > 23 || bossMinute < 0 || bossMinute > 59 || bossSecond < 0 || bossSecond > 59) {
                 log(`경고: 유효하지 않은 시간 값입니다: ${parts[0]}. 이 줄은 건너뜁니다.`, false);
                 return;
             }
 
-            const bossTimeInMinutes = bossHour * 60 + bossMinute;
+            const bossTimeInSeconds = bossHour * 3600 + bossMinute * 60 + bossSecond;
 
             // Handle chronological wrap-around (e.g., 23:00 -> 01:00)
-            if (lastBossTimeInMinutes !== -1 && bossTimeInMinutes < lastBossTimeInMinutes) {
+            if (lastBossTimeInSeconds !== -1 && bossTimeInSeconds < lastBossTimeInSeconds) {
                 dayOffset++;
             }
-            lastBossTimeInMinutes = bossTimeInMinutes;
+            lastBossTimeInSeconds = bossTimeInSeconds;
 
             let scheduledDate = new Date(baseDate);
             scheduledDate.setDate(baseDate.getDate() + dayOffset);
-            scheduledDate.setHours(bossHour, bossMinute);
+            scheduledDate.setHours(bossHour, bossMinute, bossSecond);
 
             // Final, single filter for past bosses
             if (scheduledDate.getTime() < now.getTime()) {

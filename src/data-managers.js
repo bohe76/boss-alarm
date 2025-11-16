@@ -27,9 +27,9 @@ export const BossDataManager = (() => {
             const allBosses = [...bossSchedule, ...fixedBosses]
                 .filter(boss => boss.time) // Filter out entries without a 'time' property (i.e., date entries)
                 .map(boss => {
-                    const [hours, minutes] = boss.time.split(':').map(Number);
+                    const [hours, minutes, seconds] = boss.time.split(':').map(Number);
                     const date = new Date();
-                    date.setHours(hours, minutes, 0, 0);
+                    date.setHours(hours, minutes, seconds || 0, 0);
                     // If the boss time has already passed today, set it for tomorrow
                     if (date.getTime() < now) {
                         date.setDate(date.getDate() + 1);

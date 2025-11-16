@@ -84,18 +84,20 @@ export function checkAlarms() { // Removed updateBossListTextarea parameter
 
     // Sort all alarms by time for consistent processing
     allAlarms.sort((a, b) => {
-        const [aHour, aMin] = a.time.split(':').map(Number);
-        const [bHour, bMin] = b.time.split(':').map(Number);
-        return (aHour * 60 + aMin) - (bHour * 60 + bMin);
+        const [aH, aM, aS] = a.time.split(':').map(Number);
+        const aTotalSeconds = aH * 3600 + aM * 60 + (aS || 0);
+        const [bH, bM, bS] = b.time.split(':').map(Number);
+        const bTotalSeconds = bH * 3600 + bM * 60 + (bS || 0);
+        return aTotalSeconds - bTotalSeconds;
     });
 
     let nextBoss = null;
     let minTimeDiff = Infinity;
 
     for (const alarm of allAlarms) {
-        const [hours, minutes] = alarm.time.split(':').map(Number);
+        const [hours, minutes, seconds] = alarm.time.split(':').map(Number);
         const alarmTimeToday = new Date();
-        alarmTimeToday.setHours(hours, minutes, 0, 0);
+        alarmTimeToday.setHours(hours, minutes, seconds || 0, 0);
 
         // If alarm time has already passed today, consider it for tomorrow
         if (alarmTimeToday.getTime() <= now.getTime() - 1000) { // 1 second grace period
@@ -146,9 +148,9 @@ export function checkAlarms() { // Removed updateBossListTextarea parameter
 
     // Determine the next boss for display (simplified and correct)
     let potentialNextAlarms = allAlarms.map(alarm => {
-        const [hours, minutes] = alarm.time.split(':').map(Number);
+        const [hours, minutes, seconds] = alarm.time.split(':').map(Number);
         const alarmTimeToday = new Date();
-        alarmTimeToday.setHours(hours, minutes, 0, 0);
+        alarmTimeToday.setHours(hours, minutes, seconds || 0, 0);
 
         let timeDiff = alarmTimeToday.getTime() - now.getTime();
         if (timeDiff < 0) {
