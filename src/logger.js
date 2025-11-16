@@ -18,8 +18,8 @@ export function log(message, isImportant = false) {
     const minutes = now.getMinutes().toString().padStart(2, '0');
     const seconds = now.getSeconds().toString().padStart(2, '0');
     const formattedTime = `${hours}:${minutes}:${seconds}`;
-    const logEntryText = `[${formattedTime}] ${message}`;
-    logs.push(logEntryText); // Store the log entry
+    const logEntryHTML = `<strong>[${formattedTime}]</strong> ${message}`;
+    logs.push(logEntryHTML); // Store the HTML formatted log entry
 
     const entry = document.createElement('div');
     entry.className = 'log-entry';
@@ -28,7 +28,7 @@ export function log(message, isImportant = false) {
         entry.classList.add('important');
     }
     
-    entry.textContent = logEntryText;
+    entry.innerHTML = logEntryHTML; // Use innerHTML to render the <strong> tag
     
     logContainer.appendChild(entry);
     logContainer.scrollTop = logContainer.scrollHeight;

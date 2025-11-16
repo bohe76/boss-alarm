@@ -7,15 +7,28 @@ import { loadMarkdownContent } from './api-service.js'; // Import loadMarkdownCo
 const isValidTime = (time) => /^(?:2[0-3]|[01]?[0-9]):[0-5][0-9]$/.test(time);
 
 // Helper function to format time difference
-function formatTimeDifference(ms) {
-    if (ms <= 0 || ms === Infinity) return '(00:00:00)'; // Handle Infinity for no next boss
+function formatTimeDifference(ms, showSeconds = true) {
+    if (ms <= 0 || ms === Infinity) return showSeconds ? '(00:00:00)' : '(00:00)';
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor((totalSeconds % 86400) / 3600); // Ensure hours don't exceed 23
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
 
     const pad = (num) => num.toString().padStart(2, '0');
-    return `(${pad(hours)}:${pad(minutes)}:${pad(seconds)})`;
+    if (showSeconds) {
+        return `(${pad(hours)}:${pad(minutes)}:${pad(seconds)})`;
+    } else {
+        return `(${pad(hours)}:${pad(minutes)})`;
+    }
+}
+
+// Helper function to format spawn time to HH:MM:SS
+function formatSpawnTime(timeString) {
+    const parts = timeString.split(':');
+    const hours = parts[0].padStart(2, '0');
+    const minutes = parts[1].padStart(2, '0');
+    const seconds = (parts[2] || '00').padStart(2, '0');
+    return `[${hours}:${minutes}:${seconds}]`;
 }
 
 // --- Dashboard Rendering Functions ---
@@ -23,7 +36,8 @@ export function updateNextBossDisplay(DOM) {
     const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
     if (nextBoss) {
         const remainingTimeString = formatTimeDifference(minTimeDiff);
-        DOM.nextBossDisplay.innerHTML = `<span class="next-boss-label">다음 보스</span><br><span class="boss-details-highlight">${nextBoss.time} ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span></span>`;
+        const formattedSpawnTime = formatSpawnTime(nextBoss.time);
+        DOM.nextBossDisplay.innerHTML = `<span class="next-boss-label">다음 보스</span><br><span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span></span>`;
     } else {
         DOM.nextBossDisplay.textContent = '다음 보스 없음';
     }
@@ -36,8 +50,9 @@ export function renderUpcomingBossList(DOM) {
     if (upcomingBosses.length > 0) {
         upcomingBosses.forEach(boss => {
             const timeDiff = boss.timestamp - Date.now();
-            const remaining = formatTimeDifference(timeDiff);
-            html += `<li>${boss.time} ${boss.name} ${remaining}</li>`;
+            const remaining = formatTimeDifference(timeDiff, false);
+            const formattedSpawnTime = formatSpawnTime(boss.time);
+            html += `<li><span class="spawn-time">${formattedSpawnTime}</span> ${boss.name} ${remaining}</li>`;
         });
     } else {
         html += '<li>예정된 보스가 없습니다.</li>';
