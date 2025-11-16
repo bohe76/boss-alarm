@@ -54,7 +54,7 @@ function showScreen(DOM, screenId) {
     if (screenId === 'help-screen') {
         // Directly load feature guide content when opening help screen
         (async () => {
-            const markdownContent = await loadMarkdownContent('docs/feature_guide.txt');
+            const markdownContent = await loadMarkdownContent(`docs/feature_guide.txt?v=${window.APP_VERSION}`);
             DOM.featureGuideContent.innerHTML = `<pre class="doc-content-pre">${markdownContent}</pre>`;
         })();
     }

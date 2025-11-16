@@ -23,7 +23,7 @@
     - 다른 모듈들이 DOM 요소에 직접 접근하는 대신 이 모듈을 통해 일관된 방식으로 접근하도록 함.
 - **DOM 추상화:** 이 모듈은 DOM 접근을 위한 추상화 계층 역할을 하여 일관성을 촉진하고 UI 변경 관리를 용이하게 합니다.
 - **초기화 시점:** 모든 요소가 사용 가능하도록 DOM이 완전히 로드된 후에만 `initDomElements()`를 호출해야 합니다.
-- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`)에 대한 DOM 참조가 추가되었습니다.
+- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`)에 대한 DOM 참조가 추가되었습니다.
 
 ### 3.3. `src/logger.js`
 - **역할:** 애플리케이션 내에서 발생하는 메시지(정보, 경고, 오류)를 UI의 로그 컨테이너에 표시하고 관리합니다.
@@ -97,7 +97,16 @@
     - 출력: `HH:MM:SS` 형식의 문자열 또는 유효하지 않은 입력 시 `null`.
 - **오류 처리:** 유효하지 않은 시간 형식이나 값에 대해 `null`을 반환하여 호출하는 측에서 처리할 수 있도록 합니다.
 
-### 3.8. `src/alarm-scheduler.js`
+### 3.8. `src/boss-scheduler-data.js`
+- **역할:** `data/boss_lists.json` 파일에서 게임별 보스 목록 데이터를 로드하고 관리합니다.
+- **주요 기능:**
+    - `loadBossLists(filePath)`: 지정된 JSON 파일에서 보스 목록 데이터를 비동기적으로 로드합니다. 로드 실패 시 오류를 로깅하고 빈 객체를 반환합니다.
+    - `getGameNames()`: 로드된 보스 목록에서 사용 가능한 게임 이름(최상위 키) 배열을 반환합니다.
+    - `getBossNamesForGame(gameName)`: 특정 게임에 대한 보스 이름 배열을 반환합니다.
+- **데이터 구조:** `data/boss_lists.json`은 게임 이름을 키로 하고 해당 게임의 보스 이름 배열을 값으로 하는 JSON 객체 형태입니다.
+- **오류 처리:** 파일 로드 실패 시 `logger.js`를 통해 사용자에게 메시지를 전달합니다.
+
+### 3.9. `src/alarm-scheduler.js`
 - **역할:** 보스 알림 타이머를 관리하고, 설정된 시간에 맞춰 알림을 트리거합니다.
 - **주요 기능:**
     - `startAlarm()`: 알림 타이머를 시작하고 주기적으로 `checkAlarms`를 호출.
@@ -119,7 +128,7 @@
 - **고정 알림 처리:**
     - `LocalStorageManager`에서 관리되는 고정 알림의 활성화 상태를 확인하고, 활성화된 고정 알림에 대해서만 알림을 처리합니다.
 
-### 3.8. `src/ui-renderer.js`
+### 3.10. `src/ui-renderer.js`
 - **역할:** 애플리케이션의 UI 요소를 업데이트하고 렌더링합니다. 특히, 각 화면(Dashboard, Boss Management 등)의 콘텐츠를 동적으로 렌더링하고 업데이트하는 책임을 가집니다.
 - **주요 기능:**
     - `renderScreen(screenName)`: 지정된 화면을 메인 콘텐츠 영역에 렌더링.
@@ -134,10 +143,12 @@
     - `updateVersionDisplay(version)`: 릴리즈 노트 화면의 버전 표시 업데이트.
     - `updateShareLink(shortUrl)`: 공유 화면의 단축 URL 표시 업데이트.
     - `renderCalculatorScreen(DOM)`: "젠 계산기" 화면의 UI를 초기화하고 렌더링합니다. 입력 필드를 지우고 보스 출현 시간 표시를 초기 상태로 재설정합니다.
+    - `renderBossSchedulerScreen(DOM, remainingTimes)`: "보스 스케줄러" 화면의 UI를 초기화하고 렌더링합니다. 게임 선택 드롭다운, 보스 입력 필드, 액션 버튼 등을 포함하며, 이전에 저장된 남은 시간 값을 사용하여 입력 필드를 채웁니다.
+    - `renderBossInputs(DOM, gameName, remainingTimes)`: 선택된 게임에 대한 보스 입력 필드를 동적으로 렌더링합니다.
 - **UI 업데이트 책임:** `LocalStorageManager`에서 관리되는 데이터를 기반으로 각 화면의 특정 UI 요소들을 동적으로 업데이트하고 렌더링하는 역할을 합니다.
 - **DOM 초기화 의존성:** 이 모듈의 함수들은 `initApp`에서 초기화된 `DOM` 객체를 인수로 받아 사용함으로써, DOM 요소가 완전히 로드된 후에만 접근하도록 보장합니다.
 
-### 3.9. `src/api-service.js`
+### 3.11. `src/api-service.js`
 - **역할:** 외부 TinyURL API와 통신하여 긴 URL을 짧은 URL로 변환하는 기능을 제공하며, `docs` 폴더의 마크다운/텍스트 파일을 로드하는 기능도 포함합니다.
 - **주요 기능:**
     - `getShortUrl(longUrl)`: 주어진 긴 URL을 TinyURL API를 사용하여 단축.
@@ -147,7 +158,7 @@
 - **파일 로드:** `fetch` API를 사용하여 로컬 `docs` 폴더의 파일을 로드합니다.
 - **오류 처리:** 네트워크 연결 오류 및 HTTP 응답 실패(404, 500 등)를 `try-catch` 블록으로 처리하고 `console.error`에 기록하며, `log` 함수를 통해 사용자에게 메시지를 전달합니다.
 
-### 3.10. `src/event-handlers.js`
+### 3.12. `src/event-handlers.js`
 - **역할:** 모든 사용자 인터랙션(버튼 클릭, 토글 변경, 메뉴 선택 등)에 대한 이벤트 리스너를 설정하고 관리합니다.
 - **주요 기능:**
     - `initEventHandlers(DOM)`: `DOM` 요소에 이벤트 리스너를 등록.
@@ -160,9 +171,14 @@
         - 공유: 공유 링크 생성 버튼 클릭.
         - 도움말: 탭 클릭.
         - 젠 계산기: 남은 시간 입력 필드(`remainingTimeInput`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 보스 출현 시간 계산 및 `bossAppearanceTimeDisplay` 업데이트.
+        - 보스 스케줄러:
+            - 게임 선택 드롭다운 변경 시 `ui-renderer.js:renderBossInputs()` 호출.
+            - 남은 시간 입력 필드(`remaining-time-input`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 젠 시간 계산 및 표시.
+            - '남은 시간 초기화' 버튼 클릭 시 모든 남은 시간 입력 필드 초기화 (확인 대화 상자 포함).
+            - '보스 설정 적용' 버튼 클릭 시 유효한 보스 정보를 파싱하여 `DOM.bossListInput`에 적용하고 `ui-renderer.js:renderDashboard()` 호출.
 - **이벤트 처리 흐름:** `initEventHandlers`는 헤더, 사이드바, 메인 콘텐츠 영역 내의 모든 사용자 인터랙션에 대한 이벤트 리스너를 중앙에서 설정하고 관리합니다.
 
-### 3.11. `src/app.js` (신규 또는 `event-handlers.js`의 `initApp` 확장)
+### 3.13. `src/app.js` (신규 또는 `event-handlers.js`의 `initApp` 확장)
 - **역할:** 애플리케이션의 전반적인 초기화, 상태 관리 및 라우팅을 담당하는 핵심 모듈.
 - **주요 기능:**
     - `initApp()`: 애플리케이션의 진입점.
@@ -178,7 +194,7 @@
     - **라우팅:** URL 해시 또는 History API를 사용하여 화면 전환을 관리하고, `ui-renderer.js`의 `renderScreen`을 호출하여 해당 화면을 표시.
     - **전역 상태 관리:** `BossDataManager` 및 `LocalStorageManager`와 연동하여 애플리케이션의 전역 상태를 관리하고, 변경 시 `ui-renderer.js`를 통해 UI 업데이트를 트리거.
 
-### 3.12. `src/default-boss-list.js`
+### 3.14. `src/default-boss-list.js`
 - **역할:** 애플리케이션의 기본 보스 목록 데이터를 제공합니다.
 - **주요 기능:**
     - 하드코딩된 보스 목록 텍스트를 상수로 내보냅니다.
@@ -186,7 +202,7 @@
 - **기본 보스 목록 제공:** URL 파라미터에 보스 목록 데이터가 없을 경우, 애플리케이션 초기 상태로 사용되는 기본 보스 목록 텍스트를 제공합니다.
 - **암시적 날짜 처리:** 이 기본 목록이 사용될 경우, `boss-parser.js`는 명시적인 날짜 마커가 없으므로 현재 날짜를 기준으로 보스 일정을 파싱하며, 시간 순서에 따른 날짜 변경(자정 넘김)을 자동으로 처리합니다.
 
-### 3.13. `src/style.css`
+### 3.15. `src/style.css`
 - **역할:** 애플리케이션의 모든 시각적 스타일을 정의합니다.
 - **주요 기능:**
     - `index.html`에서 `<link>` 태그를 통해 로드되어 UI 요소의 레이아웃, 색상, 폰트 등을 제어합니다.
@@ -199,7 +215,7 @@
     - **알람 토글:** 알람 상태에 따른 SVG 아이콘 색상 변경.
     - **각 화면별 컴포넌트:** 대시보드 카운트다운, 보스 관리 텍스트 영역, 알림 설정 토글 등.
 
-### 3.14. `docs/version_history.txt`
+### 3.16. `docs/version_history.txt`
 - **역할:** 애플리케이션의 버전별 주요 기능 업데이트 내역을 기록합니다.
 - **내용 및 형식:**
     - 각 버전은 `vX.X.X (YYYY-MM-DD)` 형식으로 시작합니다.
@@ -222,17 +238,22 @@
 *   `index.html` -> `src/api-service.js` (`getShortUrl`, `loadMarkdownContent` 호출)
 *   `index.html` -> `src/default-boss-list.js` (`bossPresets` 사용)
 *   `index.html` -> `src/calculator.js` (`calculateBossAppearanceTime` 호출)
+*   `index.html` -> `src/boss-scheduler-data.js` (`loadBossLists`, `getGameNames`, `getBossNamesForGame` 호출)
+*   `index.html` -> `src/boss-scheduler-data.js` (`loadBossLists`, `getGameNames`, `getBossNamesForGame` 호출)
+*   `index.html` -> `src/boss-scheduler-data.js` (`loadBossLists`, `getGameNames`, `getBossNamesForGame` 호출)
+*   `index.html` -> `src/boss-scheduler-data.js` (`loadBossLists`, `getGameNames`, `getBossNamesForGame` 호출)
 
 *   `src/event-handlers.js` -> `src/dom-elements.js` (DOM 요소 접근)
 *   `src/event-handlers.js` -> `src/logger.js` (`initLogger`, `log` 호출)
 *   `src/event-handlers.js` -> `src/boss-parser.js` (`parseBossList` 호출)
 *   `src/event-handlers.js` -> `src/alarm-scheduler.js` (`startAlarm`, `stopAlarm`, `getIsAlarmRunning` 호출)
-*   `src/event-handlers.js` -> `src/ui-renderer.js` (`updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `renderDashboard`, `renderBossPresets`, `renderVersionInfo`, `renderCalculatorScreen` 호출)
-*   `src/event-handlers.js` -> `src/api-service.js` (`getShortUrl` 호출)
+*   `src/event-handlers.js` -> `src/ui-renderer.js` (`updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `renderDashboard`, `renderBossPresets`, `renderVersionInfo`, `renderCalculatorScreen`, `renderBossSchedulerScreen`, `renderBossInputs` 호출)
+*   `src/event-handlers.js` -> `src/api-service.js` (`getShortUrl`, `loadMarkdownContent` 호출)
 *   `src/event-handlers.js` -> `src/data-managers.js` (`LocalStorageManager` 사용)
 *   `src/event-handlers.js` -> `src/default-boss-list.js` (`bossPresets` 사용)
 *   `src/event-handlers.js` -> `src/data-managers.js` (`LocalStorageManager.addFixedAlarm`, `LocalStorageManager.updateFixedAlarm`, `LocalStorageManager.deleteFixedAlarm`, `LocalStorageManager.setFixedAlarmState` 호출)
 *   `src/event-handlers.js` -> `src/calculator.js` (`calculateBossAppearanceTime` 호출)
+*   `src/event-handlers.js` -> `src/boss-scheduler-data.js` (`loadBossLists`, `getGameNames`, `getBossNamesForGame` 호출)
 *   `src/boss-parser.js` -> `src/logger.js` (`log` 호출)
 *   `src/boss-parser.js` -> `src/data-managers.js` (`BossDataManager` 사용)
 
@@ -245,6 +266,8 @@
 *   `src/ui-renderer.js` -> `src/alarm-scheduler.js` (`getIsAlarmRunning` 호출)
 *   `src/ui-renderer.js` -> `src/logger.js` (`log`, `getLogs` 호출)
 *   `src/ui-renderer.js` -> `src/default-boss-list.js` (`bossPresets` 사용, `LocalStorageManager.setFixedAlarmState` 호출)
+*   `src/ui-renderer.js` -> `src/boss-scheduler-data.js` (`getGameNames`, `getBossNamesForGame` 호출)
+*   `src/ui-renderer.js` -> `src/calculator.js` (`calculateBossAppearanceTime` 호출)
 
 *   `src/api-service.js` -> (명시적인 JavaScript 모듈 의존성 없음, 네이티브 `fetch` API 사용)
 
@@ -257,6 +280,7 @@
 1.  **초기 로드 (`index.html` -> `event-handlers.js:initApp`)**:
     *   `initApp`은 `dom-elements.js:initDomElements()`를 호출하여 `DOM` 객체를 가져옵니다.
     *   `initApp`은 `logger.js:initLogger(DOM.logContainer)`를 호출합니다.
+    *   `initApp`은 `src/boss-scheduler-data.js:loadBossLists()`를 호출하여 게임별 보스 목록 데이터를 로드합니다.
     *   `initApp`은 `data-managers.js:LocalStorageManager.init()`를 호출하여 영구 상태(고정 알람, 로그 가시성, 알람 실행, 사이드바 확장)를 로드합니다.
     *   `initApp`은 URL 매개변수에서 `data`를 확인합니다. 존재하면 디코딩하여 `DOM.bossListInput.value`를 설정합니다. 그렇지 않으면 `default-boss-list.js:bossPresets[0].list`를 사용합니다.
     *   `initApp`은 URL 매개변수에서 `fixedData`를 확인합니다. 존재하면 `LocalStorageManager.importFixedAlarms()`를 호출하여 고정 알림을 로드합니다.
@@ -276,6 +300,11 @@
     *   'alarm-log-screen'의 경우 `showScreen`은 `ui-renderer.js:updateLogDisplay()`를 호출합니다.
     *   'zen-calculator-screen'의 경우 `showScreen`은 `ui-renderer.js:renderCalculatorScreen()`를 호출합니다.
     *   'zen-calculator-screen'에서 `DOM.remainingTimeInput`의 `input` 이벤트 발생 시 `src/event-handlers.js`는 `src/calculator.js:calculateBossAppearanceTime()`를 호출하고 `DOM.bossAppearanceTimeDisplay`를 업데이트합니다.
+    *   'boss-scheduler-screen'의 경우 `showScreen`은 `ui-renderer.js:renderBossSchedulerScreen()`를 호출합니다.
+    *   'boss-scheduler-screen'에서 게임 선택 드롭다운 변경 시 `src/event-handlers.js`는 `ui-renderer.js:renderBossInputs()`를 호출합니다.
+    *   'boss-scheduler-screen'에서 남은 시간 입력 필드(`remaining-time-input`)의 `input` 이벤트 발생 시 `src/event-handlers.js`는 `src/calculator.js:calculateBossAppearanceTime()`를 호출하고 젠 시간을 표시합니다.
+    *   'boss-scheduler-screen'에서 '남은 시간 초기화' 버튼 클릭 시 `src/event-handlers.js`는 모든 남은 시간 입력 필드를 초기화합니다.
+    *   'boss-scheduler-screen'에서 '보스 설정 적용' 버튼 클릭 시 `src/event-handlers.js`는 유효한 보스 정보를 파싱하여 `DOM.bossListInput`에 적용하고 `ui-renderer.js:renderDashboard()`를 호출합니다.
 3.  **알람 토글 (`event-handlers.js` -> `alarmToggleButton` 클릭)**:
     *   `event-handlers.js`는 `alarm-scheduler.js:getIsAlarmRunning()`를 호출합니다.
     *   실행 중이 아니면 `alarm-scheduler.js:startAlarm(DOM)`를 호출하고, 이는 `data-managers.js:LocalStorageManager.setAlarmRunningState(true)`를 설정하고, `logger.js:log()`를 호출하고, `speech.js:speak()`를 호출하고, `alarm-scheduler.js:checkAlarms` 및 `ui-renderer.js:renderDashboard`에 대한 `setInterval`을 시작합니다.
