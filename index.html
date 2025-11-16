@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>보스 알리미</title>
-    <link rel="stylesheet" href="src/style.css?v=2.1.2">
+    <link rel="stylesheet" href="src/style.css?v=2.2.0">
     <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -42,6 +42,14 @@
                             <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
                         </svg>
                         <span class="menu-text">보스 설정</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-zen-calculator" data-screen="zen-calculator-screen">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm-2-4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm4 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm2-4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM7 5h10v2H7V5z"/>
+                        </svg>
+                        <span class="menu-text">젠 계산기</span>
                     </a>
                 </li>
                 <li>
@@ -114,6 +122,18 @@
                 <textarea id="bossListInput"></textarea>
             </section>
 
+            <section id="zen-calculator-screen" class="screen">
+                <h2>젠 계산기</h2>
+                <div class="calculator-input-group">
+                    <label for="remainingTimeInput">남은 시간 (HH:MM 또는 HH:MM:SS):</label>
+                    <input type="text" id="remainingTimeInput" placeholder="예: 00:57:23 또는 00:05">
+                </div>
+                <div class="calculator-result-group">
+                    <label>보스 출현 시간:</label>
+                    <span id="bossAppearanceTimeDisplay" class="result-display">--:--:--</span>
+                </div>
+            </section>
+
             <section id="notification-settings-screen" class="screen">
                 <h2>알림 설정</h2>
                 <div class="fixed-alarm-section">
@@ -163,7 +183,7 @@
     </div>
 
     <script type="module">
-        window.APP_VERSION = "2.1.2"; // Define global app version
+        window.APP_VERSION = "2.2.0"; // Define global app version
 
         import { initDomElements } from './src/dom-elements.js';
 
@@ -184,7 +204,7 @@
         });
     </script>
     <footer>
-        <p>Created by: bohe | v2.1.2</p>
+        <p>Created by: bohe | v2.2.0</p>
     </footer>
 </body>
 </html>

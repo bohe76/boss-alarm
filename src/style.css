@@ -486,3 +486,43 @@ body {
 .boss-details-highlight .spawn-time {
   font-weight: bold;
 }
+
+/* Zen Calculator Screen Styles */
+.calculator-input-group,
+.calculator-result-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.calculator-input-group label,
+.calculator-result-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #111;
+}
+
+#remainingTimeInput {
+    width: 200px; /* Adjust as needed */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+}
+
+#bossAppearanceTimeDisplay {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #d90007; /* Red color for emphasis */
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    display: inline-block; /* To make padding and border visible */
+    min-width: 120px; /* Ensure consistent width */
+    text-align: center;
+}
+
+.result-display {
+    color: #007aff; /* Blue color for remaining time */
+}

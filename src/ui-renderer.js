@@ -250,3 +250,13 @@ export async function renderVersionInfo(DOM) {
         DOM.versionHistoryContent.innerHTML = `<pre class="doc-content-pre">${versionHistoryContent}</pre>`;
     }
 }
+
+// --- Zen Calculator Screen Rendering Functions ---
+export function renderCalculatorScreen(DOM) {
+    if (DOM.remainingTimeInput) {
+        DOM.remainingTimeInput.value = ''; // Clear input on screen load
+    }
+    if (DOM.bossAppearanceTimeDisplay) {
+        DOM.bossAppearanceTimeDisplay.textContent = '--:--:--'; // Reset display
+    }
+}

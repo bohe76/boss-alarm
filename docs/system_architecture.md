@@ -23,6 +23,7 @@
     - 다른 모듈들이 DOM 요소에 직접 접근하는 대신 이 모듈을 통해 일관된 방식으로 접근하도록 함.
 - **DOM 추상화:** 이 모듈은 DOM 접근을 위한 추상화 계층 역할을 하여 일관성을 촉진하고 UI 변경 관리를 용이하게 합니다.
 - **초기화 시점:** 모든 요소가 사용 가능하도록 DOM이 완전히 로드된 후에만 `initDomElements()`를 호출해야 합니다.
+- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`)에 대한 DOM 참조가 추가되었습니다.
 
 ### 3.3. `src/logger.js`
 - **역할:** 애플리케이션 내에서 발생하는 메시지(정보, 경고, 오류)를 UI의 로그 컨테이너에 표시하고 관리합니다.
@@ -84,7 +85,19 @@
     - 이전 보스 시간보다 이른 시간이 감지되면(예: 23:00 다음 01:00), `dayOffset`을 증가시켜 자동으로 다음 날로 넘어간 것으로 처리합니다.
 - **오류 처리:** 유효하지 않은 날짜/시간 형식, 누락된 보스 이름, 빈 보스 목록에 대한 경고 메시지를 `logger.js`를 통해 출력합니다.
 
-### 3.7. `src/alarm-scheduler.js`
+### 3.7. `src/calculator.js`
+- **역할:** 현재 시간과 주어진 남은 시간을 기반으로 보스 출현 시간을 계산하는 기능을 제공합니다.
+- **주요 기능:**
+    - `calculateBossAppearanceTime(remainingTimeString)`: "HH:MM" 또는 "HH:MM:SS" 형식의 남은 시간 문자열을 입력받아 보스 출현 시간을 계산합니다.
+    - 입력 유효성 검사: `HH:MM` 또는 `HH:MM:SS` 형식에 맞는지 확인하고, `SS`가 생략된 경우 `00`으로 처리합니다.
+    - 시간 계산: 현재 시간에 남은 시간을 더하여 미래 시간을 계산합니다.
+    - 결과 포맷팅: 계산된 보스 출현 시간을 "HH:MM:SS" 형식으로 반환합니다.
+- **입력 및 출력:**
+    - 입력: `HH:MM` 또는 `HH:MM:SS` 형식의 문자열.
+    - 출력: `HH:MM:SS` 형식의 문자열 또는 유효하지 않은 입력 시 `null`.
+- **오류 처리:** 유효하지 않은 시간 형식이나 값에 대해 `null`을 반환하여 호출하는 측에서 처리할 수 있도록 합니다.
+
+### 3.8. `src/alarm-scheduler.js`
 - **역할:** 보스 알림 타이머를 관리하고, 설정된 시간에 맞춰 알림을 트리거합니다.
 - **주요 기능:**
     - `startAlarm()`: 알림 타이머를 시작하고 주기적으로 `checkAlarms`를 호출.
@@ -120,6 +133,7 @@
     - `renderHelpContent(tabName, content)`: 도움말 화면의 탭 콘텐츠 렌더링.
     - `updateVersionDisplay(version)`: 릴리즈 노트 화면의 버전 표시 업데이트.
     - `updateShareLink(shortUrl)`: 공유 화면의 단축 URL 표시 업데이트.
+    - `renderCalculatorScreen(DOM)`: "젠 계산기" 화면의 UI를 초기화하고 렌더링합니다. 입력 필드를 지우고 보스 출현 시간 표시를 초기 상태로 재설정합니다.
 - **UI 업데이트 책임:** `LocalStorageManager`에서 관리되는 데이터를 기반으로 각 화면의 특정 UI 요소들을 동적으로 업데이트하고 렌더링하는 역할을 합니다.
 - **DOM 초기화 의존성:** 이 모듈의 함수들은 `initApp`에서 초기화된 `DOM` 객체를 인수로 받아 사용함으로써, DOM 요소가 완전히 로드된 후에만 접근하도록 보장합니다.
 
@@ -145,6 +159,7 @@
             - 고정 알림 추가, 편집, 삭제, 활성화/비활성화 버튼 클릭 이벤트 처리.
         - 공유: 공유 링크 생성 버튼 클릭.
         - 도움말: 탭 클릭.
+        - 젠 계산기: 남은 시간 입력 필드(`remainingTimeInput`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 보스 출현 시간 계산 및 `bossAppearanceTimeDisplay` 업데이트.
 - **이벤트 처리 흐름:** `initEventHandlers`는 헤더, 사이드바, 메인 콘텐츠 영역 내의 모든 사용자 인터랙션에 대한 이벤트 리스너를 중앙에서 설정하고 관리합니다.
 
 ### 3.11. `src/app.js` (신규 또는 `event-handlers.js`의 `initApp` 확장)
@@ -206,16 +221,18 @@
 *   `index.html` -> `src/ui-renderer.js` (`updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `renderDashboard`, `renderBossPresets`, `renderVersionInfo` 호출)
 *   `index.html` -> `src/api-service.js` (`getShortUrl`, `loadMarkdownContent` 호출)
 *   `index.html` -> `src/default-boss-list.js` (`bossPresets` 사용)
+*   `index.html` -> `src/calculator.js` (`calculateBossAppearanceTime` 호출)
 
 *   `src/event-handlers.js` -> `src/dom-elements.js` (DOM 요소 접근)
 *   `src/event-handlers.js` -> `src/logger.js` (`initLogger`, `log` 호출)
 *   `src/event-handlers.js` -> `src/boss-parser.js` (`parseBossList` 호출)
 *   `src/event-handlers.js` -> `src/alarm-scheduler.js` (`startAlarm`, `stopAlarm`, `getIsAlarmRunning` 호출)
-*   `src/event-handlers.js` -> `src/ui-renderer.js` (`updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `renderDashboard`, `renderBossPresets`, `renderVersionInfo` 호출)
+*   `src/event-handlers.js` -> `src/ui-renderer.js` (`updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `renderDashboard`, `renderBossPresets`, `renderVersionInfo`, `renderCalculatorScreen` 호출)
 *   `src/event-handlers.js` -> `src/api-service.js` (`getShortUrl` 호출)
 *   `src/event-handlers.js` -> `src/data-managers.js` (`LocalStorageManager` 사용)
 *   `src/event-handlers.js` -> `src/default-boss-list.js` (`bossPresets` 사용)
 *   `src/event-handlers.js` -> `src/data-managers.js` (`LocalStorageManager.addFixedAlarm`, `LocalStorageManager.updateFixedAlarm`, `LocalStorageManager.deleteFixedAlarm`, `LocalStorageManager.setFixedAlarmState` 호출)
+*   `src/event-handlers.js` -> `src/calculator.js` (`calculateBossAppearanceTime` 호출)
 *   `src/boss-parser.js` -> `src/logger.js` (`log` 호출)
 *   `src/boss-parser.js` -> `src/data-managers.js` (`BossDataManager` 사용)
 
@@ -257,6 +274,8 @@
     *   'boss-management-screen'의 경우 `showScreen`은 `ui-renderer.js:updateBossListTextarea()`를 호출합니다.
     *   'notification-settings-screen'의 경우 `showScreen`은 `ui-renderer.js:renderFixedAlarms()`를 호출합니다.
     *   'alarm-log-screen'의 경우 `showScreen`은 `ui-renderer.js:updateLogDisplay()`를 호출합니다.
+    *   'zen-calculator-screen'의 경우 `showScreen`은 `ui-renderer.js:renderCalculatorScreen()`를 호출합니다.
+    *   'zen-calculator-screen'에서 `DOM.remainingTimeInput`의 `input` 이벤트 발생 시 `src/event-handlers.js`는 `src/calculator.js:calculateBossAppearanceTime()`를 호출하고 `DOM.bossAppearanceTimeDisplay`를 업데이트합니다.
 3.  **알람 토글 (`event-handlers.js` -> `alarmToggleButton` 클릭)**:
     *   `event-handlers.js`는 `alarm-scheduler.js:getIsAlarmRunning()`를 호출합니다.
     *   실행 중이 아니면 `alarm-scheduler.js:startAlarm(DOM)`를 호출하고, 이는 `data-managers.js:LocalStorageManager.setAlarmRunningState(true)`를 설정하고, `logger.js:log()`를 호출하고, `speech.js:speak()`를 호출하고, `alarm-scheduler.js:checkAlarms` 및 `ui-renderer.js:renderDashboard`에 대한 `setInterval`을 시작합니다.

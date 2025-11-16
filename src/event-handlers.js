@@ -2,12 +2,13 @@
 
 import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-scheduler.js';
-import { updateBossListTextarea, renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary } from './ui-renderer.js';
+import { updateBossListTextarea, renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen } from './ui-renderer.js';
 import { getShortUrl, loadMarkdownContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
 import { bossPresets } from './default-boss-list.js'; // Import bossPresets
+import { calculateBossAppearanceTime } from './calculator.js'; // Import calculateBossAppearanceTime
 
 
 
@@ -20,7 +21,8 @@ function showScreen(DOM, screenId) {
         DOM.alarmLogScreen,
         DOM.versionInfoScreen,
         DOM.shareScreen,
-        DOM.helpScreen
+        DOM.helpScreen,
+        DOM.zenCalculatorScreen // New
     ];
 
     screens.forEach(screen => {
@@ -51,6 +53,11 @@ function showScreen(DOM, screenId) {
             const markdownContent = await loadMarkdownContent('docs/feature_guide.txt');
             DOM.featureGuideContent.innerHTML = `<pre class="doc-content-pre">${markdownContent}</pre>`;
         })();
+    }
+
+    // Special handling for zen calculator screen
+    if (screenId === 'zen-calculator-screen') {
+        renderCalculatorScreen(DOM);
     }
 }
 
@@ -87,6 +94,7 @@ function initEventHandlers(DOM) {
     const navLinks = [
         DOM.navDashboard,
         DOM.navBossManagement,
+        DOM.navZenCalculator, // New
         DOM.navNotificationSettings,
         DOM.navAlarmLog,
         DOM.navVersionInfo,
@@ -125,6 +133,17 @@ function initEventHandlers(DOM) {
             });
         }
     });
+
+    // --- Zen Calculator Screen Event Handlers ---
+    if (DOM.remainingTimeInput) {
+        DOM.remainingTimeInput.addEventListener('input', () => {
+            const remainingTime = DOM.remainingTimeInput.value;
+            const bossAppearanceTime = calculateBossAppearanceTime(remainingTime);
+            if (DOM.bossAppearanceTimeDisplay) {
+                DOM.bossAppearanceTimeDisplay.textContent = bossAppearanceTime || '--:--:--';
+            }
+        });
+    }
 
 
 
