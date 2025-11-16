@@ -21,9 +21,9 @@
 -   **메뉴 항목 (아이콘 + 텍스트 라벨)**:
     -   대시보드 (Dashboard)
     -   보스 설정 (Boss Settings)
-        - 젠 계산기 (Zen Calculator)
-        - 보스 스케줄러 (Boss Scheduler)
-        - 공유 (Share)
+    -   젠 계산기 (Zen Calculator)
+    -   보스 스케줄러 (Boss Scheduler)
+    -   공유 (Share)
     -   알림 로그 (Alarm Log)
     -   알림 설정 (Notification Settings)
     -   도움말 (Help)
