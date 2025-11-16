@@ -7,7 +7,16 @@ function processQueue() {
     if (speechQueue.length > 0 && !isSpeaking) {
         isSpeaking = true;
         const utterance = speechQueue.shift(); // Get the first item from the queue
+
+        // Watchdog timer in case onend fails to fire
+        const watchdog = setTimeout(() => {
+            console.warn("Speech synthesis 'onend' event failed to fire. Forcing queue reset.");
+            isSpeaking = false;
+            processQueue();
+        }, 10000); // 10-second timeout
+
         utterance.onend = () => {
+            clearTimeout(watchdog); // Clear the watchdog if onend fires correctly
             isSpeaking = false;
             processQueue(); // Process the next item when current one ends
         };
