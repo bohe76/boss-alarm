@@ -245,7 +245,7 @@ export function updateFixedAlarmVisuals(DOM) {
 
 // --- Version Info Screen Rendering Functions ---
 export async function renderVersionInfo(DOM) {
-    const versionHistoryContent = await loadMarkdownContent('docs/version_history.txt');
+    const versionHistoryContent = await loadMarkdownContent(`docs/version_history.txt?v=${window.APP_VERSION}`);
     if (DOM.versionHistoryContent) {
         DOM.versionHistoryContent.innerHTML = `<pre class="doc-content-pre">${versionHistoryContent}</pre>`;
     }
