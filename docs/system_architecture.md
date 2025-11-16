@@ -175,7 +175,13 @@
             - 게임 선택 드롭다운 변경 시 `ui-renderer.js:renderBossInputs()` 호출.
             - 남은 시간 입력 필드(`remaining-time-input`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 젠 시간 계산 및 표시.
             - '남은 시간 초기화' 버튼 클릭 시 모든 남은 시간 입력 필드 초기화 (확인 대화 상자 포함).
-            - '보스 설정 적용' 버튼 클릭 시 유효한 보스 정보를 파싱하여 `DOM.bossListInput`에 적용하고 `ui-renderer.js:renderDashboard()` 호출.
+            - '보스 설정 적용' 버튼 클릭 시:
+                - 스케줄러에 입력된 남은 시간을 바탕으로 각 보스의 전체 출현 시간(날짜 포함)을 계산하여 임시 목록을 생성합니다.
+                - 특정 보스('오딘' 등)에 대해서는 12시간 뒤의 출현 시간을 자동으로 계산하여 목록에 추가합니다.
+                - 이름에 '침공'이 포함된 보스의 출현 시간이 오늘이 아닐 경우, 해당 보스를 목록에서 제외(필터링)합니다.
+                - 최종 생성된 보스 목록을 시간순으로 완벽하게 정렬합니다.
+                - 정렬된 목록을 `MM.DD` 날짜 구분자를 포함한 텍스트 형식으로 변환하여 '보스 목록' 화면의 텍스트 영역(`DOM.bossListInput`)에 값을 설정하고, `boss-parser.js`를 통해 즉시 파싱합니다.
+                - '보스 목록' 화면으로 전환하여 사용자에게 결과를 보여줍니다.
 - **이벤트 처리 흐름:** `initEventHandlers`는 헤더, 사이드바, 메인 콘텐츠 영역 내의 모든 사용자 인터랙션에 대한 이벤트 리스너를 중앙에서 설정하고 관리합니다.
 
 ### 3.13. `src/app.js` (신규 또는 `event-handlers.js`의 `initApp` 확장)
@@ -304,7 +310,12 @@
     *   'boss-scheduler-screen'에서 게임 선택 드롭다운 변경 시 `src/event-handlers.js`는 `ui-renderer.js:renderBossInputs()`를 호출합니다.
     *   'boss-scheduler-screen'에서 남은 시간 입력 필드(`remaining-time-input`)의 `input` 이벤트 발생 시 `src/event-handlers.js`는 `src/calculator.js:calculateBossAppearanceTime()`를 호출하고 젠 시간을 표시합니다.
     *   'boss-scheduler-screen'에서 '남은 시간 초기화' 버튼 클릭 시 `src/event-handlers.js`는 모든 남은 시간 입력 필드를 초기화합니다.
-    *   'boss-scheduler-screen'에서 '보스 설정 적용' 버튼 클릭 시 `src/event-handlers.js`는 유효한 보스 정보를 파싱하여 `DOM.bossListInput`에 적용하고 `ui-renderer.js:renderDashboard()`를 호출합니다.
+    *   'boss-scheduler-screen'에서 '보스 설정 적용' 버튼 클릭 시 `src/event-handlers.js`는 다음과 같은 복합적인 로직을 수행합니다:
+        1. 스케줄러의 입력 값으로부터 각 보스의 전체 출현 시간(Date 객체)을 계산합니다.
+        2. 특정 보스(예: '오딘')의 경우, 12시간 뒤의 출현 시간을 계산하여 목록에 추가합니다.
+        3. '침공' 보스가 다음 날짜에 출현할 경우, 목록에서 필터링하여 제외합니다.
+        4. 모든 보스 목록을 시간순으로 정렬한 후, `MM.DD` 날짜 구분자가 포함된 텍스트로 변환합니다.
+        5. 이 최종 텍스트를 `DOM.bossListInput`의 값으로 설정하고, `parseBossList`를 호출하여 스케줄을 즉시 업데이트한 뒤 '보스 목록' 화면으로 이동합니다.
 3.  **알람 토글 (`event-handlers.js` -> `alarmToggleButton` 클릭)**:
     *   `event-handlers.js`는 `alarm-scheduler.js:getIsAlarmRunning()`를 호출합니다.
     *   실행 중이 아니면 `alarm-scheduler.js:startAlarm(DOM)`를 호출하고, 이는 `data-managers.js:LocalStorageManager.setAlarmRunningState(true)`를 설정하고, `logger.js:log()`를 호출하고, `speech.js:speak()`를 호출하고, `alarm-scheduler.js:checkAlarms` 및 `ui-renderer.js:renderDashboard`에 대한 `setInterval`을 시작합니다.
