@@ -53,7 +53,7 @@ body {
         }
 
         .alarm-toggle-button.alarm-on .alarm-icon {
-            color: #d90007; /* Red for on state */
+            color: #b22334; /* Red for on state */
         }
 
         .alarm-toggle-button.alarm-off .alarm-icon {
@@ -216,12 +216,12 @@ body {
             font-weight: bold;
         }
         .boss-details-highlight {
-            color: #d90007; /* Red color */
+            color: #b22334; /* Red color */
             font-weight: bold;
             font-size: 1.5em;
         }
         .alarm-status-running {
-            color: #d90007; /* Red color for running state */
+            color: #b22334; /* Red color for running state */
         }
         #alarmStatusSummary {
             margin-bottom: 20px; /* Add spacing below alarm status */
@@ -240,7 +240,7 @@ body {
         /* 알림 시작/중지 버튼 */
         #startButton { background-color: #007aff; color: white; }
         #startButton:hover { background-color: #0056b3; }
-        #startButton.running { background-color: #d90007; }
+        #startButton.running { background-color: #b22334; }
         #startButton.running:hover { background-color: #b30006; }
 
 
@@ -263,7 +263,7 @@ body {
                             font-size: 0.9em;
                             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
                         }        .log-entry.important {
-            color: #d90007;
+            color: #b22334;
         }
         /* Switch styles */
         .switch {
@@ -273,6 +273,7 @@ body {
             height: 23px;
             margin-left: 10px;
             vertical-align: middle;
+            border-radius: 999px;
         }
 
         .switch input {
@@ -289,8 +290,8 @@ body {
             right: 0;
             bottom: 0;
             background-color: #ccc;
-            -webkit-transition: .1s; /* Changed from .2s */
-            transition: .1s;        /* Changed from .2s */
+            -webkit-transition: .1s;
+            transition: .1s;
         }
 
         .slider:before {
@@ -321,7 +322,7 @@ body {
 
         /* Rounded sliders */
         .slider.round {
-            border-radius: 50%;
+            border-radius: 23px;
         }
 
         .slider.round:before {
@@ -527,7 +528,7 @@ body {
 #bossAppearanceTimeDisplay {
     font-size: 1.5em;
     font-weight: bold;
-    color: #d90007; /* Red color for emphasis */
+    color: #b22334; /* Red color for emphasis */
     background-color: #fff;
     padding: 8px; /* Changed from 10px to 8px (spacing-xs) */
     border-radius: 8px;
@@ -587,7 +588,7 @@ body {
 }
 
 .light-expected-time-group label .expected-label {
-    color: #d90007; /* Red for "예상 시간" */
+    color: #b22334; /* Red for "예상 시간" */
 }
 
 .light-expected-time-group label.over-time-label .expected-label {
@@ -609,7 +610,7 @@ body {
 #lightExpectedTimeDisplay {
     font-size: 2em;
     font-weight: bold;
-    color: #d90007; /* Red for expected time */
+    color: #b22334; /* Red for expected time */
     background-color: #f8f8f8;
     padding: 8px 16px; /* Changed from 10px 15px to 8px 16px (spacing-xs top/bottom, spacing-md left/right) */
     border-radius: 8px;
@@ -906,6 +907,7 @@ body {
             border-bottom: 1px solid #eee;
             position: relative;
             list-style: none; /* Remove default marker */
+            font-weight: bold;
         }
 
         .version-summary::-webkit-details-marker {
