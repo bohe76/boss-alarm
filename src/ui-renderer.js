@@ -1,7 +1,7 @@
 import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Import managers
 import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRunning
 import { log, getLogs } from './logger.js'; // Import log and getLogs
-import { loadMarkdownContent } from './api-service.js'; // Import loadMarkdownContent
+import { loadJsonContent } from './api-service.js'; // Import loadJsonContent
 import { getGameNames, getBossNamesForGame } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
 
 // Helper for time validation
@@ -244,11 +244,38 @@ export function updateFixedAlarmVisuals(DOM) {
     });
 }
 
-// --- Version Info Screen Rendering Functions ---
+
 export async function renderVersionInfo(DOM) {
-    const versionHistoryContent = await loadMarkdownContent(`docs/version_history.txt?v=${window.APP_VERSION}`);
-    if (DOM.versionHistoryContent) {
-        DOM.versionHistoryContent.innerHTML = `<pre class="doc-content-pre">${versionHistoryContent}</pre>`;
+    const versionData = await loadJsonContent(`docs/version_history.json?v=${window.APP_VERSION}`);
+    if (DOM.versionHistoryContent && versionData) {
+        let html = '';
+        versionData.forEach((versionEntry, index) => {
+            const isOpen = index === 0 ? 'open' : ''; // Add 'open' attribute to the first item
+            html += `
+                <details class="version-accordion" ${isOpen}>
+                    <summary class="version-summary">
+                        <span class="version-number">${versionEntry.fullVersion}</span>
+                    </summary>
+                    <div class="version-details">
+                        <ul>
+                            ${versionEntry.changes.map(change => `
+                                <li>
+                                    <strong>${change.type}:</strong> ${change.description}
+                                    ${change.details.length > 0 ? `
+                                        <ul>
+                                            ${change.details.map(detail => `<li>${detail}</li>`).join('')}
+                                        </ul>
+                                    ` : ''}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </details>
+            `;
+        });
+        DOM.versionHistoryContent.innerHTML = html;
+    } else if (DOM.versionHistoryContent) {
+        DOM.versionHistoryContent.innerHTML = `<p>버전 정보를 불러오는 데 실패했습니다.</p>`;
     }
 }
 

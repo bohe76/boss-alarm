@@ -3,7 +3,7 @@
 import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-scheduler.js';
 import { updateBossListTextarea, renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen, renderBossSchedulerScreen, renderBossInputs } from './ui-renderer.js';
-import { getShortUrl, loadMarkdownContent } from './api-service.js';
+import { getShortUrl, loadJsonContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
@@ -12,6 +12,45 @@ import { calculateBossAppearanceTime } from './calculator.js'; // Import calcula
 import { loadBossLists, getGameNames, getBossNamesForGame } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
 
 let _remainingTimes = {}; // Global variable to store remaining times for boss scheduler
+
+// Global tooltip functions
+// const globalTooltip = document.getElementById('global-tooltip'); // Moved inside initApp
+
+function showTooltip(content, targetElement, globalTooltip) {
+    if (!globalTooltip) {
+        return;
+    }
+    globalTooltip.innerHTML = content;
+    const rect = targetElement.getBoundingClientRect();
+    
+    // Temporarily set display to block to get accurate offsetHeight
+    const originalDisplay = globalTooltip.style.display;
+    globalTooltip.style.display = 'block';
+    const tooltipHeight = globalTooltip.offsetHeight;
+    globalTooltip.style.display = originalDisplay; // Revert display after getting height
+
+    // Desired: Tooltip's top edge aligns with the icon's vertical center
+    globalTooltip.style.top = `${rect.top + (rect.height / 2) - (tooltipHeight / 2)}px`;
+    globalTooltip.style.left = `${rect.right + 5}px`; // 5px gap from the icon
+    globalTooltip.style.opacity = '1';
+    globalTooltip.style.visibility = 'visible';
+    globalTooltip.style.display = 'block'; // Ensure it's visible
+}
+
+function hideTooltip(globalTooltip) {
+    if (!globalTooltip) {
+        return;
+    }
+    globalTooltip.style.display = 'none';
+    globalTooltip.style.opacity = '0';
+    globalTooltip.style.visibility = 'hidden';
+}
+
+// Global tooltip functions
+
+
+
+
 
 
 
@@ -54,8 +93,32 @@ function showScreen(DOM, screenId) {
     if (screenId === 'help-screen') {
         // Directly load feature guide content when opening help screen
         (async () => {
-            const markdownContent = await loadMarkdownContent(`docs/feature_guide.txt?v=${window.APP_VERSION}`);
-            DOM.featureGuideContent.innerHTML = `<pre class="doc-content-pre">${markdownContent}</pre>`;
+            const helpData = await loadJsonContent(`docs/feature_guide.json?v=${window.APP_VERSION}`);
+            if (helpData && DOM.featureGuideContent) {
+                let html = '';
+                helpData.forEach((section, index) => {
+                    const isOpen = index === 0 ? 'open' : ''; // Add 'open' attribute to the first item
+                    html += `
+                        <details class="help-section" ${isOpen}>
+                            <summary class="help-summary">${section.title}</summary>
+                            <div class="help-content">
+                                ${section.content.map(p => `<p>${p}</p>`).join('')}
+                                ${section.sub_sections ? section.sub_sections.map(sub => `
+                                    <details class="help-sub-section">
+                                        <summary class="help-sub-summary">${sub.title}</summary>
+                                        <div class="help-sub-content">
+                                            ${sub.content.map(p => `<p>${p}</p>`).join('')}
+                                        </div>
+                                    </details>
+                                `).join('') : ''}
+                            </div>
+                        </details>
+                    `;
+                });
+                DOM.featureGuideContent.innerHTML = html;
+            } else if (DOM.featureGuideContent) {
+                DOM.featureGuideContent.innerHTML = `<p>도움말 콘텐츠를 불러오는 데 실패했습니다.</p>`;
+            }
         })();
     }
 
@@ -74,7 +137,7 @@ function showScreen(DOM, screenId) {
 
 
 // Function to initialize all event handlers
-function initEventHandlers(DOM) {
+function initEventHandlers(DOM, globalTooltip) {
     // --- Global Event Handlers ---
     // Alarm Toggle Button
     DOM.alarmToggleButton.addEventListener('click', () => {
@@ -98,6 +161,9 @@ function initEventHandlers(DOM) {
     DOM.sidebarToggle.addEventListener('click', () => {
         const isExpanded = DOM.sidebar.classList.toggle('expanded');
         LocalStorageManager.setSidebarExpandedState(isExpanded);
+
+        // Hide global tooltip when sidebar is expanded or collapsed
+        hideTooltip(globalTooltip); // Pass globalTooltip
     });
 
     const navLinks = [
@@ -124,25 +190,119 @@ function initEventHandlers(DOM) {
                 // Add active class to the clicked link
                 event.currentTarget.classList.add('active');
 
-                if (screenId === 'share-screen') {
-                    DOM.shareMessage.textContent = "공유 링크 생성 중입니다. 잠시만 기다려 주세요...";
-                    const currentBossListData = DOM.bossListInput.value;
-                    const encodedBossListData = encodeURIComponent(currentBossListData);
+                                if (screenId === 'share-screen') {
 
-                    const fixedAlarmsData = LocalStorageManager.exportFixedAlarms();
-                    const encodedFixedAlarmsData = encodeURIComponent(fixedAlarmsData);
+                                    DOM.shareMessage.textContent = "공유 링크 생성 중입니다. 잠시만 기다려 주세요...";
 
-                    const baseUrl = window.location.href.split('?')[0];
-                    const longUrl = `${baseUrl}?data=${encodedBossListData}&fixedData=${encodedFixedAlarmsData}`;
-                    const shortUrl = await getShortUrl(longUrl);
+                                    const currentBossListData = DOM.bossListInput.value;
 
-                    await navigator.clipboard.writeText(shortUrl || longUrl); // Copy short URL if available, else long URL
-                    DOM.shareMessage.textContent = shortUrl ? "클립보드에 복사되었습니다." : `URL 단축 실패: ${longUrl} (원본 URL 복사됨)`;
-                    log(shortUrl ? "단축 URL이 클립보드에 복사되었습니다." : "URL 단축 실패. 원본 URL이 클립보드에 복사되었습니다.", true);
-                }
-            });
-        }
-    });
+                                    const encodedBossListData = encodeURIComponent(currentBossListData);
+
+                
+
+                                    const fixedAlarmsData = LocalStorageManager.exportFixedAlarms();
+
+                                    const encodedFixedAlarmsData = encodeURIComponent(fixedAlarmsData);
+
+                
+
+                                    const baseUrl = window.location.href.split('?')[0];
+
+                                    const longUrl = `${baseUrl}?data=${encodedBossListData}&fixedData=${encodedFixedAlarmsData}`;
+
+                                    const shortUrl = await getShortUrl(longUrl);
+
+                
+
+                                    await navigator.clipboard.writeText(shortUrl || longUrl); // Copy short URL if available, else long URL
+
+                                    DOM.shareMessage.textContent = shortUrl ? "단축 URL이 클립보드에 복사되었습니다." : `URL 단축 실패: ${longUrl} (원본 URL 복사됨)`;
+
+                                    log(shortUrl ? "단축 URL이 클립보드에 복사되었습니다." : "URL 단축 실패. 원본 URL이 클립보드에 복사되었습니다.", true);
+
+                                }
+
+                            });
+
+                
+
+                                        // Tooltip functionality for collapsed sidebar
+
+                
+
+                                        const menuTextSpan = link.querySelector('.menu-text');
+
+                
+
+                                        if (menuTextSpan) {
+
+                
+
+                                                                                        link.addEventListener('mouseenter', () => {
+
+                
+
+                                                                                            if (!DOM.sidebar.classList.contains('expanded')) {
+
+                
+
+                                                                                                showTooltip(menuTextSpan.textContent, link, globalTooltip); // Pass globalTooltip
+
+                
+
+                                                                                            }
+
+                
+
+                                                                                        });
+
+                
+
+                            
+
+                
+
+                                                                                        link.addEventListener('mouseleave', () => {
+
+                
+
+                            
+
+                
+
+                                                                                            if (!DOM.sidebar.classList.contains('expanded')) {
+
+                
+
+                            
+
+                
+
+                                                                                                hideTooltip(globalTooltip); // Pass globalTooltip
+
+                
+
+                            
+
+                
+
+                                                                                            }
+
+                
+
+                            
+
+                
+
+                                                                                        });
+
+                
+
+                                        }
+
+                        }
+
+                    });
 
     // --- Zen Calculator Screen Event Handlers ---
     if (DOM.remainingTimeInput) {
@@ -393,6 +553,7 @@ function initEventHandlers(DOM) {
 
 export async function initApp() { // Made initApp async
     const DOM = initDomElements(); // Initialize DOM elements here
+    const globalTooltip = document.getElementById('global-tooltip'); // Initialize globalTooltip here
 
     // Initialize logger with the log container
     initLogger(DOM.logContainer);
@@ -516,7 +677,7 @@ export async function initApp() { // Made initApp async
     DOM.navDashboard.classList.add('active');
 
     // Initialize all event handlers
-    initEventHandlers(DOM);
+    initEventHandlers(DOM, globalTooltip); // Pass globalTooltip to initEventHandlers
     
     // Initial render of the dashboard
     checkAlarms(); // Call checkAlarms once immediately

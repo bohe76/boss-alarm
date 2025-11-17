@@ -125,7 +125,10 @@ body {
             border-radius: 5px;
             transition: background-color 0.2s, color 0.2s;
             padding: 10px 0px 10px 13px; /* Add 10px top/bottom padding, maintain 13px left padding */
+            white-space: nowrap;
         }
+
+
 
         .sidebar-menu a:hover {
             background-color: #e0e0e0; /* Lighter gray for hover */
@@ -148,12 +151,23 @@ body {
         }
 
         nav.sidebar:not(.expanded) .menu-text {
-            display: none; /* Hide text when sidebar is collapsed */
+            opacity: 0;
+            visibility: hidden;
+            max-width: 0;
+            overflow: hidden;
+            transition: opacity 0.3s ease, max-width 0.3s ease, visibility 0.3s ease;
         }
 
-        nav.sidebar.expanded .menu-text {
-            white-space: nowrap; /* Prevent text wrapping */
+        nav.sidebar.expanded .sidebar-menu a .menu-text {
+            opacity: 1;
+            visibility: visible;
+            max-width: 100px; /* Adjust as needed */
+            transition: opacity 0.3s ease, max-width 0.3s ease, visibility 0.3s ease;
         }
+
+
+
+
 
         main {
             flex: 1; /* Take remaining horizontal space */
@@ -650,6 +664,181 @@ body {
     color: white;
 }
 
-.primary-button:hover {
-    background-color: #0056b3;
-}
+        .primary-button:hover {
+            background-color: #0056b3;
+        }
+
+        #global-tooltip {
+            display: none; /* Hidden by default */
+            position: fixed; /* Position relative to the viewport */
+            background-color: #555;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 1000; /* Ensure it's on top */
+            pointer-events: none; /* Allow clicks through */
+            transition: opacity 0.2s, visibility 0.2s; /* Smooth transition */
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Version History Accordion Styles */
+        .version-accordion {
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden; /* Ensures border-radius applies to content */
+        }
+
+        .version-summary {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #eee;
+            position: relative;
+            list-style: none; /* Remove default marker */
+        }
+
+        .version-summary::-webkit-details-marker {
+            display: none; /* Hide default marker for Webkit browsers */
+        }
+
+        .version-summary::before {
+            content: '▶'; /* Custom arrow */
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: transform 0.2s ease;
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .version-accordion[open] .version-summary::before {
+            transform: translateY(-50%) rotate(90deg);
+        }
+
+        .version-summary .version-number {
+            margin-left: 20px; /* Space for the custom arrow */
+            color: #333;
+        }
+
+        .version-details {
+            padding: 10px 15px;
+            border-top: 1px solid #eee;
+            background-color: #f8f8f8;
+        }
+
+        .version-details ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .version-details li {
+            margin-bottom: 5px;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        .version-details li strong {
+            color: #111;
+        }
+
+        .version-details ul ul { /* Nested lists for details */
+            padding-left: 20px;
+            margin-top: 5px;
+            list-style: disc;
+        }
+
+        .version-details ul ul li {
+            margin-bottom: 2px;
+            font-size: 0.95em;
+            color: #666;
+        }
+
+        /* Help Accordion Styles (similar to version-accordion) */
+        .help-section, .help-sub-section {
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .help-summary, .help-sub-summary {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px 10px 30px; /* Increased left padding for arrow space */
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #eee;
+            position: relative;
+            list-style: none;
+        }
+
+        .help-summary::-webkit-details-marker, .help-sub-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .help-summary::before, .help-sub-summary::before {
+            content: '▶';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: transform 0.2s ease;
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .help-section[open] .help-summary::before, .help-sub-section[open] .help-sub-summary::before {
+            transform: translateY(-50%) rotate(90deg);
+        }
+
+        .help-summary {
+            color: #333;
+        }
+
+        .help-sub-summary {
+            background-color: #f8f8f8;
+            color: #444;
+            font-weight: normal;
+            padding-left: 30px; /* Indent sub-summary */
+        }
+
+        .help-sub-summary::before {
+            left: 20px; /* Adjust arrow position for sub-summary */
+        }
+
+        .help-content, .help-sub-content {
+            padding: 10px 15px;
+            border-top: 1px solid #eee;
+            background-color: #f8f8f8;
+        }
+
+        .help-content p, .help-sub-content p {
+            margin-bottom: 5px;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        .help-content ul, .help-sub-content ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .help-content li, .help-sub-content li {
+            margin-bottom: 2px;
+            font-size: 0.95em;
+            color: #666;
+        }

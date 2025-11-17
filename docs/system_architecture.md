@@ -140,7 +140,7 @@
     - `updateNextBossDisplay(nextBoss)`: 대시보드 화면의 다음 보스 정보 및 카운트다운 업데이트.
     - `updateLogDisplay(logMessages)`: 알림 로그 화면의 로그 메시지 업데이트.
     - `renderHelpContent(tabName, content)`: 도움말 화면의 탭 콘텐츠 렌더링.
-    - `updateVersionDisplay(version)`: 릴리즈 노트 화면의 버전 표시 업데이트.
+    - `updateVersionDisplay(version)`: 릴리즈 노트 화면의 버전 표시를 `loadJsonContent`를 사용하여 JSON 데이터로부터 아코디언 UI로 렌더링하며, 첫 번째 항목은 기본적으로 펼쳐져 있습니다.
     - `updateShareLink(shortUrl)`: 공유 화면의 단축 URL 표시 업데이트.
     - `renderCalculatorScreen(DOM)`: "젠 계산기" 화면의 UI를 초기화하고 렌더링합니다. 입력 필드를 지우고 보스 출현 시간 표시를 초기 상태로 재설정합니다.
     - `renderBossSchedulerScreen(DOM, remainingTimes)`: "보스 스케줄러" 화면의 UI를 초기화하고 렌더링합니다. 게임 선택 드롭다운, 보스 입력 필드, 액션 버튼 등을 포함하며, 이전에 저장된 남은 시간 값을 사용하여 입력 필드를 채웁니다.
@@ -149,10 +149,10 @@
 - **DOM 초기화 의존성:** 이 모듈의 함수들은 `initApp`에서 초기화된 `DOM` 객체를 인수로 받아 사용함으로써, DOM 요소가 완전히 로드된 후에만 접근하도록 보장합니다.
 
 ### 3.11. `src/api-service.js`
-- **역할:** 외부 TinyURL API와 통신하여 긴 URL을 짧은 URL로 변환하는 기능을 제공하며, `docs` 폴더의 마크다운/텍스트 파일을 로드하는 기능도 포함합니다.
+- **역할:** 외부 TinyURL API와 통신하여 긴 URL을 짧은 URL로 변환하는 기능을 제공하며, `docs` 폴더의 JSON 파일을 로드하는 기능도 포함합니다.
 - **주요 기능:**
     - `getShortUrl(longUrl)`: 주어진 긴 URL을 TinyURL API를 사용하여 단축.
-    - `loadMarkdownContent(filePath)`: 지정된 경로의 마크다운/텍스트 파일 내용을 비동기적으로 로드.
+    - `loadJsonContent(filePath)`: 지정된 경로의 JSON 파일 내용을 비동기적으로 로드하고 파싱.
     - API 호출 및 파일 로드 중 발생할 수 있는 오류를 처리하고 `logger.js`를 통해 메시지 출력.
 - **외부 API 통합:** TinyURL API(`https://tinyurl.com/api-create.php`)를 사용하여 긴 URL을 짧은 URL로 변환하는 기능을 제공합니다.
 - **파일 로드:** `fetch` API를 사용하여 로컬 `docs` 폴더의 파일을 로드합니다.
@@ -161,15 +161,18 @@
 ### 3.12. `src/event-handlers.js`
 - **역할:** 모든 사용자 인터랙션(버튼 클릭, 토글 변경, 메뉴 선택 등)에 대한 이벤트 리스너를 설정하고 관리합니다.
 - **주요 기능:**
-    - `initEventHandlers(DOM)`: `DOM` 요소에 이벤트 리스너를 등록.
+    - `initEventHandlers(DOM, globalTooltip)`: `DOM` 요소에 이벤트 리스너를 등록하고, `globalTooltip` 요소를 전달받아 툴팁 기능을 활성화합니다.
+    - `showTooltip(content, targetElement, globalTooltip)`: 지정된 `content`를 `globalTooltip`에 표시하고, `targetElement`에 상대적으로 위치를 조정합니다.
+    - `hideTooltip(globalTooltip)`: `globalTooltip`을 숨깁니다.
     - **전역 이벤트:** 알람 on/off 토글, 사이드바 토글.
     - **내비게이션 이벤트:** 메뉴 항목 클릭 시 `ui-renderer.js`의 `renderScreen` 호출.
+        - 사이드바가 축소된 상태에서 메뉴 아이템에 마우스를 올리면 `showTooltip`을 호출하여 툴팁을 표시하고, 마우스를 떼면 `hideTooltip`을 호출하여 툴팁을 숨깁니다.
     - **화면별 이벤트:**
         - 보스 관리: 보스 목록 텍스트 영역 변경, 프리셋 선택/저장.
         - 알림 설정: 고정 알림 토글 변경.
             - 고정 알림 추가, 편집, 삭제, 활성화/비활성화 버튼 클릭 이벤트 처리.
         - 공유: 공유 링크 생성 버튼 클릭.
-        - 도움말: 탭 클릭.
+        - 도움말: `docs/feature_guide.json`에서 콘텐츠를 로드하고 아코디언 형태로 렌더링.
         - 젠 계산기: 남은 시간 입력 필드(`remainingTimeInput`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 보스 출현 시간 계산 및 `bossAppearanceTimeDisplay` 업데이트.
         - 보스 스케줄러:
             - 게임 선택 드롭다운 변경 시 `ui-renderer.js:renderBossInputs()` 호출.
@@ -214,13 +217,12 @@
     - `index.html`에서 `<link>` 태그를 통해 로드되어 UI 요소의 레이아웃, 색상, 폰트 등을 제어합니다.
     - HTML 구조와 분리되어 유지보수성과 가독성을 높입니다.
 - **스타일링 구조:** 애플리케이션의 시각적 표현을 담당하며, 헤더, 사이드바, 메인 콘텐츠 영역, 푸터 및 각 화면별 컴포넌트(버튼, 입력 그룹, 로그, 토글 스위치, 고정 알림, 도움말 모달 및 탭 등)에 대한 스타일을 포함합니다.
-- **주요 UI 컴포넌트 스타일:**
+    - **주요 UI 컴포넌트 스타일:**
     - **전체 레이아웃:** Flexbox 또는 Grid를 활용한 반응형 레이아웃.
     - **사이드바:** 접힘/펼쳐짐 상태에 따른 너비 및 콘텐츠 가시성 전환 스타일.
     - **메뉴 항목:** 활성화된 메뉴 항목 시각적 강조.
     - **알람 토글:** 알람 상태에 따른 SVG 아이콘 색상 변경.
-    - **각 화면별 컴포넌트:** 대시보드 카운트다운, 보스 관리 텍스트 영역, 알림 설정 토글 등.
-
+    - **각 화면별 컴포넌트:** 대시보드 카운트다운, 보스 관리 텍스트 영역, 알림 설정 토글, 버전 기록 아코디언, 도움말 아코디언 등.
 ### 3.16. `docs/version_history.txt`
 - **역할:** 애플리케이션의 버전별 주요 기능 업데이트 내역을 기록합니다.
 - **내용 및 형식:**
@@ -241,7 +243,9 @@
 *   `index.html` -> `src/boss-parser.js` (`parseBossList` 호출)
 *   `index.html` -> `src/alarm-scheduler.js` (`startAlarm`, `stopAlarm`, `getIsAlarmRunning` 호출)
 *   `index.html` -> `src/ui-renderer.js` (`updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `renderDashboard`, `renderBossPresets`, `renderVersionInfo` 호출)
-*   `index.html` -> `src/api-service.js` (`getShortUrl`, `loadMarkdownContent` 호출)
+*   `index.html` -> `src/api-service.js` (`getShortUrl`, `loadJsonContent` 호출)
+*   `src/event-handlers.js` -> `src/api-service.js` (`getShortUrl`, `loadJsonContent` 호출)
+*   `src/event-handlers.js` -> `docs/feature_guide.json` (도움말 콘텐츠 로드)
 *   `index.html` -> `src/default-boss-list.js` (`bossPresets` 사용)
 *   `index.html` -> `src/calculator.js` (`calculateBossAppearanceTime` 호출)
 *   `index.html` -> `src/boss-scheduler-data.js` (`loadBossLists`, `getGameNames`, `getBossNamesForGame` 호출)
@@ -260,6 +264,7 @@
 *   `src/event-handlers.js` -> `src/data-managers.js` (`LocalStorageManager.addFixedAlarm`, `LocalStorageManager.updateFixedAlarm`, `LocalStorageManager.deleteFixedAlarm`, `LocalStorageManager.setFixedAlarmState` 호출)
 *   `src/event-handlers.js` -> `src/calculator.js` (`calculateBossAppearanceTime` 호출)
 *   `src/event-handlers.js` -> `src/boss-scheduler-data.js` (`loadBossLists`, `getGameNames`, `getBossNamesForGame` 호출)
+*   `src/event-handlers.js` -> `globalTooltip` (툴팁 요소 직접 접근)
 *   `src/boss-parser.js` -> `src/logger.js` (`log` 호출)
 *   `src/boss-parser.js` -> `src/data-managers.js` (`BossDataManager` 사용)
 
@@ -285,6 +290,7 @@
 
 1.  **초기 로드 (`index.html` -> `event-handlers.js:initApp`)**:
     *   `initApp`은 `dom-elements.js:initDomElements()`를 호출하여 `DOM` 객체를 가져옵니다.
+    *   `initApp`은 `globalTooltip` 요소를 초기화합니다.
     *   `initApp`은 `logger.js:initLogger(DOM.logContainer)`를 호출합니다.
     *   `initApp`은 `src/boss-scheduler-data.js:loadBossLists()`를 호출하여 게임별 보스 목록 데이터를 로드합니다.
     *   `initApp`은 `data-managers.js:LocalStorageManager.init()`를 호출하여 영구 상태(고정 알람, 로그 가시성, 알람 실행, 사이드바 확장)를 로드합니다.
@@ -293,7 +299,7 @@
     *   `initApp`은 `boss-parser.js:parseBossList(DOM.bossListInput)`를 호출하여 보스 목록을 파싱하고, 이는 `data-managers.js:BossDataManager.setBossSchedule()`를 호출합니다.
     *   `initApp`은 `LocalStorageManager`를 기반으로 초기 UI 상태를 설정합니다(예: `DOM.logVisibilityToggle.checked`, `DOM.sidebar.classList`).
     *   `initApp`은 초기 UI 렌더링을 위해 `ui-renderer.js:renderFixedAlarms()`, `ui-renderer.js:renderDashboard()`를 호출합니다.
-    *   `initApp`은 모든 이벤트 리스너를 설정하기 위해 `event-handlers.js:initEventHandlers(DOM)`를 호출합니다.
+    *   `initApp`은 모든 이벤트 리스너를 설정하기 위해 `event-handlers.js:initEventHandlers(DOM, globalTooltip)`를 호출합니다.
     *   `alarm-scheduler.js:getIsAlarmRunning()`이 true이면 `initApp`은 `alarm-scheduler.js:startAlarm(DOM)`를 호출합니다.
 
 2.  **사용자 상호 작용 (예: `event-handlers.js`의 메뉴 클릭)**:
