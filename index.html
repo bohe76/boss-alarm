@@ -145,7 +145,10 @@
                 </div>
 
                 <div id="lightCalculatorCard" class="calculator-card">
-                    <h3>광 계산기</h3>
+                    <div class="light-calculator-header">
+                        <h3>광 계산기</h3>
+                        <button id="lightListButton" class="button">목록</button>
+                    </div>
                     <div class="light-calculator-controls">
                         <div class="light-stopwatch-display-group">
                             <label>경과 시간</label>
@@ -155,7 +158,6 @@
                             <button id="lightStartButton" class="button">시작</button>
                             <button id="lightGwangButton" class="button" disabled>광</button>
                             <button id="lightCaptureButton" class="button" disabled>잡힘</button>
-                            <button id="lightListButton" class="button">목록</button>
                         </div>
                     </div>
                     <div class="light-calculation-results">
@@ -169,7 +171,7 @@
                     </div>
                     <div id="lightSavedList" class="light-saved-list">
                         <div class="light-saved-list-header">
-                            <h4>저장된 광 계산 기록</h4>
+                            <h4>광 계산 목록</h4>
                             <button id="clearLightRecordsButton" class="button">기록 초기화</button>
                         </div>
                         <!-- Saved list will be displayed here -->

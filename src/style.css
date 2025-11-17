@@ -558,6 +558,19 @@ body {
     margin-bottom: 20px;
 }
 
+.light-calculator-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px; /* Add some space below the header */
+}
+
+.light-calculator-header h3 {
+    margin: 0; /* Remove default margin from h3 inside this header */
+    border-bottom: none; /* Remove border from h3 */
+    padding-bottom: 0; /* Remove padding from h3 */
+}
+
 /* Light Calculator Specific Styles */
 .light-calculator-controls {
     display: flex;
