@@ -249,7 +249,6 @@ body {
 
         /* 알림 로그 창 */
         #log-container {
-            margin-top: 20px;
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -408,7 +407,6 @@ body {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 10px;
         }
 
         .hidden {
@@ -585,7 +583,7 @@ body {
 }
 
 .light-expected-time-group label .expected-text {
-    color: #111; /* Default black for "보스 잡힘" */
+    color: #111; /* Default black for "잡힘" */
 }
 
 .light-expected-time-group label .expected-label {

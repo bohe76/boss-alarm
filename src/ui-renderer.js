@@ -137,8 +137,8 @@ export function renderLightTempResults(DOM, gwangTime, afterGwangTime, totalTime
                 <table class="light-temp-table">
                     <thead>
                         <tr>
-                            <th>광 시간</th>
-                            <th>광 이후 시간</th>
+                            <th>광</th>
+                            <th>잡힘</th>
                             <th>총 시간</th>
                         </tr>
                     </thead>
@@ -176,8 +176,8 @@ export function renderLightSavedList(DOM, records) {
                 <thead>
                     <tr>
                         <th>이름</th>
-                        <th>광 시간</th>
-                        <th>광 이후 시간</th>
+                        <th>광</th>
+                        <th>잡힘</th>
                         <th>총 시간</th>
                     </tr>
                 </thead>

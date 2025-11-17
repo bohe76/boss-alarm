@@ -23,7 +23,7 @@
     - 다른 모듈들이 DOM 요소에 직접 접근하는 대신 이 모듈을 통해 일관된 방식으로 접근하도록 함.
 - **DOM 추상화:** 이 모듈은 DOM 접근을 위한 추상화 계층 역할을 하여 일관성을 촉진하고 UI 변경 관리를 용이하게 합니다.
 - **초기화 시점:** 모든 요소가 사용 가능하도록 DOM이 완전히 로드된 후에만 `initDomElements()`를 호출해야 합니다.
-- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`), "광 계산기" 카드(`lightCalculatorCard`), 경과 시간 표시(`lightStopwatchDisplay`), 시작 버튼(`lightStartButton`), 광 버튼(`lightGwangButton`), 잡힘 버튼(`lightCaptureButton`), 목록 버튼(`lightListButton`), 보스 잡힘 예상 시간 표시(`lightExpectedTimeDisplay`), 최근 계산 결과 영역(`lightTempResults`), 저장된 광 계산 기록 목록(`lightSavedList`), 기록 초기화 버튼(`clearLightRecordsButton`)에 대한 DOM 참조가 추가되었습니다.
+- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`), "광 계산기" 카드(`lightCalculatorCard`), 경과 시간 표시(`lightStopwatchDisplay`), 시작 버튼(`lightStartButton`), 광 버튼(`lightGwangButton`), 잡힘 버튼(`lightCaptureButton`), 목록 버튼(`lightListButton`), 잡힘 예상 시간 표시(`lightExpectedTimeDisplay`), 최근 계산 결과 영역(`lightTempResults`), 저장된 광 계산 기록 목록(`lightSavedList`), 기록 초기화 버튼(`clearLightRecordsButton`)에 대한 DOM 참조가 추가되었습니다.
 
 ### 3.3. `src/logger.js`
 - **역할:** 애플리케이션 내에서 발생하는 메시지(정보, 경고, 오류)를 UI의 로그 컨테이너에 표시하고 관리합니다.
@@ -64,7 +64,7 @@
 - **로컬 스토리지 사용:**
     - 저장되는 특정 사용자 환경 설정(`fixedAlarms`, `logVisibilityState`, `sidebarState`, `activeScreen`, `alarmRunningState`, `lightCalculatorRecords`)을 자세히 설명합니다.
     - `fixedAlarms`의 구조(고유 `id`, `name`, `time`, `enabled` 상태)를 설명합니다.
-    - `lightCalculatorRecords`의 구조(고유 `id`, `bossName`, `gwangTime`, `afterGwangTime`, `totalTime`, `timestamp` 상태)를 설명합니다.
+    - `lightCalculatorRecords`의 구조(고유 `id`, `bossName`, `gwangTime`, `잡힘`, `totalTime`, `timestamp` 상태)를 설명합니다.
     - 저장된 상태를 로드하기 위한 `init()` 메서드를 언급합니다.
 
 ### 3.6. `src/boss-parser.js`
@@ -109,9 +109,9 @@
     - `resetCalculator()`: 스톱워치, 카운트다운, 모든 시간 관련 상태를 초기화합니다.
     - `triggerGwang(updateExpectedTimeCallback)`: "광" 버튼이 눌린 시점의 시간을 기록하고, 이를 기반으로 예상 카운트다운 시간을 계산하여 시작합니다. 카운트다운이 끝나면 오버타임 카운트업으로 전환됩니다. `updateExpectedTimeCallback`을 통해 예상/오버 시간을 업데이트합니다.
     - `calculateGwangTimesIfMissing()`: "광" 버튼이 눌리지 않은 경우, 총 시간의 70%를 "광" 시간으로 자동 계산합니다.
-    - `saveLightCalculation(bossName)`: 현재 계산된 "광" 시간, "광 이후 시간", "총 시간"을 `LocalStorageManager`에 저장합니다.
+    - `saveLightCalculation(bossName)`: 현재 계산된 "광" 시간, "잡힘", "총 시간"을 `LocalStorageManager`에 저장합니다.
     - `getLightCalculatorRecords()`: `LocalStorageManager`에서 저장된 광 계산 기록을 가져옵니다.
-    - `getGwangTime()`, `getAfterGwangTime()`, `getTotalTime()`: 현재 계산된 "광" 시간, "광 이후 시간", "총 시간"을 초 단위 숫자로 반환합니다.
+    - `getGwangTime()`, `getAfterGwangTime()`, `getTotalTime()`: 현재 계산된 "광" 시간, "잡힘", "총 시간"을 초 단위 숫자로 반환합니다.
 - **데이터 흐름:**
     - `LocalStorageManager`와 연동하여 광 계산 기록을 영구적으로 저장하고 로드합니다.
     - `ui-renderer.js`의 콜백 함수를 통해 UI를 업데이트합니다.
@@ -164,7 +164,7 @@
     - `updateShareLink(shortUrl)`: 공유 화면의 단축 URL 표시 업데이트.
     - `renderCalculatorScreen(DOM)`: "젠 계산기" 및 "광 계산기" 화면의 UI를 초기화하고 렌더링합니다. 입력 필드를 지우고 보스 출현 시간 표시를 초기 상태로 재설정하며, 광 계산기 관련 UI 요소(스톱워치, 예상 시간, 임시 결과, 저장된 목록)를 초기화하고 숨깁니다.
     - `updateLightStopwatchDisplay(DOM, time)`: "광 계산기"의 경과 시간 스톱워치 디스플레이를 업데이트합니다.
-    - `updateLightExpectedTimeDisplay(DOM, time, isOverTime)`: "광 계산기"의 "보스 잡힘 예상 시간" 또는 "오버 시간" 디스플레이를 업데이트하고, 상태에 따라 라벨과 색상을 변경합니다.
+    - `updateLightExpectedTimeDisplay(DOM, time, isOverTime)`: "광 계산기"의 "잡힘 예상 시간" 또는 "오버 시간" 디스플레이를 업데이트하고, 상태에 따라 라벨과 색상을 변경합니다.
     - `renderLightTempResults(DOM, gwangTime, afterGwangTime, totalTime)`: "광 계산기"의 최근 계산 결과를 표 형태로 렌더링합니다. 결과가 없을 경우 해당 영역을 숨깁니다.
     - `renderLightSavedList(DOM, records)`: "광 계산기"의 저장된 기록 목록을 표 형태로 렌더링합니다. 기록이 없을 경우 "기록 초기화" 버튼을 비활성화하고 메시지를 표시합니다.
     - `renderBossSchedulerScreen(DOM, remainingTimes)`: "보스 스케줄러" 화면의 UI를 초기화하고 렌더링합니다. 게임 선택 드롭다운, 보스 입력 필드, 액션 버튼 등을 포함하며, 이전에 저장된 남은 시간 값을 사용하여 입력 필드를 채웁니다.
