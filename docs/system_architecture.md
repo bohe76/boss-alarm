@@ -23,7 +23,7 @@
     - 다른 모듈들이 DOM 요소에 직접 접근하는 대신 이 모듈을 통해 일관된 방식으로 접근하도록 함.
 - **DOM 추상화:** 이 모듈은 DOM 접근을 위한 추상화 계층 역할을 하여 일관성을 촉진하고 UI 변경 관리를 용이하게 합니다.
 - **초기화 시점:** 모든 요소가 사용 가능하도록 DOM이 완전히 로드된 후에만 `initDomElements()`를 호출해야 합니다.
-- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`), "광 계산기" 카드(`lightCalculatorCard`), 경과 시간 표시(`lightStopwatchDisplay`), 시작 버튼(`lightStartButton`), 광 버튼(`lightGwangButton`), 잡힘 버튼(`lightCaptureButton`), 목록 버튼(`lightListButton`), 잡힘 예상 시간 표시(`lightExpectedTimeDisplay`), 최근 계산 결과 영역(`lightTempResults`), 저장된 광 계산 기록 목록(`lightSavedList`), 기록 초기화 버튼(`clearLightRecordsButton`)에 대한 DOM 참조가 추가되었습니다.
+- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`), "광 계산기" 카드(`lightCalculatorCard`), 경과 시간 표시(`lightStopwatchDisplay`), 시작 버튼(`lightStartButton`), 광 버튼(`lightGwangButton`), 잡힘 버튼(`lightCaptureButton`), 목록 버튼(`lightListButton`), 잡힘 예상 시간 표시(`lightExpectedTimeDisplay`), 최근 계산 결과 영역(`lightTempResults`), 저장된 광 계산 목록(`lightSavedList`), 기록 초기화 버튼(`clearLightRecordsButton`)에 대한 DOM 참조가 추가되었습니다.
 
 ### 3.3. `src/logger.js`
 - **역할:** 애플리케이션 내에서 발생하는 메시지(정보, 경고, 오류)를 UI의 로그 컨테이너에 표시하고 관리합니다.
@@ -110,7 +110,7 @@
     - `triggerGwang(updateExpectedTimeCallback)`: "광" 버튼이 눌린 시점의 시간을 기록하고, 이를 기반으로 예상 카운트다운 시간을 계산하여 시작합니다. 카운트다운이 끝나면 오버타임 카운트업으로 전환됩니다. `updateExpectedTimeCallback`을 통해 예상/오버 시간을 업데이트합니다.
     - `calculateGwangTimesIfMissing()`: "광" 버튼이 눌리지 않은 경우, 총 시간의 70%를 "광" 시간으로 자동 계산합니다.
     - `saveLightCalculation(bossName)`: 현재 계산된 "광" 시간, "잡힘", "총 시간"을 `LocalStorageManager`에 저장합니다.
-    - `getLightCalculatorRecords()`: `LocalStorageManager`에서 저장된 광 계산 기록을 가져옵니다.
+    - `getLightCalculatorRecords()`: `LocalStorageManager`에서 광 계산 목록을 가져옵니다.
     - `getGwangTime()`, `getAfterGwangTime()`, `getTotalTime()`: 현재 계산된 "광" 시간, "잡힘", "총 시간"을 초 단위 숫자로 반환합니다.
 - **데이터 흐름:**
     - `LocalStorageManager`와 연동하여 광 계산 기록을 영구적으로 저장하고 로드합니다.
@@ -202,7 +202,7 @@
             - '시작' 버튼(`lightStartButton`) 클릭 시 `src/light-calculator.js:startStopwatch()`를 호출하여 스톱워치를 시작하고 관련 버튼 상태를 변경합니다.
             - '광' 버튼(`lightGwangButton`) 클릭 시 `src/light-calculator.js:triggerGwang()`를 호출하여 예상 시간 카운트다운을 시작하고 버튼을 비활성화합니다.
             - '잡힘' 버튼(`lightCaptureButton`) 클릭 시 `src/light-calculator.js:stopStopwatch()`를 호출하여 스톱워치를 중지하고, 사용자 확인 후 `src/light-calculator.js:saveLightCalculation()`을 통해 계산 결과를 저장합니다. 이후 `ui-renderer.js`를 통해 최근 계산 결과 및 저장된 목록을 업데이트하고 계산기를 초기화합니다.
-            - '목록' 버튼(`lightListButton`) 클릭 시 `ui-renderer.js:renderLightSavedList()`를 호출하여 저장된 광 계산 기록을 표시합니다.
+            - '목록' 버튼(`lightListButton`) 클릭 시 `ui-renderer.js:renderLightSavedList()`를 호출하여 광 계산 목록을 표시합니다.
             - '기록 초기화' 버튼(`clearLightRecordsButton`) 클릭 시 사용자 확인 후 `LocalStorageManager.clearLightCalculatorRecords()`를 호출하여 모든 광 계산 기록을 삭제하고 목록을 새로 고칩니다.
         - 보스 스케줄러:
             - 게임 선택 드롭다운 변경 시 `ui-renderer.js:renderBossInputs()` 호출.

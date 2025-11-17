@@ -160,7 +160,7 @@ export function renderLightSavedList(DOM, records) {
         if (records.length === 0) {
             DOM.lightSavedList.innerHTML = `
                 <div class="light-saved-list-header">
-                    <h4>저장된 광 계산 기록</h4>
+                    <h4>광 계산 목록</h4>
                     <button id="clearLightRecordsButton" class="button" disabled>기록 초기화</button>
                 </div>
                 <p>저장된 기록이 없습니다.</p>
@@ -169,7 +169,7 @@ export function renderLightSavedList(DOM, records) {
         }
         let html = `
             <div class="light-saved-list-header">
-                <h4>저장된 광 계산 기록</h4>
+                <h4>광 계산 목록</h4>
                 <button id="clearLightRecordsButton" class="button">기록 초기화</button>
             </div>
             <table class="light-saved-table">
