@@ -582,6 +582,18 @@ body {
     color: #111;
 }
 
+.light-expected-time-group label .expected-text {
+    color: #111; /* Default black for "보스 잡힘" */
+}
+
+.light-expected-time-group label .expected-label {
+    color: #d90007; /* Red for "예상 시간" */
+}
+
+.light-expected-time-group label.over-time-label .expected-label {
+    color: #007aff; /* Blue for "오버 시간" */
+}
+
 #lightStopwatchDisplay {
     font-size: 2em;
     font-weight: bold;
