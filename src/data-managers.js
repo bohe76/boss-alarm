@@ -57,6 +57,7 @@ export const LocalStorageManager = (() => {
     let logVisibilityState = true; // 기본값: ON
     let alarmRunningState = false; // 알람 실행 상태 (기본값: OFF)
     let sidebarExpandedState = false; // 사이드바 확장 상태 (기본값: 접힘)
+    let lightCalculatorRecords = []; // 광 계산기 기록 (사용자 정의 가능)
 
     function saveFixedAlarms() {
         localStorage.setItem('fixedAlarms', JSON.stringify(fixedAlarms));
@@ -140,6 +141,19 @@ export const LocalStorageManager = (() => {
         }
     }
 
+    function saveLightCalculatorRecords() {
+        localStorage.setItem('lightCalculatorRecords', JSON.stringify(lightCalculatorRecords));
+    }
+
+    function loadLightCalculatorRecords() {
+        const savedRecords = localStorage.getItem('lightCalculatorRecords');
+        if (savedRecords) {
+            lightCalculatorRecords = JSON.parse(savedRecords);
+        } else {
+            lightCalculatorRecords = [];
+        }
+    }
+
     return {
         getFixedAlarms: () => fixedAlarms,
         addFixedAlarm: (alarm) => {
@@ -181,11 +195,15 @@ export const LocalStorageManager = (() => {
         setAlarmRunningState: (state) => { alarmRunningState = state; saveAlarmRunningState(); },
         getSidebarExpandedState: () => sidebarExpandedState,
         setSidebarExpandedState: (state) => { sidebarExpandedState = state; saveSidebarExpandedState(); },
+        getLightCalculatorRecords: () => lightCalculatorRecords,
+        setLightCalculatorRecords: (records) => { lightCalculatorRecords = records; saveLightCalculatorRecords(); },
+        clearLightCalculatorRecords: () => { lightCalculatorRecords = []; saveLightCalculatorRecords(); },
         init: () => {
             loadFixedAlarms();
             loadLogVisibilityState();
             loadAlarmRunningState(); // Load alarm running state
             loadSidebarExpandedState(); // Load sidebar expanded state
+            loadLightCalculatorRecords(); // Load light calculator records
         }
     };
 })();

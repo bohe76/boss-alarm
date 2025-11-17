@@ -541,6 +541,211 @@ body {
     color: #007aff; /* Blue color for remaining time */
 }
 
+/* Calculator Card Styles (for both Zen and Light) */
+.calculator-card {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.calculator-card h3 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* Light Calculator Specific Styles */
+.light-calculator-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.light-stopwatch-display-group,
+.light-expected-time-group,
+.light-over-time-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.light-stopwatch-display-group label,
+.light-expected-time-group label,
+.light-over-time-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #111;
+}
+
+.light-expected-time-group label .expected-text {
+    color: #111; /* Default black for "보스 잡힘" */
+}
+
+.light-expected-time-group label .expected-label {
+    color: #d90007; /* Red for "예상 시간" */
+}
+
+.light-expected-time-group label.over-time-label .expected-label {
+    color: #007aff; /* Blue for "오버 시간" */
+}
+
+#lightStopwatchDisplay {
+    font-size: 2em;
+    font-weight: bold;
+    color: #111; /* Black for stopwatch */
+    background-color: #f8f8f8;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    min-width: 150px;
+    text-align: center;
+}
+
+#lightExpectedTimeDisplay {
+    font-size: 2em;
+    font-weight: bold;
+    color: #d90007; /* Red for expected time */
+    background-color: #f8f8f8;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    min-width: 150px;
+    text-align: center;
+}
+
+#lightExpectedTimeDisplay.over-time {
+    color: #007aff; /* Blue when it's over time */
+}
+
+.light-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.light-buttons .button {
+    padding: 5px 20px; /* Half vertical padding */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+    background-color: #007aff;
+    color: white;
+}
+
+.light-buttons .button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.light-buttons .button:disabled {
+    background-color: #cccccc;
+    cursor: default; /* Changed from not-allowed to remove the red circle with diagonal line */
+    opacity: 0.5; /* 50% alpha for disabled buttons */
+}
+
+#lightGwangButton {
+    background-color: #ff9800; /* Orange for Gwang button */
+}
+
+#lightGwangButton:hover:not(:disabled) {
+    background-color: #e68900; /* Darker orange on hover */
+}
+
+.light-calculation-results {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+.light-temp-results {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.light-temp-results-card h4 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.light-temp-results-card p {
+    margin: 5px 0;
+    color: #555;
+}
+
+.light-temp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.light-temp-table th,
+.light-temp-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    min-width: 50px; /* Ensure enough space for MM:SS */
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.light-temp-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #333;
+}
+
+.light-saved-list {
+    margin-top: 30px;
+}
+
+.light-saved-list h4 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.light-saved-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.light-saved-table th,
+.light-saved-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.light-saved-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #333;
+}
+
+.light-saved-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.light-saved-table tbody tr:hover {
+    background-color: #f0f0f0;
+}
+
 /* Boss Scheduler Screen Styles */
 .boss-scheduler-controls {
     margin-bottom: 20px;
@@ -776,7 +981,7 @@ body {
         .help-summary, .help-sub-summary {
             display: flex;
             align-items: center;
-            padding: 10px 15px 10px 30px; /* Increased left padding for arrow space */
+            padding: 10px 15px 10px 40px; /* Increased left padding for arrow space */
             font-weight: bold;
             cursor: pointer;
             background-color: #f0f0f0;
@@ -792,7 +997,7 @@ body {
         .help-summary::before, .help-sub-summary::before {
             content: '▶';
             position: absolute;
-            left: 10px;
+            left: 15px; /* Adjusted left position */
             top: 50%;
             transform: translateY(-50%);
             transition: transform 0.2s ease;
@@ -812,11 +1017,11 @@ body {
             background-color: #f8f8f8;
             color: #444;
             font-weight: normal;
-            padding-left: 30px; /* Indent sub-summary */
+            padding: 10px 15px 10px 50px; /* Increased left padding for sub-summary */
         }
 
         .help-sub-summary::before {
-            left: 20px; /* Adjust arrow position for sub-summary */
+            left: 25px; /* Adjusted arrow position for sub-summary */
         }
 
         .help-content, .help-sub-content {

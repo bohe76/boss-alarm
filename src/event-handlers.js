@@ -7,9 +7,11 @@ import { getShortUrl, loadJsonContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
-import { bossPresets } from './default-boss-list.js'; // Import bossPresets
+import * as DefaultBossList from './default-boss-list.js'; // Import bossPresets
 import { calculateBossAppearanceTime } from './calculator.js'; // Import calculateBossAppearanceTime
 import { loadBossLists, getGameNames, getBossNamesForGame } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
+import { LightCalculator, formatTime } from './light-calculator.js'; // New - Import formatTime
+import { updateLightStopwatchDisplay, updateLightExpectedTimeDisplay, renderLightTempResults, renderLightSavedList } from './ui-renderer.js'; // New
 
 let _remainingTimes = {}; // Global variable to store remaining times for boss scheduler
 
@@ -64,7 +66,7 @@ function showScreen(DOM, screenId) {
         DOM.versionInfoScreen,
         DOM.shareScreen,
         DOM.helpScreen,
-        DOM.zenCalculatorScreen, // New
+        DOM.calculatorScreen, // Updated
         DOM.bossSchedulerScreen // New
     ];
 
@@ -122,8 +124,8 @@ function showScreen(DOM, screenId) {
         })();
     }
 
-    // Special handling for zen calculator screen
-    if (screenId === 'zen-calculator-screen') {
+    // Special handling for calculator screen
+    if (screenId === 'calculator-screen') { // Updated
         renderCalculatorScreen(DOM);
     }
 
@@ -169,7 +171,7 @@ function initEventHandlers(DOM, globalTooltip) {
     const navLinks = [
         DOM.navDashboard,
         DOM.navBossManagement,
-        DOM.navZenCalculator, // New
+        DOM.navCalculator, // Updated
         DOM.navBossScheduler, // New
         DOM.navNotificationSettings,
         DOM.navAlarmLog,
@@ -458,6 +460,74 @@ function initEventHandlers(DOM, globalTooltip) {
 
 
 
+    // --- Light Calculator Screen Event Handlers ---
+    if (DOM.lightStartButton) {
+        DOM.lightStartButton.addEventListener('click', () => {
+            LightCalculator.startStopwatch((time) => {
+                updateLightStopwatchDisplay(DOM, time);
+            });
+            DOM.lightStartButton.disabled = true;
+            DOM.lightGwangButton.disabled = false;
+            DOM.lightCaptureButton.disabled = false;
+            DOM.lightListButton.disabled = true; // Disable list button while calculation is active
+        });
+    }
+
+    if (DOM.lightGwangButton) {
+        DOM.lightGwangButton.addEventListener('click', () => {
+            LightCalculator.triggerGwang((time, isOverTime) => {
+                updateLightExpectedTimeDisplay(DOM, time, isOverTime);
+            });
+            DOM.lightGwangButton.disabled = true;
+        });
+    }
+
+    if (DOM.lightCaptureButton) {
+        DOM.lightCaptureButton.addEventListener('click', async () => {
+            LightCalculator.stopStopwatch();
+            const confirmSave = confirm("광 계산을 저장 하시겠습니까?");
+            if (confirmSave) {
+                const bossName = prompt("보스 이름을 입력하세요:");
+                if (bossName) {
+                    await LightCalculator.saveLightCalculation(bossName);
+                    renderLightSavedList(DOM, LightCalculator.getLightCalculatorRecords());
+                }
+            }
+            // Display temporary results
+            renderLightTempResults(DOM,
+                formatTime(LightCalculator.getGwangTime()),
+                formatTime(LightCalculator.getAfterGwangTime()),
+                formatTime(LightCalculator.getTotalTime())
+            );
+            LightCalculator.resetCalculator(); // Reset calculator state
+            DOM.lightStartButton.disabled = false;
+            DOM.lightGwangButton.disabled = true;
+            DOM.lightCaptureButton.disabled = true;
+            DOM.lightListButton.disabled = false; // Enable list button after calculation
+            updateLightStopwatchDisplay(DOM, '00:00');
+            updateLightExpectedTimeDisplay(DOM, '--:--', false); // Reset expected/over time display
+        });
+    }
+
+    if (DOM.lightListButton) {
+        DOM.lightListButton.addEventListener('click', () => {
+            renderLightSavedList(DOM, LightCalculator.getLightCalculatorRecords());
+        });
+    }
+
+    if (DOM.lightSavedList) { // Attach listener to the parent container
+        DOM.lightSavedList.addEventListener('click', (event) => {
+            if (event.target && event.target.id === 'clearLightRecordsButton') {
+                if (confirm("광 계산 기록을 초기화 하시겠습니까?")) {
+                    LocalStorageManager.clearLightCalculatorRecords();
+                    renderLightSavedList(DOM, LightCalculator.getLightCalculatorRecords());
+                    log("광 계산 기록이 초기화되었습니다.", true);
+                }
+            }
+        });
+    }
+
+
     // --- Boss Management Screen Event Handlers ---
     // Update boss schedule when textarea input changes
     DOM.bossListInput.addEventListener('input', () => {
@@ -570,7 +640,7 @@ export async function initApp() { // Made initApp async
         DOM.bossListInput.value = decodedData;
         log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
     } else {
-        const defaultBossList = bossPresets[0].list;
+        const defaultBossList = DefaultBossList.bossPresets[0].list;
         let updatedBossList = defaultBossList;
 
         const hasDateEntries = /^(\d{2}\.\d{2})/m.test(defaultBossList);

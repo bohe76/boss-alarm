@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>보스 알리미</title>
-    <link rel="stylesheet" href="src/style.css?v=2.3.3">
+    <link rel="stylesheet" href="src/style.css?v=2.3.4">
     <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -53,11 +53,11 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" id="nav-zen-calculator" data-screen="zen-calculator-screen">
+                    <a href="#" id="nav-calculator" data-screen="calculator-screen">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
                             <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm-2-4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm4 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm2-4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM7 5h10v2H7V5z"/>
                         </svg>
-                        <span class="menu-text">젠 계산기</span>
+                        <span class="menu-text">계산기</span>
                     </a>
                 </li>
                 <li>
@@ -130,15 +130,50 @@
                 <textarea id="bossListInput"></textarea>
             </section>
 
-            <section id="zen-calculator-screen" class="screen">
-                <h2>젠 계산기</h2>
-                <div class="calculator-input-group">
-                    <label for="remainingTimeInput">남은 시간 (HH:MM 또는 HH:MM:SS):</label>
-                    <input type="text" id="remainingTimeInput" placeholder="예: 00:57:23 또는 00:05">
+            <section id="calculator-screen" class="screen">
+                <h2>계산기</h2>
+                <div id="zenCalculatorCard" class="calculator-card">
+                    <h3>젠 계산기</h3>
+                    <div class="calculator-input-group">
+                        <label for="remainingTimeInput">남은 시간 (HH:MM 또는 HH:MM:SS):</label>
+                        <input type="text" id="remainingTimeInput" placeholder="예: 00:57:23 또는 00:05">
+                    </div>
+                    <div class="calculator-result-group">
+                        <label>보스 출현 시간</label>
+                        <span id="bossAppearanceTimeDisplay" class="result-display">--:--:--</span>
+                    </div>
                 </div>
-                <div class="calculator-result-group">
-                    <label>보스 출현 시간</label>
-                    <span id="bossAppearanceTimeDisplay" class="result-display">--:--:--</span>
+
+                <div id="lightCalculatorCard" class="calculator-card">
+                    <h3>광 계산기</h3>
+                    <div class="light-calculator-controls">
+                        <div class="light-stopwatch-display-group">
+                            <label>경과 시간</label>
+                            <span id="lightStopwatchDisplay" class="result-display">00:00</span>
+                        </div>
+                        <div class="light-buttons">
+                            <button id="lightStartButton" class="button">시작</button>
+                            <button id="lightGwangButton" class="button" disabled>광</button>
+                            <button id="lightCaptureButton" class="button" disabled>잡힘</button>
+                            <button id="lightListButton" class="button">목록</button>
+                        </div>
+                    </div>
+                    <div class="light-calculation-results">
+                        <div class="light-expected-time-group">
+                            <label><span class="expected-text">보스 잡힘</span> <span class="expected-label">예상 시간</span></label>
+                            <span id="lightExpectedTimeDisplay" class="result-display">--:--</span>
+                        </div>
+                    </div>
+                    <div id="lightTempResults" class="light-temp-results">
+                        <!-- Temporary results after capture will be displayed here -->
+                    </div>
+                    <div id="lightSavedList" class="light-saved-list">
+                        <div class="light-saved-list-header">
+                            <h4>저장된 광 계산 기록</h4>
+                            <button id="clearLightRecordsButton" class="button">기록 초기화</button>
+                        </div>
+                        <!-- Saved list will be displayed here -->
+                    </div>
                 </div>
             </section>
 
@@ -196,7 +231,7 @@
     </div>
 
     <script type="module">
-        window.APP_VERSION = "2.3.3"; // Define global app version
+        window.APP_VERSION = "2.3.4"; // Define global app version
 
         import { initDomElements } from './src/dom-elements.js';
 
@@ -218,7 +253,7 @@
     </script>
     <div id="global-tooltip"></div>
     <footer>
-        <p>Created by: bohe | v2.3.3</p>
+        <p>Created by: bohe | v2.3.4</p>
     </footer>
 </body>
 </html>

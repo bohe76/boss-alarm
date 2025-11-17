@@ -79,10 +79,10 @@
   1. `index.html`의 CSS 링크 버전을 수정한다. (`href="src/style.css?v=X.X.X"`)
   2. `index.html`의 스크립트 내 `window.APP_VERSION` 변수를 수정한다.
   3. `index.html`의 푸터(footer)에 표시되는 버전을 수정한다.
-  4. `docs/version_history.txt` 파일에 해당 버전의 변경 내역을 추가한다.
+  4. `docs/version_history.json` 파일에 해당 버전의 변경 내역을 추가한다.
 
 ### 릴리즈 노트 작성 원칙
-- 릴리즈 노트는 `docs/version_history.txt` 파일에 작성한다.
+- 릴리즈 노트는 `docs/version_history.json` 파일에 작성한다.
 - 릴리즈 노트는 사용자 관점에서 작성하며, 추가된 기능과 기능 설명에 집중한다.
 - 기술적인 구현 세부 사항이나 내부적인 변경 사항은 포함하지 않는다.
 - 각 항목은 명확하고 간결하게 작성한다.

@@ -23,7 +23,7 @@
     - 다른 모듈들이 DOM 요소에 직접 접근하는 대신 이 모듈을 통해 일관된 방식으로 접근하도록 함.
 - **DOM 추상화:** 이 모듈은 DOM 접근을 위한 추상화 계층 역할을 하여 일관성을 촉진하고 UI 변경 관리를 용이하게 합니다.
 - **초기화 시점:** 모든 요소가 사용 가능하도록 DOM이 완전히 로드된 후에만 `initDomElements()`를 호출해야 합니다.
-- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`)에 대한 DOM 참조가 추가되었습니다.
+- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`), "광 계산기" 카드(`lightCalculatorCard`), 경과 시간 표시(`lightStopwatchDisplay`), 시작 버튼(`lightStartButton`), 광 버튼(`lightGwangButton`), 잡힘 버튼(`lightCaptureButton`), 목록 버튼(`lightListButton`), 보스 잡힘 예상 시간 표시(`lightExpectedTimeDisplay`), 최근 계산 결과 영역(`lightTempResults`), 저장된 광 계산 기록 목록(`lightSavedList`), 기록 초기화 버튼(`clearLightRecordsButton`)에 대한 DOM 참조가 추가되었습니다.
 
 ### 3.3. `src/logger.js`
 - **역할:** 애플리케이션 내에서 발생하는 메시지(정보, 경고, 오류)를 UI의 로그 컨테이너에 표시하고 관리합니다.
@@ -52,16 +52,19 @@
     - **`LocalStorageManager`:**
         - `fixedAlarmStates` (고정 알림 설정), `logVisibilityState` (로그 가시성 설정), `sidebarState` (사이드바 접힘/펼쳐짐 상태), `activeScreen` (현재 활성화된 화면) 등 다양한 사용자 환경 설정 상태 관리.
         - `fixedAlarms` (고정 알림 목록): 사용자가 추가, 편집, 삭제할 수 있는 고정 알림 객체 배열을 관리합니다. 각 고정 알림은 `id`, `name`, `time`, `enabled` 속성을 가집니다.
+        - `lightCalculatorRecords` (광 계산 기록): 사용자가 저장한 광 계산 결과를 관리합니다. 각 기록은 `id`, `bossName`, `gwangTime`, `afterGwangTime`, `totalTime`, `timestamp` 속성을 가집니다.
         - `init()`: 로컬 스토리지에서 초기 상태 로드.
         - `set/get` 메서드를 통해 각 설정 상태에 접근.
         - `addFixedAlarm(alarm)`, `updateFixedAlarm(id, updatedAlarm)`, `deleteFixedAlarm(id)`: 고정 알림을 추가, 업데이트, 삭제하는 메서드를 제공합니다.
         - `exportFixedAlarms()`, `importFixedAlarms(encodedData)`: 고정 알림 목록을 Base64로 인코딩/디코딩하여 공유 기능을 지원합니다.
+        - `getLightCalculatorRecords()`, `setLightCalculatorRecords(records)`, `clearLightCalculatorRecords()`: 광 계산 기록을 조회, 설정, 초기화하는 메서드를 제공합니다.
 - **데이터 관리 전략:**
     - 싱글톤 데이터 관리자를 위한 IIFE 사용을 설명합니다.
     - `BossDataManager`는 동적 보스 일정과 `LocalStorageManager`에서 관리되는 사용자 설정 고정 알림을 통합하여 관리합니다.
 - **로컬 스토리지 사용:**
-    - 저장되는 특정 사용자 환경 설정(`fixedAlarms`, `logVisibilityState`, `sidebarState`, `activeScreen`, `alarmRunningState`)을 자세히 설명합니다.
+    - 저장되는 특정 사용자 환경 설정(`fixedAlarms`, `logVisibilityState`, `sidebarState`, `activeScreen`, `alarmRunningState`, `lightCalculatorRecords`)을 자세히 설명합니다.
     - `fixedAlarms`의 구조(고유 `id`, `name`, `time`, `enabled` 상태)를 설명합니다.
+    - `lightCalculatorRecords`의 구조(고유 `id`, `bossName`, `gwangTime`, `afterGwangTime`, `totalTime`, `timestamp` 상태)를 설명합니다.
     - 저장된 상태를 로드하기 위한 `init()` 메서드를 언급합니다.
 
 ### 3.6. `src/boss-parser.js`
@@ -97,7 +100,24 @@
     - 출력: `HH:MM:SS` 형식의 문자열 또는 유효하지 않은 입력 시 `null`.
 - **오류 처리:** 유효하지 않은 시간 형식이나 값에 대해 `null`을 반환하여 호출하는 측에서 처리할 수 있도록 합니다.
 
-### 3.8. `src/boss-scheduler-data.js`
+### 3.8. `src/light-calculator.js`
+- **역할:** "광 계산기"의 핵심 로직을 담당합니다. 스톱워치 기능, "광" 시간 계산, 예상 시간 카운트다운 및 오버타임 카운트업, 그리고 계산 결과 저장 및 초기화 기능을 제공합니다.
+- **주요 기능:**
+    - `formatTime(seconds)`: 초 단위 시간을 "MM:SS" 형식의 문자열로 변환합니다.
+    - `startStopwatch(updateDisplayCallback)`: 스톱워치를 시작하고 매초 `updateDisplayCallback`을 호출하여 경과 시간을 업데이트합니다.
+    - `stopStopwatch()`: 스톱워치를 중지합니다.
+    - `resetCalculator()`: 스톱워치, 카운트다운, 모든 시간 관련 상태를 초기화합니다.
+    - `triggerGwang(updateExpectedTimeCallback)`: "광" 버튼이 눌린 시점의 시간을 기록하고, 이를 기반으로 예상 카운트다운 시간을 계산하여 시작합니다. 카운트다운이 끝나면 오버타임 카운트업으로 전환됩니다. `updateExpectedTimeCallback`을 통해 예상/오버 시간을 업데이트합니다.
+    - `calculateGwangTimesIfMissing()`: "광" 버튼이 눌리지 않은 경우, 총 시간의 70%를 "광" 시간으로 자동 계산합니다.
+    - `saveLightCalculation(bossName)`: 현재 계산된 "광" 시간, "광 이후 시간", "총 시간"을 `LocalStorageManager`에 저장합니다.
+    - `getLightCalculatorRecords()`: `LocalStorageManager`에서 저장된 광 계산 기록을 가져옵니다.
+    - `getGwangTime()`, `getAfterGwangTime()`, `getTotalTime()`: 현재 계산된 "광" 시간, "광 이후 시간", "총 시간"을 초 단위 숫자로 반환합니다.
+- **데이터 흐름:**
+    - `LocalStorageManager`와 연동하여 광 계산 기록을 영구적으로 저장하고 로드합니다.
+    - `ui-renderer.js`의 콜백 함수를 통해 UI를 업데이트합니다.
+- **상태 관리:** `stopwatchInterval`, `countdownInterval`, `stopwatchStartTime`, `gwangTime`, `currentStopwatchTime`, `expectedCountdownTime`, `currentCountdownTime`, `currentOverTime` 등의 내부 상태 변수를 관리하여 계산기의 정확한 동작을 보장합니다.
+
+### 3.9. `src/boss-scheduler-data.js`
 - **역할:** `data/boss_lists.json` 파일에서 게임별 보스 목록 데이터를 로드하고 관리합니다.
 - **주요 기능:**
     - `loadBossLists(filePath)`: 지정된 JSON 파일에서 보스 목록 데이터를 비동기적으로 로드합니다. 로드 실패 시 오류를 로깅하고 빈 객체를 반환합니다.
@@ -142,7 +162,11 @@
     - `renderHelpContent(tabName, content)`: 도움말 화면의 탭 콘텐츠 렌더링.
     - `updateVersionDisplay(version)`: 릴리즈 노트 화면의 버전 표시를 `loadJsonContent`를 사용하여 JSON 데이터로부터 아코디언 UI로 렌더링하며, 첫 번째 항목은 기본적으로 펼쳐져 있습니다.
     - `updateShareLink(shortUrl)`: 공유 화면의 단축 URL 표시 업데이트.
-    - `renderCalculatorScreen(DOM)`: "젠 계산기" 화면의 UI를 초기화하고 렌더링합니다. 입력 필드를 지우고 보스 출현 시간 표시를 초기 상태로 재설정합니다.
+    - `renderCalculatorScreen(DOM)`: "젠 계산기" 및 "광 계산기" 화면의 UI를 초기화하고 렌더링합니다. 입력 필드를 지우고 보스 출현 시간 표시를 초기 상태로 재설정하며, 광 계산기 관련 UI 요소(스톱워치, 예상 시간, 임시 결과, 저장된 목록)를 초기화하고 숨깁니다.
+    - `updateLightStopwatchDisplay(DOM, time)`: "광 계산기"의 경과 시간 스톱워치 디스플레이를 업데이트합니다.
+    - `updateLightExpectedTimeDisplay(DOM, time, isOverTime)`: "광 계산기"의 "보스 잡힘 예상 시간" 또는 "오버 시간" 디스플레이를 업데이트하고, 상태에 따라 라벨과 색상을 변경합니다.
+    - `renderLightTempResults(DOM, gwangTime, afterGwangTime, totalTime)`: "광 계산기"의 최근 계산 결과를 표 형태로 렌더링합니다. 결과가 없을 경우 해당 영역을 숨깁니다.
+    - `renderLightSavedList(DOM, records)`: "광 계산기"의 저장된 기록 목록을 표 형태로 렌더링합니다. 기록이 없을 경우 "기록 초기화" 버튼을 비활성화하고 메시지를 표시합니다.
     - `renderBossSchedulerScreen(DOM, remainingTimes)`: "보스 스케줄러" 화면의 UI를 초기화하고 렌더링합니다. 게임 선택 드롭다운, 보스 입력 필드, 액션 버튼 등을 포함하며, 이전에 저장된 남은 시간 값을 사용하여 입력 필드를 채웁니다.
     - `renderBossInputs(DOM, gameName, remainingTimes)`: 선택된 게임에 대한 보스 입력 필드를 동적으로 렌더링합니다.
 - **UI 업데이트 책임:** `LocalStorageManager`에서 관리되는 데이터를 기반으로 각 화면의 특정 UI 요소들을 동적으로 업데이트하고 렌더링하는 역할을 합니다.
@@ -174,6 +198,12 @@
         - 공유: 공유 링크 생성 버튼 클릭.
         - 도움말: `docs/feature_guide.json`에서 콘텐츠를 로드하고 아코디언 형태로 렌더링.
         - 젠 계산기: 남은 시간 입력 필드(`remainingTimeInput`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 보스 출현 시간 계산 및 `bossAppearanceTimeDisplay` 업데이트.
+        - 광 계산기:
+            - '시작' 버튼(`lightStartButton`) 클릭 시 `src/light-calculator.js:startStopwatch()`를 호출하여 스톱워치를 시작하고 관련 버튼 상태를 변경합니다.
+            - '광' 버튼(`lightGwangButton`) 클릭 시 `src/light-calculator.js:triggerGwang()`를 호출하여 예상 시간 카운트다운을 시작하고 버튼을 비활성화합니다.
+            - '잡힘' 버튼(`lightCaptureButton`) 클릭 시 `src/light-calculator.js:stopStopwatch()`를 호출하여 스톱워치를 중지하고, 사용자 확인 후 `src/light-calculator.js:saveLightCalculation()`을 통해 계산 결과를 저장합니다. 이후 `ui-renderer.js`를 통해 최근 계산 결과 및 저장된 목록을 업데이트하고 계산기를 초기화합니다.
+            - '목록' 버튼(`lightListButton`) 클릭 시 `ui-renderer.js:renderLightSavedList()`를 호출하여 저장된 광 계산 기록을 표시합니다.
+            - '기록 초기화' 버튼(`clearLightRecordsButton`) 클릭 시 사용자 확인 후 `LocalStorageManager.clearLightCalculatorRecords()`를 호출하여 모든 광 계산 기록을 삭제하고 목록을 새로 고칩니다.
         - 보스 스케줄러:
             - 게임 선택 드롭다운 변경 시 `ui-renderer.js:renderBossInputs()` 호출.
             - 남은 시간 입력 필드(`remaining-time-input`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 젠 시간 계산 및 표시.
@@ -222,7 +252,7 @@
     - **사이드바:** 접힘/펼쳐짐 상태에 따른 너비 및 콘텐츠 가시성 전환 스타일.
     - **메뉴 항목:** 활성화된 메뉴 항목 시각적 강조.
     - **알람 토글:** 알람 상태에 따른 SVG 아이콘 색상 변경.
-    - **각 화면별 컴포넌트:** 대시보드 카운트다운, 보스 관리 텍스트 영역, 알림 설정 토글, 버전 기록 아코디언, 도움말 아코디언 등.
+    - **각 화면별 컴포넌트:** 대시보드 카운트다운, 보스 관리 텍스트 영역, 알림 설정 토글, 버전 기록 아코디언, 도움말 아코디언, 광 계산기 스톱워치 및 예상 시간 표시, 버튼 그룹, 최근 계산 결과 테이블, 저장된 기록 테이블 등.
 ### 3.16. `docs/version_history.txt`
 - **역할:** 애플리케이션의 버전별 주요 기능 업데이트 내역을 기록합니다.
 - **내용 및 형식:**
@@ -249,21 +279,20 @@
 *   `index.html` -> `src/default-boss-list.js` (`bossPresets` 사용)
 *   `index.html` -> `src/calculator.js` (`calculateBossAppearanceTime` 호출)
 *   `index.html` -> `src/boss-scheduler-data.js` (`loadBossLists`, `getGameNames`, `getBossNamesForGame` 호출)
-*   `index.html` -> `src/boss-scheduler-data.js` (`loadBossLists`, `getGameNames`, `getBossNamesForGame` 호출)
-*   `index.html` -> `src/boss-scheduler-data.js` (`loadBossLists`, `getGameNames`, `getBossNamesForGame` 호출)
-*   `index.html` -> `src/boss-scheduler-data.js` (`loadBossLists`, `getGameNames`, `getBossNamesForGame` 호출)
+*   `index.html` -> `src/light-calculator.js` (`LightCalculator` 사용)
 
 *   `src/event-handlers.js` -> `src/dom-elements.js` (DOM 요소 접근)
 *   `src/event-handlers.js` -> `src/logger.js` (`initLogger`, `log` 호출)
 *   `src/event-handlers.js` -> `src/boss-parser.js` (`parseBossList` 호출)
 *   `src/event-handlers.js` -> `src/alarm-scheduler.js` (`startAlarm`, `stopAlarm`, `getIsAlarmRunning` 호출)
-*   `src/event-handlers.js` -> `src/ui-renderer.js` (`updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `renderDashboard`, `renderBossPresets`, `renderVersionInfo`, `renderCalculatorScreen`, `renderBossSchedulerScreen`, `renderBossInputs` 호출)
+*   `src/event-handlers.js` -> `src/ui-renderer.js` (`updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `renderDashboard`, `renderBossPresets`, `renderVersionInfo`, `renderCalculatorScreen`, `renderBossSchedulerScreen`, `renderBossInputs`, `updateLightStopwatchDisplay`, `updateLightExpectedTimeDisplay`, `renderLightTempResults`, `renderLightSavedList` 호출)
 *   `src/event-handlers.js` -> `src/api-service.js` (`getShortUrl`, `loadMarkdownContent` 호출)
 *   `src/event-handlers.js` -> `src/data-managers.js` (`LocalStorageManager` 사용)
 *   `src/event-handlers.js` -> `src/default-boss-list.js` (`bossPresets` 사용)
-*   `src/event-handlers.js` -> `src/data-managers.js` (`LocalStorageManager.addFixedAlarm`, `LocalStorageManager.updateFixedAlarm`, `LocalStorageManager.deleteFixedAlarm`, `LocalStorageManager.setFixedAlarmState` 호출)
+*   `src/event-handlers.js` -> `src/data-managers.js` (`LocalStorageManager.addFixedAlarm`, `LocalStorageManager.updateFixedAlarm`, `LocalStorageManager.deleteFixedAlarm`, `LocalStorageManager.setFixedAlarmState`, `LocalStorageManager.clearLightCalculatorRecords` 호출)
 *   `src/event-handlers.js` -> `src/calculator.js` (`calculateBossAppearanceTime` 호출)
 *   `src/event-handlers.js` -> `src/boss-scheduler-data.js` (`loadBossLists`, `getGameNames`, `getBossNamesForGame` 호출)
+*   `src/event-handlers.js` -> `src/light-calculator.js` (`LightCalculator`, `formatTime` 사용)
 *   `src/event-handlers.js` -> `globalTooltip` (툴팁 요소 직접 접근)
 *   `src/boss-parser.js` -> `src/logger.js` (`log` 호출)
 *   `src/boss-parser.js` -> `src/data-managers.js` (`BossDataManager` 사용)
@@ -310,8 +339,14 @@
     *   'boss-management-screen'의 경우 `showScreen`은 `ui-renderer.js:updateBossListTextarea()`를 호출합니다.
     *   'notification-settings-screen'의 경우 `showScreen`은 `ui-renderer.js:renderFixedAlarms()`를 호출합니다.
     *   'alarm-log-screen'의 경우 `showScreen`은 `ui-renderer.js:updateLogDisplay()`를 호출합니다.
-    *   'zen-calculator-screen'의 경우 `showScreen`은 `ui-renderer.js:renderCalculatorScreen()`를 호출합니다.
-    *   'zen-calculator-screen'에서 `DOM.remainingTimeInput`의 `input` 이벤트 발생 시 `src/event-handlers.js`는 `src/calculator.js:calculateBossAppearanceTime()`를 호출하고 `DOM.bossAppearanceTimeDisplay`를 업데이트합니다.
+    *   'calculator-screen'의 경우 `showScreen`은 `ui-renderer.js:renderCalculatorScreen()`를 호출합니다.
+    *   'calculator-screen' (젠 계산기)에서 `DOM.remainingTimeInput`의 `input` 이벤트 발생 시 `src/event-handlers.js`는 `src/calculator.js:calculateBossAppearanceTime()`를 호출하고 `DOM.bossAppearanceTimeDisplay`를 업데이트합니다.
+    *   'calculator-screen' (광 계산기)에서:
+        - '시작' 버튼 클릭 시 `src/event-handlers.js`는 `src/light-calculator.js:LightCalculator.startStopwatch()`를 호출하고 `ui-renderer.js:updateLightStopwatchDisplay()`를 통해 UI를 업데이트합니다.
+        - '광' 버튼 클릭 시 `src/event-handlers.js`는 `src/light-calculator.js:LightCalculator.triggerGwang()`를 호출하고 `ui-renderer.js:updateLightExpectedTimeDisplay()`를 통해 UI를 업데이트합니다.
+        - '잡힘' 버튼 클릭 시 `src/event-handlers.js`는 `src/light-calculator.js:LightCalculator.stopStopwatch()`를 호출하고, 사용자 확인 후 `src/light-calculator.js:LightCalculator.saveLightCalculation()`을 통해 데이터를 저장하며, `ui-renderer.js:renderLightTempResults()` 및 `ui-renderer.js:renderLightSavedList()`를 통해 UI를 업데이트합니다.
+        - '목록' 버튼 클릭 시 `src/event-handlers.js`는 `ui-renderer.js:renderLightSavedList()`를 호출하여 저장된 기록을 표시합니다.
+        - '기록 초기화' 버튼 클릭 시 `src/event-handlers.js`는 `LocalStorageManager.clearLightCalculatorRecords()`를 호출하고 `ui-renderer.js:renderLightSavedList()`를 통해 UI를 업데이트합니다.
     *   'boss-scheduler-screen'의 경우 `showScreen`은 `ui-renderer.js:renderBossSchedulerScreen()`를 호출합니다.
     *   'boss-scheduler-screen'에서 게임 선택 드롭다운 변경 시 `src/event-handlers.js`는 `ui-renderer.js:renderBossInputs()`를 호출합니다.
     *   'boss-scheduler-screen'에서 남은 시간 입력 필드(`remaining-time-input`)의 `input` 이벤트 발생 시 `src/event-handlers.js`는 `src/calculator.js:calculateBossAppearanceTime()`를 호출하고 젠 시간을 표시합니다.

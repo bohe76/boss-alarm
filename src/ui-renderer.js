@@ -98,6 +98,110 @@ export function renderDashboard(DOM) {
     renderRecentAlarmLog(DOM);
 }
 
+// --- Light Calculator Display Functions ---
+export function updateLightStopwatchDisplay(DOM, time) {
+    if (DOM.lightStopwatchDisplay) {
+        DOM.lightStopwatchDisplay.textContent = time;
+    }
+}
+
+export function updateLightExpectedTimeDisplay(DOM, time, isOverTime) {
+    if (DOM.lightExpectedTimeDisplay) {
+        DOM.lightExpectedTimeDisplay.textContent = time;
+        const labelSpan = DOM.lightExpectedTimeDisplay.previousElementSibling.querySelector('.expected-label');
+        const labelGroup = DOM.lightExpectedTimeDisplay.previousElementSibling;
+
+        if (isOverTime) {
+            DOM.lightExpectedTimeDisplay.classList.add('over-time'); // Blue time
+            if (labelSpan) labelSpan.textContent = '오버 시간'; // Change label text
+            if (labelGroup) labelGroup.classList.add('over-time-label'); // Add class for blue label
+        } else {
+            DOM.lightExpectedTimeDisplay.classList.remove('over-time'); // Red time
+            if (labelSpan) labelSpan.textContent = '예상 시간'; // Change label text back
+            if (labelGroup) labelGroup.classList.remove('over-time-label'); // Remove class for red label
+        }
+    }
+}
+
+export function renderLightTempResults(DOM, gwangTime, afterGwangTime, totalTime) {
+    if (DOM.lightTempResults) {
+        if (!gwangTime && !afterGwangTime && !totalTime) { // If no results, hide the container
+            DOM.lightTempResults.innerHTML = '';
+            DOM.lightTempResults.style.display = 'none';
+            return;
+        }
+        DOM.lightTempResults.style.display = 'block'; // Show the container
+        DOM.lightTempResults.innerHTML = `
+            <div class="light-temp-results-card">
+                <h4>최근 계산 결과</h4>
+                <table class="light-temp-table">
+                    <thead>
+                        <tr>
+                            <th>광 시간</th>
+                            <th>광 이후 시간</th>
+                            <th>총 시간</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${gwangTime}</td>
+                            <td>${afterGwangTime}</td>
+                            <td>${totalTime}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+}
+
+export function renderLightSavedList(DOM, records) {
+    if (DOM.lightSavedList) {
+        if (records.length === 0) {
+            DOM.lightSavedList.innerHTML = `
+                <div class="light-saved-list-header">
+                    <h4>저장된 광 계산 기록</h4>
+                    <button id="clearLightRecordsButton" class="button" disabled>기록 초기화</button>
+                </div>
+                <p>저장된 기록이 없습니다.</p>
+            `;
+            return;
+        }
+        let html = `
+            <div class="light-saved-list-header">
+                <h4>저장된 광 계산 기록</h4>
+                <button id="clearLightRecordsButton" class="button">기록 초기화</button>
+            </div>
+            <table class="light-saved-table">
+                <thead>
+                    <tr>
+                        <th>이름</th>
+                        <th>광 시간</th>
+                        <th>광 이후 시간</th>
+                        <th>총 시간</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        records.forEach(record => {
+            html += `
+                <tr>
+                    <td>${record.bossName}</td>
+                    <td>${record.gwangTime}</td>
+                    <td>${record.afterGwangTime}</td>
+                    <td>${record.totalTime}</td>
+                </tr>
+            `;
+        });
+        html += `
+                </tbody>
+            </table>
+        `;
+        DOM.lightSavedList.innerHTML = html;
+    }
+}
+
+
 // --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 ---
 // bossSchedule 배열의 내용을 기반으로 텍스트 영역을 업데이트합니다.
 export function updateBossListTextarea(DOM) { // Function signature remains unchanged
@@ -279,13 +383,33 @@ export async function renderVersionInfo(DOM) {
     }
 }
 
-// --- Zen Calculator Screen Rendering Functions ---
+// --- Calculator Screen Rendering Functions ---
 export function renderCalculatorScreen(DOM) {
+    // Zen Calculator initialization
     if (DOM.remainingTimeInput) {
         DOM.remainingTimeInput.value = ''; // Clear input on screen load
     }
     if (DOM.bossAppearanceTimeDisplay) {
         DOM.bossAppearanceTimeDisplay.textContent = '--:--:--'; // Reset display
+    }
+
+    // Light Calculator initialization
+    if (DOM.lightStopwatchDisplay) {
+        DOM.lightStopwatchDisplay.textContent = '00:00';
+    }
+    if (DOM.lightExpectedTimeDisplay) {
+        DOM.lightExpectedTimeDisplay.textContent = '--:--';
+        const labelSpan = DOM.lightExpectedTimeDisplay.previousElementSibling.querySelector('.expected-label');
+        const labelGroup = DOM.lightExpectedTimeDisplay.previousElementSibling;
+        if (labelSpan) labelSpan.textContent = '예상 시간';
+        if (labelGroup) labelGroup.classList.remove('over-time-label');
+    }
+    if (DOM.lightTempResults) {
+        DOM.lightTempResults.innerHTML = '';
+        DOM.lightTempResults.style.display = 'none'; // Hide on initial load
+    }
+    if (DOM.lightSavedList) {
+        DOM.lightSavedList.innerHTML = '';
     }
 }
 

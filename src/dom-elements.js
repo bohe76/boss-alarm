@@ -12,7 +12,7 @@ export function initDomElements() {
         // Sidebar Navigation Links
         navDashboard: document.getElementById('nav-dashboard'), // New
         navBossManagement: document.getElementById('nav-boss-management'), // New
-        navZenCalculator: document.getElementById('nav-zen-calculator'), // New
+        navCalculator: document.getElementById('nav-calculator'), // New
         navBossScheduler: document.getElementById('nav-boss-scheduler'), // New
         navNotificationSettings: document.getElementById('nav-notification-settings'), // New
         navAlarmLog: document.getElementById('nav-alarm-log'), // New
@@ -23,7 +23,7 @@ export function initDomElements() {
         // Screen Specific Elements (initially all are present in index.html)
         dashboardScreen: document.getElementById('dashboard-screen'),
         bossManagementScreen: document.getElementById('boss-management-screen'),
-        zenCalculatorScreen: document.getElementById('zen-calculator-screen'), // New
+        calculatorScreen: document.getElementById('calculator-screen'), // New
         bossSchedulerScreen: document.getElementById('boss-scheduler-screen'), // New
         notificationSettingsScreen: document.getElementById('notification-settings-screen'),
         alarmLogScreen: document.getElementById('alarm-log-screen'),
@@ -63,6 +63,19 @@ export function initDomElements() {
         // Elements within Zen Calculator Screen
         remainingTimeInput: document.getElementById('remainingTimeInput'), // New
         bossAppearanceTimeDisplay: document.getElementById('bossAppearanceTimeDisplay'), // New
+
+        // Elements within Light Calculator Screen
+        zenCalculatorCard: document.getElementById('zenCalculatorCard'),
+        lightCalculatorCard: document.getElementById('lightCalculatorCard'),
+        lightStopwatchDisplay: document.getElementById('lightStopwatchDisplay'),
+        lightStartButton: document.getElementById('lightStartButton'),
+        lightGwangButton: document.getElementById('lightGwangButton'),
+        lightCaptureButton: document.getElementById('lightCaptureButton'),
+        lightListButton: document.getElementById('lightListButton'),
+        lightExpectedTimeDisplay: document.getElementById('lightExpectedTimeDisplay'),
+        lightTempResults: document.getElementById('lightTempResults'),
+        lightSavedList: document.getElementById('lightSavedList'),
+        clearLightRecordsButton: document.getElementById('clearLightRecordsButton'),
 
         // Elements within Boss Scheduler Screen
         gameSelect: document.getElementById('gameSelect'), // New
