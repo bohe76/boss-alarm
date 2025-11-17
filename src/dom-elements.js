@@ -46,7 +46,6 @@ export function initDomElements() {
 
         // Elements within Alarm Log Screen
         logContainer: document.getElementById('log-container'),
-        logVisibilityToggle: document.getElementById('logVisibilityToggle'),
 
         // Elements within Version Info Screen
         versionHistoryContent: document.getElementById('versionHistoryContent'),

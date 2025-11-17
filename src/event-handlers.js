@@ -460,6 +460,9 @@ function initEventHandlers(DOM, globalTooltip) {
 
 
 
+
+
+
     // --- Light Calculator Screen Event Handlers ---
     if (DOM.lightStartButton) {
         DOM.lightStartButton.addEventListener('click', () => {
@@ -603,18 +606,7 @@ function initEventHandlers(DOM, globalTooltip) {
 
     // Handle add new fixed alarm button click (logic moved to ui-renderer.js)
 
-    // --- Alarm Log Screen Event Handlers ---
-    // 알림 로그 가시성 토글 이벤트
-    if (DOM.logVisibilityToggle) { // Defensive check
-        DOM.logVisibilityToggle.addEventListener('change', (event) => {
-            LocalStorageManager.setLogVisibilityState(event.target.checked);
-            if (LocalStorageManager.getLogVisibilityState()) {
-                DOM.logContainer.classList.remove('hidden');
-            } else {
-                DOM.logContainer.classList.add('hidden');
-            }
-        });
-    }
+
 
 
 }
@@ -711,18 +703,9 @@ export async function initApp() { // Made initApp async
     }
     
     // fixedAlarmListDiv를 여기서 다시 가져와서 renderFixedAlarms에 전달
-    renderFixedAlarms(DOM);
-    // 알림 로그 가시성 상태 로드 및 적용
-    if (DOM.logVisibilityToggle) { // Defensive check
-        DOM.logVisibilityToggle.checked = LocalStorageManager.getLogVisibilityState();
-        if (LocalStorageManager.getLogVisibilityState()) {
-            DOM.logContainer.classList.remove('hidden');
-        } else {
-            DOM.logContainer.classList.add('hidden');
-        }
-    }
-
-    // Set initial alarm button state
+        renderFixedAlarms(DOM);
+            
+        // Set initial alarm button state
     const isAlarmRunningInitially = getIsAlarmRunning();
     if (isAlarmRunningInitially) {
         DOM.alarmToggleButton.classList.add('alarm-on');
