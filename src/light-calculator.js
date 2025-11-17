@@ -1,4 +1,5 @@
 import { LocalStorageManager } from './data-managers.js';
+import { log } from './logger.js';
 
 export const formatTime = (seconds) => { // Export formatTime
     const minutes = Math.floor(seconds / 60);
