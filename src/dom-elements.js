@@ -10,6 +10,7 @@ export function initDomElements() {
         bottomNav: document.getElementById('bottom-nav'), // New for mobile
         sidebarBackdrop: document.getElementById('sidebar-backdrop'), // New for mobile
         moreMenuButton: document.getElementById('more-menu-button'), // New for mobile
+        moreMenuCloseButton: document.getElementById('more-menu-close-button'), // New for mobile
         mainContentArea: document.getElementById('main-content-area'),
         footerVersion: document.getElementById('footer-version'), // New
 

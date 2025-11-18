@@ -375,7 +375,7 @@ function initEventHandlers(DOM, globalTooltip) {
         document.addEventListener('keydown', handleMenuKeydown);
 
         // Focus trap
-        const focusableElements = DOM.sidebar.querySelectorAll('a[href], button:not([disabled])');
+        const focusableElements = DOM.sidebar.querySelectorAll('button, a[href]');
         const firstFocusableElement = focusableElements[0];
         const lastFocusableElement = focusableElements[focusableElements.length - 1];
         
@@ -419,6 +419,10 @@ function initEventHandlers(DOM, globalTooltip) {
                 openMoreMenu();
             }
         });
+    }
+
+    if (DOM.moreMenuCloseButton) {
+        DOM.moreMenuCloseButton.addEventListener('click', closeMoreMenu);
     }
 
     if (DOM.sidebarBackdrop) {
