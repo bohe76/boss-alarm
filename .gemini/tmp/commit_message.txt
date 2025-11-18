@@ -1,0 +1,9 @@
+chore(dev-env): Set up ESLint and document issues
+
+Introduces ESLint to the project to improve code quality and prevent common JavaScript errors. This commit includes the initial setup, configuration, and fixes for all errors identified by the new linter.
+
+- build: Add npm package management and install ESLint, @eslint/js, and globals.
+- chore: Configure ESLint with recommended rules for the browser/module environment. Add a `lint` script to package.json.
+- fix: Correct all `no-unused-vars` and `no-dupe-keys` errors found during the initial linting pass.
+- docs: Add new issue documents for the responsive design discussion and other known issues. Consolidate and refactor issue documentation.
+- docs: Update GEMINI.md to include the new linting workflow and rules.
