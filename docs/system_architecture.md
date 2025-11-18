@@ -96,12 +96,12 @@
 ### 3.7. `src/calculator.js`
 - **역할:** 현재 시간과 주어진 남은 시간을 기반으로 보스 출현 시간을 계산하는 기능을 제공합니다.
 - **주요 기능:**
-    - `calculateBossAppearanceTime(remainingTimeString)`: "HH:MM", "HH:MM:SS", **"HHMM"(4자리 숫자), "HHMMSS"(6자리 숫자)** 형식의 남은 시간 문자열을 입력받아 보스 출현 시간을 계산합니다.
+    - `calculateBossAppearanceTime(remainingTimeString)`: "HH:MM:SS" 형식, **"MM:SS" 형식**, **"HHMMSS"(6자리 숫자)** 형식, **"MMSS"(4자리 숫자)** 형식의 남은 시간 문자열을 입력받아 보스 출현 시간을 계산합니다.
     - 입력 유효성 검사: `HH:MM` 또는 `HH:MM:SS` 형식에 맞는지 확인하고, `SS`가 생략된 경우 `00`으로 처리합니다.
     - 시간 계산: 현재 시간에 남은 시간을 더하여 미래 시간을 계산합니다.
     - 결과 포맷팅: 계산된 보스 출현 시간을 "HH:MM:SS" 형식으로 반환합니다.
 - **입력 및 출력:**
-    - 입력: `HH:MM`, `HH:MM:SS`, **`HHMM`, `HHMMSS`** 형식의 문자열.
+    - 입력: `HH:MM:SS`, **`MM:SS`, `HHMMSS`, `MMSS`** 형식의 문자열.
     - 출력: `HH:MM:SS` 형식의 문자열 또는 유효하지 않은 입력 시 `null`.
 - **오류 처리:** 유효하지 않은 시간 형식이나 값에 대해 `null`을 반환하여 호출하는 측에서 처리할 수 있도록 합니다.
 

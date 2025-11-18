@@ -498,7 +498,7 @@ body {
 
 #upcomingBossList .spawn-time,
 .boss-details-highlight .spawn-time {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 /* Zen Calculator Screen Styles */
@@ -527,7 +527,7 @@ body {
 
 #bossAppearanceTimeDisplay {
     font-size: 1.5em;
-    font-weight: bold;
+    font-weight: 700;
     color: #ea4335; /* Red color for emphasis */
     background-color: #f8f8f8;
     padding: 8px; /* Changed from 10px to 8px (spacing-xs) */
@@ -619,7 +619,7 @@ body {
 
 #lightStopwatchDisplay {
     font-size: 2em;
-    font-weight: bold;
+    font-weight: 700;
     color: #111; /* Black for stopwatch */
     background-color: #f8f8f8;
     padding: 8px 16px; /* Changed from 10px 15px to 8px 16px (spacing-xs top/bottom, spacing-md left/right) */
@@ -631,7 +631,7 @@ body {
 
 #lightExpectedTimeDisplay {
     font-size: 2em;
-    font-weight: bold;
+    font-weight: 700;
     color: #ea4335; /* Red for expected time */
     background-color: #f8f8f8;
     padding: 8px 16px; /* Changed from 10px 15px to 8px 16px (spacing-xs top/bottom, spacing-md left/right) */
@@ -854,7 +854,7 @@ body {
 }
 
 .calculated-spawn-time {
-    font-weight: bold;
+    font-weight: 700;
     color: #333; /* Black color for emphasis */
     flex-basis: 80px; /* Fixed width for calculated time */
     text-align: center;
