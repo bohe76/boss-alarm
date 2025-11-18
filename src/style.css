@@ -1144,8 +1144,11 @@ h3 {
     }
 
     /* --- Adjust main content padding --- */
-    main {
+    body {
         padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+    }
+    main {
+        /* padding-bottom is now on the body to lift the footer as well */
     }
 
 
@@ -1178,7 +1181,7 @@ h3 {
     }
 
     .bottom-nav-item.active {
-        color: #1e90ff; /* Active color */
+        color: #111; /* Active color - Black */
     }
 
     /* --- 'More' menu overlay using the old sidebar --- */
