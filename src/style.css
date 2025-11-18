@@ -1117,7 +1117,7 @@ h3 {
 /* Mobile Navigation Styles */
 :root {
     --bottom-nav-height: 60px; /* Define height for the bottom nav bar */
-    --bottom-nav-item-padding-top: 8px; /* Define padding-top for bottom nav items */
+    /* --bottom-nav-item-padding-top: 8px; REMOVED as it's no longer needed here */
 }
 
 /* Hide bottom nav on desktop by default */
@@ -1147,13 +1147,13 @@ h3 {
         background-color: #f8f8f8;
         box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
         z-index: 1000;
-        padding-top: var(--bottom-nav-item-padding-top); /* Give some space for icons */
+        /* padding-top: var(--bottom-nav-item-padding-top); REMOVED */
         padding-bottom: env(safe-area-inset-bottom); /* For iPhone safe area */
     }
 
     /* --- Adjust main content padding --- */
     body {
-        padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-item-padding-top) + env(safe-area-inset-bottom));
+        padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
     }
     main {
         /* padding-bottom is now on the body to lift the footer as well */
