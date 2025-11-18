@@ -554,12 +554,28 @@ body {
 .calculator-card h3 {
     margin-top: 0;
     color: #333;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #ccc;
     padding-bottom: 8px; /* Changed from 10px to 8px (spacing-xs) */
     margin-bottom: 20px;
 }
 
 /* Light Calculator Specific Styles */
+.light-calculator-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ccc; /* Apply border to the header */
+    padding-bottom: 8px;          /* Apply padding to the header */
+    margin-bottom: 20px;          /* Apply margin to the header */
+}
+
+.light-calculator-header h3 {
+    /* Reset properties from the generic .calculator-card h3 rule */
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
 .light-calculator-controls {
     display: flex;
     flex-direction: column;
@@ -677,7 +693,7 @@ body {
 .light-temp-results-card h4 {
     margin-top: 0;
     color: #333;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #ccc;
     padding-bottom: 10px;
     margin-bottom: 16px; /* Changed from 15px to 16px (spacing-md) */
 }
@@ -715,7 +731,7 @@ body {
 .light-saved-list h4 {
     margin-top: 0;
     color: #333;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #ccc;
     padding-bottom: 10px;
     margin-bottom: 16px; /* Changed from 15px to 16px (spacing-md) */
 }

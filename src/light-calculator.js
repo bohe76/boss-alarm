@@ -69,7 +69,7 @@ const LightCalculator = (() => {
                 updateExpectedTimeCallback(formatTime(currentOverTime), true);
                 countdownInterval = setInterval(() => {
                     currentOverTime++;
-                    updateDisplayCallback(formatTime(currentOverTime), true); // true for over time
+                    updateExpectedTimeCallback(formatTime(currentOverTime), true); // true for over time
                 }, 1000);
             }
         }, 1000);

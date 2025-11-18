@@ -22,7 +22,7 @@
 *   **Background Light:** `#f8f8f8` - 헤더, 사이드바, 메인 콘텐츠 영역 배경, 카드 내부 배경
 *   **Background Default:** `#f4f7f6` - `body` 배경
 *   **Border/Divider Light:** `#eee` - 얇은 구분선, 카드 내부 테두리
-*   **Border/Divider Default:** `#ddd` - 일반적인 테두리
+*   **Border/Divider Default:** `#ccc` - 일반적인 테두리 (입력 필드, 카드 제목 하단 등)
 *   **Text Light:** `#666` - 보조 텍스트, 아이콘
 *   **Text Default:** `#333` - 일반 텍스트, 제목
 *   **Text Dark:** `#111` - 가장 어두운 텍스트, 강조 제목
@@ -119,6 +119,30 @@ UI 요소의 둥근 정도를 통일하기 위한 시스템을 정의합니다.
     *   `padding`: `spacing-lg` (`20px`)
     *   `border-radius`: `radius-md` (`8px`)
     *   `box-shadow`: `shadow-md` (`0 4px 8px rgba(0,0,0,0.15)`)
+
+### 7.2.1. 카드 헤더 (제목 + 액션 버튼)
+
+카드 상단에 제목과 함께 버튼 등의 액션 요소를 배치할 때 사용하는 패턴입니다.
+
+*   **HTML 구조:**
+    ```html
+    <div class="light-calculator-header"> <!-- 실제 클래스명 사용 -->
+        <h3>카드 제목</h3>
+        <button>액션</button>
+    </div>
+    ```
+*   **CSS 스타일:**
+    *   `.light-calculator-header`
+        *   `display`: `flex`
+        *   `justify-content`: `space-between`
+        *   `align-items`: `center`
+        *   `border-bottom`: `1px solid Border/Divider Default` (`#ccc`)
+        *   `padding-bottom`: `spacing-xs` (`8px`)
+        *   `margin-bottom`: `spacing-lg` (`20px`)
+    *   `.light-calculator-header h3`
+        *   `border-bottom`: `none`
+        *   `padding-bottom`: `0`
+        *   `margin-bottom`: `0`
 
 ### 7.3. 입력 필드
 
