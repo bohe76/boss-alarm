@@ -1107,6 +1107,13 @@ h3 {
     margin-bottom: 0.5em;
 }
 
+/* Explicitly hide mobile-only elements on desktop */
+@media (min-width: 769px) {
+    .more-menu-close-button {
+        display: none;
+    }
+}
+
 /* Mobile Navigation Styles */
 :root {
     --bottom-nav-height: 60px; /* Define height for the bottom nav bar */
@@ -1219,7 +1226,7 @@ h3 {
     }
 
     .more-menu-close-button {
-        display: none; /* Hide by default on desktop */
+        /* Hide by default on desktop - handled by media query below */
     }
 
     /* Style for the close button inside the 'more' menu */
