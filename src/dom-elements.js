@@ -50,9 +50,6 @@ export function initDomElements() {
         // Elements within Version Info Screen
         versionHistoryContent: document.getElementById('versionHistoryContent'),
 
-        // Elements within Version Info Screen
-        versionHistoryContent: document.getElementById('versionHistoryContent'),
-
         // Elements within Share Screen
         shareMessage: document.getElementById('shareMessage'),
 

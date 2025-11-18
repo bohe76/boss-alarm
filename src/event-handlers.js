@@ -2,14 +2,14 @@
 
 import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-scheduler.js';
-import { updateBossListTextarea, renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen, renderBossSchedulerScreen, renderBossInputs } from './ui-renderer.js';
+import { renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen, renderBossSchedulerScreen, renderBossInputs } from './ui-renderer.js';
 import { getShortUrl, loadJsonContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
-import { BossDataManager, LocalStorageManager } from './data-managers.js';
+import { LocalStorageManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
 import * as DefaultBossList from './default-boss-list.js'; // Import bossPresets
 import { calculateBossAppearanceTime } from './calculator.js'; // Import calculateBossAppearanceTime
-import { loadBossLists, getGameNames, getBossNamesForGame } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
+import { loadBossLists } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
 import { LightCalculator, formatTime } from './light-calculator.js'; // New - Import formatTime
 import { updateLightStopwatchDisplay, updateLightExpectedTimeDisplay, renderLightTempResults, renderLightSavedList } from './ui-renderer.js'; // New
 

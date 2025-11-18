@@ -3,7 +3,7 @@
 import { log } from './logger.js';
 import { speak } from './speech.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Import managers
-import { updateBossListTextarea, renderDashboard, renderAlarmStatusSummary } from './ui-renderer.js'; // Import UI function, renderDashboard, renderAlarmStatusSummary
+import { renderDashboard, renderAlarmStatusSummary } from './ui-renderer.js'; // Import UI function, renderDashboard, renderAlarmStatusSummary
 
 let alertTimerId = null;
 let dashboardTimerId = null; // New variable for dashboard interval

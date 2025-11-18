@@ -45,7 +45,6 @@ export function updateNextBossDisplay(DOM) {
 }
 
 export function renderUpcomingBossList(DOM) {
-    const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
     const upcomingBosses = BossDataManager.getUpcomingBosses(10); // Get next 10 bosses
     let html = '<ul>';
     if (upcomingBosses.length > 0) {
