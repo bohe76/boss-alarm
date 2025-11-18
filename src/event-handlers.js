@@ -70,16 +70,36 @@ function showScreen(DOM, screenId) {
         DOM.bossSchedulerScreen // New
     ];
 
+    // Hide all screens
     screens.forEach(screen => {
         if (screen) { // Check if screen element exists
             screen.classList.remove('active');
         }
     });
 
+    // Show the target screen
     const activeScreen = document.getElementById(screenId);
     if (activeScreen) {
         activeScreen.classList.add('active');
     }
+
+    // --- (State Sync) Update active state for all navigation menus ---
+    const allNavLinks = [
+        DOM.navDashboard, DOM.navBossManagement, DOM.navCalculator, DOM.navBossScheduler,
+        DOM.navNotificationSettings, DOM.navAlarmLog, DOM.navVersionInfo, DOM.navShare, DOM.navHelp,
+        DOM.bottomNavDashboard, DOM.bottomNavBossManagement, DOM.bottomNavCalculator, DOM.bottomNavShare
+    ];
+
+    allNavLinks.forEach(link => {
+        if (link) {
+            link.classList.remove('active');
+            if (link.dataset.screen === screenId) {
+                link.classList.add('active');
+            }
+        }
+    });
+    // --- End of State Sync ---
+
 
     // Special handling for dashboard screen
     if (screenId === 'dashboard-screen') {
@@ -195,12 +215,9 @@ function initEventHandlers(DOM, globalTooltip) {
                 const screenId = event.currentTarget.dataset.screen;
                 showScreen(DOM, screenId);
 
-                // Remove active class from all links
-                navLinks.forEach(l => l.classList.remove('active'));
-                // Add active class to the clicked link
-                event.currentTarget.classList.add('active');
+                // --- Active class management is now handled by showScreen ---
 
-                                if (screenId === 'share-screen') {
+                if (screenId === 'share-screen') {
 
                                     DOM.shareMessage.textContent = "공유 링크 생성 중입니다. 잠시만 기다려 주세요...";
 
@@ -313,6 +330,110 @@ function initEventHandlers(DOM, globalTooltip) {
                         }
 
                     });
+
+    // --- Bottom Navigation Event Handlers ---
+    const bottomNavLinks = [
+        DOM.bottomNavDashboard,
+        DOM.bottomNavBossManagement,
+        DOM.bottomNavCalculator,
+        DOM.bottomNavShare
+    ];
+
+    bottomNavLinks.forEach(link => {
+        if (link) {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                const screenId = event.currentTarget.dataset.screen;
+                showScreen(DOM, screenId);
+            });
+        }
+    });
+
+    // --- 'More' Menu (Mobile View) Event Handlers ---
+    const closeMoreMenu = () => {
+        DOM.sidebar.classList.remove('more-menu-open');
+        DOM.sidebarBackdrop.classList.remove('active');
+        DOM.moreMenuButton.setAttribute('aria-expanded', 'false');
+
+        // Restore accessibility
+        DOM.mainContentArea.inert = false;
+        document.querySelector('header').inert = false;
+        document.querySelector('footer').inert = false;
+        document.removeEventListener('keydown', handleMenuKeydown);
+        DOM.moreMenuButton.focus(); // Return focus to the button
+    };
+
+    const openMoreMenu = () => {
+        DOM.sidebar.classList.add('more-menu-open');
+        DOM.sidebarBackdrop.classList.add('active');
+        DOM.moreMenuButton.setAttribute('aria-expanded', 'true');
+
+        // Enhance accessibility
+        DOM.mainContentArea.inert = true;
+        document.querySelector('header').inert = true;
+        document.querySelector('footer').inert = true;
+        document.addEventListener('keydown', handleMenuKeydown);
+
+        // Focus trap
+        const focusableElements = DOM.sidebar.querySelectorAll('a[href], button:not([disabled])');
+        const firstFocusableElement = focusableElements[0];
+        const lastFocusableElement = focusableElements[focusableElements.length - 1];
+        
+        firstFocusableElement.focus();
+
+        const handleFocusTrap = (e) => {
+            if (e.key === 'Tab') {
+                if (e.shiftKey) { // Shift + Tab
+                    if (document.activeElement === firstFocusableElement) {
+                        e.preventDefault();
+                        lastFocusableElement.focus();
+                    }
+                } else { // Tab
+                    if (document.activeElement === lastFocusableElement) {
+                        e.preventDefault();
+                        firstFocusableElement.focus();
+                    }
+                }
+            }
+        };
+        // Add focus trap listener
+        DOM.sidebar.addEventListener('keydown', handleFocusTrap);
+        // Add a one-time cleanup listener
+        DOM.sidebar.addEventListener('transitionend', () => {
+             DOM.sidebar.removeEventListener('keydown', handleFocusTrap);
+        }, { once: true });
+    };
+
+    const handleMenuKeydown = (e) => {
+        if (e.key === 'Escape') {
+            closeMoreMenu();
+        }
+    };
+
+    if (DOM.moreMenuButton) {
+        DOM.moreMenuButton.addEventListener('click', () => {
+            const isMenuOpen = DOM.sidebar.classList.contains('more-menu-open');
+            if (isMenuOpen) {
+                closeMoreMenu();
+            } else {
+                openMoreMenu();
+            }
+        });
+    }
+
+    if (DOM.sidebarBackdrop) {
+        DOM.sidebarBackdrop.addEventListener('click', closeMoreMenu);
+    }
+    
+    // Also close menu if a link inside it is clicked
+    DOM.sidebar.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (DOM.sidebar.classList.contains('more-menu-open')) {
+                closeMoreMenu();
+            }
+        });
+    });
+
 
     // --- Zen Calculator Screen Event Handlers ---
     if (DOM.remainingTimeInput) {
@@ -760,5 +881,25 @@ export async function initApp() { // Made initApp async
     // Initial render of the dashboard
     checkAlarms(); // Call checkAlarms once immediately
     renderDashboard(DOM);
+
+    // --- Viewport Resize Observer ---
+    const handleResize = () => {
+        const isMobileView = window.innerWidth <= 768;
+        if (isMobileView) {
+            document.body.classList.add('is-mobile-view');
+        } else {
+            document.body.classList.remove('is-mobile-view');
+        }
+        // In mobile view, if the more menu is open, ensure the sidebar doesn't have the 'expanded' class
+        if (isMobileView && DOM.sidebar.classList.contains('more-menu-open')) {
+            DOM.sidebar.classList.remove('expanded');
+        }
+    };
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(document.body);
+
+    // Initial check
+    handleResize();
     
 }

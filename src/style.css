@@ -1106,3 +1106,129 @@ section#notification-settings-screen h3 {
 h3 {
     margin-bottom: 0.5em;
 }
+
+/* Mobile Navigation Styles */
+:root {
+    --bottom-nav-height: 60px; /* Define height for the bottom nav bar */
+}
+
+/* Hide bottom nav on desktop by default */
+.bottom-nav,
+.sidebar-backdrop {
+    display: none;
+}
+
+
+@media (max-width: 768px) {
+    /* --- Hide desktop sidebar and toggle --- */
+    body.is-mobile-view nav.sidebar,
+    body.is-mobile-view #sidebarToggle {
+        display: none;
+    }
+
+    /* --- Show and style the bottom navigation bar --- */
+    .bottom-nav {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start; /* Align items to the top to give space for text */
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: var(--bottom-nav-height);
+        background-color: #f8f8f8;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        z-index: 1000;
+        padding-top: 8px; /* Give some space for icons */
+        padding-bottom: env(safe-area-inset-bottom); /* For iPhone safe area */
+    }
+
+    /* --- Adjust main content padding --- */
+    main {
+        padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+    }
+
+
+    .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex-grow: 1;
+        text-decoration: none;
+        color: #888;
+        background: none;
+        border: none;
+        font-family: inherit;
+        font-size: 10px;
+        padding: 0 4px;
+        cursor: pointer;
+    }
+
+    .bottom-nav-item .menu-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 0;
+        margin-bottom: 2px;
+        fill: currentColor;
+    }
+
+    .bottom-nav-item .bottom-nav-text {
+        white-space: nowrap;
+    }
+
+    .bottom-nav-item.active {
+        color: #1e90ff; /* Active color */
+    }
+
+    /* --- 'More' menu overlay using the old sidebar --- */
+    #sidebar.more-menu-open {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1010; /* Above bottom nav */
+        background-color: #f4f7f6;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 20px;
+        box-sizing: border-box; /* Include padding in width/height */
+        transform: translateX(0); /* Ensure it's visible */
+        transition: transform 0.3s ease-in-out;
+        overflow-y: auto;
+    }
+
+    /* Make the links in the overlay look better */
+    .more-menu-open .sidebar-menu {
+        margin-top: 50px;
+        width: 100%;
+    }
+    .more-menu-open .sidebar-menu a {
+        padding: 16px;
+        font-size: 1.2em;
+    }
+    .more-menu-open .sidebar-menu a .menu-text {
+        opacity: 1;
+        visibility: visible;
+        max-width: none;
+    }
+
+
+    /* --- Backdrop for the 'More' menu --- */
+    .sidebar-backdrop {
+        display: none; /* Hidden by default */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1005; /* Below the menu, above everything else */
+    }
+
+    .sidebar-backdrop.active {
+        display: block;
+    }
+}
