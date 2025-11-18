@@ -1,5 +1,7 @@
 // src/speech.js
 
+import { LocalStorageManager } from './data-managers.js';
+
 let speechQueue = [];
 let isSpeaking = false;
 
@@ -25,6 +27,10 @@ function processQueue() {
 }
 
 export function speak(text) {
+    if (LocalStorageManager.getMuteState()) {
+        return; // Do not queue or speak if muted
+    }
+
     if (!window.speechSynthesis) {
         console.warn("이 브라우저는 음성 합성을 지원하지 않습니다.");
         return;

@@ -2,7 +2,7 @@
 
 import { parseBossList, getSortedBossListText } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-scheduler.js';
-import { renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen, renderBossSchedulerScreen, renderBossInputs } from './ui-renderer.js';
+import { renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen, renderBossSchedulerScreen, renderBossInputs, updateMuteButtonVisuals } from './ui-renderer.js';
 import { getShortUrl, loadJsonContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
 import { LocalStorageManager } from './data-managers.js';
@@ -155,6 +155,14 @@ function initEventHandlers(DOM, globalTooltip) {
             log("알림이 중지되었습니다.", true);
         }
         // Store alarm state in LocalStorageManager if needed
+    });
+
+    // Mute Toggle Button
+    DOM.muteToggleButton.addEventListener('click', () => {
+        const currentMuteState = LocalStorageManager.getMuteState();
+        LocalStorageManager.setMuteState(!currentMuteState);
+        updateMuteButtonVisuals(DOM);
+        log(`음소거가 ${!currentMuteState ? '해제' : '설정'}되었습니다.`, true);
     });
 
 
@@ -630,6 +638,9 @@ function initEventHandlers(DOM, globalTooltip) {
 export async function initApp() { // Made initApp async
     const DOM = initDomElements(); // Initialize DOM elements here
     const globalTooltip = document.getElementById('global-tooltip'); // Initialize globalTooltip here
+
+    // Set version in footer
+    if (DOM.footerVersion) DOM.footerVersion.textContent = window.APP_VERSION;
 
     // Initialize logger with the log container
     initLogger(DOM.logContainer);

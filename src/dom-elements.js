@@ -8,6 +8,7 @@ export function initDomElements() {
         sidebar: document.getElementById('sidebar'),
         sidebarToggle: document.getElementById('sidebarToggle'), // New
         mainContentArea: document.getElementById('main-content-area'),
+        footerVersion: document.getElementById('footer-version'), // New
 
         // Sidebar Navigation Links
         navDashboard: document.getElementById('nav-dashboard'), // New
@@ -40,6 +41,7 @@ export function initDomElements() {
         upcomingBossList: document.getElementById('upcomingBossList'), // New
         alarmStatusSummary: document.getElementById('alarmStatusSummary'), // New
         alarmStatusText: document.getElementById('alarmStatusText'),
+        muteToggleButton: document.getElementById('muteToggleButton'), // New
         recentAlarmLog: document.getElementById('recentAlarmLog'),
 
         // Elements within Notification Settings Screen

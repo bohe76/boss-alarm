@@ -210,12 +210,12 @@ body {
         .next-boss-highlight {
             margin-bottom: 10px;
         }
+        main h3,
         .next-boss-label {
             font-size: 1.1em;
             color: #111; /* Black color */
             font-weight: bold;
-        }
-        .boss-details-highlight {
+        }        .boss-details-highlight {
             color: #ea4335; /* Red color */
             font-weight: bold;
             font-size: 1.5em;
@@ -225,6 +225,27 @@ body {
         }
         #alarmStatusSummary {
             margin-bottom: 20px; /* Add spacing below alarm status */
+        }
+        #muteControlSection {
+            margin-bottom: 20px;
+        }
+
+        .mute-button {
+            background: none;
+            border: 2px solid;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+            color: #ea4335; /* Red for sound ON (default) */
+            transition: color 0.3s ease, background-color 0.3s ease;
+        }
+        .mute-button.muted {
+            color: #666; /* Grey for sound OFF (muted) */
         }
         .remaining-time {
             color: #1e90ff; /* Blue color for remaining time */
@@ -259,10 +280,13 @@ body {
                         .log-entry {
                             padding: 4px 0; /* Changed from 5px 0 to 4px 0 (spacing-xxs) */
                             border-bottom: 1px dashed #eee;
-                            font-size: 0.9em;
+                            font-size: 1.0em;
                             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
                         }        .log-entry.important {
             color: #ea4335;
+        }
+        #recentAlarmLog .log-entry:first-child {
+            padding-top: 0; /* 제목과의 간격을 맞추기 위해 첫 항목의 상단 패딩 제거 */
         }
         /* Switch styles */
         .switch {
@@ -493,7 +517,9 @@ body {
 #upcomingBossList ul,
 #recentAlarmLog ul {
   list-style-type: none;
-  padding-left: 0;
+  /* 제목과의 일관된 간격을 위해 브라우저 기본 여백 모두 제거 */
+  padding: 0;
+  margin: 0;
 }
 
 #upcomingBossList .spawn-time,
@@ -546,6 +572,14 @@ body {
     display: flex;
     justify-content: flex-start;
     margin-top: 10px;
+}
+
+/* Unify small button sizes for consistency */
+#sortBossListButton,
+#lightListButton,
+#clearLightRecordsButton {
+    padding: 4px 16px;
+    font-size: 0.9em;
 }
 
 /* Calculator Card Styles (for both Zen and Light) */

@@ -39,10 +39,10 @@
 *   **Font Sizes:**
     *   `h1`: `1.8em`
     *   `h2`: `1.5em` (제안)
-    *   `h3`: `1.2em` (제안)
-    *   `body-lg`: `1.1em` (예: 다음 보스 레이블)
-    *   `body-md`: `1em` (기본 텍스트, 버튼 텍스트)
-    *   `body-sm`: `0.9em` (푸터, 로그 항목, 보조 텍스트)
+    *   `h3`: `1.1em`
+    *   `body-lg`: `1.1em` (예: 소제목)
+    *   `body-md`: `1em` (기본 텍스트, 버튼 텍스트, 로그 항목)
+    *   `body-sm`: `0.9em` (푸터, 작은 버튼 텍스트, 보조 텍스트)
 *   **Font Weights:**
     *   `normal`: `400`
     *   `bold`: `700`
@@ -98,10 +98,24 @@ UI 요소의 둥근 정도를 통일하기 위한 시스템을 정의합니다.
     *   `background-color`: `Background Light` (`#f0f0f0`)
     *   `color`: `Text Default` (`#333`)
     *   `hover`: `darken(Background Light, 5%)` (예: `#e0e0e0`)
+*   **Small Button:**
+    *   `padding`: `spacing-xxs` (`4px`) 상하, `spacing-md` (`16px`) 좌우
+    *   `font-size`: `body-sm` (`0.9em`)
+    *   `border-radius`: `radius-sm` (`4px`) (제안)
+    *   **적용 대상:** '추가', '편집', '삭제', '시간순 정렬', '목록', '기록 초기화' 등 작은 크기의 액션 버튼
 *   **Danger Button:**
     *   `background-color`: `Danger` (`#d90007`)
     *   `color`: `white`
     *   `hover`: `darken(Danger, 10%)` (예: `#b30006`)
+*   **Icon Button (원형):**
+    *   `width`: `36px`
+    *   `height`: `36px`
+    *   `border`: `2px solid` (색상은 `color` 속성 상속)
+    *   `border-radius`: `radius-full` (`50%`)
+    *   `display`: `flex`, `align-items`: `center`, `justify-content`: `center`
+    *   `color (default)`: `Danger` (`#d90007`)
+    *   `color (muted)`: `Text Light` (`#666`)
+    *   **적용 대상:** 대시보드의 '음소거 버튼'
 *   **Disabled State:**
     *   `background-color`: `Disabled` (`#cccccc`)
     *   `color`: `Text Light` (`#666`) (제안)

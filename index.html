@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>보스 알리미</title>
-    <link rel="stylesheet" href="src/style.css?v=2.3.8">
+    <link rel="stylesheet" href="src/style.css?v=2.4.0">
     <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -117,10 +117,17 @@
                     <h3>알림 상태</h3>
                     <div id="alarmStatusText"></div>
                 </div>
-                <span class="next-boss-label">알림 로그</span>
-                <div id="recentAlarmLog">
-                    <h3>최근 알림 로그</h3>
-                    <!-- Recent alarm log entries will be rendered here by JavaScript -->
+                <div id="muteControlSection">
+                    <h3>소리 설정</h3>
+                    <button id="muteToggleButton" class="mute-button">
+                        <!-- Speaker Icon will be rendered here by JS -->
+                    </button>
+                </div>
+                <div id="recentAlarmLogSection">
+                    <h3>알림 로그</h3>
+                    <div id="recentAlarmLog">
+                        <!-- Recent logs go here -->
+                    </div>
                 </div>
             </section>
 
@@ -233,7 +240,7 @@
     </div>
 
     <script type="module">
-        window.APP_VERSION = "2.3.8"; // Define global app version
+        window.APP_VERSION = "2.4.0"; // Define global app version
 
         import { initDomElements } from './src/dom-elements.js';
 
@@ -255,7 +262,7 @@
     </script>
     <div id="global-tooltip"></div>
     <footer>
-        <p>Created by: bohe | v2.3.8</p>
+        <p>Created by: bohe | v<span id="footer-version"></span></p>
     </footer>
 </body>
 </html>

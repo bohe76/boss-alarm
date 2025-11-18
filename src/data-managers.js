@@ -58,6 +58,7 @@ export const LocalStorageManager = (() => {
     let alarmRunningState = false; // 알람 실행 상태 (기본값: OFF)
     let sidebarExpandedState = false; // 사이드바 확장 상태 (기본값: 접힘)
     let lightCalculatorRecords = []; // 광 계산기 기록 (사용자 정의 가능)
+    let muteState = false; // 음소거 상태 (기본값: OFF)
 
     function saveFixedAlarms() {
         localStorage.setItem('fixedAlarms', JSON.stringify(fixedAlarms));
@@ -154,6 +155,19 @@ export const LocalStorageManager = (() => {
         }
     }
 
+    function saveMuteState() {
+        localStorage.setItem('muteState', JSON.stringify(muteState));
+    }
+
+    function loadMuteState() {
+        const savedState = localStorage.getItem('muteState');
+        if (savedState !== null) {
+            muteState = JSON.parse(savedState);
+        } else {
+            muteState = false; // 기본값: OFF
+        }
+    }
+
     return {
         getFixedAlarms: () => fixedAlarms,
         addFixedAlarm: (alarm) => {
@@ -195,6 +209,8 @@ export const LocalStorageManager = (() => {
         setAlarmRunningState: (state) => { alarmRunningState = state; saveAlarmRunningState(); },
         getSidebarExpandedState: () => sidebarExpandedState,
         setSidebarExpandedState: (state) => { sidebarExpandedState = state; saveSidebarExpandedState(); },
+        getMuteState: () => muteState,
+        setMuteState: (state) => { muteState = state; saveMuteState(); },
         getLightCalculatorRecords: () => lightCalculatorRecords,
         setLightCalculatorRecords: (records) => { lightCalculatorRecords = records; saveLightCalculatorRecords(); },
         clearLightCalculatorRecords: () => { lightCalculatorRecords = []; saveLightCalculatorRecords(); },
@@ -204,6 +220,7 @@ export const LocalStorageManager = (() => {
             loadAlarmRunningState(); // Load alarm running state
             loadSidebarExpandedState(); // Load sidebar expanded state
             loadLightCalculatorRecords(); // Load light calculator records
+            loadMuteState(); // Load mute state
         }
     };
 })();

@@ -23,7 +23,7 @@
     - 다른 모듈들이 DOM 요소에 직접 접근하는 대신 이 모듈을 통해 일관된 방식으로 접근하도록 함.
 - **DOM 추상화:** 이 모듈은 DOM 접근을 위한 추상화 계층 역할을 하여 일관성을 촉진하고 UI 변경 관리를 용이하게 합니다.
 - **초기화 시점:** 모든 요소가 사용 가능하도록 DOM이 완전히 로드된 후에만 `initDomElements()`를 호출해야 합니다.
-- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`), "광 계산기" 카드(`lightCalculatorCard`), 경과 시간 표시(`lightStopwatchDisplay`), 시작 버튼(`lightStartButton`), 광 버튼(`lightGwangButton`), 잡힘 버튼(`lightCaptureButton`), 목록 버튼(`lightListButton`), 잡힘 예상 시간 표시(`lightExpectedTimeDisplay`), 최근 계산 결과 영역(`lightTempResults`), 저장된 광 계산 목록(`lightSavedList`), 기록 초기화 버튼(`clearLightRecordsButton`), **보스 목록 시간순 정렬 버튼(`sortBossListButton`)** 에 대한 DOM 참조가 추가되었습니다.
+- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`), "광 계산기" 카드(`lightCalculatorCard`), 경과 시간 표시(`lightStopwatchDisplay`), 시작 버튼(`lightStartButton`), 광 버튼(`lightGwangButton`), 잡힘 버튼(`lightCaptureButton`), 목록 버튼(`lightListButton`), 잡힘 예상 시간 표시(`lightExpectedTimeDisplay`), 최근 계산 결과 영역(`lightTempResults`), 저장된 광 계산 목록(`lightSavedList`), 기록 초기화 버튼(`clearLightRecordsButton`), **보스 목록 시간순 정렬 버튼(`sortBossListButton`)**, **음소거 토글 버튼(`muteToggleButton`)**, **푸터 버전 표시 영역(`footerVersion`)** 에 대한 DOM 참조가 추가되었습니다.
 
 ### 3.3. `src/logger.js`
 - **역할:** 애플리케이션 내에서 발생하는 메시지(정보, 경고, 오류)를 UI의 로그 컨테이너에 표시하고 관리합니다.
@@ -37,7 +37,7 @@
 ### 3.4. `src/speech.js`
 - **역할:** 웹 음성 API (`window.speechSynthesis`)를 사용하여 음성 알림 기능을 제공합니다.
 - **주요 기능:**
-    - `speak(message)`: 주어진 메시지를 음성으로 출력. 음성 발화 큐잉 메커니즘을 통해 여러 알림이 순차적으로 재생되도록 처리.
+    - `speak(message)`: 주어진 메시지를 음성으로 출력. **음소거 상태를 확인하여, 음소거 시에는 음성을 출력하지 않습니다.** 음성 발화 큐잉 메커니즘을 통해 여러 알림이 순차적으로 재생되도록 처리.
 - **음성 합성:** 오디오 알림을 위한 `window.speechSynthesis` 사용을 자세히 설명합니다.
 - **큐잉 로직:** `speechQueue` 및 `processQueue` 메커니즘이 순차적인 음성 출력을 위해 어떻게 작동하는지 설명하고, "음성 알림 중첩 문제 해결"을 다룹니다.
 - **브라우저 호환성:** `window.speechSynthesis` 지원 확인 및 지원되지 않는 브라우저에 대한 `console.warn`을 언급합니다.
@@ -50,7 +50,7 @@
         - `setBossSchedule(schedule)`, `getBossSchedule()`, `clearBossSchedule()` 등의 메서드 제공.
         - `_nextBoss` 및 `_minTimeDiff`: 다음 보스 정보와 해당 보스까지 남은 시간을 저장하고 관리합니다. `setNextBossInfo(nextBoss, minTimeDiff)` 및 `getNextBossInfo()` 메서드를 통해 접근합니다.
     - **`LocalStorageManager`:**
-        - `fixedAlarmStates` (고정 알림 설정), `logVisibilityState` (로그 가시성 설정), `sidebarState` (사이드바 접힘/펼쳐짐 상태), `activeScreen` (현재 활성화된 화면) 등 다양한 사용자 환경 설정 상태 관리.
+        - `fixedAlarmStates` (고정 알림 설정), `logVisibilityState` (로그 가시성 설정), `sidebarState` (사이드바 접힘/펼쳐짐 상태), `activeScreen` (현재 활성화된 화면), **`muteState` (음소거 상태)** 등 다양한 사용자 환경 설정 상태 관리.
         - `fixedAlarms` (고정 알림 목록): 사용자가 추가, 편집, 삭제할 수 있는 고정 알림 객체 배열을 관리합니다. 각 고정 알림은 `id`, `name`, `time`, `enabled` 속성을 가집니다.
         - `lightCalculatorRecords` (광 계산 기록): 사용자가 저장한 광 계산 결과를 관리합니다. 각 기록은 `id`, `bossName`, `gwangTime`, `afterGwangTime`, `totalTime`, `timestamp` 속성을 가집니다.
         - `init()`: 로컬 스토리지에서 초기 상태 로드.
@@ -174,6 +174,7 @@
     - `renderLightSavedList(DOM, records)`: "광 계산기"의 저장된 기록 목록을 표 형태로 렌더링합니다. 기록이 없을 경우 "기록 초기화" 버튼을 비활성화하고 메시지를 표시합니다.
     - `renderBossSchedulerScreen(DOM, remainingTimes)`: "보스 스케줄러" 화면의 UI를 초기화하고 렌더링합니다. 게임 선택 드롭다운, 보스 입력 필드, 액션 버튼 등을 포함하며, 이전에 저장된 남은 시간 값을 사용하여 입력 필드를 채웁니다.
     - `renderBossInputs(DOM, gameName, remainingTimes)`: 선택된 게임에 대한 보스 입력 필드를 동적으로 렌더링합니다.
+    - **`updateMuteButtonVisuals(DOM)`**: 음소거 상태에 따라 대시보드의 음소거 버튼 아이콘과 스타일을 업데이트합니다.
 - **UI 업데이트 책임:** `LocalStorageManager`에서 관리되는 데이터를 기반으로 각 화면의 특정 UI 요소들을 동적으로 업데이트하고 렌더링하는 역할을 합니다.
 - **DOM 초기화 의존성:** 이 모듈의 함수들은 `initApp`에서 초기화된 `DOM` 객체를 인수로 받아 사용함으로써, DOM 요소가 완전히 로드된 후에만 접근하도록 보장합니다.
 
@@ -197,6 +198,8 @@
     - **내비게이션 이벤트:** 메뉴 항목 클릭 시 `ui-renderer.js`의 `renderScreen` 호출.
         - 사이드바가 축소된 상태에서 메뉴 아이템에 마우스를 올리면 `showTooltip`을 호출하여 툴팁을 표시하고, 마우스를 떼면 `hideTooltip`을 호출하여 툴팁을 숨깁니다.
     - **화면별 이벤트:**
+        - **대시보드:**
+            - **음소거 토글:** '음소거' 버튼(`muteToggleButton`) 클릭 시, `LocalStorageManager`의 음소거 상태를 변경하고 `ui-renderer.js`의 `updateMuteButtonVisuals`를 호출하여 버튼의 시각적 상태를 업데이트합니다.
         - **보스 관리:**
             - **시간순 정렬:** '시간순 정렬' 버튼 클릭 시, `boss-parser.js`의 `getSortedBossListText`를 호출하여 텍스트 영역의 목록을 정렬하고, 정렬된 텍스트로 텍스트 영역을 업데이트한 후 `parseBossList`를 호출하여 내부 스케줄을 갱신합니다.
             - **실시간 파싱:** 보스 목록 텍스트 영역 변경 시 `parseBossList`를 호출하여 실시간으로 스케줄을 업데이트합니다.
@@ -236,6 +239,7 @@
         - `event-handlers.js` 초기화 및 이벤트 리스너 등록.
         - `ui-renderer.js`를 통해 초기 화면 렌더링 (예: 대시보드).
         - `ui-renderer.js`를 통해 `LocalStorageManager`의 상태를 기반으로 초기 UI 상태 설정 (예: `DOM.logVisibilityToggle.checked`, `DOM.sidebar.classList`).
+        - **푸터의 버전 번호를 `window.APP_VERSION` 값으로 동적 설정.**
         - `alarm-scheduler.js` 시작 (필요시).
     - **라우팅:** URL 해시 또는 History API를 사용하여 화면 전환을 관리하고, `ui-renderer.js`의 `renderScreen`을 호출하여 해당 화면을 표시.
     - **전역 상태 관리:** `BossDataManager` 및 `LocalStorageManager`와 연동하여 애플리케이션의 전역 상태를 관리하고, 변경 시 `ui-renderer.js`를 통해 UI 업데이트를 트리거.
@@ -309,6 +313,8 @@
 *   `src/alarm-scheduler.js` -> `src/data-managers.js` (`BossDataManager`, `LocalStorageManager` 사용)
 *   `src/alarm-scheduler.js` -> `src/ui-renderer.js` (`renderDashboard` 호출)
 
+*   `src/speech.js` -> `src/data-managers.js` (`LocalStorageManager` 사용)
+
 *   `src/ui-renderer.js` -> `src/data-managers.js` (`BossDataManager`, `LocalStorageManager` 사용, `LocalStorageManager.getFixedAlarms` 호출)
 *   `src/ui-renderer.js` -> `src/alarm-scheduler.js` (`getIsAlarmRunning` 호출)
 *   `src/ui-renderer.js` -> `src/logger.js` (`log`, `getLogs` 호출)
@@ -378,7 +384,7 @@
     *   자정에는 모든 보스의 `alerted_Xmin` 플래그를 재설정합니다.
 
 5.  **대시보드 업데이트 (`alarm-scheduler.js` -> `renderDashboard(DOM)` - 매 1초)**:
-    *   `ui-renderer.js:renderDashboard(DOM)`는 `ui-renderer.js:updateNextBossDisplay(DOM)`, `ui-renderer.js:renderUpcomingBossList(DOM)`, `ui-renderer.js:renderAlarmStatusSummary(DOM)`, `ui-renderer.js:renderRecentAlarmLog(DOM)`를 호출합니다.
+    *   `ui-renderer.js:renderDashboard(DOM)`는 `ui-renderer.js:updateNextBossDisplay(DOM)`, `ui-renderer.js:renderUpcomingBossList(DOM)`, `ui-renderer.js:renderAlarmStatusSummary(DOM)`, `ui-renderer.js:updateMuteButtonVisuals(DOM)`, `ui-renderer.js:renderRecentAlarmLog(DOM)`를 호출합니다.
     *   이 함수들은 `data-managers.js:BossDataManager`, `data-managers.js:LocalStorageManager`, `alarm-scheduler.js:getIsAlarmRunning()`, `logger.js:getLogs()`에서 데이터를 검색하여 대시보드 UI를 업데이트합니다.
 
 6.  **공유 링크 생성 (`event-handlers.js` -> `shareButton` 클릭)**:
@@ -392,6 +398,12 @@
     *   `event-handlers.js`의 위임된 이벤트 리스너는 고정 알람 추가, 편집, 삭제, 토글 이벤트를 감지합니다.
     *   각 이벤트에 따라 `LocalStorageManager.addFixedAlarm()`, `LocalStorageManager.updateFixedAlarm()`, `LocalStorageManager.deleteFixedAlarm()`, `LocalStorageManager.setFixedAlarmState()` 등의 적절한 `LocalStorageManager` 메서드를 호출합니다.
     *   데이터 변경 후 `ui-renderer.js:renderFixedAlarms()`를 호출하여 고정 알림 목록 UI를 새로 고칩니다.
+
+8.  **음소거 버튼 클릭 (`event-handlers.js` -> `muteToggleButton` 클릭)**:
+    *   `event-handlers.js`는 `LocalStorageManager.getMuteState()`를 호출하여 현재 상태를 가져옵니다.
+    *   `LocalStorageManager.setMuteState()`를 호출하여 상태를 반전시키고 로컬 스토리지에 저장합니다.
+    *   `ui-renderer.js:updateMuteButtonVisuals(DOM)`를 호출하여 버튼의 아이콘과 스타일을 업데이트합니다.
+    *   `logger.js:log()`를 호출하여 사용자에게 상태 변경을 알립니다.
 
 ## 6. 결론
 
