@@ -200,7 +200,7 @@ function initEventHandlers(DOM, globalTooltip) {
         const currentMuteState = LocalStorageManager.getMuteState();
         LocalStorageManager.setMuteState(!currentMuteState);
         updateMuteButtonVisuals(DOM);
-        log(`음소거가 ${!currentMuteState ? '해제' : '설정'}되었습니다.`, true);
+        log(`음소거가 ${!currentMuteState ? '설정' : '해제'}되었습니다.`, true);
     });
 
 
