@@ -1189,7 +1189,7 @@ h3 {
     }
 
     .bottom-nav-item.active {
-        color: #111; /* Active color - Black */
+        color: #333; /* Active color - Dark grey (matching footer background) */
     }
 
     /* --- 'More' menu overlay using the old sidebar --- */
