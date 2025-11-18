@@ -6,7 +6,7 @@
 
 ## 2. 아키텍처 개요
 
-애플리케이션은 클라이언트 측에서 동작하는 단일 페이지 애플리케이션(SPA) 형태로, HTML, CSS, JavaScript로 구성됩니다. 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 콘텐츠 영역, 푸터**의 4가지 주요 UI 영역으로 나뉘며, JavaScript 코드는 기능별로 여러 모듈로 분리되어 각 모듈은 명확한 책임을 가집니다. 메인 콘텐츠 영역은 선택된 메뉴 항목에 따라 동적으로 다른 화면을 렌더링합니다.
+애플리케이션은 클라이언트 측에서 동작하는 단일 페이지 애플리케이션(SPA) 형태로, HTML, CSS, JavaScript로 구성됩니다. 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 콘텐츠 영역, 푸터, 그리고 모바일 뷰를 위한 하단 탭 바**의 5가지 주요 UI 영역으로 나뉘며, JavaScript 코드는 기능별로 여러 모듈로 분리되어 각 모듈은 명확한 책임을 가집니다. 메인 콘텐츠 영역은 선택된 메뉴 항목에 따라 동적으로 다른 화면을 렌더링합니다. 모바일 뷰에서는 기존 사이드바가 '더보기' 메뉴 오버레이로 재활용됩니다.
 
 ## 3. 모듈별 상세 설명
 
@@ -14,6 +14,7 @@
 - **역할:** 애플리케이션의 진입점. 기본 HTML 구조, CSS 스타일, 그리고 JavaScript 모듈을 로드하는 스크립트 태그를 포함합니다.
 - **주요 내용:**
     - 헤더, 내비게이션 메뉴, 메인 콘텐츠 영역, 푸터의 기본 구조 정의.
+    - **모바일 뷰를 위한 하단 탭 바 (`<nav id="bottom-nav">`) 및 '더보기' 메뉴 오버레이의 배경을 처리하는 백드롭 (`<div id="sidebar-backdrop">`) 요소 추가.**
     - `src/app.js` (가칭, 기존 `event-handlers.js`의 `initApp` 역할 확장)를 호출하여 애플리케이션 초기화 및 라우팅 설정.
 
 ### 3.2. `src/dom-elements.js`
@@ -23,7 +24,7 @@
     - 다른 모듈들이 DOM 요소에 직접 접근하는 대신 이 모듈을 통해 일관된 방식으로 접근하도록 함.
 - **DOM 추상화:** 이 모듈은 DOM 접근을 위한 추상화 계층 역할을 하여 일관성을 촉진하고 UI 변경 관리를 용이하게 합니다.
 - **초기화 시점:** 모든 요소가 사용 가능하도록 DOM이 완전히 로드된 후에만 `initDomElements()`를 호출해야 합니다.
-- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`), "광 계산기" 카드(`lightCalculatorCard`), 경과 시간 표시(`lightStopwatchDisplay`), 시작 버튼(`lightStartButton`), 광 버튼(`lightGwangButton`), 잡힘 버튼(`lightCaptureButton`), 목록 버튼(`lightListButton`), 잡힘 예상 시간 표시(`lightExpectedTimeDisplay`), 최근 계산 결과 영역(`lightTempResults`), 저장된 광 계산 목록(`lightSavedList`), 기록 초기화 버튼(`clearLightRecordsButton`), **보스 목록 시간순 정렬 버튼(`sortBossListButton`)**, **음소거 토글 버튼(`muteToggleButton`)**, **푸터 버전 표시 영역(`footerVersion`)** 에 대한 DOM 참조가 추가되었습니다.
+- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`), "광 계산기" 카드(`lightCalculatorCard`), 경과 시간 표시(`lightStopwatchDisplay`), 시작 버튼(`lightStartButton`), 광 버튼(`lightGwangButton`), 잡힘 버튼(`lightCaptureButton`), 목록 버튼(`lightListButton`), 잡힘 예상 시간 표시(`lightExpectedTimeDisplay`), 최근 계산 결과 영역(`lightTempResults`), 저장된 광 계산 목록(`lightSavedList`), 기록 초기화 버튼(`clearLightRecordsButton`), 보스 목록 시간순 정렬 버튼(`sortBossListButton`), 음소거 토글 버튼(`muteToggleButton`), 푸터 버전 표시 영역(`footerVersion`), **모바일 하단 탭 바(`bottomNav`), 모바일 '더보기' 버튼(`moreMenuButton`), 모바일 '더보기' 닫기 버튼(`moreMenuCloseButton`), 사이드바 백드롭(`sidebarBackdrop`), 하단 탭 바의 각 메뉴 아이템들(`bottomNavDashboard`, `bottomNavBossManagement`, `bottomNavCalculator`, `bottomNavShare`)** 에 대한 DOM 참조가 추가되었습니다.
 
 ### 3.3. `src/logger.js`
 - **역할:** 애플리케이션 내에서 발생하는 메시지(정보, 경고, 오류)를 UI의 로그 컨테이너에 표시하고 관리합니다.
@@ -50,7 +51,7 @@
         - `setBossSchedule(schedule)`, `getBossSchedule()`, `clearBossSchedule()` 등의 메서드 제공.
         - `_nextBoss` 및 `_minTimeDiff`: 다음 보스 정보와 해당 보스까지 남은 시간을 저장하고 관리합니다. `setNextBossInfo(nextBoss, minTimeDiff)` 및 `getNextBossInfo()` 메서드를 통해 접근합니다.
     - **`LocalStorageManager`:**
-        - `fixedAlarmStates` (고정 알림 설정), `logVisibilityState` (로그 가시성 설정), `sidebarState` (사이드바 접힘/펼쳐짐 상태), `activeScreen` (현재 활성화된 화면), **`muteState` (음소거 상태)** 등 다양한 사용자 환경 설정 상태 관리.
+        - `fixedAlarmStates` (고정 알림 설정), `logVisibilityState` (로그 가시성 설정), `sidebarState` (사이드바 접힘/펼쳐짐 상태), `activeScreen` (현재 활성화된 화면), `muteState` (음소거 상태) 등 다양한 사용자 환경 설정 상태 관리.
         - `fixedAlarms` (고정 알림 목록): 사용자가 추가, 편집, 삭제할 수 있는 고정 알림 객체 배열을 관리합니다. 각 고정 알림은 `id`, `name`, `time`, `enabled` 속성을 가집니다.
         - `lightCalculatorRecords` (광 계산 기록): 사용자가 저장한 광 계산 결과를 관리합니다. 각 기록은 `id`, `bossName`, `gwangTime`, `afterGwangTime`, `totalTime`, `timestamp` 속성을 가집니다.
         - `init()`: 로컬 스토리지에서 초기 상태 로드.
@@ -174,7 +175,7 @@
     - `renderLightSavedList(DOM, records)`: "광 계산기"의 저장된 기록 목록을 표 형태로 렌더링합니다. 기록이 없을 경우 "기록 초기화" 버튼을 비활성화하고 메시지를 표시합니다.
     - `renderBossSchedulerScreen(DOM, remainingTimes)`: "보스 스케줄러" 화면의 UI를 초기화하고 렌더링합니다. 게임 선택 드롭다운, 보스 입력 필드, 액션 버튼 등을 포함하며, 이전에 저장된 남은 시간 값을 사용하여 입력 필드를 채웁니다.
     - `renderBossInputs(DOM, gameName, remainingTimes)`: 선택된 게임에 대한 보스 입력 필드를 동적으로 렌더링합니다.
-    - **`updateMuteButtonVisuals(DOM)`**: 음소거 상태에 따라 대시보드의 음소거 버튼 아이콘과 스타일을 업데이트합니다.
+    - `updateMuteButtonVisuals(DOM)`: 음소거 상태에 따라 대시보드의 음소거 버튼 아이콘과 스타일을 업데이트합니다.
 - **UI 업데이트 책임:** `LocalStorageManager`에서 관리되는 데이터를 기반으로 각 화면의 특정 UI 요소들을 동적으로 업데이트하고 렌더링하는 역할을 합니다.
 - **DOM 초기화 의존성:** 이 모듈의 함수들은 `initApp`에서 초기화된 `DOM` 객체를 인수로 받아 사용함으로써, DOM 요소가 완전히 로드된 후에만 접근하도록 보장합니다.
 
@@ -195,25 +196,26 @@
     - `showTooltip(content, targetElement, globalTooltip)`: 지정된 `content`를 `globalTooltip`에 표시하고, `targetElement`에 상대적으로 위치를 조정합니다.
     - `hideTooltip(globalTooltip)`: `globalTooltip`을 숨깁니다.
     - **전역 이벤트:** 알람 on/off 토글, 사이드바 토글.
-    - **내비게이션 이벤트:** 메뉴 항목 클릭 시 `ui-renderer.js`의 `renderScreen` 호출.
+    - **내비게이션 이벤트:** 메뉴 항목 클릭 시 `showScreen`을 호출하여 화면 전환 및 **데스크톱/모바일 내비게이션 활성 상태를 동기화합니다. `showScreen` 함수가 활성 상태 관리에 대한 단일 진실 공급원(Single Source of Truth) 역할을 합니다.**
         - 사이드바가 축소된 상태에서 메뉴 아이템에 마우스를 올리면 `showTooltip`을 호출하여 툴팁을 표시하고, 마우스를 떼면 `hideTooltip`을 호출하여 툴팁을 숨깁니다.
+        - **모바일 뷰에서는 하단 탭 바 메뉴 클릭 이벤트도 `showScreen`을 호출합니다.**
     - **화면별 이벤트:**
         - **대시보드:**
-            - **음소거 토글:** '음소거' 버튼(`muteToggleButton`) 클릭 시, `LocalStorageManager`의 음소거 상태를 변경하고 `ui-renderer.js`의 `updateMuteButtonVisuals`를 호출하여 버튼의 시각적 상태를 업데이트합니다.
+            - 음소거 토글: '음소거' 버튼(`muteToggleButton`) 클릭 시, `LocalStorageManager`의 음소거 상태를 변경하고 `ui-renderer.js`의 `updateMuteButtonVisuals`를 호출하여 버튼의 시각적 상태를 업데이트하며, **로그 메시지를 실제 음소거 상태에 맞춰 정확하게 출력합니다.**
         - **보스 관리:**
             - **시간순 정렬:** '시간순 정렬' 버튼 클릭 시, `boss-parser.js`의 `getSortedBossListText`를 호출하여 텍스트 영역의 목록을 정렬하고, 정렬된 텍스트로 텍스트 영역을 업데이트한 후 `parseBossList`를 호출하여 내부 스케줄을 갱신합니다.
             - **실시간 파싱:** 보스 목록 텍스트 영역 변경 시 `parseBossList`를 호출하여 실시간으로 스케줄을 업데이트합니다.
         - **알림 설정:** 고정 알림 토글 변경.
             - 고정 알림 추가, 편집, 삭제, 활성화/비활성화 버튼 클릭 이벤트 처리.
-        - **공유:** 공유 링크 생성 버튼 클릭.
+        - **공유:** **공유 화면이 표시될 때(`showScreen` 함수 내부에서) 공유 링크 생성 로직이 실행됩니다. 이는 데스크톱 사이드바 또는 모바일 하단 탭 바를 통해 '공유' 화면에 접근할 때 모두 동일하게 적용됩니다.**
         - **도움말:** `docs/feature_guide.json`에서 콘텐츠를 로드하고 아코디언 형태로 렌더링.
-        - **젠 계산기:** 남은 시간 입력 필드(`remainingTimeInput`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 보스 출현 시간 계산 및 `bossAppearanceTimeDisplay` 업데이트. **(입력 필드는 `HH:MM:SS` 또는 `HHMMSS` 형식의 예시 플레이스홀더를 가집니다.)**
+        - **젠 계산기:** 남은 시간 입력 필드(`remainingTimeInput`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 보스 출현 시간 계산 및 `bossAppearanceTimeDisplay` 업데이트. (입력 필드는 `HH:MM:SS` 또는 `HHMMSS` 형식의 예시 플레이스홀더를 가집니다.)
         - 광 계산기:
             - '시작' 버튼(`lightStartButton`) 클릭 시 `src/light-calculator.js:startStopwatch()`를 호출하여 스톱워치를 시작하고 관련 버튼 상태를 변경합니다.
             - '광' 버튼(`lightGwangButton`) 클릭 시 `src/light-calculator.js:triggerGwang()`를 호출하여 예상 시간 카운트다운을 시작하고 버튼을 비활성화합니다.
             - '잡힘' 버튼(`lightCaptureButton`) 클릭 시 `src/light-calculator.js:stopStopwatch()`를 호출하여 스톱워치를 중지하고, 사용자 확인 후 `src/light-calculator.js:saveLightCalculation()`을 통해 계산 결과를 저장합니다. 이후 `ui-renderer.js`를 통해 최근 계산 결과 및 저장된 목록을 업데이트하고 계산기를 초기화합니다.
             - '목록' 버튼(`lightListButton`) 클릭 시 `ui-renderer.js:renderLightSavedList()`를 호출하여 광 계산 목록을 표시합니다.
-            - '기록 초기화' 버튼(`clearLightRecordsButton`) 클릭 시 사용자 확인 후 `LocalStorageManager.clearLightCalculatorRecords()`를 호출하여 모든 광 계산 기록을 삭제하고 목록을 새로 고칩니다.
+            - '기록 초기화' 버튼(`clearLightRecordsButton`) 클릭 시 사용자 확인 후 `LocalStorageManager.clearLightCalculatorRecords()`를 호출하고 `ui-renderer.js:renderLightSavedList()`를 통해 UI를 업데이트합니다.
         - 보스 스케줄러:
             - 게임 선택 드롭다운 변경 시 `ui-renderer.js:renderBossInputs()` 호출.
             - 남은 시간 입력 필드(`remaining-time-input`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 젠 시간 계산 및 표시.
@@ -225,7 +227,11 @@
                 - 최종 생성된 보스 목록을 시간순으로 완벽하게 정렬합니다.
                 - 정렬된 목록을 `MM.DD` 날짜 구분자를 포함한 텍스트 형식으로 변환하여 '보스 목록' 화면의 텍스트 영역(`DOM.bossListInput`)에 값을 설정하고, `boss-parser.js`를 통해 즉시 파싱합니다.
                 - '보스 목록' 화면으로 전환하여 사용자에게 결과를 보여줍니다.
-- **이벤트 처리 흐름:** `initEventHandlers`는 헤더, 사이드바, 메인 콘텐츠 영역 내의 모든 사용자 인터랙션에 대한 이벤트 리스너를 중앙에서 설정하고 관리합니다.
+        - **모바일 '더보기' 메뉴 이벤트:**
+            - **'더보기' 버튼(`moreMenuButton`) 클릭 시**, 기존 사이드바를 활용한 전체 화면 오버레이를 토글합니다. 이때 `#sidebar`에 `.more-menu-open` 클래스를 추가하고, 배경에 `#sidebar-backdrop.active` 클래스를 추가합니다.
+            - **'X' 닫기 버튼(`moreMenuCloseButton`) 또는 백드롭 클릭 시**, '더보기' 메뉴를 닫습니다.
+            - **접근성 강화:** '더보기' 메뉴가 열릴 때, 배경 콘텐츠(`main`, `header`, `footer`)에 `inert` 속성을 적용하여 비활성화하고, 메뉴 내에서 키보드 초점(Focus Trap)이 유지되도록 합니다. `Escape` 키로 메뉴를 닫을 수 있도록 이벤트 리스너를 등록합니다. 메뉴가 닫히면 이 모든 접근성 관련 처리를 원상 복구합니다.
+- **이벤트 처리 흐름:** `initEventHandlers`는 헤더, 사이드바, 메인 콘텐츠 영역 및 **하단 탭 바** 내의 모든 사용자 인터랙션에 대한 이벤트 리스너를 중앙에서 설정하고 관리합니다.
 
 ### 3.13. `src/app.js` (신규 또는 `event-handlers.js`의 `initApp` 확장)
 - **역할:** 애플리케이션의 전반적인 초기화, 상태 관리 및 라우팅을 담당하는 핵심 모듈.
@@ -239,7 +245,8 @@
         - `event-handlers.js` 초기화 및 이벤트 리스너 등록.
         - `ui-renderer.js`를 통해 초기 화면 렌더링 (예: 대시보드).
         - `ui-renderer.js`를 통해 `LocalStorageManager`의 상태를 기반으로 초기 UI 상태 설정 (예: `DOM.logVisibilityToggle.checked`, `DOM.sidebar.classList`).
-        - **푸터의 버전 번호를 `window.APP_VERSION` 값으로 동적 설정.**
+        - **뷰포트 너비를 감지하는 `ResizeObserver`를 초기화하고 `body`에 `is-mobile-view` 클래스를 동적으로 토글하는 로직을 추가합니다.**
+        - 푸터의 버전 번호를 `window.APP_VERSION` 값으로 동적 설정.
         - `alarm-scheduler.js` 시작 (필요시).
     - **라우팅:** URL 해시 또는 History API를 사용하여 화면 전환을 관리하고, `ui-renderer.js`의 `renderScreen`을 호출하여 해당 화면을 표시.
     - **전역 상태 관리:** `BossDataManager` 및 `LocalStorageManager`와 연동하여 애플리케이션의 전역 상태를 관리하고, 변경 시 `ui-renderer.js`를 통해 UI 업데이트를 트리거.
@@ -264,6 +271,13 @@
     - **메뉴 항목:** 활성화된 메뉴 항목 시각적 강조.
     - **알람 토글:** 알람 상태에 따른 SVG 아이콘 색상 변경.
     - **각 화면별 컴포넌트:** 대시보드 카운트다운, 보스 관리 텍스트 영역, 알림 설정 토글, 버전 기록 아코디언, 도움말 아코디언, 광 계산기 스톱워치 및 예상 시간 표시, 버튼 그룹, 최근 계산 결과 테이블, 저장된 기록 테이블 등.
+    - **모바일 하단 탭 바:** `@media (max-width: 768px)` 미디어 쿼리 내에서 `display: flex`, `position: fixed`, `bottom: 0`, `height: var(--bottom-nav-height)` 등의 속성으로 스타일링됩니다. `padding-bottom: env(safe-area-inset-bottom)`을 통해 iPhone 등의 안전 영역을 확보합니다.
+    - **메인 콘텐츠 및 푸터 패딩:** 하단 탭 바가 콘텐츠를 가리지 않도록 `body` 요소에 `padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom))`을 적용하여 푸터까지 올바르게 위치시킵니다.
+    - **'더보기' 메뉴 오버레이:** `#sidebar.more-menu-open` 클래스를 통해 기존 사이드바가 전체 화면 오버레이로 전환되는 스타일을 정의합니다.
+    - **백드롭:** `.sidebar-backdrop.active` 클래스를 통해 오버레이 배경 스타일을 정의합니다.
+    - **'X' 닫기 버튼:** `more-menu-close-button`에 `position: absolute`를 사용하여 오버레이의 우측 상단에 위치시키고, 데스크톱 뷰에서는 `@media (min-width: 769px)`를 통해 `display: none`으로 완전히 숨깁니다.
+    - **모바일 하단 탭 바 텍스트 라벨 제거 및 아이콘 정렬:** 텍스트 라벨 제거에 따라 아이콘이 각 탭 아이템 내에서 수직/수평 중앙에 오도록 `.bottom-nav`의 `align-items` 및 `.bottom-nav-item`의 `justify-content` 속성을 조정합니다. 활성화된 탭의 아이콘/텍스트 색상을 푸터 배경색과 일치하는 `#333`으로 변경합니다.
+
 ### 3.16. `docs/version_history.txt`
 - **역할:** 애플리케이션의 버전별 주요 기능 업데이트 내역을 기록합니다.
 - **내용 및 형식:**
@@ -305,6 +319,8 @@
 *   `src/event-handlers.js` -> `src/boss-scheduler-data.js` (`loadBossLists`, `getGameNames`, `getBossNamesForGame` 호출)
 *   `src/event-handlers.js` -> `src/light-calculator.js` (`LightCalculator`, `formatTime` 사용)
 *   `src/event-handlers.js` -> `globalTooltip` (툴팁 요소 직접 접근)
+*   `src/event-handlers.js` -> **모바일 하단 탭 바 요소들 (`bottomNavDashboard`, `bottomNavBossManagement`, `bottomNavCalculator`, `bottomNavShare`, `moreMenuButton`, `moreMenuCloseButton`, `sidebarBackdrop`)에 대한 이벤트 리스너 설정.**
+*   `src/event-handlers.js` -> **`inert` 속성 제어 및 초점 가두기(Focus Trap)를 위한 DOM 요소 (`mainContentArea`, `header`, `footer`) 접근.**
 *   `src/boss-parser.js` -> `src/logger.js` (`log` 호출)
 *   `src/boss-parser.js` -> `src/data-managers.js` (`BossDataManager` 사용)
 
@@ -340,19 +356,22 @@
     *   `initApp`은 URL 매개변수에서 `fixedData`를 확인합니다. 존재하면 `LocalStorageManager.importFixedAlarms()`를 호출하여 고정 알림을 로드합니다.
     *   `initApp`은 `boss-parser.js:parseBossList(DOM.bossListInput)`를 호출하여 보스 목록을 파싱하고, 이는 `data-managers.js:BossDataManager.setBossSchedule()`를 호출합니다.
     *   `initApp`은 `LocalStorageManager`를 기반으로 초기 UI 상태를 설정합니다(예: `DOM.logVisibilityToggle.checked`, `DOM.sidebar.classList`).
+    *   **`initApp`은 뷰포트 너비를 감지하는 `ResizeObserver`를 초기화하고 `body`에 `is-mobile-view` 클래스를 동적으로 토글하는 `handleResize` 로직을 설정하며, 앱 초기 로드 시 뷰 상태를 1회 실행하여 설정합니다.**
     *   `initApp`은 초기 UI 렌더링을 위해 `ui-renderer.js:renderFixedAlarms()`, `ui-renderer.js:renderDashboard()`를 호출합니다.
     *   `initApp`은 모든 이벤트 리스너를 설정하기 위해 `event-handlers.js:initEventHandlers(DOM, globalTooltip)`를 호출합니다.
     *   `alarm-scheduler.js:getIsAlarmRunning()`이 true이면 `initApp`은 `alarm-scheduler.js:startAlarm(DOM)`를 호출합니다.
 
-2.  **사용자 상호 작용 (예: `event-handlers.js`의 메뉴 클릭)**:
-    *   사용자가 탐색 링크(예: `nav-dashboard`)를 클릭합니다.
-    *   `event-handlers.js`의 클릭 리스너는 `event-handlers.js:showScreen(DOM, screenId)`를 호출합니다.
-    *   `showScreen`은 화면 요소의 `classList`를 조작하여 표시/숨김을 처리합니다.
-    *   'dashboard-screen'의 경우 `showScreen`은 `ui-renderer.js:renderDashboard(DOM)`를 호출합니다.
-    *   'boss-management-screen'의 경우 `showScreen`은 `ui-renderer.js:updateBossListTextarea()`를 호출합니다.
-    *   'notification-settings-screen'의 경우 `showScreen`은 `ui-renderer.js:renderFixedAlarms()`를 호출합니다.
-    *   'alarm-log-screen'의 경우 `showScreen`은 `ui-renderer.js:updateLogDisplay()`를 호출합니다.
-    *   'calculator-screen'의 경우 `showScreen`은 `ui-renderer.js:renderCalculatorScreen()`를 호출합니다.
+2.  **사용자 상호 작용 (`event-handlers.js`의 메뉴 클릭 및 기타)**:
+    *   **내비게이션 링크 클릭 (사이드바 또는 하단 탭 바):**
+        *   사용자가 탐색 링크(예: `nav-dashboard` 또는 `bottom-nav-dashboard`)를 클릭합니다.
+        *   `event-handlers.js`의 클릭 리스너는 `showScreen(DOM, screenId)`를 호출합니다.
+        *   `showScreen` 함수는 화면 요소의 `classList`를 조작하여 표시/숨김을 처리하고, **클릭된 링크(`event.currentTarget`) 및 해당하는 모든 내비게이션 링크(사이드바/하단 탭 바)에 `active` 클래스를 추가/제거하여 활성 상태를 동기화합니다.**
+        *   'dashboard-screen'의 경우 `showScreen`은 `ui-renderer.js:renderDashboard(DOM)`를 호출합니다.
+        *   'boss-management-screen'의 경우 `showScreen`은 `ui-renderer.js:updateBossListTextarea()`를 호출합니다.
+        *   'notification-settings-screen'의 경우 `showScreen`은 `ui-renderer.js:renderFixedAlarms()`를 호출합니다.
+        *   'alarm-log-screen'의 경우 `showScreen`은 `ui-renderer.js:updateLogDisplay()`를 호출합니다.
+        *   'calculator-screen'의 경우 `showScreen`은 `ui-renderer.js:renderCalculatorScreen()`를 호출합니다.
+        *   **'share-screen'의 경우 `showScreen`은 공유 링크 생성 로직(URL 인코딩, TinyURL API 호출, 클립보드 복사 등)을 실행하고 `DOM.shareMessage`를 업데이트합니다.**
     *   'calculator-screen' (젠 계산기)에서 `DOM.remainingTimeInput`의 `input` 이벤트 발생 시 `src/event-handlers.js`는 `src/calculator.js:calculateBossAppearanceTime()`를 호출하고 `DOM.bossAppearanceTimeDisplay`를 업데이트합니다.
     *   'calculator-screen' (광 계산기)에서:
         - '시작' 버튼 클릭 시 `src/event-handlers.js`는 `src/light-calculator.js:LightCalculator.startStopwatch()`를 호출하고 `ui-renderer.js:updateLightStopwatchDisplay()`를 통해 UI를 업데이트합니다.
@@ -364,12 +383,16 @@
     *   'boss-scheduler-screen'에서 게임 선택 드롭다운 변경 시 `src/event-handlers.js`는 `ui-renderer.js:renderBossInputs()`를 호출합니다.
     *   'boss-scheduler-screen'에서 남은 시간 입력 필드(`remaining-time-input`)의 `input` 이벤트 발생 시 `src/event-handlers.js`는 `src/calculator.js:calculateBossAppearanceTime()`를 호출하고 젠 시간을 표시합니다.
     *   'boss-scheduler-screen'에서 '남은 시간 초기화' 버튼 클릭 시 `src/event-handlers.js`는 모든 남은 시간 입력 필드를 초기화합니다.
-    *   'boss-scheduler-screen'에서 '보스 설정 적용' 버튼 클릭 시 `src/event-handlers.js`는 다음과 같은 복합적인 로직을 수행합니다:
-        1. 스케줄러의 입력 값으로부터 각 보스의 전체 출현 시간(Date 객체)을 계산합니다.
-        2. 특정 보스(예: '오딘')의 경우, 12시간 뒤의 출현 시간을 계산하여 목록에 추가합니다.
-        3. '침공' 보스가 다음 날짜에 출현할 경우, 목록에서 필터링하여 제외합니다.
-        4. 모든 보스 목록을 시간순으로 정렬한 후, `MM.DD` 날짜 구분자가 포함된 텍스트로 변환합니다.
-        5. 이 최종 텍스트를 `DOM.bossListInput`의 값으로 설정하고, `parseBossList`를 호출하여 스케줄을 즉시 업데이트한 뒤 '보스 목록' 화면으로 이동합니다.
+    *   'boss-scheduler-screen'에서 '보스 설정 적용' 버튼 클릭 시 `src/event-handlers.js`는 다음 복합적인 로직을 수행합니다: 계산된 보스 목록을 `DOM.bossListInput`에 설정하고, `parseBossList`로 스케줄을 업데이트한 뒤 '보스 목록' 화면으로 이동합니다.
+    *   **모바일 '더보기' 버튼 클릭:**
+        *   `event-handlers.js`는 `DOM.moreMenuButton` 클릭을 감지하여 `DOM.sidebar`에 `.more-menu-open` 클래스를 토글하고, `DOM.sidebarBackdrop`에 `.active` 클래스를 토글합니다.
+        *   **`inert` 속성을 `main`, `header`, `footer`에 적용하고, 초점 가두기(Focus Trap)를 활성화하며, `Escape` 키 이벤트를 등록하여 접근성을 강화합니다.**
+    *   **모바일 '더보기' 메뉴 닫기 (`moreMenuCloseButton` 클릭 또는 백드롭 클릭, `Escape` 키):**
+        *   `event-handlers.js`는 이러한 이벤트를 감지하여 '더보기' 메뉴를 닫고, **`inert` 속성 제거, 초점 가두기 비활성화 등 접근성 관련 처리를 원상 복구합니다.**
+    *   **모바일 하단 탭 바 텍스트 라벨 제거:** `index.html`에서 하단 탭 바의 텍스트 라벨이 제거되어 아이콘만 표시됩니다.
+    *   **모바일 하단 탭 바 아이콘 정렬 개선:** `src/style.css`에서 관련 CSS 속성 조정(`.bottom-nav` `align-items`, `.bottom-nav-item` `justify-content` 등)을 통해 아이콘이 중앙에 잘 정렬되도록 합니다.
+    *   **모바일 푸터 여백 계산 수정:** `src/style.css`에서 `body`의 `padding-bottom` 계산 로직을 `calc(var(--bottom-nav-height) + env(safe-area-inset-bottom))`으로 수정하여, 하단 탭 바가 푸터를 가리지 않도록 합니다.
+
 3.  **알람 토글 (`event-handlers.js` -> `alarmToggleButton` 클릭)**:
     *   `event-handlers.js`는 `alarm-scheduler.js:getIsAlarmRunning()`를 호출합니다.
     *   실행 중이 아니면 `alarm-scheduler.js:startAlarm(DOM)`를 호출하고, 이는 `data-managers.js:LocalStorageManager.setAlarmRunningState(true)`를 설정하고, `logger.js:log()`를 호출하고, `speech.js:speak()`를 호출하고, `alarm-scheduler.js:checkAlarms` 및 `ui-renderer.js:renderDashboard`에 대한 `setInterval`을 시작합니다.
@@ -387,8 +410,8 @@
     *   `ui-renderer.js:renderDashboard(DOM)`는 `ui-renderer.js:updateNextBossDisplay(DOM)`, `ui-renderer.js:renderUpcomingBossList(DOM)`, `ui-renderer.js:renderAlarmStatusSummary(DOM)`, `ui-renderer.js:updateMuteButtonVisuals(DOM)`, `ui-renderer.js:renderRecentAlarmLog(DOM)`를 호출합니다.
     *   이 함수들은 `data-managers.js:BossDataManager`, `data-managers.js:LocalStorageManager`, `alarm-scheduler.js:getIsAlarmRunning()`, `logger.js:getLogs()`에서 데이터를 검색하여 대시보드 UI를 업데이트합니다.
 
-6.  **공유 링크 생성 (`event-handlers.js` -> `shareButton` 클릭)**:
-    *   `event-handlers.js`는 `DOM.bossListInput.value`를 가져옵니다.
+6.  **공유 링크 생성 (`showScreen` 함수 내부에서 실행)**:
+    *   `showScreen` 함수 내에서 `DOM.bossListInput.value`를 가져옵니다.
     *   `longUrl`을 구성합니다.
     *   `LocalStorageManager.exportFixedAlarms()`를 호출하여 고정 알림 데이터를 가져와 `longUrl`에 추가합니다.
     *   `api-service.js:getShortUrl(longUrl)`를 호출합니다.
@@ -403,8 +426,8 @@
     *   `event-handlers.js`는 `LocalStorageManager.getMuteState()`를 호출하여 현재 상태를 가져옵니다.
     *   `LocalStorageManager.setMuteState()`를 호출하여 상태를 반전시키고 로컬 스토리지에 저장합니다.
     *   `ui-renderer.js:updateMuteButtonVisuals(DOM)`를 호출하여 버튼의 아이콘과 스타일을 업데이트합니다.
-    *   `logger.js:log()`를 호출하여 사용자에게 상태 변경을 알립니다.
+    *   `logger.js:log()`를 호출하여 사용자에게 상태 변경을 알립니다. **이때 로그 메시지는 실제 음소거 상태에 맞춰 정확하게 출력됩니다.**
 
 ## 6. 결론
 
-리뉴얼된 "보스 알리미" 애플리케이션은 메뉴 기반의 다중 화면 아키텍처를 통해 사용자 경험과 기능적 모듈화를 크게 향상시켰습니다. `app.js`를 중심으로 한 중앙 집중식 초기화 및 라우팅, 그리고 `ui-renderer.js`를 통한 화면별 렌더링은 코드의 가독성, 유지보수성 및 확장성을 더욱 높여 향후 기능 추가 및 변경에 유연하게 대응할 수 있도록 합니다.
+리뉴얼된 "보스 알리미" 애플리케이션은 메뉴 기반의 다중 화면 아키텍처를 통해 사용자 경험과 기능적 모듈화를 크게 향상시켰습니다. `app.js`를 중심으로 한 중앙 집중식 초기화 및 라우팅, 그리고 `ui-renderer.js`를 통한 화면별 렌더링은 코드의 가독성, 유지보수성 및 확장성을 더욱 높여 향후 기능 추가 및 변경에 유연하게 대응할 수 있도록 합니다. **특히 모바일 환경을 위한 하단 탭 바 내비게이션 도입으로 사용자 접근성을 개선했으며, 공유 링크 버그, 푸터 잘림 문제, 음소거 로그 메시지 오류 등을 수정하여 전반적인 안정성을 확보했습니다.**
