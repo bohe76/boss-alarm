@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>보스 알리미</title>
-    <link rel="stylesheet" href="src/style.css?v=2.3.6">
+    <link rel="stylesheet" href="src/style.css?v=2.3.7">
     <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -129,6 +129,9 @@
                 <p class="boss-management-instruction">알림을 원하지 않는 보스는 텍스트에서 삭제하세요.</p>
                 <p class="boss-management-instruction">정확한 알림을 원하면 초까지 입력해주세요.</p>
                 <textarea id="bossListInput"></textarea>
+                <div class="boss-list-actions">
+                    <button id="sortBossListButton" class="button">시간순 정렬</button>
+                </div>
             </section>
 
             <section id="calculator-screen" class="screen">
@@ -137,7 +140,7 @@
                     <h3>젠 계산기</h3>
                     <div class="calculator-input-group">
                         <label for="remainingTimeInput">남은 시간</label>
-                        <input type="text" id="remainingTimeInput" placeholder="예: 00:57:23 또는 00:05">
+                        <input type="text" id="remainingTimeInput" placeholder="예: 00:57:23 또는 005723">
                     </div>
                     <div class="calculator-result-group">
                         <label>보스 출현 시간</label>
@@ -230,7 +233,7 @@
     </div>
 
     <script type="module">
-        window.APP_VERSION = "2.3.6"; // Define global app version
+        window.APP_VERSION = "2.3.7"; // Define global app version
 
         import { initDomElements } from './src/dom-elements.js';
 
@@ -252,7 +255,7 @@
     </script>
     <div id="global-tooltip"></div>
     <footer>
-        <p>Created by: bohe | v2.3.6</p>
+        <p>Created by: bohe | v2.3.7</p>
     </footer>
 </body>
 </html>

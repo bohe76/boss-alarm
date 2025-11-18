@@ -128,3 +128,118 @@ export function parseBossList(bossListInput) {
         console.error("Boss list parsing error:", error);
     }
 }
+
+export function getSortedBossListText(rawText) {
+    try {
+        const now = new Date();
+        const allBossObjects = [];
+        const normalizedText = rawText.replace(/\r\n|\r/g, '\n').trim();
+        if (!normalizedText) return "";
+
+        // Step 1: Group lines by the date markers that precede them.
+        const dateBlockRegex = /(\d{1,2}\.\d{1,2})/;
+        const parts = normalizedText.split(dateBlockRegex).filter(Boolean);
+
+        const blocks = [];
+        let i = 0;
+        // If the first part is not a date, it belongs to "today" or the first available date
+        if (parts.length > 0 && !parts[0].match(dateBlockRegex)) {
+            blocks.push({ date: null, lines: parts[0].trim().split('\n') });
+            i = 1;
+        }
+
+        for (; i < parts.length; i += 2) {
+            const date = parts[i];
+            const lines = (parts[i + 1] || "").trim().split('\n');
+            blocks.push({ date, lines });
+        }
+
+        // Step 2: Process each block
+        for (const block of blocks) {
+            let baseDate;
+            if (block.date) {
+                const month = parseInt(block.date.split('.')[0], 10) - 1;
+                const day = parseInt(block.date.split('.')[1], 10);
+                if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+                    const parsedDate = new Date(now.getFullYear(), month, day);
+                    if (!isNaN(parsedDate.getTime())) {
+                        baseDate = parsedDate;
+                    }
+                }
+            }
+            
+            if (!baseDate) {
+                // Find the first valid date in the whole text if the first block has no date
+                const firstDateMatch = normalizedText.match(dateBlockRegex);
+                if(firstDateMatch) {
+                    const month = parseInt(firstDateMatch[0].split('.')[0], 10) - 1;
+                    const day = parseInt(firstDateMatch[0].split('.')[1], 10);
+                    baseDate = new Date(now.getFullYear(), month, day);
+                } else {
+                    baseDate = new Date(now);
+                }
+            }
+            baseDate.setHours(0, 0, 0, 0);
+
+            const bossLinesInBlock = block.lines.map(l => l.trim()).filter(Boolean);
+            const tempBosses = [];
+
+            // Create simple objects
+            bossLinesInBlock.forEach(line => {
+                const parts = line.split(' ');
+                if (parts.length < 2) return;
+                const timeMatch = parts[0].match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+                if (!timeMatch) return;
+                tempBosses.push({ time: parts[0], name: parts.slice(1).join(' ') });
+            });
+
+            // Sort by time string within the block
+            tempBosses.sort((a, b) => a.time.localeCompare(b.time));
+
+            // Assign full dates with dayOffset logic
+            let dayOffset = 0;
+            let lastBossTimeInSeconds = -1;
+            tempBosses.forEach(boss => {
+                const timeMatch = boss.time.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+                const bossHour = parseInt(timeMatch[1], 10);
+                const bossMinute = parseInt(timeMatch[2], 10);
+                const bossSecond = timeMatch[3] ? parseInt(timeMatch[3], 10) : 0;
+                if (isNaN(bossHour) || isNaN(bossMinute)) return;
+
+                const bossTimeInSeconds = bossHour * 3600 + bossMinute * 60 + bossSecond;
+                if (lastBossTimeInSeconds !== -1 && bossTimeInSeconds < lastBossTimeInSeconds) {
+                    dayOffset++;
+                }
+                lastBossTimeInSeconds = bossTimeInSeconds;
+
+                let scheduledDate = new Date(baseDate);
+                scheduledDate.setDate(baseDate.getDate() + dayOffset);
+                scheduledDate.setHours(bossHour, bossMinute, bossSecond);
+
+                allBossObjects.push({ ...boss, scheduledDate });
+            });
+        }
+
+        // Step 3: Final sort and reconstruction
+        allBossObjects.sort((a, b) => a.scheduledDate - b.scheduledDate);
+
+        let newText = "";
+        let lastDateStr = "";
+        allBossObjects.forEach(boss => {
+            const d = boss.scheduledDate;
+            const currentDateStr = `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+            if (currentDateStr !== lastDateStr) {
+                if (newText !== "") newText += "\n";
+                newText += currentDateStr;
+                lastDateStr = currentDateStr;
+            }
+            newText += `\n${boss.time} ${boss.name}`;
+        });
+
+        return newText.trim();
+    } catch (error) {
+        log(`보스 목록 정렬 중 오류가 발생했습니다: ${error.message}`, true);
+        console.error("Boss list sorting error:", error);
+        return rawText;
+    }
+}

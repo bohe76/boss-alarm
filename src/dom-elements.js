@@ -33,6 +33,7 @@ export function initDomElements() {
 
         // Elements within Boss Management Screen
         bossListInput: document.getElementById('bossListInput'),
+        sortBossListButton: document.getElementById('sortBossListButton'), // New
 
         // Elements within Dashboard Screen
         nextBossDisplay: document.getElementById('nextBossDisplay'),

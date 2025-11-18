@@ -47,6 +47,10 @@
     ```shell
     npm run lint
     ```
+    **참고:** 만약 PowerShell 실행 정책(Execution Policy) 문제로 위 명령어가 실패하는 경우, 다음 명령어를 대신 사용할 수 있습니다.
+    ```shell
+    node ./node_modules/eslint/bin/eslint.js .
+    ```
 
 #### 2. 에이전트 작업 원칙
 

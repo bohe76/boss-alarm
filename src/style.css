@@ -542,6 +542,12 @@ body {
     color: #1e90ff; /* Blue color for remaining time */
 }
 
+.boss-list-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 10px;
+}
+
 /* Calculator Card Styles (for both Zen and Light) */
 .calculator-card {
     background-color: #fff;

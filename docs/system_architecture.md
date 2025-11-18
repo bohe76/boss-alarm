@@ -23,7 +23,7 @@
     - 다른 모듈들이 DOM 요소에 직접 접근하는 대신 이 모듈을 통해 일관된 방식으로 접근하도록 함.
 - **DOM 추상화:** 이 모듈은 DOM 접근을 위한 추상화 계층 역할을 하여 일관성을 촉진하고 UI 변경 관리를 용이하게 합니다.
 - **초기화 시점:** 모든 요소가 사용 가능하도록 DOM이 완전히 로드된 후에만 `initDomElements()`를 호출해야 합니다.
-- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`), "광 계산기" 카드(`lightCalculatorCard`), 경과 시간 표시(`lightStopwatchDisplay`), 시작 버튼(`lightStartButton`), 광 버튼(`lightGwangButton`), 잡힘 버튼(`lightCaptureButton`), 목록 버튼(`lightListButton`), 잡힘 예상 시간 표시(`lightExpectedTimeDisplay`), 최근 계산 결과 영역(`lightTempResults`), 저장된 광 계산 목록(`lightSavedList`), 기록 초기화 버튼(`clearLightRecordsButton`)에 대한 DOM 참조가 추가되었습니다.
+- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`), "광 계산기" 카드(`lightCalculatorCard`), 경과 시간 표시(`lightStopwatchDisplay`), 시작 버튼(`lightStartButton`), 광 버튼(`lightGwangButton`), 잡힘 버튼(`lightCaptureButton`), 목록 버튼(`lightListButton`), 잡힘 예상 시간 표시(`lightExpectedTimeDisplay`), 최근 계산 결과 영역(`lightTempResults`), 저장된 광 계산 목록(`lightSavedList`), 기록 초기화 버튼(`clearLightRecordsButton`), **보스 목록 시간순 정렬 버튼(`sortBossListButton`)** 에 대한 DOM 참조가 추가되었습니다.
 
 ### 3.3. `src/logger.js`
 - **역할:** 애플리케이션 내에서 발생하는 메시지(정보, 경고, 오류)를 UI의 로그 컨테이너에 표시하고 관리합니다.
@@ -78,6 +78,11 @@
         - 지난 보스 일정 필터링.
         - 파싱 오류 발생 시 `logger.js`를 통해 경고 메시지 출력.
         - 유효한 보스 일정을 `BossDataManager`에 설정.
+    - `getSortedBossListText(rawText)`:
+        - 입력된 텍스트를 날짜 마커(`MM.DD`) 기준으로 블록을 나눕니다.
+        - 각 블록 내에서 보스들을 시간순으로 정렬하고, 자정이 넘어가는 시간을 계산하여 정확한 `scheduledDate`를 할당합니다.
+        - 모든 보스 객체를 취합하여 전체 목록을 최종적으로 시간순으로 정렬합니다.
+        - 정렬된 목록을 다시 날짜 마커가 포함된 텍스트 형식으로 재구성하여 반환합니다. 이 기능은 사용자가 순서에 맞지 않게 목록을 입력해도 정확하게 정렬된 결과를 제공합니다.
 - **날짜 파싱 로직 상세:**
     - 입력 텍스트는 줄 단위로 처리됩니다.
     - 'MM.DD' 형식의 줄은 날짜 마커로 작동하며, 이 날짜는 다음 날짜 마커가 나타나거나 목록이 끝날 때까지 모든 후속 보스 항목에 적용됩니다.
@@ -91,12 +96,12 @@
 ### 3.7. `src/calculator.js`
 - **역할:** 현재 시간과 주어진 남은 시간을 기반으로 보스 출현 시간을 계산하는 기능을 제공합니다.
 - **주요 기능:**
-    - `calculateBossAppearanceTime(remainingTimeString)`: "HH:MM" 또는 "HH:MM:SS" 형식의 남은 시간 문자열을 입력받아 보스 출현 시간을 계산합니다.
+    - `calculateBossAppearanceTime(remainingTimeString)`: "HH:MM", "HH:MM:SS", **"HHMM"(4자리 숫자), "HHMMSS"(6자리 숫자)** 형식의 남은 시간 문자열을 입력받아 보스 출현 시간을 계산합니다.
     - 입력 유효성 검사: `HH:MM` 또는 `HH:MM:SS` 형식에 맞는지 확인하고, `SS`가 생략된 경우 `00`으로 처리합니다.
     - 시간 계산: 현재 시간에 남은 시간을 더하여 미래 시간을 계산합니다.
     - 결과 포맷팅: 계산된 보스 출현 시간을 "HH:MM:SS" 형식으로 반환합니다.
 - **입력 및 출력:**
-    - 입력: `HH:MM` 또는 `HH:MM:SS` 형식의 문자열.
+    - 입력: `HH:MM`, `HH:MM:SS`, **`HHMM`, `HHMMSS`** 형식의 문자열.
     - 출력: `HH:MM:SS` 형식의 문자열 또는 유효하지 않은 입력 시 `null`.
 - **오류 처리:** 유효하지 않은 시간 형식이나 값에 대해 `null`을 반환하여 호출하는 측에서 처리할 수 있도록 합니다.
 
@@ -192,12 +197,14 @@
     - **내비게이션 이벤트:** 메뉴 항목 클릭 시 `ui-renderer.js`의 `renderScreen` 호출.
         - 사이드바가 축소된 상태에서 메뉴 아이템에 마우스를 올리면 `showTooltip`을 호출하여 툴팁을 표시하고, 마우스를 떼면 `hideTooltip`을 호출하여 툴팁을 숨깁니다.
     - **화면별 이벤트:**
-        - 보스 관리: 보스 목록 텍스트 영역 변경, 프리셋 선택/저장.
-        - 알림 설정: 고정 알림 토글 변경.
+        - **보스 관리:**
+            - **시간순 정렬:** '시간순 정렬' 버튼 클릭 시, `boss-parser.js`의 `getSortedBossListText`를 호출하여 텍스트 영역의 목록을 정렬하고, 정렬된 텍스트로 텍스트 영역을 업데이트한 후 `parseBossList`를 호출하여 내부 스케줄을 갱신합니다.
+            - **실시간 파싱:** 보스 목록 텍스트 영역 변경 시 `parseBossList`를 호출하여 실시간으로 스케줄을 업데이트합니다.
+        - **알림 설정:** 고정 알림 토글 변경.
             - 고정 알림 추가, 편집, 삭제, 활성화/비활성화 버튼 클릭 이벤트 처리.
-        - 공유: 공유 링크 생성 버튼 클릭.
-        - 도움말: `docs/feature_guide.json`에서 콘텐츠를 로드하고 아코디언 형태로 렌더링.
-        - 젠 계산기: 남은 시간 입력 필드(`remainingTimeInput`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 보스 출현 시간 계산 및 `bossAppearanceTimeDisplay` 업데이트.
+        - **공유:** 공유 링크 생성 버튼 클릭.
+        - **도움말:** `docs/feature_guide.json`에서 콘텐츠를 로드하고 아코디언 형태로 렌더링.
+        - **젠 계산기:** 남은 시간 입력 필드(`remainingTimeInput`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 보스 출현 시간 계산 및 `bossAppearanceTimeDisplay` 업데이트. **(입력 필드는 `HH:MM:SS` 또는 `HHMMSS` 형식의 예시 플레이스홀더를 가집니다.)**
         - 광 계산기:
             - '시작' 버튼(`lightStartButton`) 클릭 시 `src/light-calculator.js:startStopwatch()`를 호출하여 스톱워치를 시작하고 관련 버튼 상태를 변경합니다.
             - '광' 버튼(`lightGwangButton`) 클릭 시 `src/light-calculator.js:triggerGwang()`를 호출하여 예상 시간 카운트다운을 시작하고 버튼을 비활성화합니다.
@@ -283,7 +290,7 @@
 
 *   `src/event-handlers.js` -> `src/dom-elements.js` (DOM 요소 접근)
 *   `src/event-handlers.js` -> `src/logger.js` (`initLogger`, `log` 호출)
-*   `src/event-handlers.js` -> `src/boss-parser.js` (`parseBossList` 호출)
+*   `src/event-handlers.js` -> `src/boss-parser.js` (`parseBossList`, **`getSortedBossListText`** 호출)
 *   `src/event-handlers.js` -> `src/alarm-scheduler.js` (`startAlarm`, `stopAlarm`, `getIsAlarmRunning` 호출)
 *   `src/event-handlers.js` -> `src/ui-renderer.js` (`updateBossListTextarea`, `renderFixedAlarms`, `updateFixedAlarmVisuals`, `renderDashboard`, `renderBossPresets`, `renderVersionInfo`, `renderCalculatorScreen`, `renderBossSchedulerScreen`, `renderBossInputs`, `updateLightStopwatchDisplay`, `updateLightExpectedTimeDisplay`, `renderLightTempResults`, `renderLightSavedList` 호출)
 *   `src/event-handlers.js` -> `src/api-service.js` (`getShortUrl`, `loadMarkdownContent` 호출)
