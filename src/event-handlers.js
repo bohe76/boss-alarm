@@ -106,6 +106,24 @@ function showScreen(DOM, screenId) {
         renderDashboard(DOM); // Render dashboard content when dashboard screen is active
     }
 
+    // Special handling for share screen
+    if (screenId === 'share-screen') {
+        (async () => {
+            DOM.shareMessage.textContent = "공유 링크 생성 중입니다. 잠시만 기다려 주세요...";
+            const currentBossListData = DOM.bossListInput.value;
+            const encodedBossListData = encodeURIComponent(currentBossListData);
+            const fixedAlarmsData = LocalStorageManager.exportFixedAlarms();
+            const encodedFixedAlarmsData = encodeURIComponent(fixedAlarmsData);
+            const baseUrl = window.location.href.split('?')[0];
+            const longUrl = `${baseUrl}?data=${encodedBossListData}&fixedData=${encodedFixedAlarmsData}`;
+            const shortUrl = await getShortUrl(longUrl);
+            await navigator.clipboard.writeText(shortUrl || longUrl);
+            DOM.shareMessage.textContent = shortUrl ? "단축 URL이 클립보드에 복사되었습니다." : `URL 단축 실패: ${longUrl} (원본 URL 복사됨)`;
+            log(shortUrl ? "단축 URL이 클립보드에 복사되었습니다." : "URL 단축 실패. 원본 URL이 클립보드에 복사되었습니다.", true);
+        })();
+    }
+
+
     // Special handling for version info screen
     if (screenId === 'version-info-screen') {
         renderVersionInfo(DOM);
@@ -210,46 +228,13 @@ function initEventHandlers(DOM, globalTooltip) {
 
     navLinks.forEach(link => {
         if (link) {
-            link.addEventListener('click', async (event) => { // Added async here
+            link.addEventListener('click', (event) => {
                 event.preventDefault(); // Prevent default link behavior
                 const screenId = event.currentTarget.dataset.screen;
                 showScreen(DOM, screenId);
 
                 // --- Active class management is now handled by showScreen ---
-
-                if (screenId === 'share-screen') {
-
-                                    DOM.shareMessage.textContent = "공유 링크 생성 중입니다. 잠시만 기다려 주세요...";
-
-                                    const currentBossListData = DOM.bossListInput.value;
-
-                                    const encodedBossListData = encodeURIComponent(currentBossListData);
-
-                
-
-                                    const fixedAlarmsData = LocalStorageManager.exportFixedAlarms();
-
-                                    const encodedFixedAlarmsData = encodeURIComponent(fixedAlarmsData);
-
-                
-
-                                    const baseUrl = window.location.href.split('?')[0];
-
-                                    const longUrl = `${baseUrl}?data=${encodedBossListData}&fixedData=${encodedFixedAlarmsData}`;
-
-                                    const shortUrl = await getShortUrl(longUrl);
-
-                
-
-                                    await navigator.clipboard.writeText(shortUrl || longUrl); // Copy short URL if available, else long URL
-
-                                    DOM.shareMessage.textContent = shortUrl ? "단축 URL이 클립보드에 복사되었습니다." : `URL 단축 실패: ${longUrl} (원본 URL 복사됨)`;
-
-                                    log(shortUrl ? "단축 URL이 클립보드에 복사되었습니다." : "URL 단축 실패. 원본 URL이 클립보드에 복사되었습니다.", true);
-
-                                }
-
-                            });
+            });
 
                 
 
