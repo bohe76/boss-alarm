@@ -7,6 +7,9 @@ export function initDomElements() {
 
         sidebar: document.getElementById('sidebar'),
         sidebarToggle: document.getElementById('sidebarToggle'), // New
+        bottomNav: document.getElementById('bottom-nav'), // New for mobile
+        sidebarBackdrop: document.getElementById('sidebar-backdrop'), // New for mobile
+        moreMenuButton: document.getElementById('more-menu-button'), // New for mobile
         mainContentArea: document.getElementById('main-content-area'),
         footerVersion: document.getElementById('footer-version'), // New
 
@@ -20,6 +23,12 @@ export function initDomElements() {
         navVersionInfo: document.getElementById('nav-version-info'), // New
         navShare: document.getElementById('nav-share'), // New
         navHelp: document.getElementById('nav-help'), // New
+
+        // Bottom Navigation Links
+        bottomNavDashboard: document.getElementById('bottom-nav-dashboard'),
+        bottomNavBossManagement: document.getElementById('bottom-nav-boss-management'),
+        bottomNavCalculator: document.getElementById('bottom-nav-calculator'),
+        bottomNavShare: document.getElementById('bottom-nav-share'),
 
         // Screen Specific Elements (initially all are present in index.html)
         dashboardScreen: document.getElementById('dashboard-screen'),
