@@ -248,7 +248,7 @@ body {
             color: #666; /* Grey for sound OFF (muted) */
         }
         .remaining-time {
-            color: #457B9D; /* Blue color for remaining time */
+            color: #43AA8B; /* Blue color for remaining time */
         }
         #addFixedAlarmButton {
             width: auto; /* Allow button to size content */
@@ -676,7 +676,7 @@ body {
 }
 
 #lightExpectedTimeDisplay.over-time {
-    color: #1D3557; /* Blue when it's over time */
+    color: #43AA8B; /* Blue when it's over time */
 }
 
 .light-buttons {
@@ -698,7 +698,7 @@ body {
 }
 
 .light-buttons .button:hover:not(:disabled) {
-    background-color: #1D3557;
+    background-color: #457B9D;
 }
 
 .light-buttons .button:disabled {
@@ -708,11 +708,12 @@ body {
 }
 
 #lightGwangButton {
-    background-color: #ff9800; /* Orange for Gwang button */
+    background-color: #F3722C; /* Orange for Gwang button */
 }
 
 #lightGwangButton:hover:not(:disabled) {
-    background-color: #F3722C; /* Darker orange on hover */
+    background-color: #ff9800; /* Darker orange on hover */
+    
 }
 
 .light-calculation-results {
