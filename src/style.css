@@ -248,7 +248,7 @@ body {
             color: #666; /* Grey for sound OFF (muted) */
         }
         .remaining-time {
-            color: #1e90ff; /* Blue color for remaining time */
+            color: #457B9D; /* Blue color for remaining time */
         }
         #addFixedAlarmButton {
             width: auto; /* Allow button to size content */
@@ -259,8 +259,8 @@ body {
         }
         
         /* 알림 시작/중지 버튼 */
-        #startButton { background-color: #1e90ff; color: white; }
-        #startButton:hover { background-color: #0056b3; }
+        #startButton { background-color: #1D3557; color: white; }
+        #startButton:hover { background-color: #1D3557; }
         #startButton.running { background-color: #ea4335; }
         #startButton.running:hover { background-color: #b30006; }
 
@@ -330,11 +330,11 @@ body {
         }
 
         input:checked + .slider {
-            background-color: #1e90ff;
+            background-color: #1D3557;
         }
 
         input:focus + .slider {
-            box-shadow: 0 0 1px #1e90ff;
+            box-shadow: 0 0 1px #1D3557;
         }
 
         input:checked + .slider:before {
@@ -565,7 +565,7 @@ body {
 }
 
 .result-display {
-    color: #1e90ff; /* Blue color for remaining time */
+    color: #1D3557; /* Blue color for remaining time */
 }
 
 .boss-list-actions {
@@ -648,7 +648,7 @@ body {
 }
 
 .light-expected-time-group label.over-time-label .expected-label {
-    color: #1e90ff; /* Blue for "오버 시간" */
+    color: #1D3557; /* Blue for "오버 시간" */
 }
 
 #lightStopwatchDisplay {
@@ -676,7 +676,7 @@ body {
 }
 
 #lightExpectedTimeDisplay.over-time {
-    color: #1e90ff; /* Blue when it's over time */
+    color: #1D3557; /* Blue when it's over time */
 }
 
 .light-buttons {
@@ -693,12 +693,12 @@ body {
     cursor: pointer;
     font-size: 1em;
     transition: background-color 0.2s ease;
-    background-color: #1e90ff;
+    background-color: #1D3557;
     color: white;
 }
 
 .light-buttons .button:hover:not(:disabled) {
-    background-color: #0056b3;
+    background-color: #1D3557;
 }
 
 .light-buttons .button:disabled {
@@ -712,7 +712,7 @@ body {
 }
 
 #lightGwangButton:hover:not(:disabled) {
-    background-color: #e68900; /* Darker orange on hover */
+    background-color: #F3722C; /* Darker orange on hover */
 }
 
 .light-calculation-results {
@@ -922,12 +922,12 @@ body {
 }
 
 .primary-button {
-    background-color: #1e90ff;
+    background-color: #1D3557;
     color: white;
 }
 
         .primary-button:hover {
-            background-color: #0056b3;
+            background-color: #457B9D;
         }
 
         #global-tooltip {
