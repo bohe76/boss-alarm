@@ -165,6 +165,13 @@ function showScreen(DOM, screenId) {
     // Special handling for calculator screen
     if (screenId === 'calculator-screen') { // Updated
         renderCalculatorScreen(DOM);
+        // Enable lightStartButton when the calculator screen is displayed
+        if (DOM.lightStartButton) {
+            DOM.lightStartButton.disabled = false;
+            DOM.lightGwangButton.disabled = true;
+            DOM.lightCaptureButton.disabled = true;
+            DOM.lightListButton.disabled = false;
+        }
     }
 
     // Special handling for boss scheduler screen
