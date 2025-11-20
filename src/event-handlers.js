@@ -87,6 +87,17 @@ function showScreen(DOM, screenId) {
         activeScreen.classList.add('active');
     }
 
+    // Reset scroll position to top for the main content area
+    // Defer the scroll reset to ensure the browser has rendered the new content
+    if (DOM.mainContentArea) {
+        requestAnimationFrame(() => {
+            DOM.mainContentArea.scrollTop = 0;
+            // Also reset scroll for body and documentElement to cover all cases
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        });
+    }
+
     // --- (State Sync) Update active state for all navigation menus ---
     const allNavLinks = [
         DOM.navDashboard, DOM.navBossManagement, DOM.navCalculator, DOM.navBossScheduler,

@@ -506,13 +506,15 @@ export function renderBossSchedulerScreen(DOM, remainingTimes = {}) {
             <button id="clearAllRemainingTimesButton" class="action-button primary-button">남은 시간 초기화</button>
             <button id="moveToBossSettingsButton" class="action-button primary-button">보스 설정 적용</button>
         </div>
-        <div class="boss-input-header">
-            <span class="boss-name-header">보스이름</span>
-            <span class="remaining-time-header">남은 시간</span>
-            <span class="spawn-time-header">젠 시간</span>
-        </div>
-        <div id="bossInputsContainer" class="boss-inputs-container">
-            <!-- Boss input fields will be rendered here -->
+        <div class="scheduler-card">
+            <div class="boss-input-header">
+                <span class="boss-name-header">보스이름</span>
+                <span class="remaining-time-header">남은 시간</span>
+                <span class="spawn-time-header">젠 시간</span>
+            </div>
+            <div id="bossInputsContainer" class="boss-inputs-container">
+                <!-- Boss input fields will be rendered here -->
+            </div>
         </div>
     `;
 
