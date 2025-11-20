@@ -24,7 +24,7 @@
     - 다른 모듈들이 DOM 요소에 직접 접근하는 대신 이 모듈을 통해 일관된 방식으로 접근하도록 함.
 - **DOM 추상화:** 이 모듈은 DOM 접근을 위한 추상화 계층 역할을 하여 일관성을 촉진하고 UI 변경 관리를 용이하게 합니다.
 - **초기화 시점:** 모든 요소가 사용 가능하도록 DOM이 완전히 로드된 후에만 `initDomElements()`를 호출해야 합니다.
-- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`), "광 계산기" 카드(`lightCalculatorCard`), 경과 시간 표시(`lightStopwatchDisplay`), 시작 버튼(`lightStartButton`), 광 버튼(`lightGwangButton`), 잡힘 버튼(`lightCaptureButton`), 목록 버튼(`lightListButton`), 잡힘 예상 시간 표시(`lightExpectedTimeDisplay`), 최근 계산 결과 영역(`lightTempResults`), 저장된 광 계산 목록(`lightSavedList`), 기록 초기화 버튼(`clearLightRecordsButton`), 보스 목록 시간순 정렬 버튼(`sortBossListButton`), 음소거 토글 버튼(`muteToggleButton`), 푸터 버전 표시 영역(`footerVersion`), **모바일 하단 탭 바(`bottomNav`), 모바일 '더보기' 버튼(`moreMenuButton`), 모바일 '더보기' 닫기 버튼(`moreMenuCloseButton`), 사이드바 백드롭(`sidebarBackdrop`), 하단 탭 바의 각 메뉴 아이템들(`bottomNavDashboard`, `bottomNavBossManagement`, `bottomNavCalculator`, `bottomNavShare`)** 에 대한 DOM 참조가 추가되었습니다.
+- **업데이트:** "젠 계산기" 화면(`zen-calculator-screen`), 내비게이션 링크(`nav-zen-calculator`), 남은 시간 입력 필드(`remainingTimeInput`), 보스 출현 시간 표시 영역(`bossAppearanceTimeDisplay`), "보스 스케줄러" 화면(`bossSchedulerScreen`), 게임 선택 드롭다운(`gameSelect`), 보스 입력 컨테이너(`bossInputsContainer`), '남은 시간 초기화' 버튼(`clearAllRemainingTimesButton`), '보스 설정 적용' 버튼(`moveToBossSettingsButton`), "광 계산기" 카드(`lightCalculatorCard`), 경과 시간 표시(`lightStopwatchDisplay`), 시작 버튼(`lightStartButton`), 광 버튼(`lightGwangButton`), 잡힘 버튼(`lightCaptureButton`), 목록 버튼(`lightListButton`), 잡힘 예상 시간 표시(`lightExpectedTimeDisplay`), 최근 계산 결과 영역(`lightTempResults`), 저장된 광 계산 목록(`lightSavedList`), 기록 초기화 버튼(`clearLightRecordsButton`), 보스 목록 시간순 정렬 버튼(`sortBossListButton`), 음소거 토글 버튼(`muteToggleButton`), 푸터 버전 표시 영역(`footerVersion`), 보스 선택 드롭다운(`bossSelectionDropdown`), 보스 시간 업데이트 버튼(`updateBossTimeButton`), 보스 선택 라벨(`bossSelectionLabel`), 토스트 컨테이너(`toastContainer`), **모바일 하단 탭 바(`bottomNav`), 모바일 '더보기' 버튼(`moreMenuButton`), 모바일 '더보기' 닫기 버튼(`moreMenuCloseButton`), 사이드바 백드롭(`sidebarBackdrop`), 하단 탭 바의 각 메뉴 아이템들(`bottomNavDashboard`, `bottomNavBossManagement`, `bottomNavCalculator`, `bottomNavShare`)** 에 대한 DOM 참조가 추가되었습니다.
 
 ### 3.3. `src/logger.js`
 - **역할:** 애플리케이션 내에서 발생하는 메시지(정보, 경고, 오류)를 UI의 로그 컨테이너에 표시하고 관리합니다.
@@ -168,7 +168,9 @@
     - `renderHelpContent(tabName, content)`: 도움말 화면의 탭 콘텐츠 렌더링.
     - `updateVersionDisplay(version)`: 릴리즈 노트 화면의 버전 표시를 `loadJsonContent`를 사용하여 JSON 데이터로부터 아코디언 UI로 렌더링하며, 첫 번째 항목은 기본적으로 펼쳐져 있습니다.
     - `updateShareLink(shortUrl)`: 공유 화면의 단축 URL 표시 업데이트.
-    - `renderCalculatorScreen(DOM)`: "젠 계산기" 및 "광 계산기" 화면의 UI를 초기화하고 렌더링합니다. 입력 필드를 지우고 보스 출현 시간 표시를 초기 상태로 재설정하며, 광 계산기 관련 UI 요소(스톱워치, 예상 시간, 임시 결과, 저장된 목록)를 초기화하고 숨깁니다.
+    - `renderCalculatorScreen(DOM)`: "젠 계산기" 및 "광 계산기" 화면의 UI를 초기화하고 렌더링합니다. 입력 필드를 지우고 보스 출현 시간 표시를 초기 상태로 재설정하며, 광 계산기 관련 UI 요소(스톱워치, 예상 시간, 임시 결과, 저장된 목록)를 초기화하고 숨깁니다. 또한, **젠 계산기 화면의 보스 선택 드롭다운을 향후 보스 목록으로 채우고 '보스 시간 업데이트' 버튼의 초기 상태를 설정하는 기능을 포함하도록 확장되었습니다.**
+    - `populateBossSelectionDropdown(DOM)`: **새로운 함수**로, `BossDataManager`에서 다가오는 보스들을 필터링하여 "[HH:MM] 보스이름" 형식으로 젠 계산기의 보스 선택 드롭다운을 채웁니다.
+    - `showToast(DOM, message)`: **새로운 함수**로, 사용자에게 3초 동안 표시되었다가 자동으로 사라지는 임시 피드백 메시지를 표시합니다.
     - `updateLightStopwatchDisplay(DOM, time)`: "광 계산기"의 경과 시간 스톱워치 디스플레이를 업데이트합니다.
     - `updateLightExpectedTimeDisplay(DOM, time, isOverTime)`: "광 계산기"의 "잡힘 예상 시간" 또는 "오버 시간" 디스플레이를 업데이트하고, 상태에 따라 라벨과 색상을 변경합니다.
     - `renderLightTempResults(DOM, gwangTime, afterGwangTime, totalTime)`: "광 계산기"의 최근 계산 결과를 표 형태로 렌더링합니다. 결과가 없을 경우 해당 영역을 숨깁니다.
@@ -209,7 +211,10 @@
             - 고정 알림 추가, 편집, 삭제, 활성화/비활성화 버튼 클릭 이벤트 처리.
         - **공유:** **공유 화면이 표시될 때(`showScreen` 함수 내부에서) 공유 링크 생성 로직이 실행됩니다. 이는 데스크톱 사이드바 또는 모바일 하단 탭 바를 통해 '공유' 화면에 접근할 때 모두 동일하게 적용됩니다.**
         - **도움말:** `docs/feature_guide.json`에서 콘텐츠를 로드하고 아코디언 형태로 렌더링.
-        - **젠 계산기:** 남은 시간 입력 필드(`remainingTimeInput`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 보스 출현 시간 계산 및 `bossAppearanceTimeDisplay` 업데이트. (입력 필드는 `HH:MM:SS` 또는 `HHMMSS` 형식의 예시 플레이스홀더를 가집니다.)
+        - **젠 계산기:**
+            - 남은 시간 입력 필드(`remainingTimeInput`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 보스 출현 시간 계산 및 `bossAppearanceTimeDisplay` 업데이트. 또한, `checkZenCalculatorUpdateButtonState`를 호출하여 '보스 시간 업데이트' 버튼의 활성화 상태를 제어합니다. (입력 필드는 `HH:MM:SS` 또는 `HHMMSS` 형식의 예시 플레이스홀더를 가집니다.)
+            - 보스 선택 드롭다운(`bossSelectionDropdown`)의 `change` 이벤트 발생 시 `checkZenCalculatorUpdateButtonState`를 호출하여 '보스 시간 업데이트' 버튼의 활성화 상태를 관리합니다.
+            - '보스 시간 업데이트' 버튼(`updateBossTimeButton`) 클릭 시, 선택된 보스의 시간을 `bossListInput` 텍스트 영역에 업데이트하고, `boss-parser.js`를 통해 스케줄을 재파싱하며, `ui-renderer.js:showToast`를 사용하여 성공 메시지를 표시하고, 젠 계산기 UI를 초기화합니다.
         - 광 계산기:
             - '시작' 버튼(`lightStartButton`) 클릭 시 `src/light-calculator.js:startStopwatch()`를 호출하여 스톱워치를 시작하고 관련 버튼 상태를 변경합니다.
             - '광' 버튼(`lightGwangButton`) 클릭 시 `src/light-calculator.js:triggerGwang()`를 호출하여 예상 시간 카운트다운을 시작하고 버튼을 비활성화합니다.
@@ -231,6 +236,8 @@
             - **'더보기' 버튼(`moreMenuButton`) 클릭 시**, 기존 사이드바를 활용한 전체 화면 오버레이를 토글합니다. 이때 `#sidebar`에 `.more-menu-open` 클래스를 추가하고, 배경에 `#sidebar-backdrop.active` 클래스를 추가합니다.
             - **'X' 닫기 버튼(`moreMenuCloseButton`) 또는 백드롭 클릭 시**, '더보기' 메뉴를 닫습니다.
             - **접근성 강화:** '더보기' 메뉴가 열릴 때, 배경 콘텐츠(`main`, `header`, `footer`)에 `inert` 속성을 적용하여 비활성화하고, 메뉴 내에서 키보드 초점(Focus Trap)이 유지되도록 합니다. `Escape` 키로 메뉴를 닫을 수 있도록 이벤트 리스너를 등록합니다. 메뉴가 닫히면 이 모든 접근성 관련 처리를 원상 복구합니다.
+- **새로운 헬퍼 함수:**
+    - `checkZenCalculatorUpdateButtonState(DOM)`: 유효한 보스 선택과 계산된 보스 출현 시간을 기반으로 '보스 시간 업데이트' 버튼의 활성화 여부를 결정하는 헬퍼 함수입니다.
 - **이벤트 처리 흐름:** `initEventHandlers`는 헤더, 사이드바, 메인 콘텐츠 영역 및 **하단 탭 바** 내의 모든 사용자 인터랙션에 대한 이벤트 리스너를 중앙에서 설정하고 관리합니다.
 
 ### 3.13. `src/app.js` (신규 또는 `event-handlers.js`의 `initApp` 확장)
@@ -271,6 +278,10 @@
     - **메뉴 항목:** 활성화된 메뉴 항목 시각적 강조.
     - **알람 토글:** 알람 상태에 따른 SVG 아이콘 색상 변경.
     - **각 화면별 컴포넌트:** 대시보드 카운트다운, 보스 관리 텍스트 영역, 알림 설정 토글, 버전 기록 아코디언, 도움말 아코디언, 광 계산기 스톱워치 및 예상 시간 표시, 버튼 그룹, 최근 계산 결과 테이블, 저장된 기록 테이블 등.
+    - **젠 계산기 레이아웃:** `.zen-grid-row`를 사용하여 테이블과 유사한 구조로 요소를 수평으로 정렬하는 새로운 그리드형 레이아웃을 구현했습니다.
+    - **입력/표시 크기:** 젠 계산기 섹션의 입력 필드, 표시 스팬, 드롭다운 및 버튼 전체에서 일관된 크기 조정을 위해 `--zen-input-width`를 `160px`로 조정했습니다.
+    - **드롭다운 캐럿:** `#bossSelectionDropdown`의 드롭다운 화살표를 `appearance: none` 및 `background-image` (SVG)를 사용하여 사용자 정의하여 위치 및 크기(`background-size: 24px`, `background-position: right 10px center`)를 제어했습니다.
+    - **버튼 텍스트 수직 정렬:** `.light-buttons .button`, `.zen-grid-row #updateBossTimeButton`, `.action-button`에 `display: flex`, `justify-content: center`, `align-items: center`를 적용하고 `line-height` 및 패딩 조정(예: `#lightExpectedTimeDisplay` 및 `.zen-grid-row #bossAppearanceTimeDisplay`의 경우 `padding: 7px 8px 8px 8px;`)을 실험하여 텍스트의 강력한 시각적 중앙 정렬을 달성했습니다.
     - **모바일 하단 탭 바:** `@media (max-width: 768px)` 미디어 쿼리 내에서 `display: flex`, `position: fixed`, `bottom: 0`, `height: var(--bottom-nav-height)` 등의 속성으로 스타일링됩니다. `padding-bottom: env(safe-area-inset-bottom)`을 통해 iPhone 등의 안전 영역을 확보합니다.
     - **메인 콘텐츠 및 푸터 패딩:** 하단 탭 바가 콘텐츠를 가리지 않도록 `body` 요소에 `padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom))`을 적용하여 푸터까지 올바르게 위치시킵니다.
     - **'더보기' 메뉴 오버레이:** `#sidebar.more-menu-open` 클래스를 통해 기존 사이드바가 전체 화면 오버레이로 전환되는 스타일을 정의합니다.
@@ -373,6 +384,7 @@
         *   'calculator-screen'의 경우 `showScreen`은 `ui-renderer.js:renderCalculatorScreen()`를 호출합니다.
         *   **'share-screen'의 경우 `showScreen`은 공유 링크 생성 로직(URL 인코딩, TinyURL API 호출, 클립보드 복사 등)을 실행하고 `DOM.shareMessage`를 업데이트합니다.**
     *   'calculator-screen' (젠 계산기)에서 `DOM.remainingTimeInput`의 `input` 이벤트 발생 시 `src/event-handlers.js`는 `src/calculator.js:calculateBossAppearanceTime()`를 호출하고 `DOM.bossAppearanceTimeDisplay`를 업데이트합니다.
+    *   **젠 계산기 상호 작용 추가:** 사용자가 젠 계산기에서 보스를 선택하고 시간을 입력한 후 '보스 시간 업데이트' 버튼을 클릭하면, `event-handlers.js`의 리스너가 이를 감지하여 `DOM.bossListInput.value`를 업데이트하고 `boss-parser.js`를 통해 스케줄을 재파싱합니다. `ui-renderer.js`의 `showToast`를 통해 업데이트 결과를 시각적으로 알리고, UI를 초기화합니다.
     *   'calculator-screen' (광 계산기)에서:
         - '시작' 버튼 클릭 시 `src/event-handlers.js`는 `src/light-calculator.js:LightCalculator.startStopwatch()`를 호출하고 `ui-renderer.js:updateLightStopwatchDisplay()`를 통해 UI를 업데이트합니다.
         - '광' 버튼 클릭 시 `src/event-handlers.js`는 `src/light-calculator.js:LightCalculator.triggerGwang()`를 호출하고 `ui-renderer.js:updateLightExpectedTimeDisplay()`를 통해 UI를 업데이트합니다.
@@ -430,4 +442,4 @@
 
 ## 6. 결론
 
-리뉴얼된 "보스 알리미" 애플리케이션은 메뉴 기반의 다중 화면 아키텍처를 통해 사용자 경험과 기능적 모듈화를 크게 향상시켰습니다. `app.js`를 중심으로 한 중앙 집중식 초기화 및 라우팅, 그리고 `ui-renderer.js`를 통한 화면별 렌더링은 코드의 가독성, 유지보수성 및 확장성을 더욱 높여 향후 기능 추가 및 변경에 유연하게 대응할 수 있도록 합니다. **특히 모바일 환경을 위한 하단 탭 바 내비게이션 도입으로 사용자 접근성을 개선했으며, 공유 링크 버그, 푸터 잘림 문제, 음소거 로그 메시지 오류 등을 수정하여 전반적인 안정성을 확보했습니다.**
+리뉴얼된 "보스 알리미" 애플리케이션은 메뉴 기반의 다중 화면 아키텍처를 통해 사용자 경험과 기능적 모듈화를 크게 향상시켰습니다. `app.js`를 중심으로 한 중앙 집중식 초기화 및 라우팅, 그리고 `ui-renderer.js`를 통한 화면별 렌더링은 코드의 가독성, 유지보수성 및 확장성을 더욱 높여 향후 기능 추가 및 변경에 유연하게 대응할 수 있도록 합니다. **특히 젠 계산기 업데이트 기능의 추가와 UI/UX 개선을 통해 사용자가 기존 보스의 시간을 더욱 쉽고 정확하게 관리할 수 있도록 하였으며, 버튼 텍스트의 미세한 시각적 정렬 문제에 대한 대응 방안을 모색하여 전반적인 사용자 인터페이스의 완성도를 높였습니다.** 모바일 환경을 위한 하단 탭 바 내비게이션 도입으로 사용자 접근성을 개선했으며, 공유 링크 버그, 푸터 잘림 문제, 음소거 로그 메시지 오류 등을 수정하여 전반적인 안정성을 확보했습니다.
