@@ -561,6 +561,7 @@ body {
     font-weight: bold;
     margin-bottom: 5px;
     color: #111;
+    line-height: 1; /* Adjust line-height to potentially improve vertical alignment */
 }
 
 /* New: Style for hidden labels to maintain vertical alignment */
@@ -573,9 +574,7 @@ body {
 }
 
 /* Specific styling for elements within zen-grid-row */
-.zen-grid-row #remainingTimeInput,
-.zen-grid-row #bossAppearanceTimeDisplay,
-.zen-grid-row #updateBossTimeButton { /* Removed #bossSelectionDropdown from this group */
+.zen-grid-row #remainingTimeInput { /* Removed #bossAppearanceTimeDisplay, #bossSelectionDropdown and #updateBossTimeButton from this group */
     width: var(--zen-input-width);
     height: var(--zen-input-height);
     padding: 8px;
@@ -606,14 +605,36 @@ body {
 }
 
 .zen-grid-row #bossAppearanceTimeDisplay {
-    line-height: calc(var(--zen-input-height) - 16px);
+    width: var(--zen-input-width); /* Re-add width */
+    height: var(--zen-input-height); /* Re-add height */
+    border: 1px solid #ccc; /* Re-add border */
+    border-radius: 8px; /* Re-add border-radius */
+    background-color: #f8f8f8; /* Re-add background-color */
+    box-sizing: border-box; /* Re-add box-sizing */
     font-size: 1.1em;
     font-weight: 700;
     color: #ea4335;
-    display: inline-flex;
-    align-items: center;
+    display: flex; /* Use flex to align content within the span */
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    text-align: center; /* Fallback for older browsers */
+    padding: 7px 8px 8px 8px; /* Reduce bottom padding by 1px, increase top by 1px */
+}
+
+.zen-grid-row #updateBossTimeButton {
+    width: var(--zen-input-width);
+    height: var(--zen-input-height);
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px; /* Changed from 8px to 4px */
+    font-size: 1em;
+    background-color: #1D3557; /* Example color, should be specific */
+    color: white;
+    box-sizing: border-box;
+    display: flex;
     justify-content: center;
-    text-align: center;
+    align-items: center;
+    line-height: 1.2em; /* Explicit line height for text alignment */
 }
 
 #remainingTimeInput,
@@ -626,24 +647,6 @@ body {
     border-radius: 8px;
     font-size: 1em;
     background-color: #f8f8f8;
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
-}
-
-#bossAppearanceTimeDisplay {
-    width: var(--zen-input-width); /* Apply consistent width */
-    height: var(--zen-input-height); /* Apply consistent height */
-    line-height: calc(var(--zen-input-height) - 16px); /* Center text vertically (height - 2*padding) */
-    font-size: 1.1em; /* Adjusted font size to fit better */
-    font-weight: 700;
-    color: #ea4335; /* Red color for emphasis */
-    background-color: #f8f8f8;
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    display: inline-flex; /* Use flex to easily center content */
-    align-items: center; /* Center vertically */
-    justify-content: center; /* Center horizontally */
-    text-align: center; /* Fallback for older browsers */
     box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
@@ -771,7 +774,7 @@ body {
     font-weight: 700;
     color: #111; /* Black for stopwatch */
     background-color: #f8f8f8;
-    padding: 8px 16px; /* Changed from 10px 15px to 8px 16px (spacing-xs top/bottom, spacing-md left/right) */
+    padding: 6px 16px 8px 16px; /* Changed from 10px 15px to 8px 16px (spacing-xs top/bottom, spacing-md left/right) */
     border-radius: 8px;
     border: 1px solid #ccc;
     min-width: 150px;
@@ -783,11 +786,12 @@ body {
     font-weight: 700;
     color: #ea4335; /* Red for expected time */
     background-color: #f8f8f8;
-    padding: 8px 16px; /* Changed from 10px 15px to 8px 16px (spacing-xs top/bottom, spacing-md left/right) */
+    padding: 6px 16px 8px 16px; /* Changed from 10px 15px to 8px 16px (spacing-xs top/bottom, spacing-md left/right) */
     border-radius: 8px;
     border: 1px solid #ccc;
     min-width: 150px;
-    text-align: center;
+    text-align: center; /* Rely on text-align for centering */
+    /* Removed display:flex, justify-content, align-items, line-height */
 }
 
 #lightExpectedTimeDisplay.over-time {
@@ -804,12 +808,16 @@ body {
 .light-buttons .button {
     padding: 8px 20px; /* Half vertical padding */
     border: none;
-    border-radius: 8px;
+    border-radius: 4px; /* Changed from 8px to 4px */
     cursor: pointer;
     font-size: 1em;
     transition: background-color 0.2s ease;
     background-color: #1D3557;
     color: white;
+    display: flex; /* Robust centering */
+    justify-content: center;
+    align-items: center;
+    line-height: 1.2em; /* Explicit line height for text alignment */
 }
 
 .light-buttons .button:hover:not(:disabled) {
@@ -1023,14 +1031,17 @@ body {
 .action-button {
     padding: 8px 16px;
     border: none;
-    border-radius: 8px;
+    border-radius: 4px; /* Changed from 8px to 4px */
     cursor: pointer;
     font-size: 1em;
     transition: background-color 0.2s ease;
     background-color: #f0f0f0;
     color: #333;
-    width: 150px; /* Fixed width for consistent sizing */
-    text-align: center; /* Center text within the button */
+    width: 150px; /* Fixed width */
+    display: flex; /* Robust centering */
+    justify-content: center;
+    align-items: center;
+    line-height: 1.2em; /* Explicit line height for text alignment */
 }
 
 .action-button:hover {

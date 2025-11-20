@@ -81,6 +81,9 @@ UI 요소의 둥근 정도를 통일하기 위한 시스템을 정의합니다.
 ### 7.1. 버튼
 
 *   **기본 스타일:**
+    *   `display`: `flex`
+    *   `justify-content`: `center`
+    *   `align-items`: `center`
     *   `padding`: `spacing-xs` (`8px`) 상하, `spacing-md` (`16px`) 좌우
     *   `border-radius`: `radius-md` (`8px`)
     *   `font-size`: `body-md` (`1em`)
