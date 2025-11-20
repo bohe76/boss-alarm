@@ -2,10 +2,11 @@
 
 import { parseBossList, getSortedBossListText } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-scheduler.js';
-import { renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen, renderBossSchedulerScreen, renderBossInputs, updateMuteButtonVisuals, showToast, populateBossSelectionDropdown } from './ui-renderer.js'; // Added showToast, populateBossSelectionDropdown
+import { renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen, renderBossSchedulerScreen, renderBossInputs, updateMuteButtonVisuals, showToast, populateBossSelectionDropdown, renderCustomListManagementModal } from './ui-renderer.js'; // Added showToast, populateBossSelectionDropdown
 import { getShortUrl, loadJsonContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
 import { LocalStorageManager } from './data-managers.js';
+import { CustomListManager } from './custom-list-manager.js';
 import { initDomElements } from './dom-elements.js';
 import * as DefaultBossList from './default-boss-list.js'; // Import bossPresets
 import { calculateBossAppearanceTime } from './calculator.js'; // Import calculateBossAppearanceTime
@@ -695,13 +696,117 @@ function initEventHandlers(DOM, globalTooltip) {
         });
     }
 
+    // --- Custom Boss List Event Handlers ---
 
+    // Open Modal
+    if (DOM.manageCustomListsButton) {
+        DOM.manageCustomListsButton.addEventListener('click', () => {
+            // Reset modal state before showing
+            DOM.customListNameInput.value = '';
+            DOM.customListContentTextarea.value = '';
+            delete DOM.saveCustomListButton.dataset.editTarget;
+            DOM.saveCustomListButton.textContent = '저장';
+            
+            renderCustomListManagementModal(DOM); // Refresh list
+            DOM.customBossListModal.style.display = 'flex';
+            DOM.customListNameInput.focus();
+        });
+    }
 
+    // Close Modal
+    const closeModal = () => {
+        if (DOM.customBossListModal) {
+            DOM.customBossListModal.style.display = 'none';
+        }
+    };
+    if (DOM.closeCustomListModal) {
+        DOM.closeCustomListModal.addEventListener('click', closeModal);
+    }
+    if (DOM.customBossListModal) {
+        DOM.customBossListModal.addEventListener('click', (event) => {
+            if (event.target === DOM.customBossListModal) {
+                closeModal();
+            }
+        });
+    }
 
+    // Save/Update Button in Modal
+    if (DOM.saveCustomListButton) {
+        DOM.saveCustomListButton.addEventListener('click', () => {
+            const listName = DOM.customListNameInput.value.trim();
+            const listContent = DOM.customListContentTextarea.value.trim();
+            const editTarget = DOM.saveCustomListButton.dataset.editTarget;
 
+            let result;
+            if (editTarget && editTarget !== listName) { // Renaming while updating content
+                const renameResult = CustomListManager.renameCustomList(editTarget, listName);
+                if (!renameResult.success) {
+                    log(renameResult.message, false);
+                    showToast(DOM, `오류: ${renameResult.message}`);
+                    return;
+                }
+                result = CustomListManager.updateCustomList(listName, listContent);
 
+            } else if (editTarget) { // Just updating content
+                result = CustomListManager.updateCustomList(editTarget, listContent);
+            } else { // Adding a new list
+                result = CustomListManager.addCustomList(listName, listContent);
+            }
 
-    // --- Light Calculator Screen Event Handlers ---
+            if (result.success) {
+                showToast(DOM, result.message);
+                renderCustomListManagementModal(DOM);
+                renderBossSchedulerScreen(DOM, _remainingTimes); // To update dropdown
+                closeModal();
+            } else {
+                log(result.message, false);
+                showToast(DOM, `오류: ${result.message}`);
+            }
+        });
+    }
+
+    // Event Delegation for Management List (Edit, Rename, Delete)
+    if (DOM.customListManagementContainer) {
+        DOM.customListManagementContainer.addEventListener('click', (event) => {
+            const button = event.target.closest('button');
+            if (!button) return;
+
+            const item = button.closest('.custom-list-manage-item');
+            if (!item) return;
+            
+            const listName = item.dataset.listName;
+
+            if (button.classList.contains('delete-custom-list-button')) {
+                if (confirm(`'${listName}' 목록을 정말 삭제하시겠습니까?`)) {
+                    const result = CustomListManager.deleteCustomList(listName);
+                    showToast(DOM, result.message);
+                    if (result.success) {
+                        renderCustomListManagementModal(DOM);
+                        renderBossSchedulerScreen(DOM, _remainingTimes);
+                    }
+                }
+            } else if (button.classList.contains('rename-custom-list-button')) {
+                const newName = prompt(`'${listName}'의 새 이름을 입력하세요:`, listName);
+                if (newName && newName.trim() && newName.trim() !== listName) {
+                    const result = CustomListManager.renameCustomList(listName, newName.trim());
+                    showToast(DOM, result.message);
+                    if (result.success) {
+                        renderCustomListManagementModal(DOM);
+                        renderBossSchedulerScreen(DOM, _remainingTimes);
+                    }
+                }
+            } else if (button.classList.contains('edit-custom-list-button')) {
+                const content = CustomListManager.getCustomListContent(listName);
+                DOM.customListNameInput.value = listName;
+                DOM.customListContentTextarea.value = content || '';
+                DOM.saveCustomListButton.textContent = '수정';
+                DOM.saveCustomListButton.dataset.editTarget = listName;
+                DOM.customListNameInput.focus(); // Focus on the name input for editing
+            }
+        });
+    }
+
+        // --- Light Calculator Screen Event Handlers ---
     if (DOM.lightStartButton) {
         DOM.lightStartButton.addEventListener('click', () => {
             LightCalculator.startStopwatch((time) => {

@@ -95,5 +95,14 @@ export function initDomElements() {
         bossInputsContainer: document.getElementById('bossInputsContainer'), // New
         clearAllRemainingTimesButton: document.getElementById('clearAllRemainingTimesButton'), // New
         moveToBossSettingsButton: document.getElementById('moveToBossSettingsButton'), // New
+
+        // Custom Boss List Feature Elements
+        manageCustomListsButton: document.getElementById('manage-custom-lists-button'),
+        customBossListModal: document.getElementById('custom-boss-list-modal'),
+        closeCustomListModal: document.getElementById('close-custom-list-modal'),
+        customListNameInput: document.getElementById('custom-list-name-input'),
+        customListContentTextarea: document.getElementById('custom-list-content-textarea'),
+        saveCustomListButton: document.getElementById('save-custom-list-button'),
+        customListManagementContainer: document.getElementById('custom-list-management-container'),
     };
 }

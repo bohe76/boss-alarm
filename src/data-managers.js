@@ -169,6 +169,10 @@ export const LocalStorageManager = (() => {
     }
 
     return {
+        // Generic getter/setter
+        get: (key) => JSON.parse(localStorage.getItem(key)),
+        set: (key, value) => localStorage.setItem(key, JSON.stringify(value)),
+
         getFixedAlarms: () => fixedAlarms,
         addFixedAlarm: (alarm) => {
             fixedAlarms.push(alarm);

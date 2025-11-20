@@ -213,7 +213,68 @@
 
             <section id="boss-scheduler-screen" class="screen">
                 <h2>보스 스케줄러</h2>
-                <!-- Boss Scheduler UI will be rendered here by JavaScript -->
+
+                        <div class="scheduler-section">
+                            <h3>게임 선택</h3>
+                            <div class="control-group-horizontal">
+                                <select id="gameSelect"></select>
+                                <button id="manage-custom-lists-button" class="button">커스텀 보스 관리</button>
+                            </div>
+                        </div>
+                
+                        <div class="action-buttons">
+                            <button id="clearAllRemainingTimesButton" class="button primary-button">남은 시간 초기화</button>
+                            <button id="moveToBossSettingsButton" class="button primary-button">보스 설정 적용</button>
+                        </div>
+                
+                                        <div class="scheduler-card">
+                
+                                            <div class="boss-input-header">
+                
+                                                <span class="boss-name-header">보스이름</span>
+                
+                                                <span class="remaining-time-header">남은 시간</span>
+                
+                                                <span class="spawn-time-header">젠 시간</span>
+                
+                                            </div>
+                
+                                            <div id="bossInputsContainer">
+                
+                                                <!-- Boss input fields will be rendered here -->
+                
+                                            </div>
+                
+                                        </div>                <!-- Custom Boss List Management Modal -->
+                <div id="custom-boss-list-modal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>커스텀 보스 관리</h2>
+                            <button id="close-custom-list-modal" class="close-button">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="tab-content">
+                                <h3>목록 추가/수정</h3>
+                                <div class="control-group">
+                                    <label for="custom-list-name-input">목록 이름</label>
+                                    <input type="text" id="custom-list-name-input" placeholder="새 목록 이름 입력">
+                                </div>
+                                <div class="control-group">
+                                    <label for="custom-list-content-textarea">보스 목록 (한 줄에 하나씩)</label>
+                                    <textarea id="custom-list-content-textarea" rows="10" placeholder="보스 이름을 한 줄에 하나씩 입력하세요."></textarea>
+                                </div>
+                                <button id="save-custom-list-button" class="button primary-button">저장</button>
+                            </div>
+                            <hr>
+                            <div class="tab-content">
+                                <h3>목록 관리</h3>
+                                <div id="custom-list-management-container">
+                                    <!-- Dynamically rendered list for managing (edit, rename, delete) custom lists -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <section id="notification-settings-screen" class="screen">

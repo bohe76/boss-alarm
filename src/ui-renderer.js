@@ -2,6 +2,7 @@ import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Im
 import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRunning
 import { log, getLogs } from './logger.js'; // Import log and getLogs
 import { loadJsonContent } from './api-service.js'; // Import loadJsonContent
+import { CustomListManager } from './custom-list-manager.js';
 import { getGameNames, getBossNamesForGame } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
 
 // Helper for time validation
@@ -331,14 +332,14 @@ export function renderFixedAlarms(DOM) {
         // Edit Button
         const editButton = document.createElement('button');
         editButton.textContent = '편집';
-        editButton.className = 'edit-fixed-alarm-button';
+        editButton.className = 'button edit-fixed-alarm-button';
         editButton.dataset.id = alarm.id;
         actionButtonsDiv.appendChild(editButton);
 
         // Delete Button
         const deleteButton = document.createElement('button');
         deleteButton.textContent = '삭제';
-        deleteButton.className = 'delete-fixed-alarm-button';
+        deleteButton.className = 'button delete-fixed-alarm-button';
         deleteButton.dataset.id = alarm.id;
         actionButtonsDiv.appendChild(deleteButton);
 
@@ -349,15 +350,14 @@ export function renderFixedAlarms(DOM) {
     // Add New Fixed Alarm Section
     const addAlarmSection = document.createElement('div');
     addAlarmSection.className = 'add-fixed-alarm-section';
-    addAlarmSection.innerHTML = `
-        <h3>새 고정 알림 추가</h3>
-        <div class="add-alarm-card">
-            <input type="text" id="newFixedAlarmTime" placeholder="시간 (HH:MM)">
-            <input type="text" id="newFixedAlarmName" placeholder="이름">
-            <button id="addFixedAlarmButton">추가</button>
-        </div>
-    `;
-    DOM.fixedAlarmListDiv.appendChild(addAlarmSection);
+                    addAlarmSection.innerHTML = `
+                        <h3>새 고정 알림 추가</h3>
+                        <div class="add-alarm-card">
+                            <input type="text" id="newFixedAlarmTime" placeholder="시간 (HH:MM)">
+                            <input type="text" id="newFixedAlarmName" placeholder="이름">
+                            <button id="addFixedAlarmButton" class="button">추가</button>
+                        </div>
+                    `;    DOM.fixedAlarmListDiv.appendChild(addAlarmSection);
 
     // Attach event listener for the add button
     const addFixedAlarmButton = addAlarmSection.querySelector('#addFixedAlarmButton');
@@ -493,45 +493,50 @@ export function renderCalculatorScreen(DOM) {
     }
 }
 
+
+export function renderCustomListManagementModal(DOM) {
+    if (!DOM.customListManagementContainer) return;
+    const lists = CustomListManager.getCustomLists();
+    if (lists.length === 0) {
+        DOM.customListManagementContainer.innerHTML = '<p>관리할 커스텀 목록이 없습니다.</p>';
+        return;
+    }
+    DOM.customListManagementContainer.innerHTML = lists.map(list => `
+        <div class="custom-list-manage-item" data-list-name="${list.name}">
+            <span class="list-name">${list.name}</span>
+            <div class="button-group">
+                <button class="button edit-custom-list-button">수정</button>
+                <button class="button rename-custom-list-button">이름 변경</button>
+                <button class="button delete-custom-list-button">삭제</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+
 // --- Boss Scheduler Screen Rendering Functions ---
 export function renderBossSchedulerScreen(DOM, remainingTimes = {}) {
-    // Clear previous content
-    DOM.bossSchedulerScreen.innerHTML = `
-        <h2>보스 스케줄러</h2>
-        <div class="boss-scheduler-controls">
-            <label for="gameSelect">게임 선택</label>
-            <select id="gameSelect"></select>
-        </div>
-        <div class="boss-scheduler-actions">
-            <button id="clearAllRemainingTimesButton" class="action-button primary-button">남은 시간 초기화</button>
-            <button id="moveToBossSettingsButton" class="action-button primary-button">보스 설정 적용</button>
-        </div>
-        <div class="scheduler-card">
-            <div class="boss-input-header">
-                <span class="boss-name-header">보스이름</span>
-                <span class="remaining-time-header">남은 시간</span>
-                <span class="spawn-time-header">젠 시간</span>
-            </div>
-            <div id="bossInputsContainer" class="boss-inputs-container">
-                <!-- Boss input fields will be rendered here -->
-            </div>
-        </div>
-    `;
-
-    // Re-get DOM elements after innerHTML update
-    DOM.gameSelect = DOM.bossSchedulerScreen.querySelector('#gameSelect');
-    DOM.bossInputsContainer = DOM.bossSchedulerScreen.querySelector('#bossInputsContainer');
-    DOM.clearAllRemainingTimesButton = DOM.bossSchedulerScreen.querySelector('#clearAllRemainingTimesButton');
-    DOM.moveToBossSettingsButton = DOM.bossSchedulerScreen.querySelector('#moveToBossSettingsButton');
+    if (!DOM.bossSchedulerScreen) return;
 
     // Populate game selection dropdown
-    const gameNames = getGameNames();
-    DOM.gameSelect.innerHTML = gameNames.map(game => `<option value="${game}">${game}</option>`).join('');
+    const gameNameObjects = getGameNames();
+    if (DOM.gameSelect) {
+        DOM.gameSelect.innerHTML = gameNameObjects.map(game => 
+            `<option value="${game.name}">${game.isCustom ? '*' : ''}${game.name}</option>`
+        ).join('');
+    }
 
     // Render bosses for the initially selected game
-    if (gameNames.length > 0) {
-        renderBossInputs(DOM, gameNames[0], remainingTimes);
+    if (gameNameObjects.length > 0) {
+        renderBossInputs(DOM, gameNameObjects[0].name, remainingTimes);
+    } else {
+        if (DOM.bossInputsContainer) {
+            DOM.bossInputsContainer.innerHTML = '<p>선택할 수 있는 게임 목록이 없습니다.</p>';
+        }
     }
+
+    // Render custom list sections
+    renderCustomListManagementModal(DOM);
 }
 
 /**
@@ -541,6 +546,10 @@ export function renderBossSchedulerScreen(DOM, remainingTimes = {}) {
  */
 export function renderBossInputs(DOM, gameName, remainingTimes = {}) {
     const bossNames = getBossNamesForGame(gameName);
+    if (!bossNames || bossNames.length === 0) {
+        DOM.bossInputsContainer.innerHTML = '<p>선택된 게임/목록에 보스가 없습니다.</p>';
+        return;
+    }
     DOM.bossInputsContainer.innerHTML = bossNames.map(bossName => {
         const initialValue = remainingTimes[bossName] || '';
         return `
