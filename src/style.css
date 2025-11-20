@@ -48,8 +48,9 @@ body {
             margin-bottom: 00px;
             margin-top: 4px;
             display: flex;
-            align-items: right;
+            align-items: center;
             justify-content: right;
+            margin-right: 30px;
         }
 
         .alarm-icon {
@@ -1033,7 +1034,6 @@ body {
     gap: 10px;
     margin-top: 20px; /* Adjusted from previous 10px, assuming base commit. */
     margin-bottom: 30px; /* Added extra space below buttons */
-    padding-left: 28px; /* Adjusted to align with other content in the boss scheduler */
 }
 
 .action-button {
