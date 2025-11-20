@@ -186,7 +186,8 @@ export function getSortedBossListText(rawText) {
 
             // Create simple objects
             bossLinesInBlock.forEach(line => {
-                const parts = line.split(' ');
+                const normalizedLine = line.replace(/[^\S\n]+/g, ' '); // 여러 공백을 단일 공백으로 정규화
+                const parts = normalizedLine.split(' ');
                 if (parts.length < 2) return;
                 const timeMatch = parts[0].match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
                 if (!timeMatch) return;
