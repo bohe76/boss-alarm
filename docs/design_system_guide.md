@@ -89,7 +89,7 @@ UI 요소의 둥근 정도를 통일하기 위한 시스템을 정의합니다.
     *   `font-size`: `body-md` (`1em`)
     *   `cursor`: `pointer`
     *   `transition`: `background-color 0.2s ease`
-*   **Primary Button:**
+    *   **텍스트 수직 정렬:** `display: flex`와 `align-items: center`를 사용해도 글꼴 렌더링 특성상 텍스트가 시각적으로 완벽하게 중앙에 위치하지 않을 수 있습니다. 이 경우, `line-height` 또는 `padding-top`/`padding-bottom`의 미세 조정을 통해 시각적 중앙 정렬을 달성합니다. (예: `line-height: 1.2em;` 또는 `padding: 7px 8px 8px 8px;`)*   **Primary Button:**
     *   `background-color`: `Primary` (`#007aff`)
     *   `color`: `white`
     *   `hover`: `darken(Primary, 10%)` (예: `#0056b3`)
