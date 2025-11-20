@@ -150,14 +150,30 @@
                 <h2>계산기</h2>
                 <div id="zenCalculatorCard" class="calculator-card">
                     <h3>젠 계산기</h3>
-                    <div class="calculator-input-group">
-                        <label for="remainingTimeInput">남은 시간</label>
-                        <input type="text" id="remainingTimeInput" placeholder="예: 48:18 또는 4818">
+                    <div class="zen-grid-row">
+                        <div class="input-group">
+                            <label for="remainingTimeInput">남은 시간</label>
+                            <input type="text" id="remainingTimeInput" placeholder="예: 48:18 또는 4818">
+                        </div>
+                        <div class="result-display">
+                            <label>보스 출현 시간</label>
+                            <span id="bossAppearanceTimeDisplay" class="result-display">--:--:--</span>
+                        </div>
                     </div>
-                    <div class="calculator-result-group">
-                        <label>보스 출현 시간</label>
-                        <span id="bossAppearanceTimeDisplay" class="result-display">--:--:--</span>
+                    
+                    <div class="zen-grid-row"> <!-- Second row with two columns -->
+                        <div class="input-group"> <!-- Left column for update label + dropdown -->
+                            <label for="bossSelectionDropdown" id="bossSelectionLabel" class="zen-label">업데이트할 보스</label>
+                            <select id="bossSelectionDropdown">
+                                <option value="">보스 선택</option>
+                            </select>
+                        </div>
+                        <div class="button-group"> <!-- Right column for update button -->
+                            <label class="hidden-label">보스 시간 업데이트</label> <!-- Placeholder for vertical alignment -->
+                            <button id="updateBossTimeButton" disabled>보스 시간 업데이트</button>
+                        </div>
                     </div>
+                    <div id="toastContainer" class="toast-container"></div>
                 </div>
 
                 <div id="lightCalculatorCard" class="calculator-card">

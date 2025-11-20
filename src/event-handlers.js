@@ -2,7 +2,7 @@
 
 import { parseBossList, getSortedBossListText } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-scheduler.js';
-import { renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen, renderBossSchedulerScreen, renderBossInputs, updateMuteButtonVisuals } from './ui-renderer.js';
+import { renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen, renderBossSchedulerScreen, renderBossInputs, updateMuteButtonVisuals, showToast, populateBossSelectionDropdown } from './ui-renderer.js'; // Added showToast, populateBossSelectionDropdown
 import { getShortUrl, loadJsonContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
 import { LocalStorageManager } from './data-managers.js';
@@ -48,10 +48,14 @@ function hideTooltip(globalTooltip) {
     globalTooltip.style.visibility = 'hidden';
 }
 
-// Global tooltip functions
-
-
-
+// Helper to check if Zen Calculator update button should be enabled
+function checkZenCalculatorUpdateButtonState(DOM) {
+    const isBossSelected = DOM.bossSelectionDropdown && DOM.bossSelectionDropdown.value !== '';
+    const isTimeCalculated = DOM.bossAppearanceTimeDisplay && DOM.bossAppearanceTimeDisplay.textContent !== '--:--:--';
+    if (DOM.updateBossTimeButton) {
+        DOM.updateBossTimeButton.disabled = !(isBossSelected && isTimeCalculated);
+    }
+}
 
 
 
@@ -438,6 +442,104 @@ function initEventHandlers(DOM, globalTooltip) {
             const bossAppearanceTime = calculateBossAppearanceTime(remainingTime);
             if (DOM.bossAppearanceTimeDisplay) {
                 DOM.bossAppearanceTimeDisplay.textContent = bossAppearanceTime || '--:--:--';
+            }
+            checkZenCalculatorUpdateButtonState(DOM); // Check button state
+        });
+    }
+
+    if (DOM.bossSelectionDropdown) {
+        DOM.bossSelectionDropdown.addEventListener('change', () => {
+            checkZenCalculatorUpdateButtonState(DOM); // Check button state
+        });
+    }
+
+    if (DOM.updateBossTimeButton) {
+        DOM.updateBossTimeButton.addEventListener('click', () => {
+            const selectedBossValue = DOM.bossSelectionDropdown.value;
+            const newBossTime = DOM.bossAppearanceTimeDisplay.textContent; // HH:MM:SS format
+
+            if (!selectedBossValue || newBossTime === '--:--:--') {
+                showToast(DOM, "보스 선택 또는 시간 계산이 유효하지 않습니다.");
+                return;
+            }
+
+            // selectedBossValue format: `${item.scheduledDate.toISOString()}__${name}`
+            const [isoDate, bossName] = selectedBossValue.split('__');
+            const targetDate = new Date(isoDate);
+
+            let currentBossListText = DOM.bossListInput.value;
+            let updatedBossListText = '';
+            let bossFoundAndUpdated = false;
+
+            const lines = currentBossListText.split('\n');
+            let currentDateContext = null; // Tracks the current date marker
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const dateMatch = line.match(/^(\d{1,2})\.(\d{1,2})$/);
+
+                if (dateMatch) {
+                    // Update date context
+                    const month = parseInt(dateMatch[1], 10) - 1;
+                    const day = parseInt(dateMatch[2], 10);
+                    currentDateContext = new Date(new Date().getFullYear(), month, day);
+                    // Retain the date line in the output
+                    updatedBossListText += line + '\n';
+                } else {
+                    const parts = line.split(' ');
+                    // Ensure there's at least a time part
+                    if (parts.length === 0 || !parts[0].match(/^\d{1,2}:\d{2}(?::\d{2})?$/)) {
+                        updatedBossListText += line + '\n'; // Keep non-boss lines as is
+                        continue;
+                    }
+                    
+                    const timePart = parts[0];
+                    const namePart = parts.slice(1).join(' ');
+
+                    // Check if this line matches the selected boss to update
+                    // Compare name and also ensure it's the correct date context
+                    if (namePart === bossName) {
+                        const lineTimeMatch = timePart.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+                        if (lineTimeMatch) {
+                            const lineHour = parseInt(lineTimeMatch[1], 10);
+                            const lineMinute = parseInt(lineTimeMatch[2], 10);
+                            // Construct date from current line for comparison with targetDate
+                            let lineDate = new Date(currentDateContext || new Date());
+                            lineDate.setHours(lineHour, lineMinute, 0, 0); // Ignore seconds for this comparison
+
+                            // Compare by date and name for precise match
+                            // Use toISOString().slice(0, 10) to compare only YYYY-MM-DD
+                            if (lineDate.toISOString().slice(0, 10) === targetDate.toISOString().slice(0, 10)) {
+                                // Found the exact boss to update
+                                // Update HH:MM part, seconds are implicitly handled by parseBossList
+                                updatedBossListText += `${newBossTime.substring(0, 8)} ${namePart}\n`; // Include full HH:MM:SS
+                                bossFoundAndUpdated = true;
+                            } else {
+                                updatedBossListText += line + '\n'; // Not the target boss, keep as is
+                            }
+                        } else {
+                            updatedBossListText += line + '\n'; // Time format invalid for this line, keep as is
+                        }
+                    } else {
+                        updatedBossListText += line + '\n'; // Name doesn't match, keep as is
+                    }
+                }
+            }
+
+            if (bossFoundAndUpdated) {
+                DOM.bossListInput.value = updatedBossListText.trim();
+                parseBossList(DOM.bossListInput); // Re-parse to update internal schedule
+                renderDashboard(DOM); // Re-render dashboard if needed (e.g., next boss update)
+                showToast(DOM, `${bossName} 보스 시간이 ${newBossTime}으로 업데이트 되었습니다.`);
+
+                // Reset Zen Calculator UI
+                DOM.remainingTimeInput.value = '';
+                DOM.bossAppearanceTimeDisplay.textContent = '--:--:--';
+                DOM.bossSelectionDropdown.value = ''; // Reset dropdown
+                checkZenCalculatorUpdateButtonState(DOM); // Disable button
+                populateBossSelectionDropdown(DOM); // Re-populate dropdown (in case boss times shift visibility)
+            } else {
+                showToast(DOM, "선택된 보스를 목록에서 찾거나 업데이트할 수 없습니다.");
             }
         });
     }

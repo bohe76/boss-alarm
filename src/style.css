@@ -528,40 +528,155 @@ body {
 }
 
 /* Zen Calculator Screen Styles */
-.calculator-input-group,
-.calculator-result-group {
-    margin-bottom: 16px;
-    display: flex;
-    flex-direction: column;
+:root {
+    --zen-input-width: 160px; /* Adjusted fixed width, should accommodate HH:MM:SS */
+    --zen-input-height: 40px; /* Standard height for inputs/displays */
 }
 
-.calculator-input-group label,
-.calculator-result-group label {
+.zen-grid-row {
+    display: flex;
+    flex-direction: row;
+    gap: 10px; /* Consistent gap between columns */
+    margin-bottom: 20px;
+}
+
+.zen-grid-row:last-of-type { /* Adjust margin for the last row to avoid excessive spacing */
+    margin-bottom: 0;
+}
+
+.zen-grid-row .input-group, /* Targets 남은 시간 and 업데이트할 보스 columns */
+.zen-grid-row .result-display, /* Targets 보스 출현 시간 column */
+.zen-grid-row .button-group { /* Targets 업데이트 버튼 column */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.zen-grid-row .input-group,
+.zen-grid-row .button-group { /* Apply width to the main column containers */
+    width: var(--zen-input-width);
+}
+
+.zen-grid-row label {
     font-weight: bold;
     margin-bottom: 5px;
     color: #111;
 }
 
-#remainingTimeInput {
-    width: 200px; /* Adjust as needed */
-    padding: 8px; /* Changed from 10px to 8px (spacing-xs) */
+/* New: Style for hidden labels to maintain vertical alignment */
+.hidden-label {
+    visibility: hidden; /* Hide the label but keep its space */
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #111;
+    display: block;
+}
+
+/* Specific styling for elements within zen-grid-row */
+.zen-grid-row #remainingTimeInput,
+.zen-grid-row #bossAppearanceTimeDisplay,
+.zen-grid-row #updateBossTimeButton { /* Removed #bossSelectionDropdown from this group */
+    width: var(--zen-input-width);
+    height: var(--zen-input-height);
+    padding: 8px;
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 1em;
     background-color: #f8f8f8;
+    box-sizing: border-box;
+}
+
+.zen-grid-row #bossSelectionDropdown { /* Specific styling for dropdown */
+    width: var(--zen-input-width);
+    height: var(--zen-input-height);
+    padding: 8px 30px 8px 8px; /* Increased right padding to make space for custom arrow */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+    background-color: #f8f8f8;
+    box-sizing: border-box;
+    appearance: none; /* Remove default arrow */
+    -webkit-appearance: none; /* For Chrome, Safari */
+    -moz-appearance: none; /* For Firefox */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23111' %3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); /* Custom arrow SVG */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Position custom arrow 10px from right */
+    background-size: 24px; /* Increased size of the custom arrow */
+    cursor: pointer; /* Indicate it's clickable */
+}
+
+.zen-grid-row #bossAppearanceTimeDisplay {
+    line-height: calc(var(--zen-input-height) - 16px);
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #ea4335;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+#remainingTimeInput,
+#bossSelectionDropdown,
+#updateBossTimeButton {
+    width: var(--zen-input-width); /* Apply consistent width */
+    height: var(--zen-input-height); /* Apply consistent height */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+    background-color: #f8f8f8;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
 #bossAppearanceTimeDisplay {
-    font-size: 1.5em;
+    width: var(--zen-input-width); /* Apply consistent width */
+    height: var(--zen-input-height); /* Apply consistent height */
+    line-height: calc(var(--zen-input-height) - 16px); /* Center text vertically (height - 2*padding) */
+    font-size: 1.1em; /* Adjusted font size to fit better */
     font-weight: 700;
     color: #ea4335; /* Red color for emphasis */
     background-color: #f8f8f8;
-    padding: 8px; /* Changed from 10px to 8px (spacing-xs) */
+    padding: 8px;
     border-radius: 8px;
     border: 1px solid #ccc;
-    display: inline-block; /* To make padding and border visible */
-    min-width: 120px; /* Ensure consistent width */
+    display: inline-flex; /* Use flex to easily center content */
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    text-align: center; /* Fallback for older browsers */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+/* Toast Container Styles */
+.toast-container {
+    position: fixed; /* Fixed position relative to the viewport */
+    bottom: 80px; /* Above the bottom navigation bar on mobile, or just above footer */
+    left: 50%;
+    transform: translateX(-50%); /* Center horizontally */
+    z-index: 1000; /* Ensure it's on top of other content */
+    display: flex; /* Use flex to manage multiple toasts */
+    flex-direction: column; /* Stack toasts vertically */
+    gap: 10px; /* Space between multiple toasts */
+    max-width: 90%; /* Limit width to prevent overflow on small screens */
+    pointer-events: none; /* Allow clicks to pass through to elements below */
+}
+
+.toast-message {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    opacity: 0; /* Hidden by default */
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    transform: translateY(20px); /* Start slightly below final position */
+    pointer-events: auto; /* Re-enable pointer events for the toast itself */
     text-align: center;
+}
+
+.toast-message.show {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .result-display {

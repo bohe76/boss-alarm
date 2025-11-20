@@ -35,6 +35,54 @@ function formatSpawnTime(timeString) {
     return `[${hours}:${minutes}:${seconds}]`;
 }
 
+// Function to display toast messages
+export function showToast(DOM, message) {
+    if (!DOM.toastContainer) {
+        console.error('Toast container not found.');
+        return;
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-message';
+    toast.textContent = message;
+
+    DOM.toastContainer.appendChild(toast);
+
+    // Force reflow to enable transition
+    void toast.offsetWidth;
+
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.addEventListener('transitionend', () => {
+            toast.remove();
+        }, { once: true });
+    }, 3000); // Hide after 3 seconds
+}
+
+// Function to populate the boss selection dropdown with future bosses
+export function populateBossSelectionDropdown(DOM) {
+    if (!DOM.bossSelectionDropdown) return;
+
+    const bossSchedule = BossDataManager.getBossSchedule();
+    const now = new Date();
+
+    // Clear existing options, keeping the default "보스 선택"
+    DOM.bossSelectionDropdown.innerHTML = '<option value="">보스 선택</option>';
+
+    bossSchedule.forEach(item => {
+        if (item.type === 'boss' && item.scheduledDate && item.scheduledDate.getTime() > now.getTime()) {
+            const time = item.time; // HH:MM or HH:MM:SS
+            const name = item.name;
+            const option = document.createElement('option');
+            option.value = `${item.scheduledDate.toISOString()}__${name}`; // Store ISO string and name for uniqueness
+            option.textContent = `[${time}] ${name}`; // Display [HH:MM] BossName
+            DOM.bossSelectionDropdown.appendChild(option);
+        }
+    });
+}
+
 export function updateMuteButtonVisuals(DOM) {
     if (!DOM.muteToggleButton) return;
     const isMuted = LocalStorageManager.getMuteState();
@@ -408,6 +456,21 @@ export function renderCalculatorScreen(DOM) {
     }
     if (DOM.bossAppearanceTimeDisplay) {
         DOM.bossAppearanceTimeDisplay.textContent = '--:--:--'; // Reset display
+    }
+
+    // New: Populate boss selection dropdown
+    populateBossSelectionDropdown(DOM);
+    // New: Disable update button initially
+    if (DOM.updateBossTimeButton) {
+        DOM.updateBossTimeButton.disabled = true;
+    }
+    // New: Reset boss selection dropdown
+    if (DOM.bossSelectionDropdown) {
+        DOM.bossSelectionDropdown.value = ''; // Reset selected option
+    }
+    // New: Ensure toast container is clear
+    if (DOM.toastContainer) {
+        DOM.toastContainer.innerHTML = '';
     }
 
     // Light Calculator initialization

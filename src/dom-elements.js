@@ -72,6 +72,10 @@ export function initDomElements() {
         // Elements within Zen Calculator Screen
         remainingTimeInput: document.getElementById('remainingTimeInput'), // New
         bossAppearanceTimeDisplay: document.getElementById('bossAppearanceTimeDisplay'), // New
+        bossSelectionLabel: document.getElementById('bossSelectionLabel'), // New
+        bossSelectionDropdown: document.getElementById('bossSelectionDropdown'), // New
+        updateBossTimeButton: document.getElementById('updateBossTimeButton'), // New
+        toastContainer: document.getElementById('toastContainer'), // New
 
         // Elements within Light Calculator Screen
         zenCalculatorCard: document.getElementById('zenCalculatorCard'),
