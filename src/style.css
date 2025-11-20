@@ -1,3 +1,7 @@
+:root {
+    --header-height: 64px; /* Approximate height of the header */
+}
+
 body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
                 Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
@@ -8,6 +12,7 @@ body {
             display: flex; /* Use flexbox for overall layout */
             flex-direction: column; /* Stack header, main, footer vertically */
             min-height: 100vh; /* Ensure body takes full viewport height */
+            padding-top: var(--header-height); /* Add padding to prevent content from being hidden by fixed header */
         }
 
         header {
@@ -16,7 +21,9 @@ body {
             padding: 0px 20px; /* Set top/bottom padding to 0 */
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             flex-shrink: 0; /* Prevent header from shrinking */
-            position: relative; /* Needed for z-index to work */
+            position: fixed; /* Fix header at the top */
+            top: 0;
+            width: 100%;
             z-index: 100; /* Ensure header is on top */
         }
 
@@ -1022,10 +1029,11 @@ body {
 
 .boss-scheduler-actions {
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex-start; /* Ensure left alignment */
     gap: 10px;
-    margin-top: 20px;
-    padding-left: 28px;
+    margin-top: 20px; /* Adjusted from previous 10px, assuming base commit. */
+    margin-bottom: 30px; /* Added extra space below buttons */
+    padding-left: 28px; /* Adjusted to align with other content in the boss scheduler */
 }
 
 .action-button {
