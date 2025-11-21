@@ -302,6 +302,16 @@ body {
         .remaining-time {
             color: #43AA8B; /* Blue color for remaining time */
         }
+        
+        .imminent-boss-info {
+            color: #ea4335; /* Red color for boss name within 5 minutes */
+            font-weight: bold;
+        }
+
+        .imminent-remaining-time {
+            color: #43AA8B; /* Blue color for remaining time within 5 minutes */
+            font-weight: bold;
+        }
                 
         /* 알림 시작/중지 버튼 */
         #startButton { background-color: #1D3557; color: white; }

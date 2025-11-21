@@ -117,7 +117,9 @@ export function renderUpcomingBossList(DOM) {
             const remaining = formatTimeDifference(timeDiff, showSeconds);
 
             const formattedSpawnTime = formatSpawnTime(boss.time);
-            html += `<li><span class="spawn-time">${formattedSpawnTime}</span> ${boss.name} ${remaining}</li>`;
+            const bossNameClass = showSeconds ? 'imminent-boss-info' : '';
+            const remainingTimeClass = showSeconds ? 'imminent-remaining-time' : '';
+            html += `<li><span class="spawn-time ${bossNameClass}">${formattedSpawnTime}</span> <span class="${bossNameClass}">${boss.name}</span> <span class="${remainingTimeClass}">${remaining}</span></li>`;
         });
     } else {
         html += '<li>예정된 보스가 없습니다.</li>';
