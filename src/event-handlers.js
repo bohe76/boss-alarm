@@ -783,7 +783,17 @@ function initEventHandlers(DOM, globalTooltip) {
                             // Call renderCustomListManagementModalContent to update the "목록 관리" tab's display
                             renderCustomListManagementModalContent(DOM); 
                             renderBossSchedulerScreen(DOM, _remainingTimes); // To update dropdown
-                            closeModal();
+
+                            if (editTarget) { // 수정 작업이었을 경우
+                                showCustomListTab(DOM, 'manage'); // '목록 관리' 탭으로 전환
+                                // 입력 필드 및 버튼 상태 초기화
+                                DOM.customListNameInput.value = '';
+                                DOM.customListContentTextarea.value = '';
+                                DOM.saveCustomListButton.textContent = '추가'; // '추가' 모드 기본 텍스트
+                                delete DOM.saveCustomListButton.dataset.editTarget;
+                            } else { // 추가 작업이었을 경우
+                                closeModal(); // 모달 닫기
+                            }
                         } else {
                             alert(`${result.message}`);
                         }        });
