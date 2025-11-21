@@ -108,10 +108,10 @@ export function updateNextBossDisplay(DOM) {
 }
 
 export function renderUpcomingBossList(DOM) {
-    const upcomingBosses = BossDataManager.getUpcomingBosses(10); // Get next 10 bosses
+    const upcomingBosses = BossDataManager.getUpcomingBosses(11); // Get next 11 bosses to skip the first one
     let html = '<ul>';
     if (upcomingBosses.length > 0) {
-        upcomingBosses.forEach(boss => {
+        upcomingBosses.slice(1).forEach(boss => { // Skip the first boss
             const timeDiff = boss.timestamp - Date.now();
             const showSeconds = timeDiff < 5 * 60 * 1000;
             const remaining = formatTimeDifference(timeDiff, showSeconds);
