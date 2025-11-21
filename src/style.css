@@ -201,6 +201,34 @@ body {
             flex-shrink: 0; /* Prevent footer from shrinking */
         }
 
+        /* Base Button Styles */
+        .button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px 16px; /* Consistent padding */
+            border: none; /* No border for a clean look */
+            border-radius: 4px; /* Slightly rounded corners */
+            cursor: pointer;
+            font-size: 1em;
+            line-height: 1.2em; /* Explicit line height for text alignment */
+            transition: background-color 0.2s ease, color 0.2s ease;
+            background-color: #f0f0f0; /* Light gray default background */
+            color: #333; /* Dark text for contrast */
+            text-decoration: none; /* Ensure no underline for a/button elements */
+            white-space: nowrap; /* Prevent text wrapping */
+        }
+
+        .button:hover:not(:disabled) {
+            background-color: #e0e0e0; /* Darker gray on hover */
+        }
+
+        .button:disabled {
+            background-color: #cccccc;
+            color: #666;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
 
 
         h1, h2, h3 {
@@ -258,14 +286,7 @@ body {
         .remaining-time {
             color: #43AA8B; /* Blue color for remaining time */
         }
-        #addFixedAlarmButton {
-            width: auto; /* Allow button to size content */
-            padding: 4px 16px; /* Changed from 8px 15px to 4px 16px (spacing-xxs top/bottom, spacing-md left/right) */
-            font-size: 0.9em;
-            margin-bottom: 0; /* Remove default button margin-bottom */
-            margin-left: auto; /* Push button to the right */
-        }
-        
+                
         /* 알림 시작/중지 버튼 */
         #startButton { background-color: #1D3557; color: white; }
         #startButton:hover { background-color: #1D3557; }
@@ -382,15 +403,7 @@ body {
             border-radius: 4px;
         }
 
-        #addFixedAlarmButton {
-            width: auto; /* Allow button to size content */
-            padding: 4px 16px; /* Smaller padding for this button */
-            font-size: 0.9em;
-            margin-bottom: 0; /* Remove default button margin-bottom */
-            margin-left: auto; /* Push button to the right */
-        }
-
-        .fixed-alarm-header {
+                .fixed-alarm-header {
             display: flex;
             align-items: center;
             margin-bottom: 10px;
@@ -423,14 +436,7 @@ body {
             margin-top: 5px; /* Space from the info/toggle line */
         }
 
-        .fixed-alarm-action-buttons button {
-            width: auto; /* Allow buttons to size content */
-            padding: 4px 16px; /* Smaller padding for these buttons */
-            font-size: 0.9em;
-            margin-bottom: 0; /* Remove default button margin-bottom */
-        }
-
-        .fixed-alarm-item.faded {
+                .fixed-alarm-item.faded {
             opacity: 0.5;
             transition: opacity 0.3s ease-in-out;
         }
@@ -651,17 +657,8 @@ body {
 .zen-grid-row #updateBossTimeButton {
     width: var(--zen-input-width);
     height: var(--zen-input-height);
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px; /* Changed from 8px to 4px */
-    font-size: 1em;
-    background-color: #1D3557; /* Example color, should be specific */
-    color: white;
+    padding: 8px; /* Override base padding to 8px all around */
     box-sizing: border-box;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    line-height: 1.2em; /* Explicit line height for text alignment */
 }
 
 #remainingTimeInput,
@@ -719,13 +716,7 @@ body {
     margin-top: 10px;
 }
 
-/* Unify small button sizes for consistency */
-#sortBossListButton,
-#lightListButton,
-#clearLightRecordsButton {
-    padding: 4px 16px;
-    font-size: 0.9em;
-}
+
 
 /* Calculator Card Styles (for both Zen and Light) */
 .calculator-card {
@@ -832,39 +823,9 @@ body {
     margin-top: 10px;
 }
 
-.light-buttons .button {
-    padding: 8px 20px; /* Half vertical padding */
-    border: none;
-    border-radius: 4px; /* Changed from 8px to 4px */
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s ease;
-    background-color: #1D3557;
-    color: white;
-    display: flex; /* Robust centering */
-    justify-content: center;
-    align-items: center;
-    line-height: 1.2em; /* Explicit line height for text alignment */
-}
 
-.light-buttons .button:hover:not(:disabled) {
-    background-color: #457B9D;
-}
 
-.light-buttons .button:disabled {
-    background-color: #cccccc;
-    cursor: default; /* Changed from not-allowed to remove the red circle with diagonal line */
-    opacity: 0.5; /* 50% alpha for disabled buttons */
-}
 
-#lightGwangButton {
-    background-color: #F3722C; /* Orange for Gwang button */
-}
-
-#lightGwangButton:hover:not(:disabled) {
-    background-color: #ff9800; /* Darker orange on hover */
-    
-}
 
 .light-calculation-results {
     display: flex;
@@ -1070,34 +1031,9 @@ body {
     padding-left: 18px;
 }
 
-.action-button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px; /* Changed from 8px to 4px */
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s ease;
-    background-color: #f0f0f0;
-    color: #333;
-    width: 150px; /* Fixed width */
-    display: flex; /* Robust centering */
-    justify-content: center;
-    align-items: center;
-    line-height: 1.2em; /* Explicit line height for text alignment */
-}
 
-.action-button:hover {
-    background-color: #e0e0e0;
-}
 
-.primary-button {
-    background-color: #1D3557;
-    color: white;
-}
 
-        .primary-button:hover {
-            background-color: #457B9D;
-        }
 
         #global-tooltip {
             display: none; /* Hidden by default */
@@ -1342,12 +1278,7 @@ body {
     color: #333;
 }
 
-.custom-list-manage-item .button-group button {
-    padding: 5px 10px;
-    font-size: 0.85em;
-    border-radius: 3px;
-    margin-left: 5px;
-}
+
 
 /* Reduce margin-top for h3 within the notification settings screen */
 section#notification-settings-screen h3 {
