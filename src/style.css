@@ -237,6 +237,15 @@ body {
             width: 148px;
         }
 
+        /* Primary Button Styles */
+        .primary-button {
+            background-color: #AD1457;
+        }
+
+        .primary-button:hover:not(:disabled) {
+            background-color: #880E4F;
+        }
+
 
         h1, h2, h3 {
             color: #111;

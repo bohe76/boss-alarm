@@ -180,6 +180,7 @@ function showScreen(DOM, screenId) {
 
     // Special handling for calculator screen
     if (screenId === 'calculator-screen') { // Updated
+        LightCalculator.resetCalculator(); // Reset the internal state
         renderCalculatorScreen(DOM);
         // Enable lightStartButton when the calculator screen is displayed
         if (DOM.lightStartButton) {
@@ -187,6 +188,9 @@ function showScreen(DOM, screenId) {
             DOM.lightGwangButton.disabled = true;
             DOM.lightCaptureButton.disabled = true;
             DOM.lightListButton.disabled = false;
+            updateLightStopwatchDisplay(DOM, '00:00'); // Ensure display is 00:00
+            updateLightExpectedTimeDisplay(DOM, '--:--', false); // Ensure expected time is reset
+            renderLightTempResults(DOM, '', '', ''); // Clear temporary results
         }
     }
 
