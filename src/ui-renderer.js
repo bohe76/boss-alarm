@@ -506,7 +506,6 @@ export function renderCustomListManagementModalContent(DOM) {
             <span class="list-name">${list.name}</span>
             <div class="button-group">
                 <button class="button edit-custom-list-button">수정</button>
-                <button class="button rename-custom-list-button">이름 변경</button>
                 <button class="button delete-custom-list-button">삭제</button>
             </div>
         </div>

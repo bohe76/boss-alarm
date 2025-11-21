@@ -805,31 +805,6 @@ function initEventHandlers(DOM, globalTooltip) {
                         renderBossSchedulerScreen(DOM, _remainingTimes); // To update dropdown
                     }
                 }
-            } else if (button.classList.contains('rename-custom-list-button')) {
-                const newName = prompt(`'${listName}'의 새 이름을 입력하세요:`, listName);
-                if (newName === null || !newName.trim()) { // User cancelled or entered empty name
-                    showToast(DOM, '이름 변경을 취소했습니다.');
-                    return;
-                }
-                const trimmedNewName = newName.trim();
-                if (trimmedNewName === listName) {
-                    showToast(DOM, '이전 이름과 동일합니다. 변경하지 않습니다.');
-                    return;
-                }
-
-                // Check for name duplication before renaming
-                const isNamePredefinedOrCustom = CustomListManager.getCustomLists().some(list => list.name === trimmedNewName) || CustomListManager.isPredefinedGameName(trimmedNewName);
-                if (isNamePredefinedOrCustom) {
-                    alert(`'${trimmedNewName}'은(는) 이미 존재하는 목록 또는 게임 이름입니다.\n다시 이름을 작성해주세요`);
-                    return;
-                }
-
-                const result = CustomListManager.renameCustomList(listName, trimmedNewName);
-                showToast(DOM, result.message);
-                if (result.success) {
-                    renderCustomListManagementModalContent(DOM); // Re-render management list
-                    renderBossSchedulerScreen(DOM, _remainingTimes); // To update dropdown
-                }
             } else if (button.classList.contains('edit-custom-list-button')) {
                 // Switch to the "목록 추가" tab for editing
                 showCustomListTab(DOM, 'add');
