@@ -23,7 +23,8 @@
     - `document.getElementById()` 또는 `document.querySelector()`를 통해 필요한 DOM 요소들을 한 번만 가져와 객체 형태로 반환.
     - 다른 모듈들이 DOM 요소에 직접 접근하는 대신 이 모듈을 통해 일관된 방식으로 접근하도록 함.
 - **DOM 추상화:** 이 모듈은 DOM 접근을 위한 추상화 계층 역할을 하여 일관성을 촉진하고 UI 변경 관리를 용이하게 합니다.
-- **초기화 시점:** 모든 요소가 사용 가능하도록 DOM이 완전히 로드된 후에만 `initDomElements()`를 호출해야 합니다. 
+- **초기화 시점:** 모든 요소가 사용 가능하도록 DOM이 완전히 로드된 후에만 `initDomElements()`를 호출해야 합니다.
+- **업데이트 (보스 스케줄러):** `boss-list-display-container` (보스 목록 헤더와 목록을 감싸는 컨테이너)에 대한 DOM 참조가 추가되었습니다.
 - **업데이트 (커스텀 보스 목록):** `manageCustomListsButton` (커스텀 보스 목록 모달 열기 버튼), `customBossListModal` (모달 컨테이너), `closeCustomListModal` (모달 닫기 버튼), `customListNameInput` (목록 이름 입력 필드), `customListContentTextarea` (목록 내용 텍스트 영역), `saveCustomListButton` (목록 저장 버튼), `customListManagementContainer` (관리 탭의 목록 표시 컨테이너), `modalTabs` (모달 내 탭 내비게이션), `tabAddCustomList` (목록 추가 탭 버튼), `tabManageCustomLists` (목록 관리 탭 버튼), `customListAddSection` (목록 추가 섹션), `customListManageSection` (목록 관리 섹션)에 대한 DOM 참조가 추가되었습니다.
 
 ### 3.3. `src/logger.js`
@@ -171,7 +172,7 @@
     - 일반 보스는 정각 알림(0분)이 트리거된 직후 `BossDataManager`의 스케줄에서 즉시 제거됩니다.
     - 고정 보스는 알림이 트리거되어도 목록에서 제거되지 않으며, 매일 반복됩니다.
 - **고정 알림 처리:**
-    - `LocalStorageManager`에서 관리되는 고정 알림의 활성화 상태를 확인하고, 활성화된 고정 알림에 대해서만 알림을 처리합니다.
+    - `LocalStorageManager`에서 관리되는 고정 알림의 활성화 상태를 확인하고, 활성화된 고정 알림에 대해서만 알림을 처리합니다。
 
 ### 3.10. `src/ui-renderer.js`
 - **역할:** 애플리케이션의 UI 요소를 업데이트하고 렌더링합니다. 특히, 각 화면(Dashboard, Boss Management 등)의 콘텐츠를 동적으로 렌더링하고 업데이트하는 책임을 가집니다.
@@ -191,6 +192,7 @@
     - `renderCalculatorScreen(DOM)`: "젠 계산기" 및 "광 계산기" 화면의 UI를 초기화하고 렌더링합니다. 입력 필드를 지우고 보스 출현 시간 표시를 초기 상태로 재설정하며, 광 계산기 관련 UI 요소(스톱워치, 예상 시간, 임시 결과, 저장된 목록)를 초기화하고 숨깁니다. 또한, **젠 계산기 화면의 보스 선택 드롭다운을 향후 보스 목록으로 채우고 '보스 시간 업데이트' 버튼의 초기 상태를 설정하는 기능을 포함하도록 확장되었습니다.**
     - `populateBossSelectionDropdown(DOM)`: **새로운 함수**로, `BossDataManager`에서 다가오는 보스들을 필터링하여 "[HH:MM] 보스이름" 형식으로 젠 계산기의 보스 선택 드롭다운을 채웁니다.
     - `showToast(DOM, message)`: **새로운 함수**로, 사용자에게 3초 동안 표시되었다가 자동으로 사라지는 임시 피드백 메시지를 표시합니다.
+    - `renderUpcomingBossList(DOM)`: 대시보드에 다가오는 보스 목록을 렌더링합니다. 크게 표시되는 '다음 보스'와의 중복을 피하기 위해, 목록에서는 다음으로 임박한 보스부터 10개를 표시합니다. 5분 이내의 보스 항목은 이름과 남은 시간에 특정 색상(빨간색/파란색)을 적용하여 시각적으로 강조합니다.
     - `updateLightStopwatchDisplay(DOM, time)`: "광 계산기"의 경과 시간 스톱워치 디스플레이를 업데이트합니다.
     - `updateLightExpectedTimeDisplay(DOM, time, isOverTime)`: "광 계산기"의 "잡힘 예상 시간" 또는 "오버 시간" 디스플레이를 업데이트하고, 상태에 따라 라벨과 색상을 변경합니다.
     - `renderLightTempResults(DOM, gwangTime, afterGwangTime, totalTime)`: "광 계산기"의 최근 계산 결과를 표 형태로 렌더링합니다. 결과가 없을 경우 해당 영역을 숨깁니다.
@@ -255,7 +257,8 @@
                 - '보스 목록' 화면으로 전환하여 사용자에게 결과를 보여줍니다.
         - **커스텀 보스 목록 관리 모달:**
             - **모달 열기:** '커스텀 목록 관리' 버튼(`manageCustomListsButton`) 클릭 시, 모달(`customBossListModal`)을 열고 기본적으로 '목록 추가' 탭(`customListAddSection`)을 활성화합니다.
-            - **모달 닫기:** '닫기' 버튼(`closeCustomListModal`) 클릭 또는 모달 외부 클릭 시 모달을 닫습니다.
+            - **주요 버튼 스타일 적용:** '커스텀 목록 관리' 버튼에 프라이머리 버튼 스타일이 적용되어 시각적으로 강조됩니다.
+            - **모달 닫기:** '닫기' 버튼(`closeCustomListModal`) 클릭 또는 모달 외부 클릭 (`event-handlers.js`) 시 모달 창이 닫힙니다.
             - **탭 전환:** '목록 추가'(`tabAddCustomList`) 및 '목록 관리'(`tabManageCustomLists`) 탭 버튼 클릭 시, `ui-renderer.js:showCustomListTab`를 호출하여 해당 탭 내용(`customListAddSection`, `customListManageSection`)을 표시하고 활성 탭 버튼의 스타일을 업데이트합니다. '목록 추가' 탭으로 전환 시 입력 필드를 초기화하고 '저장' 버튼의 텍스트를 '저장'으로 설정합니다.
             - **목록 저장/업데이트:** '저장' 또는 '수정' 버튼(`saveCustomListButton`) 클릭 시:
                 - `CustomListManager.addCustomList` 또는 `CustomListManager.updateCustomList`를 호출하여 사용자 지정 목록을 추가하거나 업데이트합니다.
@@ -265,16 +268,19 @@
                 - `ui-renderer.js:renderBossSchedulerScreen`을 호출하여 보스 스케줄러 화면의 게임 선택 드롭다운을 업데이트합니다.
                 - 모달을 닫습니다.
             - **목록 항목 관리 (편집, 삭제):** "목록 관리" 탭의 각 목록 항목 내 버튼 클릭 시:
-                - **삭제:** '삭제' 버튼 클릭 시 사용자 확인 후 `CustomListManager.deleteCustomList`를 호출하여 목록을 삭제하고, `ui-renderer.js:renderCustomListManagementModalContent` 및 `ui-renderer.js:renderBossSchedulerScreen`을 업데이트합니다.
-                - **편집:** '편집' 버튼 클릭 시 '목록 추가' 탭으로 전환하고, 선택된 목록의 이름과 내용을 입력 필드에 미리 채워 편집할 수 있도록 합니다. '저장' 버튼의 텍스트를 '수정'으로 변경하고 `dataset.editTarget` 속성을 설정하여 현재 편집 중인 목록임을 표시합니다. 편집된 내용이 저장될 때 `CustomListManager.updateCustomList`를 호출하여 내용을 업데이트하거나, 이름이 변경되었다면 `CustomListManager.renameCustomList`를 먼저 호출한 뒤 업데이트를 진행합니다.
-        - **모바일 '더보기' 메뉴 이벤트:**
-            - **'더보기' 버튼(`moreMenuButton`) 클릭 시**, 기존 사이드바를 활용한 전체 화면 오버레이를 토글합니다. 이때 `#sidebar`에 `.more-menu-open` 클래스를 추가하고, 배경에 `#sidebar-backdrop.active` 클래스를 추가합니다.
+                - **삭제:** '삭제' 버튼 클릭 시 사용자 확인 후 `CustomListManager.deleteCustomList`를 호출하여 목록을 삭제하고, `ui-renderer.js:renderCustomListManagementModalContent` 및 `ui-renderer.js:renderBossSchedulerScreen`을 업데이트합니다。
+                - **편집:** '편집' 버튼 클릭 시 '목록 추가' 탭으로 전환하고, 선택된 목록의 이름과 내용을 입력 필드에 미리 채워 편집할 수 있도록 합니다. '저장' 버튼의 텍스트를 '수정'으로 변경하고 `dataset.editTarget` 속성을 설정하여 현재 편집 중인 목록임을 표시합니다. 편집된 내용이 저장될 때 `CustomListManager.updateCustomList`를 호출하여 내용을 업데이트하거나, 이름이 변경되었다면 `CustomListManager.renameCustomList`를 먼저 호출한 뒤 업데이트를 진행합니다。
+        - **모바일 '더보기' 버튼 클릭:**
+            - **'더보기' 버튼(`moreMenuButton`) 클릭 시**, 기존 사이드바를 활용한 전체 화면 오버레이를 토글합니다. 이때 `#sidebar`에 `.more-menu-open` 클래스를 추가하고, 배경에 `#sidebar-backdrop.active` 클래스를 추가합니다。
+        - **광 계산기 초기화:** '계산기' 화면으로 돌아올 때 `LightCalculator`의 내부 상태 및 관련 UI가 초기화됩니다 (시간 00:00, '시작' 버튼만 활성화). 이는 다른 메뉴로 이동했다가 다시 돌아와도 정확한 계산을 시작할 수 있도록 합니다。
+            - **주요 버튼 스타일 적용:** '광' 버튼에 프라이머리 버튼 스타일이 적용되어 시각적으로 강조됩니다。
+        - **보스 스케줄러 목록 스크롤:** 보스 목록 헤더는 고정되고, 목록 부분만 스크롤되도록 구조화되었습니다。
             - **'X' 닫기 버튼(`moreMenuCloseButton`) 또는 백드롭 클릭 시**, '더보기' 메뉴를 닫습니다.
-            - **접근성 강화:** '더보기' 메뉴가 열릴 때, 배경 콘텐츠(`main`, `header`, `footer`)에 `inert` 속성을 적용하여 비활성화하고, 메뉴 내에서 키보드 초점(Focus Trap)이 유지되도록 합니다. `Escape` 키로 메뉴를 닫을 수 있도록 이벤트 리스너를 등록합니다. 메뉴가 닫히면 이 모든 접근성 관련 처리를 원상 복구합니다.
+            - **접근성 강화:** '더보기' 메뉴가 열릴 때, 배경 콘텐츠(`main`, `header`, `footer`)에 `inert` 속성을 적용하여 비활성화하고, 메뉴 내에서 키보드 초점(Focus Trap)이 유지되도록 합니다. `Escape` 키로 메뉴를 닫을 수 있도록 이벤트 리스너를 등록합니다. 메뉴가 닫히면 이 모든 접근성 관련 처리를 원상 복구합니다。
 - **새로운 헬퍼 함수:**
-    - `checkZenCalculatorUpdateButtonState(DOM)`: 유효한 보스 선택과 계산된 보스 출현 시간을 기반으로 '보스 시간 업데이트' 버튼의 활성화 여부를 결정하는 헬퍼 함수입니다.
-- **커스텀 보스 목록 이벤트:** 모달의 열기/닫기, 탭 전환, 목록 추가/업데이트/삭제/이름 변경에 대한 이벤트 리스너를 관리합니다.
-- **이벤트 처리 흐름:** `initEventHandlers`는 헤더, 사이드바, 메인 콘텐츠 영역 및 **하단 탭 바** 내의 모든 사용자 인터랙션에 대한 이벤트 리스너를 중앙에서 설정하고 관리합니다.
+    - `checkZenCalculatorUpdateButtonState(DOM)`: 유효한 보스 선택과 계산된 보스 출현 시간을 기반으로 '보스 시간 업데이트' 버튼의 활성화 여부를 결정하는 헬퍼 함수입니다。
+- **커스텀 보스 목록 이벤트:** 모달의 열기/닫기, 탭 전환, 목록 추가/업데이트/삭제/이름 변경에 대한 이벤트 리스너를 관리합니다。
+- **이벤트 처리 흐름:** `initEventHandlers`는 헤더, 사이드바, 메인 콘텐츠 영역 및 **하단 탭 바** 내의 모든 사용자 인터랙션에 대한 이벤트 리스너를 중앙에서 설정하고 관리합니다。
 
 ### 3.13. `src/app.js` (신규 또는 `event-handlers.js`의 `initApp` 확장)
 - **역할:** 애플리케이션의 전반적인 초기화, 상태 관리 및 라우팅을 담당하는 핵심 모듈.
@@ -313,11 +319,10 @@
     - **커스텀 보스 목록 모달 스타일:**
         - `.modal`, `.modal-header`, `.modal-content`, `.modal-body`, `.close-button`: 모달의 전체적인 구조와 닫기 버튼에 대한 스타일을 정의합니다. `backdrop-filter: blur(3px)`를 통해 모달 배경에 프로스트 효과를 적용합니다.
         - `.modal-tabs`, `.tab-button`, `.tab-button.active`: 모달 내 탭 내비게이션의 레이아웃과 활성 상태 스타일을 정의합니다.
-        - `.custom-list-tab-content`: 탭 내용 섹션의 기본 숨김 및 활성 시 표시 스타일을 정의합니다.
-        - `.custom-list-manage-item`: "목록 관리" 탭의 각 커스텀 목록 항목에 대한 스타일을 정의합니다. `display: flex`, `justify-content: space-between`, `align-items: center`를 사용하여 이름과 버튼 그룹이 수평으로 정렬되도록 합니다. 시각적으로는 패딩, 테두리, 배경색, 그림자 등을 포함합니다.
-        - `.custom-list-manage-item .list-name`: 커스텀 목록 이름의 폰트 스타일을 정의합니다.
-        - `.custom-list-manage-item .button-group`: 커스텀 목록 항목 내 '편집', '삭제' 버튼 그룹에 `display: flex`와 `gap: 8px`를 적용하여 버튼들이 수평으로 나열되고 적절한 간격을 갖도록 합니다.
-        - `.modal-content input[type="text"]`, `.modal-content textarea`: 모달 내 입력 필드와 텍스트 영역의 너비, 패딩, 테두리, 둥근 모서리 등의 스타일을 정의합니다.
+        - `.custom-list-tab-content`: 탭 내용 섹션의 기본 숨김 및 활성 시 표시 스타일을 정의합니다。
+        - `.custom-list-manage-item`: "목록 관리" 탭의 각 커스텀 목록 항목에 대한 스타일을 정의합니다。 `display: flex`, `justify-content: space-between`, `align-items: center`를 사용하여 이름과 버튼 그룹이 수평으로 정렬되도록 합니다. 시각적으로는 패딩, 테두리, 배경색, 그림자 등을 포함합니다.
+        - `.custom-list-manage-item .list-name`: 커스텀 목록 이름의 폰트 스타일을 정의합니다。
+        - `.custom-list-manage-item .button-group`: 커스텀 목록 항목 내 '편집', '삭제' 버튼 그룹에 `display: flex`와 `gap: 8px`를 적용하여 버튼들이 수평으로 나열되고 적절한 간격을 갖도록 합니다。
     - **전체 레이아웃:** Flexbox 또는 Grid를 활용한 반응형 레이아웃.
     - **사이드바:** 접힘/펼쳐짐 상태에 따른 너비 및 콘텐츠 가시성 전환 스타일.
     - **메뉴 항목:** 활성화된 메뉴 항목 시각적 강조.
@@ -393,120 +398,120 @@
 애플리케이션의 주요 데이터 흐름은 다음과 같습니다.
 
 1.  **초기 로드 (`index.html` -> `event-handlers.js:initApp`)**:
-    *   `initApp`은 `dom-elements.js:initDomElements()`를 호출하여 `DOM` 객체를 가져옵니다.
-    *   `initApp`은 `globalTooltip` 요소를 초기화합니다.
-    *   `initApp`은 `logger.js:initLogger(DOM.logContainer)`를 호출합니다.
-    *   `initApp`은 `src/boss-scheduler-data.js:loadBossLists()`를 호출하여 게임별 보스 목록 데이터를 로드합니다.
-    *   `initApp`은 `data-managers.js:LocalStorageManager.init()`를 호출하여 영구 상태(고정 알람, 로그 가시성, 알람 실행, 사이드바 확장)를 로드합니다.
-    *   `initApp`은 URL 매개변수에서 `data`를 확인합니다. 존재하면 디코딩하여 `DOM.bossListInput.value`를 설정합니다. 그렇지 않으면 `default-boss-list.js:bossPresets[0].list`를 사용합니다.
-    *   `initApp`은 URL 매개변수에서 `fixedData`를 확인합니다. 존재하면 `LocalStorageManager.importFixedAlarms()`를 호출하여 고정 알림을 로드합니다.
-    *   `initApp`은 `boss-parser.js:parseBossList(DOM.bossListInput)`를 호출하여 보스 목록을 파싱하고, 이는 `data-managers.js:BossDataManager.setBossSchedule()`를 호출합니다.
-    *   `initApp`은 `LocalStorageManager`를 기반으로 초기 UI 상태를 설정합니다(예: `DOM.logVisibilityToggle.checked`, `DOM.sidebar.classList`).
-    *   **`initApp`은 뷰포트 너비를 감지하는 `ResizeObserver`를 초기화하고 `body`에 `is-mobile-view` 클래스를 동적으로 토글하는 `handleResize` 로직을 설정하며, 앱 초기 로드 시 뷰 상태를 1회 실행하여 설정합니다.**
-    *   `initApp`은 초기 UI 렌더링을 위해 `ui-renderer.js:renderFixedAlarms()`, `ui-renderer.js:renderDashboard()`를 호출합니다.
-    *   `initApp`은 모든 이벤트 리스너를 설정하기 위해 `event-handlers.js:initEventHandlers(DOM, globalTooltip)`를 호출합니다.
-    *   `alarm-scheduler.js:getIsAlarmRunning()`이 true이면 `initApp`은 `alarm-scheduler.js:startAlarm(DOM)`를 호출합니다.
+    *   `initApp`은 `dom-elements.js:initDomElements()`를 호출하여 `DOM` 객체를 가져옵니다。
+    *   `initApp`은 `globalTooltip` 요소를 초기화합니다。
+    *   `initApp`은 `logger.js:initLogger(DOM.logContainer)`를 호출합니다。
+    *   `initApp`은 `src/boss-scheduler-data.js:loadBossLists()`를 호출하여 게임별 보스 목록 데이터를 로드합니다。
+    *   `initApp`은 `data-managers.js:LocalStorageManager.init()`를 호출하여 영구 상태(고정 알람, 로그 가시성, 알람 실행, 사이드바 확장)를 로드합니다。
+    *   `initApp`은 URL 매개변수에서 `data`를 확인합니다. 존재하면 디코딩하여 `DOM.bossListInput.value`를 설정합니다. 그렇지 않으면 `default-boss-list.js:bossPresets[0].list`를 사용합니다。
+    *   `initApp`은 URL 매개변수에서 `fixedData`를 확인합니다. 존재하면 `LocalStorageManager.importFixedAlarms()`를 호출하여 고정 알림을 로드합니다。
+    *   `initApp`은 `boss-parser.js:parseBossList(DOM.bossListInput)`를 호출하여 보스 목록을 파싱하고, 이는 `data-managers.js:BossDataManager.setBossSchedule()`를 호출합니다。
+    *   `initApp`은 `LocalStorageManager`를 기반으로 초기 UI 상태를 설정합니다(예: `DOM.logVisibilityToggle.checked`, `DOM.sidebar.classList`)。
+    *   **`initApp`은 뷰포트 너비를 감지하는 `ResizeObserver`를 초기화하고 `body`에 `is-mobile-view` 클래스를 동적으로 토글하는 로직을 추가합니다.**
+    *   `initApp`은 초기 UI 렌더링을 위해 `ui-renderer.js:renderFixedAlarms()`, `ui-renderer.js:renderDashboard()`를 호출합니다。
+    *   `initApp`은 모든 이벤트 리스너를 설정하기 위해 `event-handlers.js:initEventHandlers(DOM, globalTooltip)`를 호출합니다。
+    *   `alarm-scheduler.js:getIsAlarmRunning()`이 true이면 `initApp`은 `alarm-scheduler.js:startAlarm(DOM)`를 호출합니다。
 
 2.  **사용자 상호 작용 (`event-handlers.js`의 메뉴 클릭 및 기타)**:
     *   **내비게이션 링크 클릭 (사이드바 또는 하단 탭 바):**
         *   사용자가 탐색 링크(예: `nav-dashboard` 또는 `bottom-nav-dashboard`)를 클릭합니다.
-        *   `event-handlers.js`의 클릭 리스너는 `showScreen(DOM, screenId)`를 호출합니다.
+        *   `event-handlers.js`의 클릭 리스너는 `showScreen(DOM, screenId)`를 호출합니다。
         *   `showScreen` 함수는 화면 요소의 `classList`를 조작하여 표시/숨김을 처리하고, **클릭된 링크(`event.currentTarget`) 및 해당하는 모든 내비게이션 링크(사이드바/하단 탭 바)에 `active` 클래스를 추가/제거하여 활성 상태를 동기화합니다.**
-        *   'dashboard-screen'의 경우 `showScreen`은 `ui-renderer.js:renderDashboard(DOM)`를 호출합니다.
-        *   'boss-management-screen'의 경우 `showScreen`은 `ui-renderer.js:updateBossListTextarea()`를 호출합니다.
-        *   'notification-settings-screen'의 경우 `showScreen`은 `ui-renderer.js:renderFixedAlarms()`를 호출합니다.
-        *   'alarm-log-screen'의 경우 `showScreen`은 `ui-renderer.js:updateLogDisplay()`를 호출합니다.
-        *   'calculator-screen'의 경우 `showScreen`은 `ui-renderer.js:renderCalculatorScreen()`를 호출합니다.
+        *   'dashboard-screen'의 경우 `showScreen`은 `ui-renderer.js:renderDashboard(DOM)`를 호출합니다。
+        *   'boss-management-screen'의 경우 `showScreen`은 `ui-renderer.js:updateBossListTextarea()`를 호출합니다。
+        *   'notification-settings-screen'의 경우 `showScreen`은 `ui-renderer.js:renderFixedAlarms()`를 호출합니다。
+        *   'alarm-log-screen'의 경우 `showScreen`은 `ui-renderer.js:updateLogDisplay()`를 호출합니다。
+        *   'calculator-screen'의 경우 `showScreen`은 `ui-renderer.js:renderCalculatorScreen()`를 호출합니다。
         *   **'share-screen'의 경우 `showScreen`은 공유 링크 생성 로직(URL 인코딩, TinyURL API 호출, 클립보드 복사 등)을 실행하고 `DOM.shareMessage`를 업데이트합니다.**
-    *   'calculator-screen' (젠 계산기)에서 `DOM.remainingTimeInput`의 `input` 이벤트 발생 시 `src/event-handlers.js`는 `src/calculator.js:calculateBossAppearanceTime()`를 호출하고 `DOM.bossAppearanceTimeDisplay`를 업데이트합니다.
-    *   **젠 계산기 상호 작용 추가:** 사용자가 젠 계산기에서 보스를 선택하고 시간을 입력한 후 '보스 시간 업데이트' 버튼을 클릭하면, `event-handlers.js`의 리스너가 이를 감지하여 `DOM.bossListInput.value`를 업데이트하고 `boss-parser.js`를 통해 스케줄을 재파싱합니다. `ui-renderer.js`의 `showToast`를 통해 업데이트 결과를 시각적으로 알리고, UI를 초기화합니다.
+    *   'calculator-screen' (젠 계산기)에서 `DOM.remainingTimeInput`의 `input` 이벤트 발생 시 `src/event-handlers.js`는 `src/calculator.js:calculateBossAppearanceTime()`를 호출하고 `DOM.bossAppearanceTimeDisplay`를 업데이트합니다。
+    *   **젠 계산기 상호 작용 추가:** 사용자가 젠 계산기에서 보스를 선택하고 시간을 입력한 후 '보스 시간 업데이트' 버튼을 클릭하면, `event-handlers.js`의 리스너가 이를 감지하여 `DOM.bossListInput.value`를 업데이트하고 `boss-parser.js`를 통해 스케줄을 재파싱합니다。 `ui-renderer.js`의 `showToast`를 통해 업데이트 결과를 시각적으로 알리고, UI를 초기화합니다。
     *   'calculator-screen' (광 계산기)에서:
-        - '시작' 버튼 클릭 시 `src/event-handlers.js`는 `src/light-calculator.js:LightCalculator.startStopwatch()`를 호출하고 `ui-renderer.js:updateLightStopwatchDisplay()`를 통해 UI를 업데이트합니다.
-        - '광' 버튼 클릭 시 `src/event-handlers.js`는 `src/light-calculator.js:LightCalculator.triggerGwang()`를 호출하고 `ui-renderer.js:updateLightExpectedTimeDisplay()`를 통해 UI를 업데이트합니다.
-        - '잡힘' 버튼 클릭 시 `src/event-handlers.js`는 `src/light-calculator.js:stopStopwatch()`를 호출하고, 사용자 확인 후 `src/light-calculator.js:LightCalculator.saveLightCalculation()`을 통해 데이터를 저장하며, `ui-renderer.js`를 통해 최근 계산 결과 및 저장된 목록을 업데이트하고 계산기를 초기화합니다.
-        - '목록' 버튼 클릭 시 `src/event-handlers.js`는 `ui-renderer.js:renderLightSavedList()`를 호출하여 저장된 기록을 표시합니다.
-        - '기록 초기화' 버튼 클릭 시 `src/event-handlers.js`는 `LocalStorageManager.clearLightCalculatorRecords()`를 호출하고 `ui-renderer.renderer.js:renderLightSavedList()`를 통해 UI를 업데이트합니다.
-    *   'boss-scheduler-screen'의 경우 `showScreen`은 `ui-renderer.js:renderBossSchedulerScreen()`를 호출합니다.
-    *   'boss-scheduler-screen'에서 게임 선택 드롭다운 변경 시 `src/event-handlers.js`는 `ui-renderer.js:renderBossInputs()`를 호출합니다.
-    *   'boss-scheduler-screen'에서 남은 시간 입력 필드(`remaining-time-input`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 젠 시간 계산 및 표시.
-    *   'boss-scheduler-screen'에서 '남은 시간 초기화' 버튼 클릭 시 `src/event-handlers.js`는 모든 남은 시간 입력 필드 초기화 (확인 대화 상자 포함).
-    *   'boss-scheduler-screen'에서 '보스 설정 적용' 버튼 클릭 시 `src/event-handlers.js`는 다음 복합적인 로직을 수행합니다: 계산된 보스 목록을 `DOM.bossListInput`에 설정하고, `parseBossList`로 스케줄을 업데이트한 뒤 '보스 목록' 화면으로 이동합니다.
+        - '시작' 버튼 클릭 시 `src/event-handlers.js`는 `src/light-calculator.js:LightCalculator.startStopwatch()`를 호출하고 `ui-renderer.js:updateLightStopwatchDisplay()`를 통해 UI를 업데이트합니다。
+        - '광' 버튼 클릭 시 `src/event-handlers.js`는 `src/light-calculator.js:LightCalculator.triggerGwang()`를 호출하고 `ui-renderer.js:updateLightExpectedTimeDisplay()`를 통해 UI를 업데이트합니다。
+        - '잡힘' 버튼 클릭 시 `src/event-handlers.js`는 `src/light-calculator.js:stopStopwatch()`를 호출하고, 사용자 확인 후 `src/light-calculator.js:LightCalculator.saveLightCalculation()`을 통해 데이터를 저장하며, `ui-renderer.js`를 통해 최근 계산 결과 및 저장된 목록을 업데이트하고 계산기를 초기화합니다。
+        - '목록' 버튼 클릭 시 `src/event-handlers.js`는 `ui-renderer.js:renderLightSavedList()`를 호출하여 저장된 기록을 표시합니다。
+        - '기록 초기화' 버튼 클릭 시 `src/event-handlers.js`는 `LocalStorageManager.clearLightCalculatorRecords()`를 호출하고 `ui-renderer.renderer.js:renderLightSavedList()`를 통해 UI를 업데이트합니다。
+    *   'boss-scheduler-screen'의 경우 `showScreen`은 `ui-renderer.js:renderBossSchedulerScreen()`를 호출합니다。
+    *   'boss-scheduler-screen'에서 게임 선택 드롭다운 변경 시 `src/event-handlers.js`는 `ui-renderer.js:renderBossInputs()`를 호출합니다。
+    *   'boss-scheduler-screen'에서 남은 시간 입력 필드(`remaining-time-input`)의 `input` 이벤트 발생 시 `src/calculator.js`를 통해 젠 시간 계산 및 표시。
+    *   'boss-scheduler-screen'에서 '남은 시간 초기화' 버튼 클릭 시 `src/event-handlers.js`는 모든 남은 시간 입력 필드 초기화 (확인 대화 상자 포함)。
+    *   'boss-scheduler-screen'에서 '보스 설정 적용' 버튼 클릭 시 `src/event-handlers.js`는 다음 복합적인 로직을 수행합니다: 계산된 보스 목록을 `DOM.bossListInput`에 설정하고, `parseBossList`로 스케줄을 업데이트한 뒤 '보스 목록' 화면으로 이동합니다。
     *   **모바일 '더보기' 버튼 클릭:**
-        *   `event-handlers.js`는 `DOM.moreMenuButton` 클릭을 감지하여 `DOM.sidebar`에 `.more-menu-open` 클래스를 토글하고, `DOM.sidebarBackdrop`에 `.active` 클래스를 토글합니다.
-        *   **`inert` 속성을 `main`, `header`, `footer`에 적용하고, 초점 가두기(Focus Trap)를 활성화하며, `Escape` 키 이벤트를 등록하여 접근성을 강화합니다.**
+        *   `event-handlers.js`는 `DOM.moreMenuButton` 클릭을 감지하여 `DOM.sidebar`에 `.more-menu-open` 클래스를 토글하고, `DOM.sidebarBackdrop`에 `.active` 클래스를 추가합니다。
+        *   **`inert` 속성을 `main`, `header`, `footer`에 적용하고, 초점 가두기(Focus Trap)를 활성화하며, `Escape` 키 이벤트를 등록하여 접근성을 강화합니다。**
     *   **모바일 '더보기' 메뉴 닫기 (`moreMenuCloseButton` 클릭 또는 백드롭 클릭, `Escape` 키):**
-        *   `event-handlers.js`는 이러한 이벤트를 감지하여 '더보기' 메뉴를 닫고, **`inert` 속성 제거, 초점 가두기 비활성화 등 접근성 관련 처리를 원상 복구합니다.**
-    *   **모바일 하단 탭 바 텍스트 라벨 제거:** `index.html`에서 하단 탭 바의 텍스트 라벨이 제거되어 아이콘만 표시됩니다.
-    *   **모바일 하단 탭 바 아이콘 정렬 개선:** `src/style.css`에서 관련 CSS 속성 조정(`.bottom-nav` `align-items`, `.bottom-nav-item` `justify-content` 등)을 통해 아이콘이 중앙에 잘 정렬되도록 합니다.
-    *   **모바일 푸터 여백 계산 수정:** `src/style.css`에서 `body`의 `padding-bottom` 계산 로직을 `calc(var(--bottom-nav-height) + env(safe-area-inset-bottom))`으로 수정하여, 하단 탭 바가 푸터를 가리지 않도록 합니다.
+        *   `event-handlers.js`는 이러한 이벤트를 감지하여 '더보기' 메뉴를 닫고, **`inert` 속성 제거, 초점 가두기 비활성화 등 접근성 관련 처리를 원상 복구합니다。**
+    *   **모바일 하단 탭 바 텍스트 라벨 제거:** `index.html`에서 하단 탭 바의 텍스트 라벨이 제거되어 아이콘만 표시됩니다。
+    *   **모바일 하단 탭 바 아이콘 정렬 개선:** `src/style.css`에서 관련 CSS 속성 조정(`.bottom-nav` `align-items`, `.bottom-nav-item` `justify-content` 등)을 통해 아이콘이 중앙에 잘 정렬되도록 합니다。
+    *   **모바일 푸터 여백 계산 수정:** `src/style.css`에서 `body`의 `padding-bottom` 계산 로직을 `calc(var(--bottom-nav-height) + env(safe-area-inset-bottom))`으로 수정하여, 하단 탭 바가 푸터를 가리지 않도록 합니다。
 
 3.  **알람 토글 (`event-handlers.js` -> `alarmToggleButton` 클릭)**:
-    *   `event-handlers.js`는 `alarm-scheduler.js:getIsAlarmRunning()`를 호출합니다.
-    *   실행 중이 아니면 `alarm-scheduler.js:startAlarm(DOM)`를 호출하고, 이는 `data-managers.js:LocalStorageManager.setAlarmRunningState(true)`를 설정하고, `logger.js:log()`를 호출하고, `speech.js:speak()`를 호출하고, `alarm-scheduler.js:checkAlarms` 및 `ui-renderer.js:renderDashboard`에 대한 `setInterval`을 시작합니다.
-    *   실행 중이면 `alarm-scheduler.js:stopAlarm()`를 호출하고, 이는 `data-managers.js:LocalStorageManager.setAlarmRunningState(false)`를 설정하고, `logger.js:log()`를 호출하고, `speech.js:speak()`를 호출하고, `setInterval`을 지웁니다.
+    *   `event-handlers.js`는 `alarm-scheduler.js:getIsAlarmRunning()`를 호출합니다。
+    *   실행 중이 아니면 `alarm-scheduler.js:startAlarm(DOM)`를 호출하고, 이는 `data-managers.js:LocalStorageManager.setAlarmRunningState(true)`를 설정하고, `logger.js:log()`를 호출하고, `speech.js:speak()`를 호출하고, `alarm-scheduler.js:checkAlarms` 및 `ui-renderer.js:renderDashboard`에 대한 `setInterval`을 시작합니다。
+    *   실행 중이면 `alarm-scheduler.js:stopAlarm()`를 호출하고, 이는 `data-managers.js:LocalStorageManager.setAlarmRunningState(false)`를 설정하고, `logger.js:log()`를 호출하고, `speech.js:speak()`를 호출하고, `setInterval`을 지웁니다。
 
 4.  **주기적 알람 확인 (`alarm-scheduler.js:checkAlarms` - 매 1초)**:
-    *   `checkAlarms`는 `data-managers.js:BossDataManager`에서 보스 일정을 검색합니다.
-    *   현재 시간을 보스 시간(동적 및 고정)과 비교합니다.
-    *   알림 조건이 충족되면 `logger.js:log()` 및 `speech.js:speak()`를 호출합니다.
-    *   가장 가까운 다가오는 보스로 `data-managers.js:BossDataManager.setNextBossInfo()`를 업데이트합니다.
-    *   젠된 동적 보스는 `data-managers.js:BossDataManager`의 일정에서 제거됩니다.
-    *   자정에는 모든 보스의 `alerted_Xmin` 플래그를 재설정합니다.
+    *   `checkAlarms`는 `data-managers.js:BossDataManager`에서 보스 일정을 검색합니다。
+    *   현재 시간을 보스 시간(동적 및 고정)과 비교합니다。
+    *   알림 조건이 충족되면 `logger.js:log()` 및 `speech.js:speak()`를 호출합니다。
+    *   가장 가까운 다가오는 보스로 `data-managers.js:BossDataManager.setNextBossInfo()`를 업데이트합니다。
+    *   젠된 동적 보스는 `data-managers.js:BossDataManager`의 일정에서 제거됩니다。
+    *   자정에는 모든 보스의 `alerted_Xmin` 플래그를 재설정합니다。
 
 5.  **대시보드 업데이트 (`alarm-scheduler.js` -> `renderDashboard(DOM)` - 매 1초)**:
-    *   `ui-renderer.js:renderDashboard(DOM)`는 `ui-renderer.js:updateNextBossDisplay(DOM)`, `ui-renderer.js:renderUpcomingBossList(DOM)`, `ui-renderer.js:renderAlarmStatusSummary(DOM)`, `ui-renderer.js:updateMuteButtonVisuals(DOM)`, `ui-renderer.js:renderRecentAlarmLog(DOM)`를 호출합니다.
-    *   이 함수들은 `data-managers.js:BossDataManager`, `data-managers.js:LocalStorageManager`, `alarm-scheduler.js:getIsAlarmRunning()`, `logger.js:getLogs()`에서 데이터를 검색하여 대시보드 UI를 업데이트합니다.
+    *   `ui-renderer.js:renderDashboard(DOM)`는 `ui-renderer.js:updateNextBossDisplay(DOM)`, `ui-renderer.js:renderUpcomingBossList(DOM)`, `ui-renderer.js:renderAlarmStatusSummary(DOM)`, `ui-renderer.js:updateMuteButtonVisuals(DOM)`, `ui-renderer.js:renderRecentAlarmLog(DOM)`를 호출합니다。
+    *   이 함수들은 `data-managers.js:BossDataManager`, `data-managers.js:LocalStorageManager`, `alarm-scheduler.js:getIsAlarmRunning()`, `logger.js:getLogs()`에서 데이터를 검색하여 대시보드 UI를 업데이트합니다。
 
 6.  **공유 링크 생성 (`showScreen` 함수 내부에서 실행)**:
-    *   `showScreen` 함수 내에서 `DOM.bossListInput.value`를 가져옵니다.
-    *   `longUrl`을 구성합니다.
-    *   `LocalStorageManager.exportFixedAlarms()`를 호출하여 고정 알림 데이터를 가져와 `longUrl`에 추가합니다.
-    *   `api-service.js:getShortUrl(longUrl)`를 호출합니다.
-    *   결과로 `DOM.shareLinkInput.value`를 업데이트하고 `logger.js:log()`를 호출합니다.
+    *   `showScreen` 함수 내에서 `DOM.bossListInput.value`를 가져옵니다。
+    *   `longUrl`을 구성합니다。
+    *   `LocalStorageManager.exportFixedAlarms()`를 호출하여 고정 알림 데이터를 가져와 `longUrl`에 추가합니다。
+    *   `api-service.js:getShortUrl(longUrl)`를 호출합니다。
+    *   결과로 `DOM.shareLinkInput.value`를 업데이트하고 `logger.js:log()`를 호출합니다。
 
 7.  **고정 알람 관리 (`event-handlers.js` -> 고정 알람 관련 버튼 클릭)**:
-    *   `event-handlers.js`의 위임된 이벤트 리스너는 고정 알람 추가, 편집, 삭제, 토글 이벤트를 감지합니다.
-    *   각 이벤트에 따라 `LocalStorageManager.addFixedAlarm()`, `LocalStorageManager.updateFixedAlarm()`, `LocalStorageManager.deleteFixedAlarm()`, `LocalStorageManager.setFixedAlarmState()` 등의 적절한 `LocalStorageManager` 메서드를 호출합니다.
-    *   데이터 변경 후 `ui-renderer.js:renderFixedAlarms()`를 호출하여 고정 알림 목록 UI를 새로 고칩니다.
+    *   `event-handlers.js`의 위임된 이벤트 리스너는 고정 알람 추가, 편집, 삭제, 토글 이벤트를 감지합니다。
+    *   각 이벤트에 따라 `LocalStorageManager.addFixedAlarm()`, `LocalStorageManager.updateFixedAlarm()`, `LocalStorageManager.deleteFixedAlarm()`, `LocalStorageManager.setFixedAlarmState()` 등의 적절한 `LocalStorageManager` 메서드를 호출합니다。
+    *   데이터 변경 후 `ui-renderer.js:renderFixedAlarms()`를 호출하여 고정 알림 목록 UI를 새로 고칩니다。
 
 8.  **음소거 버튼 클릭 (`event-handlers.js` -> `muteToggleButton` 클릭)**:
-    *   `event-handlers.js`는 `LocalStorageManager.getMuteState()`를 호출하여 현재 상태를 가져옵니다.
-    *   `LocalStorageManager.setMuteState()`를 호출하여 상태를 반전시키고 로컬 스토리지에 저장합니다.
-    *   `ui-renderer.js:updateMuteButtonVisuals(DOM)`를 호출하여 버튼의 아이콘과 스타일을 업데이트합니다.
-    *   `logger.js:log()`를 호출하여 사용자에게 상태 변경을 알립니다. **이때 로그 메시지는 실제 음소거 상태에 맞춰 정확하게 출력됩니다.**
+    *   `event-handlers.js`는 `LocalStorageManager.getMuteState()`를 호출하여 현재 상태를 가져옵니다。
+    *   `LocalStorageManager.setMuteState()`를 호출하여 상태를 반전시키고 로컬 스토리지에 저장합니다。
+    *   `ui-renderer.js:updateMuteButtonVisuals(DOM)`를 호출하여 버튼의 아이콘과 스타일을 업데이트합니다。
+    *   `logger.js:log()`를 호출하여 사용자에게 상태 변경을 알립니다。 **이때 로그 메시지는 실제 음소거 상태에 맞춰 정확하게 출력됩니다。**
 
 ## 6. 결론
 
 ### 5.8. 커스텀 보스 목록 관리 (새로운 기능)
 1.  **모달 열기/닫기**:
-    *   '커스텀 목록 관리' 버튼 클릭 (`event-handlers.js`) 시 모달 창이 표시됩니다.
-    *   모달 닫기 버튼 클릭 또는 모달 외부 클릭 (`event-handlers.js`) 시 모달 창이 닫힙니다.
+    *   '커스텀 목록 관리' 버튼 클릭 (`event-handlers.js`) 시 모달 창이 표시됩니다。
+    *   모달 닫기 버튼 클릭 또는 모달 외부 클릭 (`event-handlers.js`) 시 모달 창이 닫힙니다。
 2.  **탭 전환**:
-    *   '목록 추가' 또는 '목록 관리' 탭 버튼 클릭 (`event-handlers.js`) 시 `ui-renderer.js:showCustomListTab`를 호출하여 해당 탭의 내용을 표시하고 활성 탭 버튼의 스타일을 업데이트합니다.
-    *   '목록 추가' 탭으로 전환 시 입력 필드를 초기화합니다.
+    *   '목록 추가' 또는 '목록 관리' 탭 버튼 클릭 (`event-handlers.js`) 시 `ui-renderer.js:showCustomListTab`를 호출하여 해당 탭의 내용을 표시하고 활성 탭 버튼의 스타일을 업데이트합니다。
+    *   '목록 추가' 탭으로 전환 시 입력 필드를 초기화합니다。
 3.  **목록 추가**:
-    *   사용자가 '목록 추가' 탭에서 이름과 내용을 입력 후 '저장' 버튼 클릭 (`event-handlers.js`) 시 `CustomListManager.addCustomList`를 호출하여 새 목록을 추가합니다.
-    *   `CustomListManager`는 `validateListName` 및 `parseAndValidateBossContent`를 통해 유효성을 검사하고 `_cleanBossListContent`를 통해 내용을 정리합니다.
-    *   `LocalStorageManager`를 통해 로컬 스토리지에 저장합니다.
-    *   `ui-renderer.js:showToast`로 결과 메시지를 표시하고 `ui-renderer.js:renderCustomListManagementModalContent`를 호출하여 '목록 관리' 탭을 새로 고칩니다.
-    *   보스 스케줄러 화면의 게임 선택 드롭다운도 `ui-renderer.js:renderBossSchedulerScreen`을 통해 업데이트됩니다.
+    *   사용자가 '목록 추가' 탭에서 이름과 내용을 입력 후 '저장' 버튼 클릭 (`event-handlers.js`) 시 `CustomListManager.addCustomList`를 호출하여 새 목록을 추가합니다。
+    *   `CustomListManager`는 `validateListName` 및 `parseAndValidateBossContent`를 통해 유효성을 검사하고 `_cleanBossListContent`를 통해 내용을 정리합니다。
+    *   `LocalStorageManager`를 통해 로컬 스토리지에 저장합니다。
+    *   `ui-renderer.js:showToast`로 결과 메시지를 표시하고 `ui-renderer.js:renderCustomListManagementModalContent`를 호출하여 '목록 관리' 탭을 새로 고칩니다。
+    *   보스 스케줄러 화면의 게임 선택 드롭다운도 `ui-renderer.js:renderBossSchedulerScreen`을 통해 업데이트됩니다。
 4.  **목록 수정**:
-    *   '목록 관리' 탭에서 특정 목록의 '편집' 버튼 클릭 (`event-handlers.js`) 시 '목록 추가' 탭으로 전환되며, 해당 목록의 이름과 내용이 입력 필드에 미리 채워집니다.
-    *   사용자가 내용을 수정한 후 '수정' 버튼 클릭 (`event-handlers.js`) 시 `CustomListManager.updateCustomList`를 호출하여 목록을 업데이트합니다.
-    *   만약 목록 이름도 변경되었다면, `CustomListManager.renameCustomList`를 먼저 호출한 후 `CustomListManager.updateCustomList`를 호출하여 이름 변경과 내용 업데이트를 처리합니다.
-    *   유효성 검사 및 저장, UI 업데이트는 목록 추가와 동일한 방식으로 진행됩니다.
+    *   '목록 관리' 탭에서 특정 목록의 '편집' 버튼 클릭 (`event-handlers.js`) 시 '목록 추가' 탭으로 전환되며, 해당 목록의 이름과 내용이 입력 필드에 미리 채워집니다。
+    *   사용자가 내용을 수정한 후 '수정' 버튼 클릭 (`event-handlers.js`) 시 `CustomListManager.updateCustomList`를 호출하여 목록을 업데이트합니다。
+    *   만약 목록 이름도 변경되었다면, `CustomListManager.renameCustomList`를 먼저 호출한 후 `CustomListManager.updateCustomList`를 호출하여 이름 변경과 내용 업데이트를 처리합니다。
+    *   유효성 검사 및 저장, UI 업데이트는 목록 추가와 동일한 방식으로 진행됩니다。
 5.  **목록 삭제**:
-    *   '목록 관리' 탭에서 특정 목록의 '삭제' 버튼 클릭 (`event-handlers.js`) 시 사용자 확인 후 `CustomListManager.deleteCustomList`를 호출하여 목록을 삭제합니다.
-    *   `LocalStorageManager`에서 해당 목록을 제거합니다.
-    *   `ui-renderer.js:showToast`로 결과 메시지를 표시하고 `ui-renderer.js:renderCustomListManagementModalContent` 및 `ui-renderer.js:renderBossSchedulerScreen`을 업데이트합니다.
+    *   '목록 관리' 탭에서 특정 목록의 '삭제' 버튼 클릭 (`event-handlers.js`) 시 사용자 확인 후 `CustomListManager.deleteCustomList`를 호출하여 목록을 삭제합니다。
+    *   `LocalStorageManager`에서 해당 목록을 제거합니다。
+    *   `ui-renderer.js:showToast`로 결과 메시지를 표시하고 `ui-renderer.js:renderCustomListManagementModalContent` 및 `ui-renderer.js:renderBossSchedulerScreen`을 업데이트합니다。
 6.  **데이터 초기 로드 (`event-handlers.js:initApp`)**:
-    *   `initApp`은 `CustomListManager.init()`를 호출하여 앱 시작 시 로컬 스토리지에서 기존 사용자 지정 목록을 로드합니다.
+    *   `initApp`은 `CustomListManager.init()`를 호출하여 앱 시작 시 로컬 스토리지에서 기존 사용자 지정 목록을 로드합니다。
 
 ### 5.9. 커스텀 보스 목록 관리 UI/UX 개선
-- 모달 내 "목록 관리" 탭의 각 커스텀 목록 항목에 있는 '수정' 및 '삭제' 버튼이 수평으로 정렬되도록 `src/style.css`에 `.custom-list-manage-item .button-group` 스타일이 추가되었습니다.
-- '이름 변경' 버튼은 '수정' 기능을 통해 이름 변경이 가능하므로 UI에서 제거되었으며 (`src/ui-renderer.js`), 관련 이벤트 핸들러도 삭제되었습니다 (`src/event-handlers.js`).
-- `src/custom-list-manager.js`의 `renameCustomList` 함수는 '수정' 기능을 통한 이름 변경 시 내부적으로 호출되어 여전히 사용됩니다.
+- 모달 내 "목록 관리" 탭의 각 커스텀 목록 항목에 있는 '수정' 및 '삭제' 버튼이 수평으로 정렬되도록 `src/style.css`에 `.custom-list-manage-item .button-group` 스타일이 추가되었습니다。
+- '이름 변경' 버튼은 '수정' 기능을 통해 이름 변경이 가능하므로 UI에서 제거되었으며 (`src/ui-renderer.js`), 관련 이벤트 핸들러도 삭제되었습니다 (`src/event-handlers.js`)。
+- `src/custom-list-manager.js`의 `renameCustomList` 함수는 '수정' 기능을 통한 이름 변경 시 내부적으로 호출되어 여전히 사용됩니다。
 
 ---
 
-리뉴얼된 "보스 알리미" 애플리케이션은 메뉴 기반의 다중 화면 아키텍처를 통해 사용자 경험과 기능적 모듈화를 크게 향상시켰습니다. `app.js`를 중심으로 한 중앙 집중식 초기화 및 라우팅, 그리고 `ui-renderer.js`를 통한 화면별 렌더링은 코드의 가독성, 유지보수성 및 확장성을 더욱 높여 향후 기능 추가 및 변경에 유연하게 대응할 수 있도록 합니다. **특히 젠 계산기 업데이트 기능의 추가와 UI/UX 개선을 통해 사용자가 기존 보스의 시간을 더욱 쉽고 정확하게 관리할 수 있도록 하였으며, 버튼 텍스트의 미세한 시각적 정렬 문제에 대한 대응 방안을 모색하여 전반적인 사용자 인터페이스의 완성도를 높였습니다.** 모바일 환경을 위한 하단 탭 바 내비게이션 도입으로 사용자 접근성을 개선했으며, 공유 링크 버그, 푸터 잘림 문제, 음소거 로그 메시지 오류 등을 수정하여 전반적인 안정성을 확보했습니다.
+리뉴얼된 "보스 알리미" 애플리케이션은 메뉴 기반의 다중 화면 아키텍처를 통해 사용자 경험과 기능적 모듈화를 크게 향상시켰습니다. `app.js`를 중심으로 한 중앙 집중식 초기화 및 라우팅, 그리고 `ui-renderer.js`를 통한 화면별 렌더링은 코드의 가독성, 유지보수성 및 확장성을 더욱 높여 향후 기능 추가 및 변경에 유연하게 대응할 수 있도록 합니다。 **특히 젠 계산기 업데이트 기능의 추가와 UI/UX 개선을 통해 사용자가 기존 보스의 시간을 더욱 쉽고 정확하게 관리할 수 있도록 하였으며, 버튼 텍스트의 미세한 시각적 정렬 문제에 대한 대응 방안을 모색하여 전반적인 사용자 인터페이스의 완성도를 높였습니다。** 모바일 환경을 위한 하단 탭 바 내비게이션 도입으로 사용자 접근성을 개선했으며, 공유 링크 버그, 푸터 잘림 문제, 음소거 로그 메시지 오류 등을 수정하여 전반적인 안정성을 확보했습니다。
