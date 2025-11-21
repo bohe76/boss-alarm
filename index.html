@@ -173,42 +173,40 @@
                             <button id="updateBossTimeButton" disabled>보스 시간 업데이트</button>
                         </div>
                     </div>
-                    <div id="toastContainer" class="toast-container"></div>
-                </div>
-
-                <div id="lightCalculatorCard" class="calculator-card">
-                    <div class="light-calculator-header">
-                        <h3>광 계산기</h3>
-                        <button id="lightListButton" class="button">목록</button>
-                    </div>
-                    <div class="light-calculator-controls">
-                        <div class="light-stopwatch-display-group">
-                            <label>경과 시간</label>
-                            <span id="lightStopwatchDisplay" class="result-display">00:00</span>
+                    <!-- Light Calculator Card - Moved to here -->
+                    <div id="lightCalculatorCard" class="calculator-card">
+                        <div class="light-calculator-header">
+                            <h3>광 계산기</h3>
+                            <button id="lightListButton" class="button">목록</button>
                         </div>
-                        <div class="light-buttons">
-                            <button id="lightStartButton" class="button" disabled>시작</button>
-                            <button id="lightGwangButton" class="button" disabled>광</button>
-                            <button id="lightCaptureButton" class="button" disabled>잡힘</button>
+                        <div class="light-calculator-controls">
+                            <div class="light-stopwatch-display-group">
+                                <label>경과 시간</label>
+                                <span id="lightStopwatchDisplay" class="result-display">00:00</span>
+                            </div>
+                            <div class="light-buttons">
+                                <button id="lightStartButton" class="button" disabled>시작</button>
+                                <button id="lightGwangButton" class="button" disabled>광</button>
+                                <button id="lightCaptureButton" class="button" disabled>잡힘</button>
+                            </div>
+                        </div>
+                        <div class="light-calculation-results">
+                            <div class="light-expected-time-group">
+                                <label><span class="expected-text">잡힘</span> <span class="expected-label">예상 시간</span></label>
+                                <span id="lightExpectedTimeDisplay" class="result-display">--:--</span>
+                            </div>
+                        </div>
+                        <div id="lightTempResults" class="light-temp-results">
+                            <!-- Temporary results after capture will be displayed here -->
+                        </div>
+                        <div id="lightSavedList" class="light-saved-list">
+                            <div class="light-saved-list-header">
+                                <h4>광 계산 목록</h4>
+                                <button id="clearLightRecordsButton" class="button">기록 초기화</button>
+                            </div>
+                            <!-- Saved list will be rendered here -->
                         </div>
                     </div>
-                    <div class="light-calculation-results">
-                        <div class="light-expected-time-group">
-                            <label><span class="expected-text">잡힘</span> <span class="expected-label">예상 시간</span></label>
-                            <span id="lightExpectedTimeDisplay" class="result-display">--:--</span>
-                        </div>
-                    </div>
-                    <div id="lightTempResults" class="light-temp-results">
-                        <!-- Temporary results after capture will be displayed here -->
-                    </div>
-                    <div id="lightSavedList" class="light-saved-list">
-                        <div class="light-saved-list-header">
-                            <h4>광 계산 목록</h4>
-                            <button id="clearLightRecordsButton" class="button">기록 초기화</button>
-                        </div>
-                        <!-- Saved list will be rendered here -->
-                    </div>
-                </div>
             </section>
 
             <section id="boss-scheduler-screen" class="screen">
@@ -252,22 +250,23 @@
                             <h2>커스텀 보스 관리</h2>
                             <button id="close-custom-list-modal" class="close-button">&times;</button>
                         </div>
+                        <div class="modal-tabs">
+                            <button id="tab-add-custom-list" class="tab-button active">목록 추가</button>
+                            <button id="tab-manage-custom-lists" class="tab-button">목록 관리</button>
+                        </div>
                         <div class="modal-body">
-                            <div class="tab-content">
-                                <h3>목록 추가/수정</h3>
+                            <div id="custom-list-add-section" class="custom-list-tab-content active">
                                 <div class="control-group">
                                     <label for="custom-list-name-input">목록 이름</label>
                                     <input type="text" id="custom-list-name-input" placeholder="새 목록 이름 입력">
                                 </div>
                                 <div class="control-group">
-                                    <label for="custom-list-content-textarea">보스 목록 (한 줄에 하나씩)</label>
+                                    <label for="custom-list-content-textarea">보스 목록</label>
                                     <textarea id="custom-list-content-textarea" rows="10" placeholder="보스 이름을 한 줄에 하나씩 입력하세요."></textarea>
                                 </div>
                                 <button id="save-custom-list-button" class="button primary-button">저장</button>
                             </div>
-                            <hr>
-                            <div class="tab-content">
-                                <h3>목록 관리</h3>
+                            <div id="custom-list-manage-section" class="custom-list-tab-content">
                                 <div id="custom-list-management-container">
                                     <!-- Dynamically rendered list for managing (edit, rename, delete) custom lists -->
                                 </div>
@@ -318,6 +317,11 @@
             </section>
 
             <!-- The help modal itself will be removed as its content is now part of the help screen -->
+    </main>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+
         </main>
     </div>
 

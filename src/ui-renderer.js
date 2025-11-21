@@ -494,7 +494,7 @@ export function renderCalculatorScreen(DOM) {
 }
 
 
-export function renderCustomListManagementModal(DOM) {
+export function renderCustomListManagementModalContent(DOM) {
     if (!DOM.customListManagementContainer) return;
     const lists = CustomListManager.getCustomLists();
     if (lists.length === 0) {
@@ -511,6 +511,27 @@ export function renderCustomListManagementModal(DOM) {
             </div>
         </div>
     `).join('');
+}
+
+export function showCustomListTab(DOM, tabId) {
+    // Deactivate all tab buttons and hide all tab contents
+    [DOM.tabAddCustomList, DOM.tabManageCustomLists].forEach(btn => btn.classList.remove('active'));
+    [DOM.customListAddSection, DOM.customListManageSection].forEach(section => section.classList.remove('active'));
+
+    // Activate the selected tab button and show its content
+    if (tabId === 'add') {
+        DOM.tabAddCustomList.classList.add('active');
+        DOM.customListAddSection.classList.add('active');
+        // Clear inputs when switching to add tab
+        DOM.customListNameInput.value = '';
+        DOM.customListContentTextarea.value = '';
+        delete DOM.saveCustomListButton.dataset.editTarget;
+        DOM.saveCustomListButton.textContent = '저장';
+    } else if (tabId === 'manage') {
+        DOM.tabManageCustomLists.classList.add('active');
+        DOM.customListManageSection.classList.add('active');
+        renderCustomListManagementModalContent(DOM); // Re-render content when tab is shown
+    }
 }
 
 
@@ -534,9 +555,6 @@ export function renderBossSchedulerScreen(DOM, remainingTimes = {}) {
             DOM.bossInputsContainer.innerHTML = '<p>선택할 수 있는 게임 목록이 없습니다.</p>';
         }
     }
-
-    // Render custom list sections
-    renderCustomListManagementModal(DOM);
 }
 
 /**

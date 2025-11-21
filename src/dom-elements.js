@@ -104,5 +104,11 @@ export function initDomElements() {
         customListContentTextarea: document.getElementById('custom-list-content-textarea'),
         saveCustomListButton: document.getElementById('save-custom-list-button'),
         customListManagementContainer: document.getElementById('custom-list-management-container'),
+        // New: Custom Boss List Tab Elements
+        modalTabs: document.querySelector('.modal-tabs'),
+        tabAddCustomList: document.getElementById('tab-add-custom-list'),
+        tabManageCustomLists: document.getElementById('tab-manage-custom-lists'),
+        customListAddSection: document.getElementById('custom-list-add-section'),
+        customListManageSection: document.getElementById('custom-list-manage-section'),
     };
 }

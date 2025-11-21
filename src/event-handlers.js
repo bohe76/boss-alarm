@@ -2,7 +2,7 @@
 
 import { parseBossList, getSortedBossListText } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-scheduler.js';
-import { renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen, renderBossSchedulerScreen, renderBossInputs, updateMuteButtonVisuals, showToast, populateBossSelectionDropdown, renderCustomListManagementModal } from './ui-renderer.js'; // Added showToast, populateBossSelectionDropdown
+import { renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen, renderBossSchedulerScreen, renderBossInputs, updateMuteButtonVisuals, showToast, populateBossSelectionDropdown, showCustomListTab, renderCustomListManagementModalContent } from './ui-renderer.js'; // Added showToast, populateBossSelectionDropdown, showCustomListTab, renderCustomListManagementModalContent
 import { getShortUrl, loadJsonContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
 import { LocalStorageManager } from './data-managers.js';
@@ -701,13 +701,7 @@ function initEventHandlers(DOM, globalTooltip) {
     // Open Modal
     if (DOM.manageCustomListsButton) {
         DOM.manageCustomListsButton.addEventListener('click', () => {
-            // Reset modal state before showing
-            DOM.customListNameInput.value = '';
-            DOM.customListContentTextarea.value = '';
-            delete DOM.saveCustomListButton.dataset.editTarget;
-            DOM.saveCustomListButton.textContent = '저장';
-            
-            renderCustomListManagementModal(DOM); // Refresh list
+            showCustomListTab(DOM, 'add'); // Show '목록 추가' tab by default
             DOM.customBossListModal.style.display = 'flex';
             DOM.customListNameInput.focus();
         });
@@ -730,44 +724,70 @@ function initEventHandlers(DOM, globalTooltip) {
         });
     }
 
+    // Tab switching
+    if (DOM.tabAddCustomList) {
+        DOM.tabAddCustomList.addEventListener('click', () => showCustomListTab(DOM, 'add'));
+    }
+    if (DOM.tabManageCustomLists) {
+        DOM.tabManageCustomLists.addEventListener('click', () => showCustomListTab(DOM, 'manage'));
+    }
+
     // Save/Update Button in Modal
     if (DOM.saveCustomListButton) {
-        DOM.saveCustomListButton.addEventListener('click', () => {
+        DOM.saveCustomListButton.addEventListener('click', async () => { // Make it async for confirm dialog
             const listName = DOM.customListNameInput.value.trim();
             const listContent = DOM.customListContentTextarea.value.trim();
             const editTarget = DOM.saveCustomListButton.dataset.editTarget;
 
             let result;
-            if (editTarget && editTarget !== listName) { // Renaming while updating content
-                const renameResult = CustomListManager.renameCustomList(editTarget, listName);
-                if (!renameResult.success) {
-                    log(renameResult.message, false);
-                    showToast(DOM, `오류: ${renameResult.message}`);
-                    return;
-                }
-                result = CustomListManager.updateCustomList(listName, listContent);
-
-            } else if (editTarget) { // Just updating content
-                result = CustomListManager.updateCustomList(editTarget, listContent);
-            } else { // Adding a new list
-                result = CustomListManager.addCustomList(listName, listContent);
-            }
-
-            if (result.success) {
-                showToast(DOM, result.message);
-                renderCustomListManagementModal(DOM);
-                renderBossSchedulerScreen(DOM, _remainingTimes); // To update dropdown
-                closeModal();
-            } else {
-                log(result.message, false);
-                showToast(DOM, `오류: ${result.message}`);
-            }
-        });
+            if (editTarget) { // Updating an existing list or renaming
+                if (editTarget !== listName) { // Renaming case
+                    const renameValidation = CustomListManager.renameCustomList(editTarget, listName);
+                                if (!renameValidation.success) {
+                                    alert(`${renameValidation.message}`);
+                                    return;
+                                }
+                                // If rename was successful, proceed to update content with the new name
+                                result = CustomListManager.updateCustomList(listName, listContent);
+                            } else { // Just updating content, name is the same
+                                result = CustomListManager.updateCustomList(listName, listContent);
+                            }
+                        } else { // Adding a new list
+                            // Check for name duplication before adding
+                            const existingLists = CustomListManager.getCustomLists();
+                            const isNamePredefinedOrCustom = existingLists.some(list => list.name === listName) || CustomListManager.isPredefinedGameName(listName);
+                    
+                            if (isNamePredefinedOrCustom) {
+                                                    const confirmOverwrite = confirm(`'${listName}'은(는) 이미 존재하는 목록 또는 게임 이름입니다. 덮어쓰시겠습니까?`);
+                                                    if (!confirmOverwrite) {
+                                                        showToast(DOM, '목록 추가를 취소했습니다.');
+                                                        return;
+                                                    }                                // If confirmed to overwrite, treat as an update
+                                result = CustomListManager.updateCustomList(listName, listContent);
+                                if (!result.success && result.message === '수정할 목록을 찾을 수 없습니다.') {
+                                    // This might happen if trying to "overwrite" a predefined game name with updateCustomList.
+                                    // Re-attempt as add if it's not a custom list that can be updated.
+                                    result = CustomListManager.addCustomList(listName, listContent);
+                                }
+                            } else {
+                                result = CustomListManager.addCustomList(listName, listContent);
+                            }
+                        }
+                        
+                        if (result.success) {
+                            showToast(DOM, result.message);
+                            // Call renderCustomListManagementModalContent to update the "목록 관리" tab's display
+                            renderCustomListManagementModalContent(DOM); 
+                            renderBossSchedulerScreen(DOM, _remainingTimes); // To update dropdown
+                            closeModal();
+                        } else {
+                            alert(`${result.message}`);
+                        }        });
     }
 
     // Event Delegation for Management List (Edit, Rename, Delete)
     if (DOM.customListManagementContainer) {
-        DOM.customListManagementContainer.addEventListener('click', (event) => {
+        DOM.customListManagementContainer.addEventListener('click', async (event) => { // Make it async for prompt/confirm dialogs
             const button = event.target.closest('button');
             if (!button) return;
 
@@ -781,21 +801,39 @@ function initEventHandlers(DOM, globalTooltip) {
                     const result = CustomListManager.deleteCustomList(listName);
                     showToast(DOM, result.message);
                     if (result.success) {
-                        renderCustomListManagementModal(DOM);
-                        renderBossSchedulerScreen(DOM, _remainingTimes);
+                        renderCustomListManagementModalContent(DOM); // Re-render management list
+                        renderBossSchedulerScreen(DOM, _remainingTimes); // To update dropdown
                     }
                 }
             } else if (button.classList.contains('rename-custom-list-button')) {
                 const newName = prompt(`'${listName}'의 새 이름을 입력하세요:`, listName);
-                if (newName && newName.trim() && newName.trim() !== listName) {
-                    const result = CustomListManager.renameCustomList(listName, newName.trim());
-                    showToast(DOM, result.message);
-                    if (result.success) {
-                        renderCustomListManagementModal(DOM);
-                        renderBossSchedulerScreen(DOM, _remainingTimes);
-                    }
+                if (newName === null || !newName.trim()) { // User cancelled or entered empty name
+                    showToast(DOM, '이름 변경을 취소했습니다.');
+                    return;
+                }
+                const trimmedNewName = newName.trim();
+                if (trimmedNewName === listName) {
+                    showToast(DOM, '이전 이름과 동일합니다. 변경하지 않습니다.');
+                    return;
+                }
+
+                // Check for name duplication before renaming
+                const isNamePredefinedOrCustom = CustomListManager.getCustomLists().some(list => list.name === trimmedNewName) || CustomListManager.isPredefinedGameName(trimmedNewName);
+                if (isNamePredefinedOrCustom) {
+                    alert(`'${trimmedNewName}'은(는) 이미 존재하는 목록 또는 게임 이름입니다.\n다시 이름을 작성해주세요`);
+                    return;
+                }
+
+                const result = CustomListManager.renameCustomList(listName, trimmedNewName);
+                showToast(DOM, result.message);
+                if (result.success) {
+                    renderCustomListManagementModalContent(DOM); // Re-render management list
+                    renderBossSchedulerScreen(DOM, _remainingTimes); // To update dropdown
                 }
             } else if (button.classList.contains('edit-custom-list-button')) {
+                // Switch to the "목록 추가" tab for editing
+                showCustomListTab(DOM, 'add');
+
                 const content = CustomListManager.getCustomListContent(listName);
                 DOM.customListNameInput.value = listName;
                 DOM.customListContentTextarea.value = content || '';

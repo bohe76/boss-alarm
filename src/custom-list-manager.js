@@ -53,6 +53,15 @@ function parseAndValidateBossContent(content) {
     return { isValid: true, bosses };
 }
 
+/**
+ * 보스 목록 내용에서 빈 줄 또는 공백만 있는 줄을 제거합니다.
+ * @param {string} content - 원본 텍스트 내용
+ * @returns {string} - 빈 줄이 제거된 텍스트 내용
+ */
+function _cleanBossListContent(content) {
+    return content.split('\n').filter(line => line.trim() !== '').join('\n');
+}
+
 function saveListsToLocalStorage() {
     LocalStorageManager.set(CUSTOM_BOSS_LISTS_KEY, customBossLists);
 }
@@ -93,11 +102,11 @@ function addCustomList(listName, listContent) {
 
     const isNameDuplicate = customBossLists.some(list => list.name === listName) || getPredefinedGameNames().some(game => game.name === listName && !game.isCustom);
     if (isNameDuplicate) {
-        // 기능 명세에 따라 저장 시에는 덮어쓰기 확인을 요구하나, 여기서는 우선 중복 방지 처리.
         return { success: false, message: '이미 존재하는 목록 또는 게임 이름입니다.' };
     }
 
-    const contentValidation = parseAndValidateBossContent(listContent);
+    const cleanedContent = _cleanBossListContent(listContent); // 빈 줄 제거
+    const contentValidation = parseAndValidateBossContent(cleanedContent);
     if (!contentValidation.isValid) {
         return { success: false, message: contentValidation.message };
     }
@@ -105,7 +114,7 @@ function addCustomList(listName, listContent) {
     customBossLists.push({
         name: listName,
         bosses: contentValidation.bosses,
-        content: listContent // 원본 내용 저장
+        content: cleanedContent // 원본 내용 저장 시 정리된 내용 사용
     });
     saveListsToLocalStorage();
 
@@ -124,17 +133,19 @@ function updateCustomList(originalName, newListContent) {
         return { success: false, message: '수정할 목록을 찾을 수 없습니다.' };
     }
 
-    const contentValidation = parseAndValidateBossContent(newListContent);
+    const cleanedContent = _cleanBossListContent(newListContent); // 빈 줄 제거
+    const contentValidation = parseAndValidateBossContent(cleanedContent);
     if (!contentValidation.isValid) {
         return { success: false, message: contentValidation.message };
     }
 
     listToUpdate.bosses = contentValidation.bosses;
-    listToUpdate.content = newListContent; // 원본 내용 업데이트
+    listToUpdate.content = cleanedContent; // 원본 내용 업데이트 시 정리된 내용 사용
     saveListsToLocalStorage();
 
     return { success: true, message: `"${originalName}" 목록이 수정되었습니다.` };
 }
+
 
 /**
  * 사용자 지정 목록을 삭제합니다.
@@ -203,6 +214,15 @@ function getCustomListContent(listName) {
     return list ? list.content : null;
 }
 
+/**
+ * 주어진 이름이 미리 정의된 게임 이름인지 확인합니다.
+ * @param {string} name - 확인할 이름
+ * @returns {boolean} - 미리 정의된 게임 이름이면 true
+ */
+function isPredefinedGameName(name) {
+    return getPredefinedGameNames().some(game => game.name === name && !game.isCustom);
+}
+
 
 export const CustomListManager = {
     init,
@@ -213,4 +233,5 @@ export const CustomListManager = {
     renameCustomList,
     getBossNamesForCustomList,
     getCustomListContent,
+    isPredefinedGameName,
 };

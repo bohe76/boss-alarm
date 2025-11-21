@@ -459,6 +459,20 @@ body {
             padding-top: 60px;
         }
 
+        .modal-header {
+            background-color: #f0f0f0; /* Light background for header */
+            padding: 15px 20px; /* Padding for header content */
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0; /* Remove default h2 margin */
+            color: #333;
+        }
+
         .modal-content {
             background-color: #f8f8f8; /* Match textarea background */
             margin: 5% auto;
@@ -470,25 +484,30 @@ body {
             position: relative;
             display: flex; /* Use flexbox for layout */
             flex-direction: column; /* Stack children vertically */
-            height: 600px; /* Fixed height */
+            max-height: 90vh; /* Max height to prevent overflow on very small screens */
             box-shadow: 0 8px 16px rgba(0,0,0,0.2); /* Add shadow for depth */
         }
 
+        .modal-body {
+            flex: 1; /* Allow modal-body to grow and shrink */
+            overflow-y: auto; /* Enable scrolling for content if it overflows */
+            padding: 20px; /* Add padding here for modal-body content */
+        }
+
+
         .close-button {
             display: inline-block;
-            color: #fff; /* More integrated color */
+            color: #333; /* Changed to dark grey/black */
             font-size: 32px; /* Slightly larger */
             font-weight: normal; /* Less bold */
             position: absolute;
             right: 15px;
             cursor: pointer;
+            border: none; /* Removed border */
+            background: none; /* Ensure no background color */
         }
 
-        .close-button:hover,
-        .close-button:focus {
-            color: #fff;
-            text-decoration: none;
-        }
+
 
 
 
@@ -664,7 +683,7 @@ body {
     top: 50%; /* Center vertically */
     left: 50%;
     transform: translate(-50%, -50%); /* Center horizontally and vertically */
-    z-index: 1000; /* Ensure it's on top of other content */
+    z-index: 1002; /* Ensure it's on top of other content, higher than modal's 1001 */
     display: flex; /* Use flex to manage multiple toasts */
     flex-direction: column; /* Stack toasts vertically */
     gap: 10px; /* Space between multiple toasts */
@@ -1247,6 +1266,88 @@ body {
             padding-left: 20px;
             margin: 0;
         }
+
+/* Custom Boss List Modal Tabs */
+.modal-tabs {
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 15px;
+}
+
+.tab-button {
+    background-color: transparent;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 1em;
+    color: #555;
+    transition: color 0.2s, border-bottom 0.2s;
+    flex-grow: 1; /* Distribute space evenly */
+}
+
+.tab-button:hover {
+    color: #111;
+}
+
+.tab-button.active {
+    color: #1D3557; /* Active tab color */
+    border-bottom: 2px solid #1D3557; /* Active tab indicator */
+    font-weight: bold;
+}
+
+/* Custom List Tab Content */
+.custom-list-tab-content {
+    display: none; /* Hidden by default */
+}
+
+.custom-list-tab-content.active {
+    display: block; /* Show active tab content */
+}
+
+/* Modal specific styles adjustment */
+.modal-content .control-group {
+    margin-bottom: 15px;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.modal-content input[type="text"],
+.modal-content textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+
+.custom-list-manage-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.custom-list-manage-item .list-name {
+    font-weight: bold;
+    color: #333;
+}
+
+.custom-list-manage-item .button-group button {
+    padding: 5px 10px;
+    font-size: 0.85em;
+    border-radius: 3px;
+    margin-left: 5px;
+}
 
 /* Reduce margin-top for h3 within the notification settings screen */
 section#notification-settings-screen h3 {
