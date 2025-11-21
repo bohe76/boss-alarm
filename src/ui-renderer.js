@@ -417,10 +417,29 @@ export function updateFixedAlarmVisuals(DOM) {
 
 
 export async function renderVersionInfo(DOM) {
-    const versionData = await loadJsonContent(`docs/version_history.json?v=${window.APP_VERSION}`);
-    if (DOM.versionHistoryContent && versionData) {
+    let rawVersionData = await loadJsonContent(`docs/version_history.json?v=${window.APP_VERSION}`);
+    let versionEntries = [];
+
+    // Check if rawVersionData is an array and process accordingly
+    if (Array.isArray(rawVersionData)) {
+        rawVersionData.forEach(item => {
+            if (item && item.fullVersion) { // This is a direct version entry like v2.7.0
+                versionEntries.push(item);
+            } else if (item && item.value && Array.isArray(item.value)) { // This is the object containing 'value' array
+                versionEntries = versionEntries.concat(item.value);
+            }
+        });
+    } else {
+        log("버전 정보 JSON 형식이 올바르지 않습니다.", false);
+        if (DOM.versionHistoryContent) {
+            DOM.versionHistoryContent.innerHTML = `<p>버전 정보를 불러오는 데 실패했습니다.</p>`;
+        }
+        return;
+    }
+
+    if (DOM.versionHistoryContent && versionEntries.length > 0) {
         let html = '';
-        versionData.forEach((versionEntry, index) => {
+        versionEntries.forEach((versionEntry, index) => {
             const isOpen = index === 0 ? 'open' : ''; // Add 'open' attribute to the first item
             html += `
                 <details class="version-accordion" ${isOpen}>
@@ -432,7 +451,7 @@ export async function renderVersionInfo(DOM) {
                             ${versionEntry.changes.map(change => `
                                 <li>
                                     <strong>${change.type}:</strong> ${change.description}
-                                    ${change.details.length > 0 ? `
+                                    ${change.details && change.details.length > 0 ? `
                                         <ul>
                                             ${change.details.map(detail => `<li>${detail}</li>`).join('')}
                                         </ul>
