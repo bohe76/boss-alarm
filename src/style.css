@@ -931,12 +931,25 @@ body {
 }
 
 /* Boss Scheduler Screen Styles */
-.scheduler-card {
+.boss-list-display-container {
     background-color: #fff;
-    padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    margin-bottom: 20px; /* Space from other sections */
+    margin-bottom: 20px;
+    padding: 20px;
+    display: flex; /* Make it a flex container */
+    flex-direction: column; /* Stack children vertically */
+    height: 400px; /* Fixed height for the entire card, adjust as needed */
+}
+
+.scheduler-card {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+    flex-grow: 1; /* Allow it to take remaining vertical space */
+    overflow-y: auto; /* Enable vertical scrolling */
 }
 
 .boss-scheduler-controls {
@@ -974,10 +987,12 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 0;
-    margin-bottom: 5px;
+    padding: 0 0 10px 0; /* Adjusted padding to be only at bottom */
+    margin-bottom: 10px; /* Space between header and scrollable list */
     font-weight: bold;
     color: #666;
+    border-bottom: 1px solid #eee; /* Visual separator */
+    flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .boss-name-header {
@@ -1011,13 +1026,13 @@ body {
 .boss-inputs-container {
     display: flex;
     flex-direction: column;
-    gap: 0px; /* Remove gap between items as border will separate */
-    margin-bottom: 0px; /* No margin bottom, handled by parent card */
-    max-height: 500px; /* Limit height for scrollability */
-    overflow-y: auto; /* Enable vertical scrolling */
-    padding-right: 10px; /* Space for scrollbar */
-    border-top: 1px solid #eee; /* Top border for the list */
-    padding-top: 10px; /* Padding for the top border */
+    gap: 0px;
+    margin-bottom: 0px;
+    /* max-height: 500px;  Removed as parent .scheduler-card now handles scrolling */
+    /* overflow-y: auto; Removed as parent .scheduler-card now handles scrolling */
+    padding-right: 10px;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
 }
 
 .boss-input-item {
