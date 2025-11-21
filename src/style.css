@@ -230,6 +230,13 @@ body {
             opacity: 0.6;
         }
 
+        /* Specific width for action buttons */
+        #manage-custom-lists-button,
+        #clearAllRemainingTimesButton,
+        #moveToBossSettingsButton {
+            width: 148px;
+        }
+
 
         h1, h2, h3 {
             color: #111;
@@ -936,6 +943,22 @@ body {
     gap: 10px;
     margin-top: 0px; /* Adjusted to be closer to dropdown */
     margin-bottom: 20px; /* Space before boss input header */
+}
+
+/* Horizontal alignment for control groups */
+.control-group-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between items */
+    margin-bottom: 15px; /* Add some margin below the group */
+}
+
+/* Horizontal alignment for action buttons */
+.action-buttons {
+    display: flex;
+    justify-content: flex-start; /* Align to the left */
+    gap: 10px; /* Space between buttons */
+    margin-bottom: 20px; /* Space below the button group */
 }
 
 .boss-input-header {
