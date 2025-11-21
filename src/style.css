@@ -213,20 +213,20 @@ body {
             font-size: 1em;
             line-height: 1.2em; /* Explicit line height for text alignment */
             transition: background-color 0.2s ease, color 0.2s ease;
-            background-color: #f0f0f0; /* Light gray default background */
-            color: #333; /* Dark text for contrast */
+            background-color: #455A64; /* Changed to #455A64 as requested */
+            color: #ffffff; /* Remains white */
             text-decoration: none; /* Ensure no underline for a/button elements */
             white-space: nowrap; /* Prevent text wrapping */
         }
 
         .button:hover:not(:disabled) {
-            background-color: #e0e0e0; /* Darker gray on hover */
+            background-color: #263238; /* Changed to #263238 as requested */
         }
 
         .button:disabled {
-            background-color: #cccccc;
-            color: #666;
-            cursor: not-allowed;
+            background-color: #CFD8DC;
+            color: #111;
+            cursor: default; /* Changed from not-allowed to default to hide the circle with diagonal line */
             opacity: 0.6;
         }
 
@@ -662,8 +662,7 @@ body {
 }
 
 #remainingTimeInput,
-#bossSelectionDropdown,
-#updateBossTimeButton {
+#bossSelectionDropdown {
     width: var(--zen-input-width); /* Apply consistent width */
     height: var(--zen-input-height); /* Apply consistent height */
     padding: 8px;
