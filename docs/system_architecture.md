@@ -24,8 +24,8 @@
     - 다른 모듈들이 DOM 요소에 직접 접근하는 대신 이 모듈을 통해 일관된 방식으로 접근하도록 함.
 - **DOM 추상화:** 이 모듈은 DOM 접근을 위한 추상화 계층 역할을 하여 일관성을 촉진하고 UI 변경 관리를 용이하게 합니다.
 - **초기화 시점:** 모든 요소가 사용 가능하도록 DOM이 완전히 로드된 후에만 `initDomElements()`를 호출해야 합니다.
-- **업데이트 (보스 스케줄러):** `boss-list-display-container` (보스 목록 헤더와 목록을 감싸는 컨테이너)에 대한 DOM 참조가 추가되었습니다.
-- **업데이트 (커스텀 보스 목록):** `manageCustomListsButton` (커스텀 보스 목록 모달 열기 버튼), `customBossListModal` (모달 컨테이너), `closeCustomListModal` (모달 닫기 버튼), `customListNameInput` (목록 이름 입력 필드), `customListContentTextarea` (목록 내용 텍스트 영역), `saveCustomListButton` (목록 저장 버튼), `customListManagementContainer` (관리 탭의 목록 표시 컨테이너), `modalTabs` (모달 내 탭 내비게이션), `tabAddCustomList` (목록 추가 탭 버튼), `tabManageCustomLists` (목록 관리 탭 버튼), `customListAddSection` (목록 추가 섹션), `customListManageSection` (목록 관리 섹션)에 대한 DOM 참조가 추가되었습니다.
+- **보스 스케줄러:** `boss-list-display-container` (보스 목록 헤더와 목록을 감싸는 컨테이너)에 대한 DOM 참조가 추가되었습니다.
+- **커스텀 보스 목록:** `manageCustomListsButton` (커스텀 보스 목록 모달 열기 버튼), `customBossListModal` (모달 컨테이너), `closeCustomListModal` (모달 닫기 버튼), `customListNameInput` (목록 이름 입력 필드), `customListContentTextarea` (목록 내용 텍스트 영역), `saveCustomListButton` (목록 저장 버튼), `customListManagementContainer` (관리 탭의 목록 표시 컨테이너), `modalTabs` (모달 내 탭 내비게이션), `tabAddCustomList` (목록 추가 탭 버튼), `tabManageCustomLists` (목록 관리 탭 버튼), `customListAddSection` (목록 추가 섹션), `customListManageSection` (목록 관리 섹션)에 대한 DOM 참조가 추가되었습니다.
 
 ### 3.3. `src/logger.js`
 - **역할:** 애플리케이션 내에서 발생하는 메시지(정보, 경고, 오류)를 UI의 로그 컨테이너에 표시하고 관리합니다.
@@ -88,7 +88,37 @@
 - **영구성:** `LocalStorageManager`를 사용하여 `customBossLists` 배열을 로컬 스토리지에 저장하고 로드합니다.
 - **데이터 구조:** 각 사용자 지정 목록은 `name` (문자열), `bosses` (보스 이름 문자열 배열), `content` (사용자가 입력한 원본 텍스트 내용) 속성을 가집니다.
 
-### 3.6. `src/boss-parser.js`
+- **커스텀 보스 목록 관리 기능:**
+    - **3.6.1. 기능 설명**
+        1.  **모달 열기/닫기**:
+            *   '커스텀 목록 관리' 버튼 클릭 (`event-handlers.js`) 시 모달 창이 표시됩니다。
+            *   모달 닫기 버튼 클릭 또는 모달 외부 클릭 (`event-handlers.js`) 시 모달 창이 닫힙니다。
+        2.  **탭 전환**:
+            *   '목록 추가' 또는 '목록 관리' 탭 버튼 클릭 (`event-handlers.js`) 시 `ui-renderer.js:showCustomListTab`를 호출하여 해당 탭의 내용을 표시하고 활성 탭 버튼의 스타일을 업데이트합니다。
+            *   '목록 추가' 탭으로 전환 시 입력 필드를 초기화합니다。
+        3.  **목록 추가**:
+            *   사용자가 '목록 추가' 탭에서 이름과 내용을 입력 후 '저장' 버튼 클릭 (`event-handlers.js`) 시 `CustomListManager.addCustomList`를 호출하여 새 목록을 추가합니다。
+            *   `CustomListManager`는 `validateListName` 및 `parseAndValidateBossContent`를 통해 유효성을 검사하고 `_cleanBossListContent`를 통해 내용을 정리합니다。
+            *   `LocalStorageManager`를 통해 로컬 스토리지에 저장합니다。
+            *   `ui-renderer.js:showToast`로 결과 메시지를 표시하고 `ui-renderer.js:renderCustomListManagementModalContent`를 호출하여 '목록 관리' 탭을 새로 고칩니다。
+            *   보스 스케줄러 화면의 게임 선택 드롭다운도 `ui-renderer.js:renderBossSchedulerScreen`을 통해 업데이트됩니다。
+        4.  **목록 수정**:
+            *   '목록 관리' 탭에서 특정 목록의 '편집' 버튼 클릭 (`event-handlers.js`) 시 '목록 추가' 탭으로 전환되며, 해당 목록의 이름과 내용이 입력 필드에 미리 채워집니다。
+            *   사용자가 내용을 수정한 후 '수정' 버튼 클릭 (`event-handlers.js`) 시 `CustomListManager.updateCustomList`를 호출하여 목록을 업데이트합니다。
+            *   만약 목록 이름도 변경되었다면, `CustomListManager.renameCustomList`를 먼저 호출한 후 `CustomListManager.updateCustomList`를 호출하여 이름 변경과 내용 업데이트를 처리합니다。
+            *   유효성 검사 및 저장, UI 업데이트는 목록 추가와 동일한 방식으로 진행됩니다。
+        5.  **목록 삭제**:
+            *   '목록 관리' 탭에서 특정 목록의 '삭제' 버튼 클릭 (`event-handlers.js`) 시 사용자 확인 후 `CustomListManager.deleteCustomList`를 호출하여 목록을 삭제합니다。
+            *   `LocalStorageManager`에서 해당 목록을 제거합니다。
+            *   `ui-renderer.js:showToast`로 결과 메시지를 표시하고 `ui-renderer.js:renderCustomListManagementModalContent` 및 `ui-renderer.js:renderBossSchedulerScreen`을 업데이트합니다。
+        6.  **데이터 초기 로드 (`event-handlers.js:initApp`)**:
+            *   `initApp`은 `CustomListManager.init()`를 호출하여 앱 시작 시 로컬 스토리지에서 기존 사용자 지정 목록을 로드합니다。
+    - **3.6.2. UI/UX 개선**
+        - 모달 내 "목록 관리" 탭의 각 커스텀 목록 항목에 있는 '수정' 및 '삭제' 버튼이 수평으로 정렬되도록 `src/style.css`에 `.custom-list-manage-item .button-group` 스타일이 추가되었습니다。
+        - '이름 변경' 버튼은 '수정' 기능을 통해 이름 변경이 가능하므로 UI에서 제거되었으며 (`src/ui-renderer.js`), 관련 이벤트 핸들러도 삭제되었습니다 (`src/event-handlers.js`)。
+        - `src/custom-list-manager.js`의 `renameCustomList` 함수는 '수정' 기능을 통한 이름 변경 시 내부적으로 호출되어 여전히 사용됩니다。
+
+### 3.7. `src/boss-parser.js`
 - **역할:** 사용자 입력 텍스트 영역에서 보스 목록을 파싱하고, 유효성을 검사하며, `BossDataManager`를 통해 보스 일정을 업데이트합니다.
 - **주요 기능:**
     - `parseBossList(bossListInput)`:
@@ -114,7 +144,7 @@
     - 이전 보스 시간보다 이른 시간이 감지되면(예: 23:00 다음 01:00), `dayOffset`을 증가시켜 자동으로 다음 날로 넘어간 것으로 처리합니다.
 - **오류 처리:** 유효하지 않은 날짜/시간 형식, 누락된 보스 이름, 빈 보스 목록에 대한 경고 메시지를 `logger.js`를 통해 출력합니다.
 
-### 3.7. `src/calculator.js`
+### 3.8. `src/calculator.js`
 - **역할:** 현재 시간과 주어진 남은 시간을 기반으로 보스 출현 시간을 계산하는 기능을 제공합니다.
 - **주요 기능:**
     - `calculateBossAppearanceTime(remainingTimeString)`: "HH:MM:SS" 형식, **"MM:SS" 형식**, **"HHMMSS"(6자리 숫자)** 형식, **"MMSS"(4자리 숫자)** 형식의 남은 시간 문자열을 입력받아 보스 출현 시간을 계산합니다.
@@ -126,7 +156,7 @@
     - 출력: `HH:MM:SS` 형식의 문자열 또는 유효하지 않은 입력 시 `null`.
 - **오류 처리:** 유효하지 않은 시간 형식이나 값에 대해 `null`을 반환하여 호출하는 측에서 처리할 수 있도록 합니다.
 
-### 3.8. `src/light-calculator.js`
+### 3.9. `src/light-calculator.js`
 - **역할:** "광 계산기"의 핵심 로직을 담당합니다. 스톱워치 기능, "광" 시간 계산, 예상 시간 카운트다운 및 오버타임 카운트업, 그리고 계산 결과 저장 및 초기화 기능을 제공합니다.
 - **주요 기능:**
     - `formatTime(seconds)`: 초 단위 시간을 "MM:SS" 형식의 문자열로 변환합니다.
@@ -143,16 +173,14 @@
     - `ui-renderer.js`의 콜백 함수를 통해 UI를 업데이트합니다.
 - **상태 관리:** `stopwatchInterval`, `countdownInterval`, `stopwatchStartTime`, `gwangTime`, `currentStopwatchTime`, `expectedCountdownTime`, `currentCountdownTime`, `currentOverTime` 등의 내부 상태 변수를 관리하여 계산기의 정확한 동작을 보장합니다.
 
-### 3.9. `src/boss-scheduler-data.js`
+### 3.10. `src/boss-scheduler-data.js`
 - **역할:** `data/boss_lists.json` 파일에서 게임별 보스 목록 데이터를 로드하고 관리합니다.
 - **주요 기능:**
     - `loadBossLists(filePath)`: 지정된 JSON 파일에서 보스 목록 데이터를 비동기적으로 로드합니다. 로드 실패 시 오류를 로깅하고 빈 객체를 반환합니다.
     - `getGameNames()`: 로드된 보스 목록에서 사용 가능한 게임 이름(최상위 키) 배열을 반환합니다.
     - `getBossNamesForGame(gameName)`: 특정 게임에 대한 보스 이름 배열을 반환합니다.
 - **데이터 구조:** `data/boss_lists.json`은 게임 이름을 키로 하고 해당 게임의 보스 이름 배열을 값으로 하는 JSON 객체 형태입니다.
-- **오류 처리:** 파일 로드 실패 시 `logger.js`를 통해 사용자에게 메시지를 전달합니다.
-
-### 3.9. `src/alarm-scheduler.js`
+### 3.11. `src/alarm-scheduler.js`
 - **역할:** 보스 알림 타이머를 관리하고, 설정된 시간에 맞춰 알림을 트리거합니다.
 - **주요 기능:**
     - `startAlarm()`: 알림 타이머를 시작하고 주기적으로 `checkAlarms`를 호출.
@@ -174,7 +202,7 @@
 - **고정 알림 처리:**
     - `LocalStorageManager`에서 관리되는 고정 알림의 활성화 상태를 확인하고, 활성화된 고정 알림에 대해서만 알림을 처리합니다。
 
-### 3.10. `src/ui-renderer.js`
+### 3.12. `src/ui-renderer.js`
 - **역할:** 애플리케이션의 UI 요소를 업데이트하고 렌더링합니다. 특히, 각 화면(Dashboard, Boss Management 등)의 콘텐츠를 동적으로 렌더링하고 업데이트하는 책임을 가집니다.
 - **주요 기능:**
     - `renderScreen(screenName)`: 지정된 화면을 메인 콘텐츠 영역에 렌더링.
@@ -204,7 +232,7 @@
 - **커스텀 보스 목록 렌더링:** `CustomListManager`에서 데이터를 가져와 커스텀 보스 목록 관리 모달의 UI를 렌더링하고 업데이트합니다.
 - **DOM 초기화 의존성:** 이 모듈의 함수들은 `initApp`에서 초기화된 `DOM` 객체를 인수로 받아 사용함으로써, DOM 요소가 완전히 로드된 후에만 접근하도록 보장합니다.
 
-### 3.11. `src/api-service.js`
+### 3.13. `src/api-service.js`
 - **역할:** 외부 TinyURL API와 통신하여 긴 URL을 짧은 URL로 변환하는 기능을 제공하며, `docs` 폴더의 JSON 파일을 로드하는 기능도 포함합니다.
 - **주요 기능:**
     - `getShortUrl(longUrl)`: 주어진 긴 URL을 TinyURL API를 사용하여 단축.
@@ -214,7 +242,7 @@
 - **파일 로드:** `fetch` API를 사용하여 로컬 `docs` 폴더의 파일을 로드합니다.
 - **오류 처리:** 네트워크 연결 오류 및 HTTP 응답 실패(404, 500 등)를 `try-catch` 블록으로 처리하고 `console.error`에 기록하며, `log` 함수를 통해 사용자에게 메시지를 전달합니다.
 
-### 3.12. `src/event-handlers.js`
+### 3.14. `src/event-handlers.js`
 - **역할:** 모든 사용자 인터랙션(버튼 클릭, 토글 변경, 메뉴 선택 등)에 대한 이벤트 리스너를 설정하고 관리합니다.
 - **주요 기능:**
     - `initEventHandlers(DOM, globalTooltip)`: `DOM` 요소에 이벤트 리스너를 등록하고, `globalTooltip` 요소를 전달받아 툴팁 기능을 활성화합니다.
@@ -282,7 +310,7 @@
 - **커스텀 보스 목록 이벤트:** 모달의 열기/닫기, 탭 전환, 목록 추가/업데이트/삭제/이름 변경에 대한 이벤트 리스너를 관리합니다。
 - **이벤트 처리 흐름:** `initEventHandlers`는 헤더, 사이드바, 메인 콘텐츠 영역 및 **하단 탭 바** 내의 모든 사용자 인터랙션에 대한 이벤트 리스너를 중앙에서 설정하고 관리합니다。
 
-### 3.13. `src/app.js` (신규 또는 `event-handlers.js`의 `initApp` 확장)
+### 3.15. `src/app.js` (신규 또는 `event-handlers.js`의 `initApp` 확장)
 - **역할:** 애플리케이션의 전반적인 초기화, 상태 관리 및 라우팅을 담당하는 핵심 모듈.
 - **주요 기능:**
     - `initApp()`: 애플리케이션의 진입점.
@@ -301,7 +329,7 @@
     - **라우팅:** URL 해시 또는 History API를 사용하여 화면 전환을 관리하고, `ui-renderer.js`의 `renderScreen`을 호출하여 해당 화면을 표시.
     - **전역 상태 관리:** `BossDataManager` 및 `LocalStorageManager`와 연동하여 애플리케이션의 전역 상태를 관리하고, 변경 시 `ui-renderer.js`를 통해 UI 업데이트를 트리거.
 
-### 3.14. `src/default-boss-list.js`
+### 3.16. `src/default-boss-list.js`
 - **역할:** 애플리케이션의 기본 보스 목록 데이터를 제공합니다.
 - **주요 기능:**
     - 하드코딩된 보스 목록 텍스트를 상수로 내보냅니다.
@@ -309,7 +337,7 @@
 - **기본 보스 목록 제공:** URL 파라미터에 보스 목록 데이터가 없을 경우, 애플리케이션 초기 상태로 사용되는 기본 보스 목록 텍스트를 제공합니다.
 - **암시적 날짜 처리:** 이 기본 목록이 사용될 경우, `boss-parser.js`는 명시적인 날짜 마커가 없으므로 현재 날짜를 기준으로 보스 일정을 파싱하며, 시간 순서에 따른 날짜 변경(자정 넘김)을 자동으로 처리합니다.
 
-### 3.15. `src/style.css`
+### 3.17. `src/style.css`
 - **역할:** 애플리케이션의 모든 시각적 스타일을 정의합니다.
 - **주요 기능:**
     - `index.html`에서 `<link>` 태그를 통해 로드되어 UI 요소의 레이아웃, 색상, 폰트 등을 제어합니다.
@@ -482,36 +510,5 @@
 
 ## 6. 결론
 
-### 5.8. 커스텀 보스 목록 관리 (새로운 기능)
-1.  **모달 열기/닫기**:
-    *   '커스텀 목록 관리' 버튼 클릭 (`event-handlers.js`) 시 모달 창이 표시됩니다。
-    *   모달 닫기 버튼 클릭 또는 모달 외부 클릭 (`event-handlers.js`) 시 모달 창이 닫힙니다。
-2.  **탭 전환**:
-    *   '목록 추가' 또는 '목록 관리' 탭 버튼 클릭 (`event-handlers.js`) 시 `ui-renderer.js:showCustomListTab`를 호출하여 해당 탭의 내용을 표시하고 활성 탭 버튼의 스타일을 업데이트합니다。
-    *   '목록 추가' 탭으로 전환 시 입력 필드를 초기화합니다。
-3.  **목록 추가**:
-    *   사용자가 '목록 추가' 탭에서 이름과 내용을 입력 후 '저장' 버튼 클릭 (`event-handlers.js`) 시 `CustomListManager.addCustomList`를 호출하여 새 목록을 추가합니다。
-    *   `CustomListManager`는 `validateListName` 및 `parseAndValidateBossContent`를 통해 유효성을 검사하고 `_cleanBossListContent`를 통해 내용을 정리합니다。
-    *   `LocalStorageManager`를 통해 로컬 스토리지에 저장합니다。
-    *   `ui-renderer.js:showToast`로 결과 메시지를 표시하고 `ui-renderer.js:renderCustomListManagementModalContent`를 호출하여 '목록 관리' 탭을 새로 고칩니다。
-    *   보스 스케줄러 화면의 게임 선택 드롭다운도 `ui-renderer.js:renderBossSchedulerScreen`을 통해 업데이트됩니다。
-4.  **목록 수정**:
-    *   '목록 관리' 탭에서 특정 목록의 '편집' 버튼 클릭 (`event-handlers.js`) 시 '목록 추가' 탭으로 전환되며, 해당 목록의 이름과 내용이 입력 필드에 미리 채워집니다。
-    *   사용자가 내용을 수정한 후 '수정' 버튼 클릭 (`event-handlers.js`) 시 `CustomListManager.updateCustomList`를 호출하여 목록을 업데이트합니다。
-    *   만약 목록 이름도 변경되었다면, `CustomListManager.renameCustomList`를 먼저 호출한 후 `CustomListManager.updateCustomList`를 호출하여 이름 변경과 내용 업데이트를 처리합니다。
-    *   유효성 검사 및 저장, UI 업데이트는 목록 추가와 동일한 방식으로 진행됩니다。
-5.  **목록 삭제**:
-    *   '목록 관리' 탭에서 특정 목록의 '삭제' 버튼 클릭 (`event-handlers.js`) 시 사용자 확인 후 `CustomListManager.deleteCustomList`를 호출하여 목록을 삭제합니다。
-    *   `LocalStorageManager`에서 해당 목록을 제거합니다。
-    *   `ui-renderer.js:showToast`로 결과 메시지를 표시하고 `ui-renderer.js:renderCustomListManagementModalContent` 및 `ui-renderer.js:renderBossSchedulerScreen`을 업데이트합니다。
-6.  **데이터 초기 로드 (`event-handlers.js:initApp`)**:
-    *   `initApp`은 `CustomListManager.init()`를 호출하여 앱 시작 시 로컬 스토리지에서 기존 사용자 지정 목록을 로드합니다。
-
-### 5.9. 커스텀 보스 목록 관리 UI/UX 개선
-- 모달 내 "목록 관리" 탭의 각 커스텀 목록 항목에 있는 '수정' 및 '삭제' 버튼이 수평으로 정렬되도록 `src/style.css`에 `.custom-list-manage-item .button-group` 스타일이 추가되었습니다。
-- '이름 변경' 버튼은 '수정' 기능을 통해 이름 변경이 가능하므로 UI에서 제거되었으며 (`src/ui-renderer.js`), 관련 이벤트 핸들러도 삭제되었습니다 (`src/event-handlers.js`)。
-- `src/custom-list-manager.js`의 `renameCustomList` 함수는 '수정' 기능을 통한 이름 변경 시 내부적으로 호출되어 여전히 사용됩니다。
-
----
 
 리뉴얼된 "보스 알리미" 애플리케이션은 메뉴 기반의 다중 화면 아키텍처를 통해 사용자 경험과 기능적 모듈화를 크게 향상시켰습니다. `app.js`를 중심으로 한 중앙 집중식 초기화 및 라우팅, 그리고 `ui-renderer.js`를 통한 화면별 렌더링은 코드의 가독성, 유지보수성 및 확장성을 더욱 높여 향후 기능 추가 및 변경에 유연하게 대응할 수 있도록 합니다。 **특히 젠 계산기 업데이트 기능의 추가와 UI/UX 개선을 통해 사용자가 기존 보스의 시간을 더욱 쉽고 정확하게 관리할 수 있도록 하였으며, 버튼 텍스트의 미세한 시각적 정렬 문제에 대한 대응 방안을 모색하여 전반적인 사용자 인터페이스의 완성도를 높였습니다。** 모바일 환경을 위한 하단 탭 바 내비게이션 도입으로 사용자 접근성을 개선했으며, 공유 링크 버그, 푸터 잘림 문제, 음소거 로그 메시지 오류 등을 수정하여 전반적인 안정성을 확보했습니다。
