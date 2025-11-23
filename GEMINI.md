@@ -59,6 +59,15 @@
 
 ---
 
+### 에이전트 업무 준비
+
+*   사용자님이 "업무준비"라고 지시하면, 다음 문서들을 학습합니다.
+    *   `docs/system_architecture.md`
+    *   `docs/system_module_details.md`
+    *   `docs/system_module_dependencies.md`
+    *   `docs/system_data_flow.md`
+*   학습을 마친 후에는 "업무 준비를 마쳤습니다."라고 사용자님께 알립니다.
+
 ## 개발 규칙
 
 *   **모듈화된 아키텍처:** 애플리케이션은 HTML, CSS, JavaScript로 구성된 클라이언트 측 단일 페이지 애플리케이션(SPA) 형태로, JavaScript 코드는 기능별로 `src/` 폴더 내의 여러 모듈 파일들로 분리되어 있습니다. 각 모듈은 명확한 책임을 가지며, 자세한 내용은 `docs/system_architecture.md`를 참조하십시오.
