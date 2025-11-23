@@ -40,7 +40,15 @@
 * **Scheduler:** Vercel Cron (1분 주기 실행).
 * **환경 변수 관리 (Environment Variables) - [New]:**
     * Vercel 프로젝트 설정에 Dev용과 Prod용 OneSignal API Key를 각각 등록한다.
+        * `ONESIGNAL_APP_ID_PRODUCTION`
+        * `ONESIGNAL_APP_ID_DEVELOPMENT`
+        * `ONESIGNAL_REST_API_KEY_PRODUCTION`
+        * `ONESIGNAL_REST_API_KEY_DEVELOPMENT`
+        * `SUPABASE_URL`
+        * `SUPABASE_SERVICE_KEY`
+        * `ADMIN_KEY`
     * 백엔드 코드에서도 실행 환경(또는 요청 Origin)에 따라 적절한 **REST API Key**와 **App ID**를 선택하여 OneSignal에 요청을 보낸다.
+    * **참고: 위 환경 변수들은 Vercel 프로젝트에 이미 설정되어 있습니다.**
 
 ---
 
