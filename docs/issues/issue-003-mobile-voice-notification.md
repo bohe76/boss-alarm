@@ -1,3 +1,15 @@
+---
+status: 미해결
+created_at: 2025-11-23
+priority: medium
+assigned_to: Gemini
+labels:
+  - bug
+  - mobile
+  - audio
+  - notification
+  - web-speech-api
+---
 # 이슈 003: 모바일 음성 알림 이슈 (Web Speech API 제약)
 
 - **상태:** 인지됨 (해결 방안 모색 중)

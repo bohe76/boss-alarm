@@ -1,3 +1,15 @@
+---
+status: 미해결
+created_at: 2025-11-23
+priority: medium
+assigned_to: Gemini
+labels:
+  - feature
+  - ui
+  - responsive
+  - mobile
+  - refactoring
+---
 # 이슈 001: 반응형 레이아웃 및 모바일 UX 개선
 
 ## 1. 문제점
