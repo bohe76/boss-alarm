@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,18 +8,21 @@
     <link rel="stylesheet" href="src/style.css?v=2.7.2">
     <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
 </head>
+
 <body>
     <header>
         <div class="header-container">
             <button id="sidebarToggle" class="sidebar-toggle">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="sidebar-toggle-icon">
-                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                    class="sidebar-toggle-icon">
+                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
                 </svg>
             </button>
-            <h1>🎙️ 보스 알리미</h1>
+            <h1>보스 알리미</h1>
             <button id="alarmToggleButton" class="alarm-toggle-button">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="alarm-icon">
-                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold">ON</text>
+                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif"
+                        font-size="12" font-weight="bold">ON</text>
                 </svg>
             </button>
 
@@ -29,78 +33,96 @@
         <nav id="sidebar" class="sidebar">
             <button id="more-menu-close-button" class="more-menu-close-button" aria-label="메뉴 닫기">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    <path
+                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                 </svg>
             </button>
             <ul class="sidebar-menu">
                 <li>
                     <a href="#" id="nav-dashboard" data-screen="dashboard-screen">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                            class="menu-icon">
+                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
                         </svg>
                         <span class="menu-text">대시보드</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" id="nav-boss-management" data-screen="boss-management-screen">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                            class="menu-icon">
+                            <path
+                                d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                         </svg>
                         <span class="menu-text">보스 설정</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" id="nav-boss-scheduler" data-screen="boss-scheduler-screen">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                            <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5zM7 11h5v5H7z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                            class="menu-icon">
+                            <path
+                                d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5zM7 11h5v5H7z" />
                         </svg>
                         <span class="menu-text">보스 스케줄러</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" id="nav-calculator" data-screen="calculator-screen">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm-2-4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm4 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm2-4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM7 5h10v2H7V5z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                            class="menu-icon">
+                            <path
+                                d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm-2-4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm4 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm2-4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM7 5h10v2H7V5z" />
                         </svg>
                         <span class="menu-text">계산기</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" id="nav-share" data-screen="share-screen">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                            <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.52.48 1.2.77 1.96.77 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L7.94 11.02c-.52-.48-1.2-.77-1.96-.77-1.66 0-3 1.34-3 3s1.34 3 3 3c.76 0 1.44-.3 1.96-.77l7.05 4.11c-.05.23-.09.46-.09.7 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                            class="menu-icon">
+                            <path
+                                d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.52.48 1.2.77 1.96.77 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L7.94 11.02c-.52-.48-1.2-.77-1.96-.77-1.66 0-3 1.34-3 3s1.34 3 3 3c.76 0 1.44-.3 1.96-.77l7.05 4.11c-.05.23-.09.46-.09.7 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z" />
                         </svg>
                         <span class="menu-text">공유</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" id="nav-alarm-log" data-screen="alarm-log-screen">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                            <path d="M13 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-7-5zm1 14H8v-2h6v2zm2-4H8v-2h8v2zm0-4H8V9h8v2zm-1-5V3.5L18.5 9H13z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                            class="menu-icon">
+                            <path
+                                d="M13 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-7-5zm1 14H8v-2h6v2zm2-4H8v-2h8v2zm0-4H8V9h8v2zm-1-5V3.5L18.5 9H13z" />
                         </svg>
                         <span class="menu-text">알림 로그</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" id="nav-notification-settings" data-screen="notification-settings-screen">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                            <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.09-.73-1.71-.98l-.37-2.65c-.05-.24-.27-.42-.52-.42h-4c-.25 0-.47.18-.52.42l-.37 2.65c-.62.25-1.19.59-1.71.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.64-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.09.73 1.71.98l.37 2.65c.05.24.27.42.52.42h4c.25 0 .47-.18.52-.42l.37-2.65c.62-.25 1.19-.59 1.71-.98l2.49 1c.22.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                            class="menu-icon">
+                            <path
+                                d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.09-.73-1.71-.98l-.37-2.65c-.05-.24-.27-.42-.52-.42h-4c-.25 0-.47.18-.52.42l-.37 2.65c-.62.25-1.19.59-1.71.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.64-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.09.73 1.71.98l.37 2.65c.05.24.27.42.52.42h4c.25 0 .47-.18.52-.42l.37-2.65c.62-.25 1.19-.59 1.71-.98l2.49 1c.22.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" />
                         </svg>
                         <span class="menu-text">알림 설정</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" id="nav-help" data-screen="help-screen">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                            class="menu-icon">
+                            <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
                         </svg>
                         <span class="menu-text">도움말</span>
                     </a>
                 </li>
                 <li>
                     <a href="#" id="nav-version-info" data-screen="version-info-screen">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                            <path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                            class="menu-icon">
+                            <path
+                                d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
                         </svg>
                         <span class="menu-text">릴리즈 노트</span>
                     </a>
@@ -160,10 +182,11 @@
                             <span id="bossAppearanceTimeDisplay" class="result-display">--:--:--</span>
                         </div>
                     </div>
-                    
+
                     <div class="zen-grid-row"> <!-- Second row with two columns -->
                         <div class="input-group"> <!-- Left column for update label + dropdown -->
-                            <label for="bossSelectionDropdown" id="bossSelectionLabel" class="zen-label">업데이트할 보스</label>
+                            <label for="bossSelectionDropdown" id="bossSelectionLabel" class="zen-label">업데이트할
+                                보스</label>
                             <select id="bossSelectionDropdown">
                                 <option value="">보스 선택</option>
                             </select>
@@ -193,7 +216,8 @@
                     </div>
                     <div class="light-calculation-results">
                         <div class="light-expected-time-group">
-                            <label><span class="expected-text">잡힘</span> <span class="expected-label">예상 시간</span></label>
+                            <label><span class="expected-text">잡힘</span> <span class="expected-label">예상
+                                    시간</span></label>
                             <span id="lightExpectedTimeDisplay" class="result-display">--:--</span>
                         </div>
                     </div>
@@ -213,31 +237,31 @@
             <section id="boss-scheduler-screen" class="screen">
                 <h2>보스 스케줄러</h2>
 
-                        <div class="scheduler-section">
-                            <h3>보스 목록</h3>
-                            <div class="control-group-horizontal">
-                                <select id="gameSelect"></select>
-                                <button id="manage-custom-lists-button" class="button primary-button">커스텀 보스 관리</button>
-                            </div>
+                <div class="scheduler-section">
+                    <h3>보스 목록</h3>
+                    <div class="control-group-horizontal">
+                        <select id="gameSelect"></select>
+                        <button id="manage-custom-lists-button" class="button primary-button">커스텀 보스 관리</button>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="clearAllRemainingTimesButton" class="button">남은 시간 초기화</button>
+                    <button id="moveToBossSettingsButton" class="button">보스 설정 적용</button>
+                </div>
+
+                <div class="boss-list-display-container">
+                    <div class="boss-input-header">
+                        <span class="boss-name-header">보스이름</span>
+                        <span class="remaining-time-header">남은 시간</span>
+                        <span class="spawn-time-header">젠 시간</span>
+                    </div>
+                    <div class="scheduler-card">
+                        <div id="bossInputsContainer">
+                            <!-- Boss input fields will be rendered here -->
                         </div>
-                
-                        <div class="action-buttons">
-                            <button id="clearAllRemainingTimesButton" class="button">남은 시간 초기화</button>
-                            <button id="moveToBossSettingsButton" class="button">보스 설정 적용</button>
-                        </div>
-                
-                        <div class="boss-list-display-container">
-                            <div class="boss-input-header">
-                                <span class="boss-name-header">보스이름</span>
-                                <span class="remaining-time-header">남은 시간</span>
-                                <span class="spawn-time-header">젠 시간</span>
-                            </div>
-                            <div class="scheduler-card">
-                                <div id="bossInputsContainer">
-                                    <!-- Boss input fields will be rendered here -->
-                                </div>
-                            </div>
-                        </div>                <!-- Custom Boss List Management Modal -->
+                    </div>
+                </div> <!-- Custom Boss List Management Modal -->
                 <div id="custom-boss-list-modal" class="modal" style="display: none;">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -256,7 +280,8 @@
                                 </div>
                                 <div class="control-group">
                                     <label for="custom-list-content-textarea">보스 목록</label>
-                                    <textarea id="custom-list-content-textarea" rows="10" placeholder="보스 이름을 한 줄에 하나씩 입력하세요."></textarea>
+                                    <textarea id="custom-list-content-textarea" rows="10"
+                                        placeholder="보스 이름을 한 줄에 하나씩 입력하세요."></textarea>
                                 </div>
                                 <button id="save-custom-list-button" class="button">저장</button>
                             </div>
@@ -311,9 +336,9 @@
             </section>
 
             <!-- The help modal itself will be removed as its content is now part of the help screen -->
-    </main>
+        </main>
 
-    <div id="toastContainer" class="toast-container"></div>
+        <div id="toastContainer" class="toast-container"></div>
 
 
         </main>
@@ -342,29 +367,35 @@
     </script>
     <div id="global-tooltip"></div>
     <nav id="bottom-nav" class="bottom-nav">
-        <a href="#" id="bottom-nav-dashboard" data-screen="dashboard-screen" class="bottom-nav-item active" aria-label="대시보드">
+        <a href="#" id="bottom-nav-dashboard" data-screen="dashboard-screen" class="bottom-nav-item active"
+            aria-label="대시보드">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
             </svg>
         </a>
-        <a href="#" id="bottom-nav-boss-management" data-screen="boss-management-screen" class="bottom-nav-item" aria-label="보스 설정">
+        <a href="#" id="bottom-nav-boss-management" data-screen="boss-management-screen" class="bottom-nav-item"
+            aria-label="보스 설정">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
             </svg>
         </a>
         <a href="#" id="bottom-nav-calculator" data-screen="calculator-screen" class="bottom-nav-item" aria-label="계산기">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm-2-4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm4 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm2-4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM7 5h10v2H7V5z"/>
+                <path
+                    d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm-2-4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm4 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm2-4c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM7 5h10v2H7V5z" />
             </svg>
         </a>
         <a href="#" id="bottom-nav-share" data-screen="share-screen" class="bottom-nav-item" aria-label="공유">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.52.48 1.2.77 1.96.77 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L7.94 11.02c-.52-.48-1.2-.77-1.96-.77-1.66 0-3 1.34-3 3s1.34 3 3 3c.76 0 1.44-.3 1.96-.77l7.05 4.11c-.05.23-.09.46-.09.7 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z"/>
+                <path
+                    d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.52.48 1.2.77 1.96.77 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L7.94 11.02c-.52-.48-1.2-.77-1.96-.77-1.66 0-3 1.34-3 3s1.34 3 3 3c.76 0 1.44-.3 1.96-.77l7.05 4.11c-.05.23-.09.46-.09.7 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z" />
             </svg>
         </a>
-        <button id="more-menu-button" class="bottom-nav-item" aria-expanded="false" aria-controls="sidebar" aria-label="더보기">
+        <button id="more-menu-button" class="bottom-nav-item" aria-expanded="false" aria-controls="sidebar"
+            aria-label="더보기">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="menu-icon">
-                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2z"/>
+                <path
+                    d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2z" />
             </svg>
         </button>
     </nav>
@@ -373,4 +404,5 @@
     </footer>
     <div id="sidebar-backdrop"></div>
 </body>
+
 </html>
