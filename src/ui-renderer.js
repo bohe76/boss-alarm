@@ -77,7 +77,7 @@ export function populateBossSelectionDropdown(DOM) {
             const time = item.time; // HH:MM or HH:MM:SS
             const name = item.name;
             const option = document.createElement('option');
-            option.value = `${item.scheduledDate.toISOString()}__${name}`; // Store ISO string and name for uniqueness
+            option.value = `${item.id}__${item.scheduledDate.toISOString()}__${name}`; // Store ID, ISO string and name for uniqueness
             option.textContent = `[${time}] ${name}`; // Display [HH:MM] BossName
             DOM.bossSelectionDropdown.appendChild(option);
         }

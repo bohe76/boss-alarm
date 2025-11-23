@@ -104,6 +104,7 @@ export function parseBossList(bossListInput) {
 
             newBossSchedule.push({
                 type: 'boss',
+                id: generateUniqueId(), // Add a unique ID here
                 time: parts[0],
                 name: parts.slice(1).join(' '),
                 scheduledDate: scheduledDate,
@@ -127,6 +128,11 @@ export function parseBossList(bossListInput) {
         log(`보스 목록 파싱 중 오류가 발생했습니다: ${error.message}`, true);
         console.error("Boss list parsing error:", error);
     }
+}
+
+// Helper function to generate a unique ID
+function generateUniqueId() {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
 }
 
 export function getSortedBossListText(rawText) {

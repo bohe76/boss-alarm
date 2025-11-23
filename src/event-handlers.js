@@ -5,14 +5,14 @@ import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-s
 import { renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, renderCalculatorScreen, renderBossSchedulerScreen, renderBossInputs, updateMuteButtonVisuals, showToast, populateBossSelectionDropdown, showCustomListTab, renderCustomListManagementModalContent } from './ui-renderer.js'; // Added showToast, populateBossSelectionDropdown, showCustomListTab, renderCustomListManagementModalContent
 import { getShortUrl, loadJsonContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
-import { LocalStorageManager } from './data-managers.js';
+import { LocalStorageManager, BossDataManager } from './data-managers.js';
 import { CustomListManager } from './custom-list-manager.js';
 import { initDomElements } from './dom-elements.js';
 import * as DefaultBossList from './default-boss-list.js'; // Import bossPresets
 import { calculateBossAppearanceTime } from './calculator.js'; // Import calculateBossAppearanceTime
 import { loadBossLists } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
 import { LightCalculator, formatTime } from './light-calculator.js'; // New - Import formatTime
-import { updateLightStopwatchDisplay, updateLightExpectedTimeDisplay, renderLightTempResults, renderLightSavedList } from './ui-renderer.js'; // New
+import { updateLightStopwatchDisplay, updateLightExpectedTimeDisplay, renderLightTempResults, renderLightSavedList, updateBossListTextarea } from './ui-renderer.js'; // New - Import updateBossListTextarea
 
 let _remainingTimes = {}; // Global variable to store remaining times for boss scheduler
 
@@ -480,71 +480,43 @@ function initEventHandlers(DOM, globalTooltip) {
             }
 
             // selectedBossValue format: `${item.scheduledDate.toISOString()}__${name}`
-            const [isoDate, bossName] = selectedBossValue.split('__');
-            const targetDate = new Date(isoDate);
+            // selectedBossValue format: `${item.id}__${item.scheduledDate.toISOString()}__${name}`
+            const [targetId, isoDate, bossName] = selectedBossValue.split('__');
+            const targetDate = new Date(isoDate); // This targetDate holds the original scheduled date/time of the selected boss
 
-            let currentBossListText = DOM.bossListInput.value;
-            let updatedBossListText = '';
+            const [newHour, newMinute, newSecond] = newBossTime.split(':').map(Number);
+            const newScheduledDate = new Date(targetDate); // Start with the original date from targetDate
+            newScheduledDate.setHours(newHour, newMinute, newSecond || 0, 0); // Apply new time, reset milliseconds
+
+            // Get the current boss schedule from BossDataManager
+            const currentBossSchedule = BossDataManager.getBossSchedule();
             let bossFoundAndUpdated = false;
 
-            const lines = currentBossListText.split('\n');
-            let currentDateContext = null; // Tracks the current date marker
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                const dateMatch = line.match(/^(\d{1,2})\.(\d{1,2})$/);
-
-                if (dateMatch) {
-                    // Update date context
-                    const month = parseInt(dateMatch[1], 10) - 1;
-                    const day = parseInt(dateMatch[2], 10);
-                    currentDateContext = new Date(new Date().getFullYear(), month, day);
-                    // Retain the date line in the output
-                    updatedBossListText += line + '\n';
-                } else {
-                    const parts = line.split(' ');
-                    // Ensure there's at least a time part
-                    if (parts.length === 0 || !parts[0].match(/^\d{1,2}:\d{2}(?::\d{2})?$/)) {
-                        updatedBossListText += line + '\n'; // Keep non-boss lines as is
-                        continue;
-                    }
-                    
-                    const timePart = parts[0];
-                    const namePart = parts.slice(1).join(' ');
-
-                    // Check if this line matches the selected boss to update
-                    // Compare name and also ensure it's the correct date context
-                    if (namePart === bossName) {
-                        const lineTimeMatch = timePart.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-                        if (lineTimeMatch) {
-                            const lineHour = parseInt(lineTimeMatch[1], 10);
-                            const lineMinute = parseInt(lineTimeMatch[2], 10);
-                            // Construct date from current line for comparison with targetDate
-                            let lineDate = new Date(currentDateContext || new Date());
-                            lineDate.setHours(lineHour, lineMinute, 0, 0); // Ignore seconds for this comparison
-
-                            // Compare by date and name for precise match
-                            // Use toISOString().slice(0, 10) to compare only YYYY-MM-DD
-                            if (lineDate.toISOString().slice(0, 10) === targetDate.toISOString().slice(0, 10)) {
-                                // Found the exact boss to update
-                                // Update HH:MM part, seconds are implicitly handled by parseBossList
-                                updatedBossListText += `${newBossTime.substring(0, 8)} ${namePart}\n`; // Include full HH:MM:SS
-                                bossFoundAndUpdated = true;
-                            } else {
-                                updatedBossListText += line + '\n'; // Not the target boss, keep as is
-                            }
-                        } else {
-                            updatedBossListText += line + '\n'; // Time format invalid for this line, keep as is
-                        }
-                    } else {
-                        updatedBossListText += line + '\n'; // Name doesn't match, keep as is
-                    }
+            // Find the boss by its unique ID and update its properties
+            const updatedSchedule = currentBossSchedule.map(boss => {
+                if (boss.type === 'boss' && boss.id === targetId) {
+                    bossFoundAndUpdated = true;
+                    return {
+                        ...boss,
+                        time: newBossTime, // Store new time as HH:MM:SS string
+                        scheduledDate: newScheduledDate, // Update scheduledDate object
+                    };
                 }
-            }
+                return boss;
+            });
 
             if (bossFoundAndUpdated) {
-                DOM.bossListInput.value = updatedBossListText.trim();
-                parseBossList(DOM.bossListInput); // Re-parse to update internal schedule
+                // Update BossDataManager with the modified schedule
+                BossDataManager.setBossSchedule(updatedSchedule);
+
+                // Regenerate the boss list text from the updated BossDataManager schedule
+                // and then apply sorting and re-parse
+                updateBossListTextarea(DOM); // This populates DOM.bossListInput.value from the updated BossDataManager
+                let finalBossListText = DOM.bossListInput.value;
+                finalBossListText = getSortedBossListText(finalBossListText); // Sort the generated text
+                DOM.bossListInput.value = finalBossListText; // Update textarea with sorted text
+
+                parseBossList(DOM.bossListInput); // Re-parse to update internal schedule (ensures consistency and re-sorts if needed)
                 renderDashboard(DOM); // Re-render dashboard if needed (e.g., next boss update)
                 showToast(DOM, `${bossName} 보스 시간이 ${newBossTime}으로 업데이트 되었습니다.`);
 
