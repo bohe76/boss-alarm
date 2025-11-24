@@ -5,8 +5,9 @@ import { loadJsonContent } from './api-service.js'; // Import loadJsonContent
 import { CustomListManager } from './custom-list-manager.js';
 import { getGameNames, getBossNamesForGame } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
 
-// Helper for time validation
-const isValidTime = (time) => /^(?:2[0-3]|[01]?[0-9]):[0-5][0-9]$/.test(time);
+import { validateFixedAlarmTime } from './utils.js'; // New import
+
+
 
 // Helper function to format time difference
 function formatTimeDifference(ms, showSeconds = true) {
@@ -355,7 +356,7 @@ export function renderFixedAlarms(DOM) {
                     addAlarmSection.innerHTML = `
                         <h3>새 고정 알림 추가</h3>
                         <div class="add-alarm-card">
-                            <input type="text" id="newFixedAlarmTime" placeholder="시간 (HH:MM)">
+                            <input type="text" id="newFixedAlarmTime" placeholder="HH:MM 또는 HHMM">
                             <input type="text" id="newFixedAlarmName" placeholder="이름">
                             <button id="addFixedAlarmButton" class="button">추가</button>
                         </div>
@@ -372,14 +373,14 @@ export function renderFixedAlarms(DOM) {
             const name = newFixedAlarmNameInput.value.trim();
 
             if (!time || !name) {
+                alert("시간과 이름을 모두 입력해주세요.");
                 log("시간과 이름을 모두 입력해주세요.", false);
                 return;
             }
-            if (!isValidTime(time)) {
-                log("유효하지 않은 시간 형식입니다. HH:MM 형식으로 입력해주세요.", false);
+            if (!validateFixedAlarmTime(time)) {
                 return;
             }
-
+            
             const newAlarm = {
                 id: `fixed-${Date.now()}`, // Simple unique ID
                 name: name,
@@ -388,6 +389,7 @@ export function renderFixedAlarms(DOM) {
             };
 
             LocalStorageManager.addFixedAlarm(newAlarm);
+            showToast(DOM, "고정 알림이 추가 되었습니다."); // New toast message
             renderFixedAlarms(DOM); // Re-render to show new alarm
             log(`새 고정 알림 "${name} ${time}"이(가) 추가되었습니다.`, true);
 

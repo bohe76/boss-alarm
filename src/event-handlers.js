@@ -13,6 +13,8 @@ import { calculateBossAppearanceTime } from './calculator.js'; // Import calcula
 import { loadBossLists } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
 import { LightCalculator, formatTime } from './light-calculator.js'; // New - Import formatTime
 import { formatMonthDay } from './utils.js'; // New - Import formatMonthDay
+
+import { validateFixedAlarmTime } from './utils.js'; // New import
 import { updateLightStopwatchDisplay, updateLightExpectedTimeDisplay, renderLightTempResults, renderLightSavedList, updateBossListTextarea } from './ui-renderer.js'; // New - Import updateBossListTextarea
 
 let _remainingTimes = {}; // Global variable to store remaining times for boss scheduler
@@ -899,8 +901,7 @@ function initEventHandlers(DOM, globalTooltip) {
     // --- Notification Settings Screen Event Handlers ---
     // The global fixed alarm toggle logic is removed as fixed alarms are now individually managed.
 
-    // Helper for time validation
-    const isValidTime = (time) => /^(?:2[0-3]|[01]?[0-9]):[0-5][0-9]$/.test(time);
+
 
     // Event delegation for fixed alarm items (edit, delete, individual toggle)
     if (DOM.fixedAlarmListDiv) { // Defensive check
@@ -928,10 +929,10 @@ function initEventHandlers(DOM, globalTooltip) {
                 if (alarmToEdit) {
                     const newTime = prompt(`"${alarmToEdit.name}"의 새 시간을 입력하세요 (HH:MM):`, alarmToEdit.time);
                     if (newTime === null) return; // User cancelled
-                    if (!isValidTime(newTime)) {
-                        log("유효하지 않은 시간 형식입니다. HH:MM 형식으로 입력해주세요.", false);
+                    if (!validateFixedAlarmTime(newTime)) {
                         return;
                     }
+
 
                     const newName = prompt(`"${alarmToEdit.name}"의 새 이름을 입력하세요:`, alarmToEdit.name);
                     if (newName === null) return; // User cancelled

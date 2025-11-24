@@ -423,7 +423,7 @@ body {
         }
 
         .add-alarm-card input[type="text"] {
-            width: 100px; /* Fixed width for inputs */
+            width: 118px; /* Fixed width for inputs */
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
