@@ -63,8 +63,8 @@ export function validateFixedAlarmTime(time) {
 
     // 1차 검증: validateStandardClockTime을 통해 기본적인 유효성 (HH:MM, HH:MM:SS, HHMM, HHMMSS) 확인
     if (!validateStandardClockTime(trimmedTime)) {
-        alert("유효하지 않은 시간 형식입니다. (예: HH:MM, HH:MM:SS, HHMM, HHMMSS)");
-        log("유효하지 않은 시간 형식입니다. (예: HH:MM, HH:MM:SS, HHMM, HHMMSS)", false);
+        alert("유효하지 않은 시간 형식입니다. (예: HH:MM, HHMM)");
+        log("유효하지 않은 시간 형식입니다. (예: HH:MM, HHMM)", false);
         return false;
     }
 
