@@ -12,6 +12,7 @@ import * as DefaultBossList from './default-boss-list.js'; // Import bossPresets
 import { calculateBossAppearanceTime } from './calculator.js'; // Import calculateBossAppearanceTime
 import { loadBossLists } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
 import { LightCalculator, formatTime } from './light-calculator.js'; // New - Import formatTime
+import { formatMonthDay } from './utils.js'; // New - Import formatMonthDay
 import { updateLightStopwatchDisplay, updateLightExpectedTimeDisplay, renderLightTempResults, renderLightSavedList, updateBossListTextarea } from './ui-renderer.js'; // New - Import updateBossListTextarea
 
 let _remainingTimes = {}; // Global variable to store remaining times for boss scheduler
@@ -1001,11 +1002,7 @@ export async function initApp() { // Made initApp async
             const tomorrow = new Date(today);
             tomorrow.setDate(today.getDate() + 1);
 
-            const formatMonthDay = (date) => {
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                const day = date.getDate().toString().padStart(2, '0');
-                return `${month}.${day}`;
-            };
+
 
             const todayFormatted = formatMonthDay(today);
             const tomorrowFormatted = formatMonthDay(tomorrow);
