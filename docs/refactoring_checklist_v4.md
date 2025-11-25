@@ -181,6 +181,21 @@
 - [ ] **커밋:** `git commit -m "feat(screens): 계산기 화면 로직을 calculator.js 모듈로 분리"`
 </details>
 
+<details>
+<summary><strong>2.4. `boss-scheduler` 모듈 생성 및 로직 이전</strong></summary>
+
+- [ ] **사전 분석:** `app.js`의 `initEventHandlers` 함수에 있는 'Boss Scheduler' 관련 모든 이벤트 리스너들의 의존성을 확인합니다. (`renderBossInputs`, `calculateBossAppearanceTime`, `parseBossList`, `showScreen` 등)
+- [ ] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/boss-scheduler.js` 파일을 새로 생성합니다.
+- [ ] **실행 계획 2 (로직 이전):** `src/app.js`의 `initEventHandlers`에서 'Boss Scheduler' 관련 이벤트 리스너 로직을 모두 잘라내어 `src/screens/boss-scheduler.js`에 `initBossSchedulerScreen` 함수로 감싸 `export`합니다.
+- [ ] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initBossSchedulerScreen`를 `import`하고, `initEventHandlers` 함수에서 잘라낸 위치에 `initBossSchedulerScreen(DOM);`을 호출합니다.
+- [ ] **검증:**
+    1.  '보스 스케줄러' 화면으로 이동합니다.
+    2.  게임 목록을 변경하면 보스 목록이 정상적으로 변경되는지 확인합니다.
+    3.  남은 시간을 입력하면 젠 시간이 정상적으로 계산되는지 확인합니다.
+    4.  '보스 설정 적용' 버튼을 클릭하면 '보스 설정' 화면으로 이동하며, 목록이 올바르게 업데이트되는지 확인합니다.
+- [ ] **커밋:** `git commit -m "feat(screens): 보스 스케줄러 로직을 boss-scheduler.js 모듈로 분리"`
+</details>
+
 **(이후 다른 모든 기능에 대해 위와 같은 `사전 분석 -> 실행 계획 수립 -> 검증 -> 커밋` 패턴을 반복합니다.)**
 
 ---
