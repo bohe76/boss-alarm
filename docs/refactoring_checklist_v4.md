@@ -241,6 +241,19 @@
 - [ ] **커밋:** `git commit -m "feat(screens): 커스텀 목록 관리 로직을 custom-list.js 모듈로 분리"`
 </details>
 
+<details>
+<summary><strong>2.8. `help` 모듈 생성 및 로직 이전</strong></summary>
+
+- [ ] **사전 분석:** `app.js`의 `showScreen` 함수 내 'help-screen' 관련 로직이 `loadJsonContent` 함수에 의존함을 확인합니다.
+- [ ] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/help.js` 파일을 새로 생성합니다.
+- [ ] **실행 계획 2 (로직 이전):** `src/app.js`의 `showScreen` 함수에서 'help-screen' 관련 로직을 잘라내어 `src/screens/help.js`에 `initHelpScreen` 함수로 감싸 `export`합니다.
+- [ ] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initHelpScreen`를 `import`하고, `showScreen` 함수 내 `screenId === 'help-screen'` 블록에서 `initHelpScreen(DOM);`을 호출하도록 수정합니다.
+- [ ] **검증:**
+    1.  '도움말' 화면으로 이동합니다.
+    2.  아코디언 형태의 도움말 내용이 정상적으로 표시되는지 확인합니다.
+- [ ] **커밋:** `git commit -m "feat(screens): 도움말 로직을 help.js 모듈로 분리"`
+</details>
+
 **(이후 다른 모든 기능에 대해 위와 같은 `사전 분석 -> 실행 계획 수립 -> 검증 -> 커밋` 패턴을 반복합니다.)**
 
 ---
