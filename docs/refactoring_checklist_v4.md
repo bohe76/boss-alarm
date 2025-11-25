@@ -258,14 +258,14 @@
 <details>
 <summary><strong>2.9. `version-info` 모듈 생성 및 로직 이전</strong></summary>
 
-- [ ] **사전 분석:** `app.js`의 `showScreen` 함수 내 'version-info-screen' 관련 로직이 `renderVersionInfo` 함수에 의존함을 확인합니다.
-- [ ] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/version-info.js` 파일을 새로 생성합니다.
-- [ ] **실행 계획 2 (로직 이전):** `src/app.js`의 `showScreen` 함수에서 'version-info-screen' 관련 로직을 잘라내어 `src/screens/version-info.js`에 `initVersionInfoScreen` 함수로 감싸 `export`합니다.
-- [ ] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initVersionInfoScreen`를 `import`하고, `showScreen` 함수 내 `screenId === 'version-info-screen'` 블록에서 `initVersionInfoScreen(DOM);`을 호출하도록 수정합니다.
-- [ ] **검증:**
+- [x] **사전 분석:** `app.js`의 `showScreen` 함수 내 'version-info-screen' 관련 로직이 `renderVersionInfo` 함수에 의존함을 확인합니다.
+- [x] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/version-info.js` 파일을 새로 생성합니다.
+- [x] **실행 계획 2 (로직 이전):** `src/app.js`의 `showScreen` 함수에서 'version-info-screen' 관련 로직을 잘라내어 `src/screens/version-info.js`에 `initVersionInfoScreen` 함수로 감싸 `export`합니다.
+- [x] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initVersionInfoScreen`를 `import`하고, `showScreen` 함수 내 `screenId === 'version-info-screen'` 블록에서 `initVersionInfoScreen(DOM);`을 호출하도록 수정합니다.
+- [x] **검증:**
     1.  '릴리즈 노트' 화면으로 이동합니다.
     2.  아코디언 형태의 버전 정보가 정상적으로 표시되는지 확인합니다.
-- [ ] **커밋:** `git commit -m "feat(screens): 릴리즈 노트 로직을 version-info.js 모듈로 분리"`
+- [x] **커밋:** `git commit -m "feat(screens): 릴리즈 노트 로직을 version-info.js 모듈로 분리"`
 </details>
 
 <details>
