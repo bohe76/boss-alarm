@@ -2,7 +2,7 @@
 
 import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-scheduler.js';
-import { renderFixedAlarms, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, updateMuteButtonVisuals, showToast, showCustomListTab, renderCustomListManagementModalContent } from './ui-renderer.js';
+import { renderFixedAlarms, renderVersionInfo, renderAlarmStatusSummary, showToast, showCustomListTab, renderCustomListManagementModalContent } from './ui-renderer.js'; // Added showToast, populateBossSelectionDropdown, showCustomListTab, renderCustomListManagementModalContent
 import { loadJsonContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
 import { LocalStorageManager } from './data-managers.js';
@@ -21,6 +21,7 @@ import { initShareScreen } from './screens/share.js';
 import { initCalculatorScreen, handleCalculatorScreenTransition } from './screens/calculator.js';
 import { initBossSchedulerScreen } from './screens/boss-scheduler.js';
 import { initNotificationSettingsScreen } from './screens/notifications.js';
+import { initDashboardScreen } from './screens/dashboard.js';
 import { EventBus } from './event-bus.js';
 
 
@@ -116,7 +117,7 @@ function showScreen(DOM, screenId) {
 
     // Special handling for dashboard screen
     if (screenId === 'dashboard-screen') {
-        renderDashboard(DOM); // Render dashboard content when dashboard screen is active
+        EventBus.emit('refresh-dashboard', DOM); // Render dashboard content via EventBus
     }
 
     // Special handling for share screen
@@ -195,13 +196,7 @@ function initEventHandlers(DOM, globalTooltip) {
         // Store alarm state in LocalStorageManager if needed
     });
 
-    // Mute Toggle Button
-    DOM.muteToggleButton.addEventListener('click', () => {
-        const currentMuteState = LocalStorageManager.getMuteState();
-        LocalStorageManager.setMuteState(!currentMuteState);
-        updateMuteButtonVisuals(DOM);
-        log(`음소거가 ${!currentMuteState ? '설정' : '해제'}되었습니다.`, true);
-    });
+    initDashboardScreen(DOM);
 
 
 
@@ -692,7 +687,7 @@ export async function initApp() { // Made initApp async
     
     // Initial render of the dashboard
     checkAlarms(); // Call checkAlarms once immediately
-    renderDashboard(DOM);
+    EventBus.emit('refresh-dashboard', DOM);
 
     // --- Viewport Resize Observer ---
     const handleResize = () => {

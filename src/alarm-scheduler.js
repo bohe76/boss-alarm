@@ -3,7 +3,8 @@
 import { log } from './logger.js';
 import { speak } from './speech.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Import managers
-import { renderDashboard, renderAlarmStatusSummary } from './ui-renderer.js'; // Import UI function, renderDashboard, renderAlarmStatusSummary
+import { renderAlarmStatusSummary } from './ui-renderer.js'; // Import UI function, renderAlarmStatusSummary
+import { EventBus } from './event-bus.js';
 
 let alertTimerId = null;
 let dashboardTimerId = null; // New variable for dashboard interval
@@ -16,7 +17,7 @@ export function startAlarm(DOM) { // Added DOM parameter
     speak("보스 알리미를 시작합니다.");
     log(`${BossDataManager.getBossSchedule().filter(item => item.type === 'boss').length}개의 보스가 목록에 있습니다.`, true);
     alertTimerId = setInterval(checkAlarms, 1000); // Simplified setInterval call
-    dashboardTimerId = setInterval(() => renderDashboard(DOM), 1000); // Reintroduce dashboard interval
+    dashboardTimerId = setInterval(() => EventBus.emit('refresh-dashboard', DOM), 1000); // Reintroduce dashboard interval
     renderAlarmStatusSummary(DOM); // Update status immediately
 }
 
