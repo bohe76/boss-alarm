@@ -2,7 +2,8 @@
 
 import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-scheduler.js';
-import { renderFixedAlarms, renderVersionInfo, renderAlarmStatusSummary } from './ui-renderer.js';
+import { renderFixedAlarms, renderAlarmStatusSummary } from './ui-renderer.js';
+
 import { log, initLogger } from './logger.js';
 import { LocalStorageManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
@@ -22,6 +23,7 @@ import { initNotificationSettingsScreen } from './screens/notifications.js';
 import { initDashboardScreen } from './screens/dashboard.js';
 import { initCustomListScreen } from './screens/custom-list.js';
 import { initHelpScreen } from './screens/help.js';
+import { initVersionInfoScreen } from './screens/version-info.js';
 import { EventBus } from './event-bus.js';
 
 
@@ -127,7 +129,7 @@ function showScreen(DOM, screenId) {
 
     // Special handling for version info screen
     if (screenId === 'version-info-screen') {
-        renderVersionInfo(DOM);
+        initVersionInfoScreen(DOM);
     }
 
     // Special handling for help screen
