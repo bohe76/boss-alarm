@@ -271,14 +271,14 @@
 <details>
 <summary><strong>2.10. `alarm-log` 모듈 생성 및 로직 이전</strong></summary>
 
-- [ ] **사전 분석:** `app.js`의 `showScreen` 함수 내 'alarm-log-screen' 관련 로직이 `updateLogDisplay` 함수에 의존함을 확인합니다.
-- [ ] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/alarm-log.js` 파일을 새로 생성합니다.
-- [ ] **실행 계획 2 (로직 이전):** `src/app.js`의 `showScreen` 함수에서 'alarm-log-screen' 관련 로직을 잘라내어 `src/screens/alarm-log.js`에 `initAlarmLogScreen` 함수로 감싸 `export`합니다.
-- [ ] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initAlarmLogScreen`를 `import`하고, `showScreen` 함수 내 `screenId === 'alarm-log-screen'` 블록에서 `initAlarmLogScreen(DOM);`을 호출하도록 수정합니다.
-- [ ] **검증:**
+- [x] **사전 분석:** `app.js`의 `showScreen` 함수 내 'alarm-log-screen' 관련 로직이 `updateLogDisplay` 함수에 의존함을 확인합니다.
+- [x] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/alarm-log.js` 파일을 새로 생성합니다.
+- [x] **실행 계획 2 (로직 이전):** `src/app.js`의 `showScreen` 함수에서 'alarm-log-screen' 관련 로직을 잘라내어 `src/screens/alarm-log.js`에 `initAlarmLogScreen` 함수로 감싸 `export`합니다.
+- [x] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initAlarmLogScreen`를 `import`하고, `showScreen` 함수 내 `screenId === 'alarm-log-screen'` 블록에서 `initAlarmLogScreen(DOM);`을 호출하도록 수정합니다.
+- [x] **검증:**
     1.  '알림 로그' 화면으로 이동합니다.
     2.  로그 내용이 정상적으로 표시되는지 확인합니다.
-- [ ] **커밋:** `git commit -m "feat(screens): 알림 로그 로직을 alarm-log.js 모듈로 분리"`
+- [x] **커밋:** `git commit -m "feat(screens): 알림 로그 로직을 alarm-log.js 모듈로 분리"`
 </details>
 
 ---
