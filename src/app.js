@@ -1,7 +1,7 @@
 // src/event-handlers.js
 
 import { parseBossList } from './boss-parser.js';
-import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-scheduler.js';
+import { startAlarm, stopAlarm, getIsAlarmRunning } from './alarm-scheduler.js';
 import { renderFixedAlarms, renderAlarmStatusSummary } from './ui-renderer.js';
 
 import { log, initLogger } from './logger.js';
@@ -535,7 +535,7 @@ export async function initApp() { // Made initApp async
     initEventHandlers(DOM, globalTooltip); // Pass globalTooltip to initEventHandlers
     
     // Initial render of the dashboard
-    checkAlarms(); // Call checkAlarms once immediately
+
     EventBus.emit('refresh-dashboard', DOM);
 
     // --- Viewport Resize Observer ---
