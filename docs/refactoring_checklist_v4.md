@@ -155,15 +155,15 @@
 <details>
 <summary><strong>2.2. `share` 모듈 생성 및 로직 이전</strong></summary>
 
-- [ ] **사전 분석:** `app.js`의 `showScreen` 함수 내 'share-screen' 관련 로직이 `getShortUrl`, `LocalStorageManager.exportFixedAlarms`, `log` 함수에 의존함을 확인합니다. 이 로직은 화면이 표시될 때마다 실행되어야 하므로, 별도의 `init` 함수로 분리하고 `showScreen`에서 호출하는 것이 적절합니다.
-- [ ] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/share.js` 파일을 새로 생성합니다.
-- [ ] **실행 계획 2 (로직 이전):** `src/app.js`의 `showScreen` 함수에서 'share-screen' 관련 로직을 잘라내어, `src/screens/share.js`에 `initShareScreen` 함수로 감싸 `export`합니다.
-- [ ] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initShareScreen`를 `import`하고, `showScreen` 함수 내 `screenId === 'share-screen'` 블록에서 `initShareScreen(this.DOM);`을 호출하도록 수정합니다.
-- [ ] **검증:**
+- [x] **사전 분석:** `app.js`의 `showScreen` 함수 내 'share-screen' 관련 로직이 `getShortUrl`, `LocalStorageManager.exportFixedAlarms`, `log` 함수에 의존함을 확인합니다. 이 로직은 화면이 표시될 때마다 실행되어야 하므로, 별도의 `init` 함수로 분리하고 `showScreen`에서 호출하는 것이 적절합니다.
+- [x] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/share.js` 파일을 새로 생성합니다.
+- [x] **실행 계획 2 (로직 이전):** `src/app.js`의 `showScreen` 함수에서 'share-screen' 관련 로직을 잘라내어, `src/screens/share.js`에 `initShareScreen` 함수로 감싸 `export`합니다.
+- [x] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initShareScreen`를 `import`하고, `showScreen` 함수 내 `screenId === 'share-screen'` 블록에서 `initShareScreen(this.DOM);`을 호출하도록 수정합니다.
+- [x] **검증:**
     1.  '공유' 화면으로 이동합니다.
     2.  "단축 URL이 클립보드에 복사되었습니다." 메시지가 정상적으로 표시되는지 확인합니다.
     3.  새 탭에서 붙여넣기(`Ctrl+V`)를 했을 때, 생성된 단축 URL이 올바르게 붙여넣어지는지 확인합니다.
-- [ ] **커밋:** `git commit -m "feat(screens): 공유 로직을 share.js 모듈로 분리"`
+- [x] **커밋:** `git commit -m "feat(screens): 공유 로직을 share.js 모듈로 분리"`
 </details>
 
 <details>
