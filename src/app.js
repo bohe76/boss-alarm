@@ -2,7 +2,7 @@
 
 import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning, checkAlarms } from './alarm-scheduler.js';
-import { renderFixedAlarms, updateFixedAlarmVisuals, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, updateMuteButtonVisuals, showToast, showCustomListTab, renderCustomListManagementModalContent } from './ui-renderer.js';
+import { renderFixedAlarms, renderDashboard, renderVersionInfo, renderAlarmStatusSummary, updateMuteButtonVisuals, showToast, showCustomListTab, renderCustomListManagementModalContent } from './ui-renderer.js';
 import { loadJsonContent } from './api-service.js';
 import { log, initLogger } from './logger.js';
 import { LocalStorageManager } from './data-managers.js';
@@ -14,12 +14,13 @@ import { loadBossLists } from './boss-scheduler-data.js'; // Import boss-schedul
 
 import { formatMonthDay } from './utils.js'; // New - Import formatMonthDay
 
-import { validateFixedAlarmTime } from './utils.js'; // New import
+
 
 import { initBossManagementScreen } from './screens/boss-management.js';
 import { initShareScreen } from './screens/share.js';
 import { initCalculatorScreen, handleCalculatorScreenTransition } from './screens/calculator.js';
 import { initBossSchedulerScreen } from './screens/boss-scheduler.js';
+import { initNotificationSettingsScreen } from './screens/notifications.js';
 import { EventBus } from './event-bus.js';
 
 
@@ -558,69 +559,7 @@ function initEventHandlers(DOM, globalTooltip) {
         });
     }
 
-    // --- Notification Settings Screen Event Handlers ---
-    // The global fixed alarm toggle logic is removed as fixed alarms are now individually managed.
-
-
-
-    // Event delegation for fixed alarm items (edit, delete, individual toggle)
-    if (DOM.fixedAlarmListDiv) { // Defensive check
-        DOM.fixedAlarmListDiv.addEventListener('click', (event) => {
-            const target = event.target;
-
-            // Handle individual toggle change
-            if (target.matches('.switch input[type="checkbox"]')) {
-                const alarmId = target.dataset.id;
-                const fixedAlarms = LocalStorageManager.getFixedAlarms();
-                const alarmToUpdate = fixedAlarms.find(alarm => alarm.id === alarmId);
-                if (alarmToUpdate) {
-                    alarmToUpdate.enabled = target.checked;
-                    LocalStorageManager.updateFixedAlarm(alarmId, alarmToUpdate);
-                    updateFixedAlarmVisuals(DOM);
-                }
-            }
-
-            // Handle edit button click
-            if (target.matches('.edit-fixed-alarm-button')) {
-                const alarmId = target.dataset.id;
-                const fixedAlarms = LocalStorageManager.getFixedAlarms();
-                const alarmToEdit = fixedAlarms.find(alarm => alarm.id === alarmId);
-
-                if (alarmToEdit) {
-                    const newTime = prompt(`"${alarmToEdit.name}"의 새 시간을 입력하세요 (HH:MM):`, alarmToEdit.time);
-                    if (newTime === null) return; // User cancelled
-                    if (!validateFixedAlarmTime(newTime)) {
-                        return;
-                    }
-
-
-                    const newName = prompt(`"${alarmToEdit.name}"의 새 이름을 입력하세요:`, alarmToEdit.name);
-                    if (newName === null) return; // User cancelled
-                    if (!newName.trim()) {
-                        log("이름은 비워둘 수 없습니다.", false);
-                        return;
-                    }
-
-                    LocalStorageManager.updateFixedAlarm(alarmId, { time: newTime, name: newName.trim() });
-                    renderFixedAlarms(DOM); // Re-render to show changes
-                    log(`고정 알림 "${alarmToEdit.name}"이(가) "${newName.trim()} ${newTime}"으로 수정되었습니다.`, true);
-                }
-            }
-
-            // Handle delete button click
-            if (target.matches('.delete-fixed-alarm-button')) {
-                const alarmId = target.dataset.id;
-                const fixedAlarms = LocalStorageManager.getFixedAlarms();
-                const alarmToDelete = fixedAlarms.find(alarm => alarm.id === alarmId);
-
-                if (alarmToDelete && confirm(`고정 알림 "${alarmToDelete.name} ${alarmToDelete.time}"을(를) 삭제하시겠습니까?`)) {
-                    LocalStorageManager.deleteFixedAlarm(alarmId);
-                    renderFixedAlarms(DOM); // Re-render to show changes
-                    log(`고정 알림 "${alarmToDelete.name}"이(가) 삭제되었습니다.`, true);
-                }
-            }
-        });
-    }
+    initNotificationSettingsScreen(DOM);
 
         // Handle add new fixed alarm button click (logic moved to ui-renderer.js)
 
