@@ -1,75 +1,69 @@
-# 모듈 간 의존성 (리팩토링 v4.0)
+# 모듈 간 의존성 (리팩토링 v4.0 - 상세)
 
-리팩토링 v4.0 아키텍처의 주요 의존성 관계는 다음과 같습니다. 가장 큰 특징은 화면별 로직을 담당하는 `screens/*.js` 모듈들이 더 이상 `app.js`에 직접 의존하지 않고, `EventBus`를 통해 통신한다는 점입니다.
+리팩토링 v4.0 아키텍처의 주요 의존성 관계는 **`app.js`가 각 화면 모듈을 초기화**하고, **각 화면 모듈은 필요한 서비스와 UI 모듈에 독립적으로 의존**하며, **`EventBus`를 통해 서로 통신**하는 구조입니다.
 
-## 1. 최상위 오케스트레이터
+## 1. `src/app.js` (최상위 오케스트레이터)
 
-### `src/app.js`
-- `app.js`는 애플리케이션의 메인 진입점으로서, 거의 모든 모듈을 **직접 또는 간접적으로 호출**하고 초기화합니다.
-- **주요 의존성:**
-    - `dom-elements.js`: 모든 DOM 요소 참조를 가져옴.
-    - `logger.js`: 로거 초기화.
-    - `data-managers.js`: `LocalStorageManager` 초기화.
-    - `boss-parser.js`: 초기 보스 목록 파싱.
-    - `alarm-scheduler.js`: 알람 시작/중지 기능.
-    - `event-bus.js`: 전역 이벤트 버스.
-    - `src/screens/*.js` (모든 화면 모듈): 각 화면의 `init...Screen()` 함수를 호출하여 이벤트 리스너를 등록.
+- `app.js`는 애플리케이션의 메인 진입점으로서, 거의 모든 모듈의 `init` 또는 주요 함수를 호출합니다.
 
-## 2. 화면 모듈 그룹
+| `app.js`가 의존하는 모듈 | 호출하는 주요 함수 | 목적 |
+| --- | --- | --- |
+| `dom-elements.js` | `initDomElements()` | DOM 요소 참조 객체 생성 |
+| `logger.js` | `initLogger()` | 로거 초기화 |
+| `data-managers.js` | `LocalStorageManager.init()` | 로컬 스토리지 데이터 로드 |
+| `custom-list-manager.js`| `CustomListManager.init()` | 커스텀 목록 데이터 로드 |
+| `boss-parser.js` | `parseBossList()` | 초기 보스 목록 파싱 |
+| `alarm-scheduler.js` | `startAlarm()`, `stopAlarm()`, `getIsAlarmRunning()` | 알람 제어 |
+| `event-bus.js` | `EventBus.on()`, `EventBus.emit()` | 전역 이벤트 시스템 |
+| `ui-renderer.js`| `renderFixedAlarms()`, `renderAlarmStatusSummary()` | 초기 UI 렌더링 |
+| `screens/*.js` | `init...Screen()` (모든 화면 모듈) | 각 화면의 이벤트 리스너 등록 |
 
-### `src/screens/*.js`
-- 각 화면 모듈은 **독립적으로** 필요한 모듈을 가져와 사용하며, 다른 모듈과의 통신이 필요할 경우 `EventBus`를 사용합니다.
-- **공통 의존성:**
-    - `ui-renderer.js`: 자신의 화면을 그리거나 업데이트하기 위해.
-    - `data-managers.js`: 상태를 조회하거나 변경하기 위해.
-    - `event-bus.js`: 다른 모듈(주로 `app.js`)에 화면 전환 등을 요청하기 위해.
-    - `utils.js`: 필요한 유틸리티 함수 사용.
-- **예시 (`boss-scheduler.js`):**
-    - `ui-renderer.js` (게임별 보스 입력 필드 렌더링)
-    - `calculator.js` (젠 시간 계산)
-    - `logger.js` (로그 기록)
-    - `event-bus.js` ('보스 설정 적용' 시 화면 전환 요청)
+## 2. `src/screens/*.js` (화면 모듈 그룹)
 
-## 3. 핵심 로직 모듈
+- 각 화면 모듈은 `app.js`의 `initEventHandlers`에 의해 `init...Screen(DOM)` 함수가 한 번만 호출됩니다. 그 후, 필요한 모듈을 직접 `import`하여 독립적으로 동작합니다.
 
-### `src/alarm-scheduler.js`
-- `logger.js`, `speech.js`: 알림(로그/음성) 발생.
-- `data-managers.js`: 보스 목록 및 고정 알림 데이터를 가져와 알람 조건 확인.
-- `ui-renderer.js`: `renderAlarmStatusSummary`를 호출하여 알람 상태 UI 업데이트.
-- `event-bus.js`: `refresh-dashboard` 이벤트를 매초 발생시켜 대시보드 UI 갱신 요청.
+| 화면 모듈 (`screens/*`) | 의존하는 모듈 | 목적 |
+| --- | --- | --- |
+| **`dashboard.js`** | `ui-renderer.js`, `data-managers.js`, `logger.js`, `event-bus.js` | 대시보드 UI 갱신, 음소거 상태 관리 |
+| **`boss-management.js`**| `boss-parser.js`, `logger.js`, `ui-renderer.js` | 보스 목록 정렬 및 실시간 파싱 |
+| **`calculator.js`** | `calculator.js` (core), `light-calculator.js`, `data-managers.js`, `boss-parser.js`, `ui-renderer.js`, `utils.js`, `logger.js` | 젠/광 계산기 로직 및 UI 처리 |
+| **`boss-scheduler.js`**| `ui-renderer.js`, `calculator.js`, `logger.js`, `boss-parser.js`, `event-bus.js` | 보스 스케줄러 UI 및 로직 처리, 화면 전환 요청 |
+| **`notifications.js`**| `data-managers.js`, `ui-renderer.js`, `utils.js`, `logger.js` | 고정 알림 CRUD 로직 처리 |
+| **`custom-list.js`** | `ui-renderer.js`, `custom-list-manager.js`, `event-bus.js` | 커스텀 목록 CRUD 로직 처리, 다른 모듈에 갱신 요청 |
+| **`share.js`** | `api-service.js`, `data-managers.js`, `logger.js` | URL 단축 및 클립보드 복사 |
+| **`help.js`** | `api-service.js` | 도움말 JSON 파일 로드 |
+| **`version-info.js`**| `ui-renderer.js` | 버전 정보 렌더링 |
+| **`alarm-log.js`**| `logger.js` | 로그 데이터 조회 및 표시 |
 
-### `src/ui-renderer.js`
-- **다수 모듈에 의존**: UI를 그리는 데 필요한 데이터를 얻기 위해 여러 모듈에 의존합니다.
-- **주요 의존성:**
-    - `data-managers.js`
-    - `alarm-scheduler.js`
-    - `logger.js`
-    - `custom-list-manager.js`
-    - `boss-scheduler-data.js`
-    - `utils.js`
+## 3. 핵심 로직 및 서비스 모듈
 
-### `src/custom-list-manager.js`
-- `data-managers.js`: `LocalStorageManager`를 통해 커스텀 목록을 영구 저장.
-- `logger.js`: 로그 기록.
-- `boss-scheduler-data.js`: 미리 정의된 게임 이름과 중복되는 것을 방지하기 위해.
+| 서비스 모듈 | 의존하는 모듈 | 목적 |
+| --- | --- | --- |
+| **`alarm-scheduler.js`** | `logger.js`, `speech.js`, `data-managers.js`, `ui-renderer.js`, `event-bus.js` | 알림 조건 확인, 알림 발생, 대시보드 갱신 요청 |
+| **`ui-renderer.js`** | `data-managers.js`, `alarm-scheduler.js`, `logger.js`, `api-service.js`, `custom-list-manager.js`, `boss-scheduler-data.js`, `utils.js` | UI 렌더링에 필요한 각종 데이터 조회 |
+| **`custom-list-manager.js`** | `data-managers.js`, `logger.js`, `boss-scheduler-data.js` | 커스텀 목록 영구 저장, 유효성 검사 |
+| **`boss-parser.js`** | `logger.js`, `data-managers.js`, `utils.js` | 파싱된 보스 목록을 `BossDataManager`에 저장 |
+| **`boss-scheduler-data.js`** | `logger.js`, `custom-list-manager.js` | 기본 보스 목록과 커스텀 목록을 조합 |
+| **`speech.js`** | `data-managers.js` | 음소거 상태 확인 |
+| **`light-calculator.js`**| `data-managers.js`, `logger.js`, `utils.js` | 광 계산 기록 저장 및 로드 |
 
-## 4. 의존성 흐름 요약
+## 4. 의존성 흐름도 (요약)
 
 ```
 [UI 이벤트 (e.g., 클릭)]
        |
        v
-[src/screens/*.js] (이벤트 핸들러)
+[screens/*.js] (이벤트 핸들러)
        |
        +-----> [ui-renderer.js] (UI 즉시 업데이트)
        |
        +-----> [data-managers.js] (상태 변경)
        |
-       +-----> [EventBus] (다른 모듈에 알림/요청)
+       +-----> [event-bus.js] (다른 모듈에 알림/요청)
                   |
                   v
-       [src/app.js] or [다른 screen 모듈] (이벤트 구독 및 처리)
+       [app.js] or [다른 screen/*.js] or [alarm-scheduler.js] (이벤트 구독 및 처리)
 ```
 
-- **단방향 데이터 흐름:** 사용자 입력은 `screens` 모듈에서 시작되어 `data-managers`의 상태를 변경하고, 변경된 상태는 `ui-renderer`를 통해 다시 UI에 반영됩니다.
-- **결합도 감소:** `EventBus`의 도입으로 `screens` 모듈들은 서로 또는 `app.js`를 직접 알 필요 없이 상호작용할 수 있게 되어 유지보수성과 확장성이 향상되었습니다.
+- **상위 -> 하위 단방향 흐름:** `app.js` -> `screens/*.js` -> `(ui-renderer.js | data-managers.js | ...)` 형태의 단방향 의존성 흐름이 지향됩니다.
+- **느슨한 결합:** `EventBus`가 모듈 간의 수평적 통신을 담당하여, 모듈 간의 직접적인 import/호출 관계를 최소화합니다.
