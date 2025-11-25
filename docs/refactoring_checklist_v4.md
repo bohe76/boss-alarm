@@ -211,6 +211,22 @@
 - [ ] **커밋:** `git commit -m "feat(screens): 알림 설정 로직을 notifications.js 모듈로 분리"`
 </details>
 
+<details>
+<summary><strong>2.6. `dashboard` 모듈 생성 및 로직 이전</strong></summary>
+
+- [ ] **사전 분석:** 대시보드 관련 로직은 `showScreen`과 `initEventHandlers`에 나뉘어 있습니다. 'Mute' 버튼 리스너는 `initEventHandlers`에, `renderDashboard` 호출은 `showScreen`에 있습니다. 이들을 통합하여 `dashboard.js` 모듈로 분리합니다.
+- [ ] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/dashboard.js` 파일을 새로 생성합니다.
+- [ ] **실행 계획 2 (로직 이전):**
+    - `src/app.js`의 `initEventHandlers`에서 'Mute Toggle Button' 이벤트 리스너 로직을 잘라냅니다.
+    - `src/app.js`의 `showScreen` 함수에서 `screenId === 'dashboard-screen'` 블록의 `renderDashboard(DOM)` 호출을 제거합니다.
+    - 위 로직들을 `src/screens/dashboard.js`에 `initDashboardScreen` 함수로 합쳐 `export`합니다. `init` 함수는 화면이 표시될 때마다 UI를 렌더링하고, 이벤트 리스너는 한 번만 등록하도록 구조화합니다.
+- [ ] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initDashboardScreen`를 `import`하고, `initEventHandlers`에서 `initDashboardScreen(DOM);`을 호출하여 이벤트 리스너를 등록하고, `showScreen`의 `dashboard-screen` 블록에서 `EventBus.emit('dashboard-show', DOM)`과 같은 이벤트를 발생시켜 UI 렌더링을 트리거합니다.
+- [ ] **검증:**
+    1.  '대시보드' 화면으로 이동했을 때, '다음 보스', '다가오는 보스 목록' 등의 정보가 정상적으로 표시되는지 확인합니다.
+    2.  음소거 버튼이 정상적으로 작동하는지 확인합니다.
+- [ ] **커밋:** `git commit -m "feat(screens): 대시보드 로직을 dashboard.js 모듈로 분리"`
+</details>
+
 **(이후 다른 모든 기능에 대해 위와 같은 `사전 분석 -> 실행 계획 수립 -> 검증 -> 커밋` 패턴을 반복합니다.)**
 
 ---
