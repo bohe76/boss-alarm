@@ -196,6 +196,21 @@
 - [ ] **커밋:** `git commit -m "feat(screens): 보스 스케줄러 로직을 boss-scheduler.js 모듈로 분리"`
 </details>
 
+<details>
+<summary><strong>2.5. `notifications` 모듈 생성 및 로직 이전</strong></summary>
+
+- [ ] **사전 분석:** `app.js`의 `initEventHandlers` 함수에 있는 'Notification Settings' 관련 모든 이벤트 리스너들의 의존성을 확인합니다. (`LocalStorageManager`, `renderFixedAlarms`, `validateFixedAlarmTime` 등)
+- [ ] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/notifications.js` 파일을 새로 생성합니다.
+- [ ] **실행 계획 2 (로직 이전):** `src/app.js`의 `initEventHandlers`에서 'Notification Settings' 관련 이벤트 리스너 로직을 모두 잘라내어 `src/screens/notifications.js`에 `initNotificationSettingsScreen` 함수로 감싸 `export`합니다.
+- [ ] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initNotificationSettingsScreen`를 `import`하고, `initEventHandlers` 함수에서 잘라낸 위치에 `initNotificationSettingsScreen(DOM);`을 호출합니다.
+- [ ] **검증:**
+    1.  '알림 설정' 화면으로 이동합니다.
+    2.  고정 알림의 토글 스위치가 정상적으로 작동하고, 비활성화된 알림은 회색으로 표시되는지 확인합니다.
+    3.  '편집', '삭제' 버튼이 정상적으로 작동하는지 확인합니다.
+    4.  새 고정 알림을 추가했을 때 목록에 정상적으로 추가되고 알림이 울리는지 확인합니다.
+- [ ] **커밋:** `git commit -m "feat(screens): 알림 설정 로직을 notifications.js 모듈로 분리"`
+</details>
+
 **(이후 다른 모든 기능에 대해 위와 같은 `사전 분석 -> 실행 계획 수립 -> 검증 -> 커밋` 패턴을 반복합니다.)**
 
 ---
