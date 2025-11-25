@@ -170,16 +170,16 @@
 <details>
 <summary><strong>2.3. `calculator` 모듈 생성 및 로직 이전</strong></summary>
 
-- [ ] **사전 분석:** `app.js`의 `initEventHandlers` 함수에 있는 'Zen Calculator' 및 'Light Calculator' 관련 모든 이벤트 리스너들의 의존성을 확인합니다. (`calculateBossAppearanceTime`, `LightCalculator`, `showToast`, `LocalStorageManager` 등)
-- [ ] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/calculator.js` 파일을 새로 생성합니다.
-- [ ] **실행 계획 2 (로직 이전):** `src/app.js`의 `initEventHandlers`에서 'Zen Calculator'와 'Light Calculator' 관련 이벤트 리스너 로직을 모두 잘라내어 `src/screens/calculator.js`에 `initCalculatorScreen` 함수로 감싸 `export`합니다.
-- [ ] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initCalculatorScreen`를 `import`하고, `initEventHandlers` 함수에서 잘라낸 위치에 `initCalculatorScreen(DOM);`을 호출합니다.
-- [ ] **검증:**
+- [x] **사전 분석:** `app.js`의 `initEventHandlers` 함수에 있는 'Zen Calculator' 및 'Light Calculator' 관련 모든 이벤트 리스너들의 의존성을 확인합니다. (`calculateBossAppearanceTime`, `LightCalculator`, `showToast`, `LocalStorageManager` 등)
+- [x] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/calculator.js` 파일을 새로 생성합니다.
+- [x] **실행 계획 2 (로직 이전):** `src/app.js`의 `initEventHandlers`에서 'Zen Calculator'와 'Light Calculator' 관련 이벤트 리스너 로직을 모두 잘라내어 `src/screens/calculator.js`에 `initCalculatorScreen` 함수로 감싸 `export`합니다.
+- [x] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initCalculatorScreen`를 `import`하고, `initEventHandlers` 함수에서 잘라낸 위치에 `initCalculatorScreen(DOM);`을 호출합니다.
+- [x] **검증:**
     1.  '계산기' 화면으로 이동합니다.
     2.  '젠 계산기'에 남은 시간을 입력하면 보스 출현 시간이 정상적으로 계산되는지 확인합니다.
     3.  젠 계산기의 '보스 시간 업데이트' 기능이 정상 작동하는지 확인합니다.
     4.  '광 계산기'의 '시작', '광', '잡힘' 버튼이 모두 정상 작동하고, 계산 결과가 목록에 저장되는지 확인합니다.
-- [ ] **커밋:** `git commit -m "feat(screens): 계산기 화면 로직을 calculator.js 모듈로 분리"`
+- [x] **커밋:** `git commit -m "feat(screens): 계산기 화면 로직을 calculator.js 모듈로 분리"`
 </details>
 
 <details>
