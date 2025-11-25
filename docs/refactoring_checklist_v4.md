@@ -74,42 +74,42 @@
 <details>
 <summary><strong>0.5. `formatTime` 함수 이전</strong></summary>
 
-- [ ] **사전 분석:** `light-calculator.js`에서 `formatTime`이 `export` 되어 `app.js`에서 사용되고 있음을 확인합니다. 이 경로를 `utils.js`로 변경했을 때 다른 영향이 없는지 확인합니다.
-- [ ] **실행 계획 1 (이전/리팩토링):** `light-calculator.js`에서 함수를 잘라내 `utils.js`에 붙여넣고, `padNumber`를 사용하도록 수정합니다.
-- [ ] **실행 계획 2 (가져오기):** `light-calculator.js` 상단에 `import { formatTime } from './utils.js';`를 추가합니다.
-- [ ] **실행 계획 3 (가져오기 수정):** `app.js`의 `import` 문을 `import { LightCalculator } from './light-calculator.js';`와 `import { formatTime } from './utils.js';`로 분리/수정합니다.
-- [ ] **검증:** '계산기' 화면 > '광 계산기'에서 스톱워치를 시작하고, 시간 표시가 `MM:SS` 형식으로 정상 업데이트되는지 확인합니다.
-- [ ] **커밋:** `git commit -m "refactor(utils): formatTime을 utils.js로 이동"`
+- [x] **사전 분석:** `light-calculator.js`에서 `formatTime`이 `export` 되어 `app.js`에서 사용되고 있음을 확인합니다. 이 경로를 `utils.js`로 변경했을 때 다른 영향이 없는지 확인합니다.
+- [x] **실행 계획 1 (이전/리팩토링):** `light-calculator.js`에서 함수를 잘라내 `utils.js`에 붙여넣고, `padNumber`를 사용하도록 수정합니다.
+- [x] **실행 계획 2 (가져오기):** `light-calculator.js` 상단에 `import { formatTime } from './utils.js';`를 추가합니다.
+- [x] **실행 계획 3 (가져오기 수정):** `app.js`의 `import` 문을 `import { LightCalculator } from './light-calculator.js';`와 `import { formatTime } from './utils.js';`로 분리/수정합니다.
+- [x] **검증:** '계산기' 화면 > '광 계산기'에서 스톱워치를 시작하고, 시간 표시가 `MM:SS` 형식으로 정상 업데이트되는지 확인합니다.
+- [x] **커밋:** `git commit -m "refactor(utils): formatTime을 utils.js로 이동"`
 </details>
 
 <details>
 <summary><strong>0.6. `formatTimeDifference` 함수 이전</strong></summary>
 
-- [ ] **사전 분석:** 이 함수가 `ui-renderer.js` 내부에서만 사용되는 것을 확인합니다. `utils.js`로 옮겨도 호출 구조에 변경이 없음을 확인합니다.
-- [ ] **실행 계획 1 (이전/리팩토링):** `ui-renderer.js`에서 함수를 잘라내 `utils.js`에 붙여넣고, `padNumber`를 사용하도록 수정합니다.
-- [ ] **실행 계획 2 (가져오기):** `ui-renderer.js` 상단에 `import { formatTimeDifference } from './utils.js';`를 추가합니다。
-- [ ] **검증:** '대시보드' 화면에서 '다음 보스'와 '다가오는 보스 목록'의 남은 시간이 `(HH:MM:SS)` 형식으로 정상 표시되는지 확인합니다.
-- [ ] **커밋:** `git commit -m "refactor(utils): formatTimeDifference를 utils.js로 이동"`
+- [x] **사전 분석:** 이 함수가 `ui-renderer.js` 내부에서만 사용되는 것을 확인합니다. `utils.js`로 옮겨도 호출 구조에 변경이 없음을 확인합니다.
+- [x] **실행 계획 1 (이전/리팩토링):** `ui-renderer.js`에서 함수를 잘라내 `utils.js`에 붙여넣고, `padNumber`를 사용하도록 수정합니다.
+- [x] **실행 계획 2 (가져오기):** `ui-renderer.js` 상단에 `import { formatTimeDifference } from './utils.js';`를 추가합니다。
+- [x] **검증:** '대시보드' 화면에서 '다음 보스'와 '다가오는 보스 목록'의 남은 시간이 `(HH:MM:SS)` 형식으로 정상 표시되는지 확인합니다.
+- [x] **커밋:** `git commit -m "refactor(utils): formatTimeDifference를 utils.js로 이동"`
 </details>
 
 <details>
 <summary><strong>0.7. `formatSpawnTime` 함수 이전</strong></summary>
 
-- [ ] **사전 분석:** 이 함수가 `ui-renderer.js` 내부에서만 사용되는 것을 확인합니다.
-- [ ] **실행 계획 1 (이전):** `ui-renderer.js`에서 함수를 잘라내 `utils.js`에 붙여넣고 `export`합니다.
-- [ ] **실행 계획 2 (가져오기):** `ui-renderer.js` 상단에 `import { formatSpawnTime } from './utils.js';`를 추가합니다.
-- [ ] **검증:** '대시보드' 화면에서 '다음 보스'와 '다가오는 보스 목록'의 출현 시간이 `[HH:MM:SS]` 형식으로 정상 표시되는지 확인합니다.
-- [ ] **커밋:** `git commit -m "refactor(utils): formatSpawnTime을 utils.js로 이동"`
+- [x] **사전 분석:** 이 함수가 `ui-renderer.js` 내부에서만 사용되는 것을 확인합니다.
+- [x] **실행 계획 1 (이전):** `ui-renderer.js`에서 함수를 잘라내 `utils.js`에 붙여넣고 `export`합니다.
+- [x] **실행 계획 2 (가져오기):** `ui-renderer.js` 상단에 `import { formatSpawnTime } from './utils.js';`를 추가합니다.
+- [x] **검증:** '대시보드' 화면에서 '다음 보스'와 '다가오는 보스 목록'의 출현 시간이 `[HH:MM:SS]` 형식으로 정상 표시되는지 확인합니다.
+- [x] **커밋:** `git commit -m "refactor(utils): formatSpawnTime을 utils.js로 이동"`
 </details>
 
 <details>
 <summary><strong>0.8. `generateUniqueId` 함수 이전</strong></summary>
 
-- [ ] **사전 분석:** 이 함수가 `boss-parser.js` 내부에서만 사용되며, 다른 의존성이 없음을 최종 확인합니다.
-- [ ] **실행 계획 1 (이전):** `boss-parser.js`에서 함수를 잘라내 `utils.js`에 붙여넣고 `export`합니다.
-- [ ] **실행 계획 2 (가져오기):** `boss-parser.js` 상단에 `import { generateUniqueId } from './utils.js';`를 추가합니다。
-- [ ] **검증:** 보스 목록을 수정하고 알람을 켰을 때, 수정된 보스 알람이 정상적으로 울리는지 확인합니다.
-- [ ] **커밋:** `git commit -m "refactor(utils): generateUniqueId를 utils.js로 이동"`
+- [x] **사전 분석:** 이 함수가 `boss-parser.js` 내부에서만 사용되며, 다른 의존성이 없음을 최종 확인합니다.
+- [x] **실행 계획 1 (이전):** `boss-parser.js`에서 함수를 잘라내 `utils.js`에 붙여넣고 `export`합니다.
+- [x] **실행 계획 2 (가져오기):** `boss-parser.js` 상단에 `import { generateUniqueId } from './utils.js';`를 추가합니다。
+- [x] **검증:** 보스 목록을 수정하고 알람을 켰을 때, 수정된 보스 알람이 정상적으로 울리는지 확인합니다.
+- [x] **커밋:** `git commit -m "refactor(utils): generateUniqueId를 utils.js로 이동"`
 </details>
 
 ---
@@ -119,19 +119,19 @@
 <details>
 <summary><strong>1.1. `EventBus` 생성</strong></summary>
 
-- [ ] **사전 분석:** 없음 (새 파일 생성).
-- [ ] **실행 계획:** `src/event-bus.js`에 명세된 코드로 새 파일을 생성합니다.
-- [ ] **검증:** 없음.
-- [ ] **커밋:** `git commit -m "feat(core): pub/sub 아키텍처를 위한 중앙 EventBus 생성"`
+- [x] **사전 분석:** 없음 (새 파일 생성).
+- [x] **실행 계획:** `src/event-bus.js`에 명세된 코드로 새 파일을 생성합니다.
+- [x] **검증:** 없음.
+- [x] **커밋:** `git commit -m "feat(core): pub/sub 아키텍처를 위한 중앙 EventBus 생성"`
 </details>
 
 <details>
 <summary><strong>1.2. `app.js`로 이름 변경 및 진입점 수정</strong></summary>
-- [ ] **사전 분석:** `index.html` 파일의 `<script>` 태그가 `src/event-handlers.js`를 가리키고 있음을 확인합니다. 이 경로를 변경하는 것 외에 다른 수정은 필요 없음을 확인합니다.
-- [ ] **실행 계획 1 (이름 변경):** `src/event-handlers.js` 파일의 이름을 `src/app.js`로 변경합니다.
-- [ ] **실행 계획 2 (HTML 수정):** `index.html` 파일의 `<script type="module" src="src/event-handlers.js"></script>` 라인을 `<script type="module" src="src/app.js"></script>`로 **수정**합니다.
-- [ ] **검증:** 앱을 새로고침했을 때, 모든 기능(알람, 화면 전환 등)이 이전과 동일하게 정상 동작하는지 확인합니다。
-- [ ] **커밋:** `git commit -m "refactor(core): event-handlers.js를 app.js로 이름 변경하고 메인 진입점으로 설정"`
+- [x] **사전 분석:** `index.html` 파일의 `<script>` 태그가 `src/event-handlers.js`를 가리키고 있음을 확인합니다. 이 경로를 변경하는 것 외에 다른 수정은 필요 없음을 확인합니다.
+- [x] **실행 계획 1 (이름 변경):** `src/event-handlers.js` 파일의 이름을 `src/app.js`로 변경합니다.
+- [x] **실행 계획 2 (HTML 수정):** `index.html` 파일의 `<script type="module" src="src/event-handlers.js"></script>` 라인을 `<script type="module" src="src/app.js"></script>`로 **수정**합니다.
+- [x] **검증:** 앱을 새로고침했을 때, 모든 기능(알람, 화면 전환 등)이 이전과 동일하게 정상 동작하는지 확인합니다。
+- [x] **커밋:** `git commit -m "refactor(core): event-handlers.js를 app.js로 이름 변경하고 메인 진입점으로 설정"`
 </details>
 
 ---
@@ -141,15 +141,15 @@
 <details>
 <summary><strong>2.1. `boss-management` 모듈 생성 및 로직 이전</strong></summary>
 
-- [ ] **사전 분석:** `app.js`에서 옮길 두 개의 이벤트 리스너가 `getSortedBossListText`, `parseBossList`, `log`, `renderDashboard` 함수에 의존함을 확인합니다. 이 `import` 문들이 `boss-management.js`로 올바르게 이동해야 함을 인지합니다. 또한, 이벤트 리스너는 앱 초기화 시 한 번만 등록되면 되므로, `initApp`에서 호출하는 구조가 적절함을 확인합니다。
-- [ ] **실행 계획 1 (디렉토리/파일 생성):** `src/screens` 디렉토리를 생성하고, 그 안에 `boss-management.js` 파일을 새로 생성합니다.
-- [ ] **실행 계획 2 (로직 이전):** `src/app.js`의 `initEventHandlers` 함수에서 `DOM.sortBossListButton`과 `DOM.bossListInput` 리스너 로직을 잘라내어, `src/screens/boss-management.js`에 `initBossManagementScreen` 함수로 감싸 `export`합니다.
-- [ ] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initBossManagementScreen`를 `import`하고, `initApp` 함수 마지막에 `initBossManagementScreen(DOM);`을 호출합니다.
-- [ ] **검증:**
+- [x] **사전 분석:** `app.js`에서 옮길 두 개의 이벤트 리스너가 `getSortedBossListText`, `parseBossList`, `log`, `renderDashboard` 함수에 의존함을 확인합니다. 이 `import` 문들이 `boss-management.js`로 올바르게 이동해야 함을 인지합니다. 또한, 이벤트 리스너는 앱 초기화 시 한 번만 등록되면 되므로, `initApp`에서 호출하는 구조가 적절함을 확인합니다。
+- [x] **실행 계획 1 (디렉토리/파일 생성):** `src/screens` 디렉토리를 생성하고, 그 안에 `boss-management.js` 파일을 새로 생성합니다.
+- [x] **실행 계획 2 (로직 이전):** `src/app.js`의 `initEventHandlers` 함수에서 `DOM.sortBossListButton`과 `DOM.bossListInput` 리스너 로직을 잘라내어, `src/screens/boss-management.js`에 `initBossManagementScreen` 함수로 감싸 `export`합니다.
+- [x] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initBossManagementScreen`를 `import`하고, `initApp` 함수 마지막에 `initBossManagementScreen(DOM);`을 호출합니다.
+- [x] **검증:**
     1.  '보스 관리' 화면으로 이동합니다.
     2.  텍스트 영역에 보스 목록을 수정하면 '다음 보스' 정보가 실시간으로 변경되는지 확인합니다.
     3.  '시간순 정렬' 버튼을 클릭하면 목록이 정렬되고, 로그가 남는지 확인합니다.
-- [ ] **커밋:** `git commit -m "feat(screens): 보스 관리 로직을 boss-management.js 모듈로 분리"`
+- [x] **커밋:** `git commit -m "feat(screens): 보스 관리 로직을 boss-management.js 모듈로 분리"`
 </details>
 
 **(이후 다른 모든 기능에 대해 위와 같은 `사전 분석 -> 실행 계획 수립 -> 검증 -> 커밋` 패턴을 반복합니다.)**
