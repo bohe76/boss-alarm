@@ -24,6 +24,7 @@ import { initDashboardScreen } from './screens/dashboard.js';
 import { initCustomListScreen } from './screens/custom-list.js';
 import { initHelpScreen } from './screens/help.js';
 import { initVersionInfoScreen } from './screens/version-info.js';
+import { initAlarmLogScreen } from './screens/alarm-log.js';
 import { EventBus } from './event-bus.js';
 
 
@@ -140,6 +141,11 @@ function showScreen(DOM, screenId) {
     // Special handling for calculator screen
     if (screenId === 'calculator-screen') { // Updated
         handleCalculatorScreenTransition(DOM);
+    }
+
+    // Special handling for alarm log screen
+    if (screenId === 'alarm-log-screen') {
+        initAlarmLogScreen(DOM);
     }
 
     // Special handling for boss scheduler screen
