@@ -1,3 +1,13 @@
+---
+status: 진행 중
+created_at: 2025-11-24
+priority: medium
+assigned_to: Gemini
+labels:
+  - ui
+  - ux
+  - performance
+---
 # 이슈 005: 초기 로딩 시 깜빡임 문제 및 스켈레톤 UI 적용 준비
 
 ## 문제점
