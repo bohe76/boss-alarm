@@ -1,6 +1,6 @@
 import { LocalStorageManager } from '../data-managers.js';
 import { renderFixedAlarms, updateFixedAlarmVisuals } from '../ui-renderer.js';
-import { validateFixedAlarmTime } from '../utils.js';
+import { validateFixedAlarmTime, normalizeTimeFormat } from '../utils.js';
 import { log } from '../logger.js';
 
 export function initNotificationSettingsScreen(DOM) {
@@ -33,6 +33,7 @@ export function initNotificationSettingsScreen(DOM) {
                     if (!validateFixedAlarmTime(newTime)) {
                         return;
                     }
+                    const normalizedTime = normalizeTimeFormat(newTime);
 
                     const newName = prompt(`"${alarmToEdit.name}"의 새 이름을 입력하세요:`, alarmToEdit.name);
                     if (newName === null) return; // User cancelled
@@ -41,9 +42,9 @@ export function initNotificationSettingsScreen(DOM) {
                         return;
                     }
 
-                    LocalStorageManager.updateFixedAlarm(alarmId, { time: newTime, name: newName.trim() });
+                    LocalStorageManager.updateFixedAlarm(alarmId, { time: normalizedTime, name: newName.trim() });
                     renderFixedAlarms(DOM); // Re-render to show changes
-                    log(`고정 알림 "${alarmToEdit.name}"이(가) "${newName.trim()} ${newTime}"으로 수정되었습니다.`, true);
+                    log(`고정 알림 "${alarmToEdit.name}"이(가) "${newName.trim()} ${normalizedTime}"으로 수정되었습니다.`, true);
                 }
             }
 

@@ -81,3 +81,52 @@ export function validateFixedAlarmTime(time) {
 
     return true;
 }
+
+// Helper function to generate a unique ID
+export function generateUniqueId() {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+}
+
+export const formatTime = (seconds) => { // Export formatTime
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${padNumber(minutes)}:${padNumber(remainingSeconds)}`;
+};
+
+export function formatTimeDifference(ms, showSeconds = true) {
+    if (ms <= 0 || ms === Infinity) return showSeconds ? '(00:00:00)' : '(00:00)';
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor((totalSeconds % 86400) / 3600); // Ensure hours don't exceed 23
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (showSeconds) {
+        return `(${padNumber(hours)}:${padNumber(minutes)}:${padNumber(seconds)})`;
+    } else {
+        return `(${padNumber(hours)}:${padNumber(minutes)})`;
+    }
+}
+
+// Helper function to format spawn time to HH:MM:SS
+export function formatSpawnTime(timeString) {
+    const parts = timeString.split(':');
+    const hours = padNumber(parseInt(parts[0], 10));
+    const minutes = padNumber(parseInt(parts[1], 10));
+    const seconds = padNumber(parseInt(parts[2] || '00', 10));
+    return `[${hours}:${minutes}:${seconds}]`;
+}
+
+/**
+ * 시간 문자열을 HH:MM 형식으로 정규화합니다.
+ * @param {string} timeStr - 입력된 시간 문자열 (예: "1230", "12:30")
+ * @returns {string} - 정규화된 시간 문자열 (예: "12:30")
+ */
+export function normalizeTimeFormat(timeStr) {
+    if (!timeStr) return timeStr;
+    const cleanTime = timeStr.trim().replace(/:/g, ''); // 콜론 및 공백 제거
+    if (cleanTime.length === 4) {
+        return `${cleanTime.substring(0, 2)}:${cleanTime.substring(2)}`;
+    }
+    return timeStr.trim(); // 이미 포맷이 맞거나 4자리가 아닌 경우 (유효성 검사는 별도로 수행됨)
+}
+
