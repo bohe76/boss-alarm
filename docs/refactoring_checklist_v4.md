@@ -106,7 +106,7 @@
 <summary><strong>0.8. `generateUniqueId` 함수 이전</strong></summary>
 
 - [x] **사전 분석:** 이 함수가 `boss-parser.js` 내부에서만 사용되며, 다른 의존성이 없음을 최종 확인합니다.
-- [x] **실행 계획 1 (이전):** `boss-parser.js`에서 함수를 잘라내 `utils.js`に 붙여넣고 `export`합니다.
+- [x] **실행 계획 1 (이전):** `boss-parser.js`에서 함수를 잘라내 `utils.js`에 붙여넣고 `export`합니다.
 - [x] **실행 계획 2 (가져오기):** `boss-parser.js` 상단에 `import { generateUniqueId } from './utils.js';`를 추가합니다。
 - [x] **검증:** 보스 목록을 수정하고 알람을 켰을 때, 수정된 보스 알람이 정상적으로 울리는지 확인합니다.
 - [x] **커밋:** `git commit -m "refactor(utils): generateUniqueId를 utils.js로 이동"`
@@ -265,6 +265,19 @@
     1.  '릴리즈 노트' 화면으로 이동합니다.
     2.  아코디언 형태의 버전 정보가 정상적으로 표시되는지 확인합니다.
 - [ ] **커밋:** `git commit -m "feat(screens): 릴리즈 노트 로직을 version-info.js 모듈로 분리"`
+</details>
+
+<details>
+<summary><strong>2.10. `alarm-log` 모듈 생성 및 로직 이전</strong></summary>
+
+- [ ] **사전 분석:** `app.js`의 `showScreen` 함수 내 'alarm-log-screen' 관련 로직이 `updateLogDisplay` 함수에 의존함을 확인합니다.
+- [ ] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/alarm-log.js` 파일을 새로 생성합니다.
+- [ ] **실행 계획 2 (로직 이전):** `src/app.js`의 `showScreen` 함수에서 'alarm-log-screen' 관련 로직을 잘라내어 `src/screens/alarm-log.js`에 `initAlarmLogScreen` 함수로 감싸 `export`합니다.
+- [ ] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initAlarmLogScreen`를 `import`하고, `showScreen` 함수 내 `screenId === 'alarm-log-screen'` 블록에서 `initAlarmLogScreen(DOM);`을 호출하도록 수정합니다.
+- [ ] **검증:**
+    1.  '알림 로그' 화면으로 이동합니다.
+    2.  로그 내용이 정상적으로 표시되는지 확인합니다.
+- [ ] **커밋:** `git commit -m "feat(screens): 알림 로그 로직을 alarm-log.js 모듈로 분리"`
 </details>
 
 **(이후 다른 모든 기능에 대해 위와 같은 `사전 분석 -> 실행 계획 수립 -> 검증 -> 커밋` 패턴을 반복합니다.)**
