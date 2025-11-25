@@ -231,15 +231,15 @@
 <details>
 <summary><strong>2.7. `custom-list` 모듈 생성 및 로직 이전</strong></summary>
 
-- [ ] **사전 분석:** `app.js`의 `initEventHandlers` 함수에 있는 'Custom Boss List' 관련 모든 이벤트 리스너들의 의존성을 확인합니다. (`showCustomListTab`, `CustomListManager`, `showToast` 등)
-- [ ] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/custom-list.js` 파일을 새로 생성합니다.
-- [ ] **실행 계획 2 (로직 이전):** `src/app.js`의 `initEventHandlers`에서 'Custom Boss List' 관련 이벤트 리스너 로직을 모두 잘라내어 `src/screens/custom-list.js`에 `initCustomListScreen` 함수로 감싸 `export`합니다.
-- [ ] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initCustomListScreen`를 `import`하고, `initEventHandlers` 함수에서 잘라낸 위치에 `initCustomListScreen(DOM);`을 호출합니다.
-- [ ] **검증:**
+- [x] **사전 분석:** `app.js`의 `initEventHandlers` 함수에 있는 'Custom Boss List' 관련 모든 이벤트 리스너들의 의존성을 확인합니다. (`showCustomListTab`, `CustomListManager`, `showToast` 등)
+- [x] **실행 계획 1 (디렉토리/파일 생성):** `src/screens/custom-list.js` 파일을 새로 생성합니다.
+- [x] **실행 계획 2 (로직 이전):** `src/app.js`의 `initEventHandlers`에서 'Custom Boss List' 관련 이벤트 리스너 로직을 모두 잘라내어 `src/screens/custom-list.js`에 `initCustomListScreen` 함수로 감싸 `export`합니다.
+- [x] **실행 계획 3 (가져오기/호출):** `src/app.js` 상단에 `initCustomListScreen`를 `import`하고, `initEventHandlers` 함수에서 잘라낸 위치에 `initCustomListScreen(DOM);`을 호출합니다.
+- [x] **검증:**
     1.  '보스 스케줄러' 화면의 '커스텀 보스 관리' 버튼을 클릭했을 때 모달이 정상적으로 열리는지 확인합니다.
     2.  모달 내에서 '목록 추가', '목록 관리' 탭 전환이 정상적으로 작동하는지 확인합니다.
     3.  새 커스텀 목록을 추가, 수정, 삭제하는 기능이 모두 정상적으로 작동하고 토스트 메시지가 뜨는지 확인합니다.
-- [ ] **커밋:** `git commit -m "feat(screens): 커스텀 목록 관리 로직을 custom-list.js 모듈로 분리"`
+- [x] **커밋:** `git commit -m "feat(screens): 커스텀 목록 관리 로직을 custom-list.js 모듈로 분리"`
 </details>
 
 <details>
