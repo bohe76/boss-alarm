@@ -81,19 +81,28 @@ export function checkAlarms() { // Removed updateBossListTextarea parameter
     let bossesToRemove = [];
     
     // Combine dynamic and fixed alarms for checking and next boss determination
-    const allAlarms = [
-        ...BossDataManager.getBossSchedule().filter(boss => boss.type === 'boss'),
-        ...LocalStorageManager.getFixedAlarms().filter(alarm => alarm.enabled).map(alarm => ({ ...alarm, isFixed: true }))
-    ];
+    let allAlarms = [];
 
-    // Sort all alarms by time for consistent processing
-    allAlarms.sort((a, b) => {
-        const [aH, aM, aS] = a.time.split(':').map(Number);
-        const aTotalSeconds = aH * 3600 + aM * 60 + (aS || 0);
-        const [bH, bM, bS] = b.time.split(':').map(Number);
-        const bTotalSeconds = bH * 3600 + bM * 60 + (bS || 0);
-        return aTotalSeconds - bTotalSeconds;
+    // Process dynamic bosses from BossDataManager
+    BossDataManager.getBossSchedule().filter(boss => boss.type === 'boss').forEach(boss => {
+        allAlarms.push({ ...boss }); // BossDataManager bosses already have scheduledDate
     });
+
+    // Process fixed alarms from LocalStorageManager
+    LocalStorageManager.getFixedAlarms().filter(alarm => alarm.enabled).forEach(alarm => {
+        const [hours, minutes, seconds] = alarm.time.split(':').map(Number);
+        let fixedScheduledDate = new Date(now);
+        fixedScheduledDate.setHours(hours, minutes, seconds || 0, 0);
+
+        // If fixed alarm time has already passed today, consider it for tomorrow
+        if (fixedScheduledDate.getTime() <= now.getTime() - 1000) { // 1 second grace period
+            fixedScheduledDate.setDate(fixedScheduledDate.getDate() + 1);
+        }
+        allAlarms.push({ ...alarm, scheduledDate: fixedScheduledDate, isFixed: true });
+    });
+
+    // Sort all alarms by their scheduledDate (full timestamp) for correct chronological processing
+    allAlarms.sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime());
 
     let nextBoss = null;
     let minTimeDiff = Infinity;
@@ -150,26 +159,14 @@ export function checkAlarms() { // Removed updateBossListTextarea parameter
         BossDataManager.setBossSchedule(currentBossSchedule);
     }
 
-    // Determine the next boss for display (simplified and correct)
-    let potentialNextAlarms = allAlarms.map(alarm => {
-        const [hours, minutes, seconds] = alarm.time.split(':').map(Number);
-        const alarmTimeToday = new Date();
-        alarmTimeToday.setHours(hours, minutes, seconds || 0, 0);
-
-        let timeDiff = alarmTimeToday.getTime() - now.getTime();
-        if (timeDiff < 0) {
-            alarmTimeToday.setDate(alarmTimeToday.getDate() + 1);
-            timeDiff = alarmTimeToday.getTime() - now.getTime();
-        }
-        return { ...alarm, timestamp: alarmTimeToday.getTime(), timeDiff: timeDiff };
-    }).filter(alarm => alarm.timeDiff >= 0) // Only consider future alarms
-      .sort((a, b) => a.timeDiff - b.timeDiff); // Sort by closest future alarm
-
+    // Determine the next boss for display
+    let potentialNextAlarms = allAlarms.filter(alarm => alarm.scheduledDate.getTime() >= now.getTime()); // Only consider future alarms
+    
+    // The first alarm in the sorted list is the closest next boss
     if (potentialNextAlarms.length > 0) {
         const closestAlarm = potentialNextAlarms[0];
-        minTimeDiff = closestAlarm.timeDiff;
         nextBoss = { ...closestAlarm };
-        delete nextBoss.timeDiff; // Clean up temporary property
+        minTimeDiff = nextBoss.scheduledDate.getTime() - now.getTime();
     } else {
         nextBoss = null;
         minTimeDiff = Infinity;
