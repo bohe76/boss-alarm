@@ -17,6 +17,10 @@ import { formatMonthDay } from './utils.js'; // New - Import formatMonthDay
 import { validateFixedAlarmTime } from './utils.js'; // New import
 import { updateLightStopwatchDisplay, updateLightExpectedTimeDisplay, renderLightTempResults, renderLightSavedList, updateBossListTextarea } from './ui-renderer.js'; // New - Import updateBossListTextarea
 
+// Import specific screen init functions
+import { initDashboardScreen } from './screens/dashboard.js';
+import { initAlarmLogScreen } from './screens/alarm-log.js';
+
 let _remainingTimes = {}; // Global variable to store remaining times for boss scheduler
 
 // Global tooltip functions
@@ -971,146 +975,330 @@ function initEventHandlers(DOM, globalTooltip) {
 
 // Function to initialize the application
 
+
+
 export async function initApp() { // Made initApp async
+
     const DOM = initDomElements(); // Initialize DOM elements here
+
     const globalTooltip = document.getElementById('global-tooltip'); // Initialize globalTooltip here
 
+    // Initialize all event handlers
+    initEventHandlers(DOM, globalTooltip);
+
+    // Initialize specific screen listeners early
+    initDashboardScreen(DOM);
+    initAlarmLogScreen(DOM);
+
+
+
+    // Initialize specific screen listeners early
+    initDashboardScreen(DOM);
+    initAlarmLogScreen(DOM);
+
+
+    // Initialize all event handlers <-- MOVED HERE TO BE FIRST
+
+
+
+
+
     // Set version in footer
+
     if (DOM.footerVersion) DOM.footerVersion.textContent = window.APP_VERSION;
 
+
+
     // Initialize logger with the log container
+
     initLogger(DOM.logContainer);
 
+
+
     // Load boss lists data
+
     await loadBossLists();
 
+
+
     // 현재 페이지의 URL 파라미터(물음표 뒤)를 가져옴
+
     const params = new URLSearchParams(window.location.search);
+
     
+
     // 'data'라는 이름의 파라미터가 있는지 확인
+
     if (params.has('data')) {
+
         const decodedData = decodeURIComponent(params.get('data'));
+
         DOM.bossListInput.value = decodedData;
+
         log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
+
     } else {
+
         const defaultBossList = DefaultBossList.bossPresets[0].list;
+
         let updatedBossList = defaultBossList;
+
+
 
         const hasDateEntries = /^(\d{2}\.\d{2})/m.test(defaultBossList);
 
+
+
         if (!hasDateEntries) {
+
             const today = new Date();
+
             const tomorrow = new Date(today);
+
             tomorrow.setDate(today.getDate() + 1);
 
 
 
+
+
+
+
             const todayFormatted = formatMonthDay(today);
+
             const tomorrowFormatted = formatMonthDay(tomorrow);
 
+
+
             const lines = defaultBossList.split('\n').filter(line => line.trim() !== '');
+
             let insertIndex = -1; // Initialize to -1, meaning no wrap-around found yet
 
+
+
             let lastTimeInMinutes = -1; // Track time in minutes
+
             for (let i = 0; i < lines.length; i++) {
+
                 const line = lines[i].trim();
+
                 const timeMatch = line.match(/^(\d{2}):(\d{2})/);
+
                 if (timeMatch) {
+
                     const currentHour = parseInt(timeMatch[1], 10);
+
                     const currentMinute = parseInt(timeMatch[2], 10);
+
                     const currentTimeInMinutes = currentHour * 60 + currentMinute;
 
+
+
                     if (lastTimeInMinutes !== -1 && currentTimeInMinutes < lastTimeInMinutes) { // Check for wrap-around based on full time
+
                         insertIndex = i; // Insert tomorrow's date before this line
+
                         break;
+
                     }
+
                     lastTimeInMinutes = currentTimeInMinutes;
+
                 }
+
             }
+
+
 
             // Only add tomorrow's date if a wrap-around point was found
+
             if (insertIndex !== -1) {
+
                 lines.splice(insertIndex, 0, tomorrowFormatted);
+
             }
 
+
+
             // Always prepend today's date
+
             lines.unshift(todayFormatted);
 
+
+
             updatedBossList = lines.join('\n');
+
         }
+
+
 
         DOM.bossListInput.value = updatedBossList;
+
         log("기본 보스 목록을 불러왔습니다. (URL 데이터 없음)");
+
     }
+
+
 
     // 페이지 로드 시 보스 목록을 파싱하고 지난 보스를 제거
+
     parseBossList(DOM.bossListInput);
 
+
+
     // 고정 알림 상태 로드 및 렌더링
+
     LocalStorageManager.init();
 
+
+
     // 'fixedData'라는 이름의 파라미터가 있는지 확인하고 고정 알림을 로드
+
     if (params.has('fixedData')) {
+
         const decodedFixedData = decodeURIComponent(params.get('fixedData'));
+
         if (LocalStorageManager.importFixedAlarms(decodedFixedData)) {
+
             log("URL에서 고정 알림을 성공적으로 불러왔습니다.");
+
         } else {
+
             log("URL에서 고정 알림을 불러오는 데 실패했습니다. 기본값을 사용합니다.", false);
+
         }
+
     }
+
     
+
     // fixedAlarmListDiv를 여기서 다시 가져와서 renderFixedAlarms에 전달
+
         renderFixedAlarms(DOM);
+
             
-        // Set initial alarm button state
-    const isAlarmRunningInitially = getIsAlarmRunning();
-    if (isAlarmRunningInitially) {
-        DOM.alarmToggleButton.classList.add('alarm-on');
-        DOM.alarmToggleButton.classList.remove('alarm-off'); // Ensure off class is removed
-        startAlarm(DOM); // Start alarm if it was previously running
-    } else {
-        DOM.alarmToggleButton.classList.add('alarm-off');
-        DOM.alarmToggleButton.classList.remove('alarm-on'); // Ensure on class is removed
-    }
-    renderAlarmStatusSummary(DOM); // Update status immediately after setting initial state
 
     // Set initial sidebar state
+
     if (LocalStorageManager.getSidebarExpandedState()) {
+
         DOM.sidebar.classList.add('expanded');
+
     } else {
+
         DOM.sidebar.classList.remove('expanded');
+
     }
 
+
+
     // Show the initial screen (e.g., Dashboard)
+
     showScreen(DOM, 'dashboard-screen');
+
     // Set active class for initial navigation link
+
     DOM.navDashboard.classList.add('active');
 
-    // Initialize all event handlers
-    initEventHandlers(DOM, globalTooltip); // Pass globalTooltip to initEventHandlers
-    
+
+
     // Initial render of the dashboard
+
     checkAlarms(); // Call checkAlarms once immediately
+
     renderDashboard(DOM);
 
+
+
     // --- Viewport Resize Observer ---
+
     const handleResize = () => {
+
         const isMobileView = window.innerWidth <= 768;
+
         if (isMobileView) {
+
             document.body.classList.add('is-mobile-view');
-        } else {
+
+        }
+
+        else {
+
             document.body.classList.remove('is-mobile-view');
+
         }
+
         // In mobile view, if the more menu is open, ensure the sidebar doesn't have the 'expanded' class
+
         if (isMobileView && DOM.sidebar.classList.contains('more-menu-open')) {
+
             DOM.sidebar.classList.remove('expanded');
+
         }
+
     };
 
+
+
     const resizeObserver = new ResizeObserver(handleResize);
+
     resizeObserver.observe(document.body);
 
-    // Initial check
-    handleResize();
+
+
+        // Initial check
+
+
+
+        handleResize();
+
+
+
     
-}
+
+
+
+        // Set initial alarm button state
+
+
+
+        const isAlarmRunningInitially = getIsAlarmRunning();
+
+
+
+        if (isAlarmRunningInitially) {
+
+
+
+            DOM.alarmToggleButton.classList.add('alarm-on');
+
+
+
+            DOM.alarmToggleButton.classList.remove('alarm-off'); // Ensure off class is removed
+
+
+
+            startAlarm(DOM); // Start alarm if it was previously running
+
+
+
+        } else {
+
+
+
+            DOM.alarmToggleButton.classList.add('alarm-off');
+
+
+
+            DOM.alarmToggleButton.classList.remove('alarm-on'); // Ensure on class is removed
+
+
+
+        }
+
+
+
+        renderAlarmStatusSummary(DOM); // Update status immediately after setting initial state
+
+
+
+    }

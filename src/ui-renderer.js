@@ -76,18 +76,40 @@ export function updateMuteButtonVisuals(DOM) {
 }
 
 // --- Dashboard Rendering Functions ---
-export function updateNextBossDisplay(DOM) {
+export function updateNextBossDisplay() { // Removed DOM argument
+    const oldNextBossDisplay = document.getElementById('nextBossDisplay'); // Directly query the DOM
+
     const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
+    let newElementContent;
+
     if (nextBoss) {
         const remainingTimeString = formatTimeDifference(minTimeDiff);
         const formattedSpawnTime = formatSpawnTime(nextBoss.time);
-        DOM.nextBossDisplay.innerHTML = `<span class="next-boss-label">다음 보스</span><br><span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span></span>`;
+        newElementContent = `<span class="next-boss-label">다음 보스</span><br><span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span></span>`;
     } else {
-        DOM.nextBossDisplay.textContent = '다음 보스 없음';
+        newElementContent = '다음 보스 없음';
+    }
+
+    if (oldNextBossDisplay) {
+        const parent = oldNextBossDisplay.parentNode;
+        if (parent) {
+            parent.removeChild(oldNextBossDisplay); // Remove the old element
+
+            const newNextBossDisplay = document.createElement('div');
+            newNextBossDisplay.id = 'nextBossDisplay';
+            newNextBossDisplay.className = 'next-boss-highlight'; // Ensure class is retained
+            newNextBossDisplay.innerHTML = newElementContent;
+            parent.prepend(newNextBossDisplay); // Prepend to keep its position, assuming it's the first child after h2
+        }
+    } else {
+        // Fallback: If not found, perhaps create and append if possible, but that's a renderDashboard responsibility
     }
 }
 
-export function renderUpcomingBossList(DOM) {
+export function renderUpcomingBossList() { // Removed DOM argument
+    const upcomingBossList = document.getElementById('upcomingBossList'); // Directly query the DOM
+    if (!upcomingBossList) return;
+
     const upcomingBosses = BossDataManager.getUpcomingBosses(11); // Get next 11 bosses to skip the first one
     let html = '<ul>';
     if (upcomingBosses.length > 0) {
@@ -105,24 +127,28 @@ export function renderUpcomingBossList(DOM) {
         html += '<li>예정된 보스가 없습니다.</li>';
     }
     html += '</ul>';
-    DOM.upcomingBossList.innerHTML = html;
+    upcomingBossList.innerHTML = html;
 }
 
-export function renderAlarmStatusSummary(DOM) {
+export function renderAlarmStatusSummary() { // Removed DOM argument
+    const alarmStatusText = document.getElementById('alarmStatusText'); // Directly query the DOM
+    if (!alarmStatusText) return;
+
     const isAlarmRunning = getIsAlarmRunning();
     let statusText = isAlarmRunning ? '알림 실행 중' : '알림 중지됨';
 
-    if (DOM.alarmStatusText) {
-        DOM.alarmStatusText.textContent = statusText;
-        if (isAlarmRunning) {
-            DOM.alarmStatusText.classList.add('alarm-status-running');
-        } else {
-            DOM.alarmStatusText.classList.remove('alarm-status-running');
-        }
+    alarmStatusText.textContent = statusText;
+    if (isAlarmRunning) {
+        alarmStatusText.classList.add('alarm-status-running');
+    } else {
+        alarmStatusText.classList.remove('alarm-status-running');
     }
 }
 
-export function renderRecentAlarmLog(DOM) {
+export function renderRecentAlarmLog() { // Removed DOM argument
+    const recentAlarmLog = document.getElementById('recentAlarmLog'); // Directly query the DOM
+    if (!recentAlarmLog) return;
+
     const logs = getLogs(); // Corrected call
     let html = '<ul>';
     if (logs.length > 0) {
@@ -135,15 +161,15 @@ export function renderRecentAlarmLog(DOM) {
         html += '<li>최근 알림 기록 없음</li>';
     }
     html += '</ul>';
-    DOM.recentAlarmLog.innerHTML = html;
+    recentAlarmLog.innerHTML = html;
 }
 
-export function renderDashboard(DOM) {
-    updateNextBossDisplay(DOM);
-    renderUpcomingBossList(DOM);
-    renderAlarmStatusSummary(DOM);
-    updateMuteButtonVisuals(DOM);
-    renderRecentAlarmLog(DOM);
+export function renderDashboard(DOM) { // DOM argument is still needed for updateMuteButtonVisuals
+    updateNextBossDisplay(); // Called without DOM argument
+    renderUpcomingBossList(); // Called without DOM argument
+    renderAlarmStatusSummary(); // Called without DOM argument
+    updateMuteButtonVisuals(DOM); // Retain DOM argument here
+    renderRecentAlarmLog(); // Called without DOM argument
 }
 
 // --- Light Calculator Display Functions ---

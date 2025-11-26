@@ -1,5 +1,7 @@
 // src/logger.js
 
+import { EventBus } from './event-bus.js'; // Import EventBus
+
 let logContainer = null;
 const logs = []; // Array to store log entries
 
@@ -32,6 +34,9 @@ export function log(message, isImportant = false) {
     
     logContainer.appendChild(entry);
     logContainer.scrollTop = logContainer.scrollHeight;
+
+    // Emit event that logs have been updated
+    EventBus.emit('log-updated');
 }
 
 export function getLogs() {

@@ -16,8 +16,11 @@ export function startAlarm(DOM) { // Added DOM parameter
     log("알림 시스템을 시작합니다.");
     speak("보스 알리미를 시작합니다.");
     log(`${BossDataManager.getBossSchedule().filter(item => item.type === 'boss').length}개의 보스가 목록에 있습니다.`, true);
-    alertTimerId = setInterval(checkAlarms, 1000); // Simplified setInterval call
-    dashboardTimerId = setInterval(() => EventBus.emit('refresh-dashboard', DOM), 1000); // Reintroduce dashboard interval
+    alertTimerId = setInterval(checkAlarms, 1000);
+    dashboardTimerId = setInterval(() => {
+        EventBus.emit('refresh-dashboard');
+    }, 1000);
+    checkAlarms(); // Run once immediately to populate next boss info
     renderAlarmStatusSummary(DOM); // Update status immediately
 }
 

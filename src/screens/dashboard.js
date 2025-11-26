@@ -15,9 +15,7 @@ export function initDashboardScreen(DOM) {
     }
 
     // Listen for dashboard refresh events
-    EventBus.on('refresh-dashboard', (dom) => {
-        if (dom || DOM) {
-            renderDashboard(dom || DOM);
-        }
+    EventBus.on('refresh-dashboard', () => { // Removed receivedArg
+        renderDashboard(DOM); // Explicitly use the DOM object from initDashboardScreen's scope
     });
 }
