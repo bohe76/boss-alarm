@@ -76,38 +76,44 @@ export function updateMuteButtonVisuals(DOM) {
 }
 
 // --- Dashboard Rendering Functions ---
-export function updateNextBossDisplay() { // Removed DOM argument
-    const oldNextBossDisplay = document.getElementById('nextBossDisplay'); // Directly query the DOM
+export function updateNextBossDisplay(DOM) {
+    const nextBossDisplay = DOM.nextBossDisplay;
+    if (!nextBossDisplay) return;
 
     const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
-    let newElementContent;
 
     if (nextBoss) {
         const remainingTimeString = formatTimeDifference(minTimeDiff);
         const formattedSpawnTime = formatSpawnTime(nextBoss.time);
-        newElementContent = `<span class="next-boss-label">다음 보스</span><br><span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span></span>`;
-    } else {
-        newElementContent = '다음 보스 없음';
-    }
 
-    if (oldNextBossDisplay) {
-        const parent = oldNextBossDisplay.parentNode;
-        if (parent) {
-            parent.removeChild(oldNextBossDisplay); // Remove the old element
+        // Check if the basic structure exists
+        const remainingTimeSpan = nextBossDisplay.querySelector('.remaining-time');
+        const spawnTimeSpan = nextBossDisplay.querySelector('.spawn-time');
+        const bossDetailsHighlight = nextBossDisplay.querySelector('.boss-details-highlight');
 
-            const newNextBossDisplay = document.createElement('div');
-            newNextBossDisplay.id = 'nextBossDisplay';
-            newNextBossDisplay.className = 'next-boss-highlight'; // Ensure class is retained
-            newNextBossDisplay.innerHTML = newElementContent;
-            parent.prepend(newNextBossDisplay); // Prepend to keep its position, assuming it's the first child after h2
+        if (remainingTimeSpan && spawnTimeSpan && bossDetailsHighlight) {
+            // Update only the text content of spans
+            remainingTimeSpan.textContent = `(${remainingTimeString})`;
+            spawnTimeSpan.textContent = formattedSpawnTime;
+            // Only update boss name part if it has actually changed
+            const currentText = bossDetailsHighlight.textContent;
+            // A simple check to see if the boss name part is likely different
+            // This might need refinement for edge cases, but covers primary use.
+            if (!currentText.includes(nextBoss.name) || !currentText.includes(formattedSpawnTime)) {
+                 bossDetailsHighlight.innerHTML = `<span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">(${remainingTimeString})</span>`;
+            }
+        } else {
+            // If the structure is not there (e.g., initial render or coming from "다음 보스 없음"),
+            // set the full innerHTML
+            nextBossDisplay.innerHTML = `<span class="next-boss-label">다음 보스</span><br><span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">(${remainingTimeString})</span></span>`;
         }
     } else {
-        // Fallback: If not found, perhaps create and append if possible, but that's a renderDashboard responsibility
+        nextBossDisplay.textContent = '다음 보스 없음';
     }
 }
 
-export function renderUpcomingBossList() { // Removed DOM argument
-    const upcomingBossList = document.getElementById('upcomingBossList'); // Directly query the DOM
+export function renderUpcomingBossList(DOM) {
+    const upcomingBossList = DOM.upcomingBossList;
     if (!upcomingBossList) return;
 
     const upcomingBosses = BossDataManager.getUpcomingBosses(11); // Get next 11 bosses to skip the first one
@@ -130,8 +136,8 @@ export function renderUpcomingBossList() { // Removed DOM argument
     upcomingBossList.innerHTML = html;
 }
 
-export function renderAlarmStatusSummary() { // Removed DOM argument
-    const alarmStatusText = document.getElementById('alarmStatusText'); // Directly query the DOM
+export function renderAlarmStatusSummary(DOM) {
+    const alarmStatusText = DOM.alarmStatusText;
     if (!alarmStatusText) return;
 
     const isAlarmRunning = getIsAlarmRunning();
@@ -145,8 +151,8 @@ export function renderAlarmStatusSummary() { // Removed DOM argument
     }
 }
 
-export function renderRecentAlarmLog() { // Removed DOM argument
-    const recentAlarmLog = document.getElementById('recentAlarmLog'); // Directly query the DOM
+export function renderRecentAlarmLog(DOM) {
+    const recentAlarmLog = DOM.recentAlarmLog;
     if (!recentAlarmLog) return;
 
     const logs = getLogs(); // Corrected call
@@ -165,11 +171,11 @@ export function renderRecentAlarmLog() { // Removed DOM argument
 }
 
 export function renderDashboard(DOM) { // DOM argument is still needed for updateMuteButtonVisuals
-    updateNextBossDisplay(); // Called without DOM argument
-    renderUpcomingBossList(); // Called without DOM argument
-    renderAlarmStatusSummary(); // Called without DOM argument
+    updateNextBossDisplay(DOM); // Called with DOM argument
+    renderUpcomingBossList(DOM); // Called with DOM argument
+    renderAlarmStatusSummary(DOM); // Called with DOM argument
     updateMuteButtonVisuals(DOM); // Retain DOM argument here
-    renderRecentAlarmLog(); // Called without DOM argument
+    renderRecentAlarmLog(DOM); // Called with DOM argument
 }
 
 // --- Light Calculator Display Functions ---

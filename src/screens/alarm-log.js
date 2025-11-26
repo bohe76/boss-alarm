@@ -1,5 +1,4 @@
 import { getLogs } from '../logger.js';
-import { EventBus } from '../event-bus.js'; // Import EventBus
 
 /**
  * Renders the full alarm log into the log container.
@@ -26,10 +25,4 @@ export function initAlarmLogScreen(DOM) {
     // Initial render when the screen is navigated to
     renderAlarmLog(DOM);
 
-    // Subscribe to log updates, but only re-render if the alarm log screen is currently active
-    EventBus.on('log-updated', () => {
-        if (DOM.alarmLogScreen && DOM.alarmLogScreen.classList.contains('active')) {
-            renderAlarmLog(DOM);
-        }
-    });
 }

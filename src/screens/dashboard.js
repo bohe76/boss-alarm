@@ -1,7 +1,6 @@
-import { renderDashboard, updateMuteButtonVisuals } from '../ui-renderer.js';
+import { updateMuteButtonVisuals } from '../ui-renderer.js';
 import { LocalStorageManager } from '../data-managers.js';
 import { log } from '../logger.js';
-import { EventBus } from '../event-bus.js';
 
 export function initDashboardScreen(DOM) {
     // Mute Toggle Button Listener
@@ -14,8 +13,4 @@ export function initDashboardScreen(DOM) {
         });
     }
 
-    // Listen for dashboard refresh events
-    EventBus.on('refresh-dashboard', () => { // Removed receivedArg
-        renderDashboard(DOM); // Explicitly use the DOM object from initDashboardScreen's scope
-    });
 }

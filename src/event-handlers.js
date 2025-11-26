@@ -18,8 +18,9 @@ import { validateFixedAlarmTime } from './utils.js'; // New import
 import { updateLightStopwatchDisplay, updateLightExpectedTimeDisplay, renderLightTempResults, renderLightSavedList, updateBossListTextarea } from './ui-renderer.js'; // New - Import updateBossListTextarea
 
 // Import specific screen init functions
-import { initDashboardScreen } from './screens/dashboard.js';
-import { initAlarmLogScreen } from './screens/alarm-log.js';
+// import { initDashboardScreen } from './screens/dashboard.js'; // Removed as EventBus listener moved to global
+// import { initAlarmLogScreen } from './screens/alarm-log.js'; // Removed as EventBus listener moved to global
+import { initGlobalEventListeners } from './global-event-listeners.js'; // New import
 
 let _remainingTimes = {}; // Global variable to store remaining times for boss scheduler
 
@@ -978,45 +979,22 @@ function initEventHandlers(DOM, globalTooltip) {
 
 
 export async function initApp() { // Made initApp async
-
     const DOM = initDomElements(); // Initialize DOM elements here
-
     const globalTooltip = document.getElementById('global-tooltip'); // Initialize globalTooltip here
 
     // Initialize all event handlers
     initEventHandlers(DOM, globalTooltip);
 
     // Initialize specific screen listeners early
-    initDashboardScreen(DOM);
-    initAlarmLogScreen(DOM);
-
-
-
-    // Initialize specific screen listeners early
-    initDashboardScreen(DOM);
-    initAlarmLogScreen(DOM);
-
-
-    // Initialize all event handlers <-- MOVED HERE TO BE FIRST
-
-
-
-
+    initGlobalEventListeners(DOM);
 
     // Set version in footer
-
     if (DOM.footerVersion) DOM.footerVersion.textContent = window.APP_VERSION;
 
-
-
     // Initialize logger with the log container
-
     initLogger(DOM.logContainer);
 
-
-
     // Load boss lists data
-
     await loadBossLists();
 
 
@@ -1245,60 +1223,18 @@ export async function initApp() { // Made initApp async
 
 
 
-        // Initial check
+    // Initial check
+    handleResize();
 
-
-
-        handleResize();
-
-
-
-    
-
-
-
-        // Set initial alarm button state
-
-
-
-        const isAlarmRunningInitially = getIsAlarmRunning();
-
-
-
-        if (isAlarmRunningInitially) {
-
-
-
-            DOM.alarmToggleButton.classList.add('alarm-on');
-
-
-
-            DOM.alarmToggleButton.classList.remove('alarm-off'); // Ensure off class is removed
-
-
-
-            startAlarm(DOM); // Start alarm if it was previously running
-
-
-
-        } else {
-
-
-
-            DOM.alarmToggleButton.classList.add('alarm-off');
-
-
-
-            DOM.alarmToggleButton.classList.remove('alarm-on'); // Ensure on class is removed
-
-
-
-        }
-
-
-
-        renderAlarmStatusSummary(DOM); // Update status immediately after setting initial state
-
-
-
+    // Set initial alarm button state
+    const isAlarmRunningInitially = getIsAlarmRunning();
+    if (isAlarmRunningInitially) {
+        DOM.alarmToggleButton.classList.add('alarm-on');
+        DOM.alarmToggleButton.classList.remove('alarm-off'); // Ensure off class is removed
+        startAlarm(DOM); // Start alarm if it was previously running
+    } else {
+        DOM.alarmToggleButton.classList.add('alarm-off');
+        DOM.alarmToggleButton.classList.remove('alarm-on'); // Ensure on class is removed
     }
+    renderAlarmStatusSummary(DOM); // Update status immediately after setting initial state
+}
