@@ -18,7 +18,7 @@
 - **핵심 내부 로직:**
     1.  `initDomElements()`를 호출하여 모든 DOM 요소 참조를 `DOM` 객체에 저장합니다.
     2.  `initLogger()`를 호출하여 로거 UI를 초기화합니다.
-    3.  `loadBossLists()`를 비동기로 호출하여 `data/boss_lists.json`에서 기본 보스 목록 데이터를 메모리로 로드합니다.
+    3.  `loadBossLists()`를 비동기로 호출하여 `data/boss_lists.json`에서 게임별 보스 목록 및 사용자 정의 보스 목록 데이터를 메모리로 로드합니다.
     4.  `LocalStorageManager.init()`과 `CustomListManager.init()`을 호출하여 `localStorage`의 모든 영구 데이터를 메모리로 로드합니다.
     5.  URL의 쿼리 파라미터를 파싱하여 `data`와 `fixedData`가 있는지 확인합니다.
     6.  `data`가 있으면 해당 값으로 보스 목록 `<textarea>`를 채우고, 없으면 `default-boss-list.js`와 현재 날짜를 조합하여 기본 목록을 생성하고 채웁니다.
@@ -85,7 +85,7 @@
 | **`boss-management.js`**| `initBossManagementScreen(DOM)`| '시간순 정렬' 버튼 클릭 시 `getSortedBossListText()`를, `textarea` 입력 시 `parseBossList()`를 호출합니다. |
 | **`calculator.js`** | `initCalculatorScreen(DOM)`, `handleCalculatorScreenTransition(DOM)` | 젠/광 계산기의 모든 버튼 이벤트 리스너를 등록하고, 화면 진입 시 UI를 초기화합니다. |
 | **`boss-scheduler.js`** | `initBossSchedulerScreen(DOM)` | '게임 선택', '시간 입력' 등 보스 스케줄러의 모든 이벤트 리스너를 등록합니다. 화면 전환이 필요할 때 `EventBus.emit('navigate', ...)`를 호출합니다. |
-| **`notifications.js`**| `initNotificationSettingsScreen(DOM)`| 이벤트 위임을 사용하여 고정 알림 목록의 '편집', '삭제', '토글' 버튼 이벤트를 처리하고 `LocalStorageManager`를 통해 데이터를 수정합니다. |
+
 | **`custom-list.js`** | `initCustomListScreen(DOM)`| 커스텀 목록 관리 모달의 모든 UI(열기, 닫기, 탭 전환, 저장, 수정, 삭제) 이벤트 리스너를 등록하고 `CustomListManager`를 통해 데이터를 관리합니다. |
 | **`share.js`** | `initShareScreen(DOM)`| 화면이 표시될 때 `getShortUrl`을 비동기 호출하고, 결과를 클립보드에 복사한 후 메시지를 업데이트합니다. |
 | **`help.js`** | `initHelpScreen(DOM)`| 화면이 표시될 때 `loadJsonContent`를 비동기 호출하여 `feature_guide.json`을 읽고 아코디언 UI를 생성합니다. |
@@ -95,6 +95,13 @@
 ---
 
 ## 4. 핵심 로직 및 서비스 모듈
+
+### 고정 알림 (Fixed Alarms) 로직 처리
+
+`src/screens/notifications.js` 파일은 존재하지 않으며, 고정 알림 관련 로직은 다음과 같이 분산되어 처리됩니다.
+
+*   **이벤트 핸들러 (`src/event-handlers.js`)**: `initEventHandlers()` 함수 내에서 고정 알림 추가 버튼(`addFixedAlarmButton`) 및 `DOM.fixedAlarmListDiv`에 대한 이벤트 위임(`click` 이벤트)을 통해 '편집', '삭제', '토글' 버튼 이벤트를 처리합니다. 이때 `LocalStorageManager`를 사용하여 고정 알림 데이터를 추가, 업데이트, 삭제합니다.
+*   **렌더링 (`src/ui-renderer.js`)**: `renderFixedAlarms(DOM)` 함수는 `LocalStorageManager`에서 고정 알림 목록을 가져와 UI에 렌더링하며, `updateFixedAlarmVisuals(DOM)` 함수는 각 알림의 활성화/비활성화 상태에 따른 시각적 피드백(faded 효과)을 제공합니다.
 
 ### `data-managers.js`
 

@@ -28,7 +28,7 @@
 | **`boss-management.js`**| `boss-parser.js` <br> `logger.js` <br> `ui-renderer.js` | `getSortedBossListText()`, `parseBossList()` <br> `log()` <br> `renderDashboard()` |
 | **`calculator.js`** | `calculator.js`(core) <br> `light-calculator.js` <br> `data-managers.js` <br> `ui-renderer.js` | `calculateBossAppearanceTime()` <br> `LightCalculator.*` <br> `BossDataManager.get/set...` <br> 다수의 UI 함수 (`showToast`, `populate...Dropdown` 등) |
 | **`boss-scheduler.js`**| `ui-renderer.js` <br> `calculator.js` <br> `logger.js` <br> `boss-parser.js` <br> `event-bus.js` | `renderBossInputs()`, `renderDashboard()` <br> `calculateBossAppearanceTime()` <br> `log()` <br> `parseBossList()` <br> `EventBus.emit('navigate', ...)` |
-| **`notifications.js`**| `data-managers.js` <br> `ui-renderer.js` <br> `utils.js` <br> `logger.js` | `LocalStorageManager.*FixedAlarm()` <br> `renderFixedAlarms()`, `updateFixedAlarmVisuals()` <br> `validateFixedAlarmTime()`, `normalizeTimeFormat()` <br> `log()` |
+
 | **`custom-list.js`** | `ui-renderer.js` <br> `custom-list-manager.js` <br> `event-bus.js` | `showCustomListTab()`, `render...ModalContent()`, `showToast()` <br> `CustomListManager.*` <br> `EventBus.emit('rerender-boss-scheduler')` |
 | **`share.js`** | `api-service.js` <br> `data-managers.js` <br> `logger.js` | `getShortUrl()` <br> `LocalStorageManager.exportFixedAlarms()` <br> `log()` |
 | **`help.js`** | `api-service.js` | `loadJsonContent()` |
