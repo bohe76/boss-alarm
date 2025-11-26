@@ -1,11 +1,11 @@
 # 데이터 흐름 (확장 명세서)
 
-이 문서는 애플리케이션의 모든 주요 화면 및 기능에 대한 상세한 데이터 흐름을 설명합니다. 각 화면은 `app.js`가 오케스트레이션하고 `EventBus`를 통해 모듈 간 통신하며, `ui-renderer.js`를 통해 UI를 업데이트합니다.
+이 문서는 애플리케이션의 모든 주요 화면 및 기능에 대한 상세한 데이터 흐름을 설명합니다. 각 화면은 `event-handlers.js`의 `initApp` 함수가 오케스트레이션하고 `EventBus`를 통해 모듈 간 통신하며, `ui-renderer.js`를 통해 UI를 업데이트합니다.
 
 ## 1. 애플리케이션 초기 로드 및 내비게이션 메커니즘
 
-1.  **`index.html` 로드:** 브라우저가 `app.js`를 로드하고 `initApp()` 함수를 실행합니다.
-2.  **`app.js: initApp()` 실행:**
+1.  **`index.html` 로드:** 브라우저가 `event-handlers.js`를 로드하고 `initApp()` 함수를 실행합니다.
+2.  **`event-handlers.js: initApp()` 실행:**
     *   `initDomElements()`를 호출하여 모든 DOM 요소 참조를 `DOM` 객체에 저장합니다.
     *   로거(`initLogger()`), 보스 목록(`loadBossLists()`), 로컬 스토리지(`LocalStorageManager.init()`), 커스텀 목록(`CustomListManager.init()`)과 같은 핵심 서비스를 초기화합니다.
     *   URL 파라미터(`?data=`) 또는 `default-boss-list.js`의 데이터를 파싱하여 `DOM.bossListInput.value`에 설정하고 `parseBossList()`를 통해 `BossDataManager`의 `bossSchedule` 상태를 초기화합니다.
@@ -35,7 +35,7 @@
 ## 2. 알람 시작 및 주기적 갱신 흐름 (이전과 동일)
 
 1.  **사용자 입력:** 사용자가 '알람 시작' 버튼(`alarmToggleButton`)을 클릭합니다.
-2.  **`app.js` 이벤트 처리:** `initEventHandlers`에 등록된 클릭 리스너가 `alarm-scheduler.js`의 `startAlarm(DOM)` 함수를 호출합니다.
+2.  **`event-handlers.js` 이벤트 처리:** `initEventHandlers`에 등록된 클릭 리스너가 `alarm-scheduler.js`의 `startAlarm(DOM)` 함수를 호출합니다.
 3.  **`alarm-scheduler.js: startAlarm()` 실행:**
     1.  `LocalStorageManager.setAlarmRunningState(true)`를 호출하여 상태를 영구 저장합니다.
     2.  1초 간격의 `setInterval`을 시작합니다. 이 타이머는 매초 다음 두 가지 작업을 수행합니다.
@@ -49,7 +49,7 @@
 
 ### 3.1. 대시보드 화면 (`src/screens/dashboard.js`)
 
-*   **초기화:** `app.js` 및 `event-handlers.js`에 의해 `initDashboardScreen(DOM)`이 호출됩니다.
+*   **초기화:** `event-handlers.js`의 `initApp` 함수에 의해 `initDashboardScreen(DOM)`이 호출됩니다.
 *   **이벤트 리스너:**
     *   **음소거 토글 버튼 (`DOM.muteToggleButton`):** 클릭 시 `LocalStorageManager`의 `muteState`를 토글하고, `ui-renderer.js`의 `updateMuteButtonVisuals()`로 UI를 갱신하며, `log()`를 기록합니다.
     *   **`EventBus` `refresh-dashboard` 이벤트:**

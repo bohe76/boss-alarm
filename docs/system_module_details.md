@@ -4,7 +4,7 @@
 
 ---
 
-## 1. `src/app.js` (최상위 오케스트레이터)
+## 1. `src/event-handlers.js` (최상위 오케스트레이터)
 
 ### 역할
 애플리케이션의 메인 진입점. 모든 모듈의 생명주기를 관리하고, 전역 이벤트를 처리하며, 화면 전환을 관장하는 최상위 오케스트레이터입니다.
@@ -23,9 +23,10 @@
     5.  URL의 쿼리 파라미터를 파싱하여 `data`와 `fixedData`가 있는지 확인합니다.
     6.  `data`가 있으면 해당 값으로 보스 목록 `<textarea>`를 채우고, 없으면 `default-boss-list.js`와 현재 날짜를 조합하여 기본 목록을 생성하고 채웁니다.
     7.  `parseBossList()`를 호출하여 `<textarea>`의 텍스트를 기반으로 `BossDataManager`의 `bossSchedule` 상태를 초기 설정합니다.
-    8.  `initEventHandlers(DOM, globalTooltip)`를 호출하여 모든 이벤트 리스너를 등록합니다.
-    9.  `showScreen(DOM, 'dashboard-screen')`을 호출하여 초기 화면을 대시보드로 설정합니다.
-    10. `ResizeObserver`를 생성하고 `body`에 연결하여, 뷰포트 너비가 768px 이하일 때 `body`에 `is-mobile-view` 클래스를 추가/제거하는 로직을 수행합니다.
+    8.  `initEventHandlers(DOM, globalTooltip)`를 호출하여 전역 UI 이벤트 핸들러를 등록합니다.
+    9.  `initGlobalEventListeners(DOM)`를 호출하여 전역 `EventBus` 리스너들을 등록합니다.
+    10. `showScreen(DOM, 'dashboard-screen')`을 호출하여 초기 화면을 대시보드로 설정합니다.
+    11. `ResizeObserver`를 생성하고 `body`에 연결하여, 뷰포트 너비가 768px 이하일 때 `body`에 `is-mobile-view` 클래스를 추가/제거하는 로직을 수행합니다.
 
 ### 주요 내부 함수
 
@@ -46,9 +47,8 @@
     - `DOM` (`Object`): DOM 요소 참조 객체.
     - `globalTooltip` (`HTMLElement`): 툴팁 DOM 요소.
 - **핵심 내부 로직:**
-    1.  '알람 시작/중지', '사이드바 토글', 내비게이션 링크 클릭, '모바일 "더보기" 메뉴' 등 전역 UI 요소에 `addEventListener`를 사용하여 이벤트 핸들러를 등록합니다.
-    2.  모든 `screens/*.js` 모듈의 `init...Screen()` 함수를 호출하여, 각 화면이 자신의 이벤트 리스너를 등록하고 `EventBus` 이벤트를 구독하도록 위임합니다.
-    3.  `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여, 어떤 모듈이든 `navigate` 이벤트를 발행하면 `showScreen` 함수가 호출되도록 중앙에서 제어합니다.
+    1.  '알람 시작/중지', '사이드바 토글', 내비게이션 링크 클릭, '모바일 "더보기" 메뉴' 등 전역 UI 요소에 `addEventListener`를 사용하여 이벤트 핸들러를 등록합니다. (`initEventHandlers`는 더 이상 `init...Screen()` 함수를 호출하지 않습니다. 이는 `initApp`에서 명시적으로 처리되거나 `showScreen`에서 지연 처리됩니다.)
+    2.  `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여, 어떤 모듈이든 `navigate` 이벤트를 발행하면 `showScreen` 함수가 호출되도록 중앙에서 제어합니다.
 
 ---
 
@@ -81,16 +81,34 @@
 
 | 모듈 파일 | 주요 `export` 함수 | 상세 역할 및 내부 로직 |
 |---|---|---|
-| **`dashboard.js`** | `initDashboardScreen(DOM)` | '음소거' 버튼의 `click` 이벤트 리스너를 등록합니다. `EventBus`의 `refresh-dashboard` 이벤트를 구독하고, 수신 시 `renderDashboard(DOM)`를 호출하여 대시보드 UI를 갱신합니다. |
+| **`dashboard.js`** | `initDashboardScreen(DOM)` | '음소거' 버튼의 `click` 이벤트 리스너를 등록합니다. (참고: `refresh-dashboard` 이벤트 구독은 이제 `src/global-event-listeners.js`에서 처리합니다.) |
 | **`boss-management.js`**| `initBossManagementScreen(DOM)`| '시간순 정렬' 버튼 클릭 시 `getSortedBossListText()`를, `textarea` 입력 시 `parseBossList()`를 호출합니다. |
-| **`calculator.js`** | `initCalculatorScreen(DOM)`, `handleCalculatorScreenTransition(DOM)` | 젠/광 계산기의 모든 버튼 이벤트 리스너를 등록하고, 화면 진입 시 UI를 초기화합니다. |
+| **`calculator.js`** | `initCalculatorScreen(DOM)`, `handleCalculatorScreenTransition(DOM)` | 젠/광 계산기의 모든 버튼 이벤트 리스너를 등록하고, 화면 진입 시 UI를 초기화합니다. (참고: `initCalculatorScreen`은 더 이상 EventBus 리스너를 등록하지 않습니다. 필요한 경우 전역 EventBus 리스너 또는 `showScreen`에서 처리됩니다.) |
 | **`boss-scheduler.js`** | `initBossSchedulerScreen(DOM)` | '게임 선택', '시간 입력' 등 보스 스케줄러의 모든 이벤트 리스너를 등록합니다. 화면 전환이 필요할 때 `EventBus.emit('navigate', ...)`를 호출합니다. |
 
 | **`custom-list.js`** | `initCustomListScreen(DOM)`| 커스텀 목록 관리 모달의 모든 UI(열기, 닫기, 탭 전환, 저장, 수정, 삭제) 이벤트 리스너를 등록하고 `CustomListManager`를 통해 데이터를 관리합니다. |
 | **`share.js`** | `initShareScreen(DOM)`| 화면이 표시될 때 `getShortUrl`을 비동기 호출하고, 결과를 클립보드에 복사한 후 메시지를 업데이트합니다. |
 | **`help.js`** | `initHelpScreen(DOM)`| 화면이 표시될 때 `loadJsonContent`를 비동기 호출하여 `feature_guide.json`을 읽고 아코디언 UI를 생성합니다. |
 | **`version-info.js`**| `initVersionInfoScreen(DOM)`| 화면이 표시될 때 `renderVersionInfo`를 호출합니다. |
-| **`alarm-log.js`** | `initAlarmLogScreen(DOM)`| 화면이 표시될 때 `getLogs`를 호출하여 로그 목록 UI를 생성합니다. |
+| **`alarm-log.js`** | `initAlarmLogScreen(DOM)`| 화면이 표시될 때 `getLogs`를 호출하여 로그 목록 UI를 생성합니다. (참고: `log-updated` 이벤트 구독은 이제 `src/global-event-listeners.js`에서 처리합니다.) |
+
+---
+
+## 3.1. `src/global-event-listeners.js` (전역 EventBus 리스너 관리)
+
+### 역할
+애플리케이션 시작 시점에 등록되어 앱 전체의 생명주기 동안 활성화되는 **전역 `EventBus` 리스너를 관리**합니다. `EventBus`의 리스너 등록 레이스 컨디션을 해결하고, 시스템 안정성을 강화합니다.
+
+### 주요 `export` 함수
+
+#### `initGlobalEventListeners(DOM)`
+- **설명:** 애플리케이션의 핵심 전역 `EventBus` 리스너들을 등록합니다. 이 함수는 `initApp()`에서 앱 초기화 단계에 한 번만 호출됩니다.
+- **인자:**
+    - `DOM` (`Object`): `initDomElements`에서 반환된 DOM 요소 참조 객체.
+- **반환값:** `void`
+- **핵심 내부 로직:**
+    1.  `EventBus.on('refresh-dashboard', () => renderDashboard(DOM))` 리스너를 등록하여, 대시보드 데이터 변경 시 `renderDashboard(DOM)`를 호출하여 UI를 갱신합니다.
+    2.  `EventBus.on('log-updated', () => { ... renderAlarmLog(DOM) ... })` 리스너를 등록하여, 새로운 로그가 발생했을 때 "알림 로그" 화면이 활성화 상태라면 `renderAlarmLog(DOM)`를 호출하여 로그 목록을 갱신합니다.
 
 ---
 
@@ -130,7 +148,7 @@
 - **역할:** DOM을 직접 조작하여 UI를 그리거나 업데이트하는 모든 함수를 포함합니다.
 - **주요 `export` 함수:**
     - `showToast(DOM, message)`: 화면에 토스트 메시지를 표시합니다.
-    - `populateBossSelectionDropdown(DOM)`: 젠 계산기의 보스 선택 드롭다운 메뉴를 동적으로 생성합니다.
+    - `populateBossSelectionDropdown(DOM)`: 젠 계산기의 보스 선택 드롭다운 메뉴를 동적으로 생성합니다. (참고: 이제 렌더링 함수들은 `DOM` 객체를 인자로 받아 캐시된 DOM 요소 참조를 사용하며, 필요한 경우에만 `document.getElementById`를 호출합니다. `updateNextBossDisplay`와 같은 함수는 효율적인 세분화된 DOM 업데이트 로직을 사용합니다.)
     - `updateMuteButtonVisuals(DOM)`: 음소거 상태에 따라 음소거 버튼의 아이콘을 변경합니다.
     - `updateNextBossDisplay(DOM)`: 대시보드의 '다음 보스' 정보를 갱신합니다.
     - `renderUpcomingBossList(DOM)`: 대시보드의 '다가오는 보스 목록'을 렌더링합니다.
