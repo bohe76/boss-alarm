@@ -7,6 +7,10 @@
     <title>보스 알리미</title>
     <link rel="stylesheet" href="src/style.css?v=2.7.4">
         <style>
+            body {
+                /* Initially set to loading for skeleton display */
+            }
+
             body.loading #dashboard-real-content {
                 display: none;
             }
@@ -16,23 +20,58 @@
             }
 
             #dashboard-skeleton {
-                display: none; /* Hidden by default */
-                padding: 15px;
+                display: none; /* Hidden by default when not loading */
+                padding-top: 20px; /* Main padding like main content */
+                padding-left: 20px; /* Main padding like main content */
+                padding-right: 20px; /* Main padding like main content */
             }
 
-            .skeleton-header {
-                width: 60%;
-                height: 20px;
+            /* Base styles for skeleton elements */
+            .skeleton-content > div {
                 background-color: #e0e0e0;
-                margin-bottom: 20px;
                 border-radius: 4px;
+                margin-bottom: 10px;
             }
 
+            /* 1. 상단 타이틀 영역 */
+            .skeleton-title {
+                height: 28px; /* Approximate height for titles */
+                margin-bottom: 15px;
+            }
+            .skeleton-title.h2-like {
+                width: 150px; /* Width for '대시보드' h2 */
+                margin-top: 5px;
+                margin-bottom: 25px;
+            }
+            .skeleton-title.h3-like {
+                width: 120px; /* Width for '다음 보스' h3 */
+                height: 20px; /* Slightly smaller for h3 */
+                margin-top: 20px; /* Space from previous section */
+            }
+
+            /* 2. 메인 하이라이트 영역 */
+            .skeleton-highlight-line {
+                width: 75%; /* Long width */
+                height: 30px; /* Taller height for highlight */
+                margin-top: 10px;
+                margin-bottom: 25px; /* Space from next section */
+            }
+
+            /* 3. 보스 리스트 영역 */
             .skeleton-card {
                 background-color: #f0f0f0;
                 border-radius: 8px;
                 padding: 15px;
+                margin-top: 20px;
                 margin-bottom: 15px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            /* Specific heights for skeleton cards to match real content sections */
+            #dashboard-skeleton .skeleton-card:nth-child(4) { /* Corresponds to alarmStatusSummary */
+                height: 220px;
             }
 
             .skeleton-line {
@@ -40,6 +79,10 @@
                 border-radius: 4px;
                 height: 15px;
                 margin-bottom: 10px;
+            }
+
+            .skeleton-line:last-child {
+                margin-bottom: 0; /* No margin for the last line in a card */
             }
 
             .skeleton-line.short {
@@ -54,7 +97,30 @@
                 width: 90%;
             }
 
-            /* Basic shimmer effect */
+
+            /* 4. 하단 상태 및 설정 영역 */
+            .skeleton-section-title {
+                height: 20px; /* h3-like */
+                width: 100px; /* '알림 상태', '소리 설정' h3 */
+                margin-top: 20px;
+                margin-bottom: 10px;
+            }
+            .skeleton-text-line.short {
+                width: 30%; /* For '짧은 텍스트 바' */
+                height: 15px;
+                margin-top: 20px;
+                margin-bottom: 25px;
+            }
+            .skeleton-circle {
+                width: 40px; /* Approximate icon size */
+                height: 40px;
+                border-radius: 50%;
+                background-color: #e0e0e0;
+                margin-top: 15px;
+                margin-bottom: 20px;
+            }
+
+            /* Shimmer effect for skeleton */
             #dashboard-skeleton {
                 position: relative;
                 overflow: hidden;
@@ -72,14 +138,7 @@
                         rgba(255, 255, 255, 0.2) 20%,
                         rgba(255, 255, 255, 0.5) 60%,
                         rgba(255, 255, 255, 0) 100%);
-                animation: shimmer 1.5s infinite;
                 content: '';
-            }
-
-            @keyframes shimmer {
-                100% {
-                    transform: translateX(100%);
-                }
             }
         </style>
     <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
@@ -211,22 +270,24 @@
             <!-- For now, we'll put a placeholder or move existing content here temporarily -->
             <section id="dashboard-screen" class="screen active">
                 <div id="dashboard-skeleton" class="skeleton-content">
-                    <div class="skeleton-header"></div>
-                    <div class="skeleton-line short"></div>
+                    <!-- 1. 상단 타이틀 영역 -->
+                    <div class="skeleton-title h2-like"></div> <!-- '대시보드' h2 -->
+                    <div class="skeleton-title h3-like next-boss-title"></div> <!-- '다음 보스' h3 -->
+
+                    <!-- 2. 메인 하이라이트 영역 (중요) -->
+                    <div class="skeleton-highlight-line"></div>
+
+                    <!-- 3. 보스 리스트 영역 -->
                     <div class="skeleton-card">
-                        <div class="skeleton-line medium"></div>
-                        <div class="skeleton-line long"></div>
-                        <div class="skeleton-line short"></div>
-                    </div>
-                    <div class="skeleton-card">
-                        <div class="skeleton-line medium"></div>
-                        <div class="skeleton-line long"></div>
-                        <div class="skeleton-line short"></div>
-                    </div>
-                    <div class="skeleton-card">
-                        <div class="skeleton-line medium"></div>
                         <div class="skeleton-line long"></div>
                     </div>
+
+                    <!-- 4. 하단 상태 및 설정 영역 -->
+                    <div class="skeleton-section-title status-title"></div> <!-- '알림 상태' h3 -->
+                    <div class="skeleton-text-line short"></div> <!-- 짧은 텍스트 바 -->
+
+                    <div class="skeleton-section-title settings-title"></div> <!-- '소리 설정' h3 -->
+                    <div class="skeleton-circle"></div> <!-- 아이콘 대체 원형 -->
                 </div>
                 <div id="dashboard-real-content" class="real-content hidden">
                     <h2>대시보드</h2>
@@ -253,6 +314,8 @@
                     </div>
                 </div>
             </section>
+
+
 
             <section id="boss-management-screen" class="screen">
                 <h2>보스 설정</h2>
