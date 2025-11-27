@@ -18,3 +18,10 @@ export function initShareScreen(DOM) {
         log(shortUrl ? "단축 URL이 클립보드에 복사되었습니다." : "URL 단축 실패. 원본 URL이 클립보드에 복사되었습니다.", true);
     })();
 }
+
+export function getScreen() {
+    return {
+        id: 'share-screen',
+        init: initShareScreen
+    };
+}

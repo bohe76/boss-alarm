@@ -137,3 +137,10 @@ export function initCustomListScreen(DOM) {
         });
     }
 }
+
+export function getScreen() {
+    return {
+        id: 'custom-list-screen', // This screen doesn't have a direct navigation link
+        init: initCustomListScreen
+    };
+}

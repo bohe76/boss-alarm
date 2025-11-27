@@ -155,3 +155,10 @@ export function initBossSchedulerScreen(DOM) {
         });
     }
 }
+
+export function getScreen() {
+    return {
+        id: 'boss-scheduler-screen',
+        init: initBossSchedulerScreen
+    };
+}

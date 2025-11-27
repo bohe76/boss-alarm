@@ -24,3 +24,10 @@ export function initBossManagementScreen(DOM) {
         renderDashboard(DOM); // Re-render dashboard to reflect changes
     });
 }
+
+export function getScreen() {
+    return {
+        id: 'boss-management-screen',
+        init: initBossManagementScreen
+    };
+}

@@ -26,3 +26,10 @@ export function initAlarmLogScreen(DOM) {
     renderAlarmLog(DOM);
 
 }
+
+export function getScreen() {
+    return {
+        id: 'alarm-log-screen',
+        init: initAlarmLogScreen
+    };
+}

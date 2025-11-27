@@ -63,3 +63,10 @@ export function initNotificationSettingsScreen(DOM) {
         });
     }
 }
+
+export function getScreen() {
+    return {
+        id: 'notification-settings-screen',
+        init: initNotificationSettingsScreen
+    };
+}

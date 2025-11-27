@@ -14,3 +14,10 @@ export function initDashboardScreen(DOM) {
     }
 
 }
+
+export function getScreen() {
+    return {
+        id: 'dashboard-screen',
+        init: initDashboardScreen
+    };
+}

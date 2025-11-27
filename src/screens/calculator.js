@@ -180,3 +180,11 @@ export function handleCalculatorScreenTransition(DOM) {
         renderLightTempResults(DOM, '', '', ''); // Clear temporary results
     }
 }
+
+export function getScreen() {
+    return {
+        id: 'calculator-screen',
+        init: initCalculatorScreen,
+        onTransition: handleCalculatorScreenTransition
+    };
+}
