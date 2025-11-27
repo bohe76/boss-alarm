@@ -87,15 +87,15 @@ export function updateNextBossDisplay(DOM) {
 
         if (remainingTimeSpan && spawnTimeSpan && bossDetailsHighlight) {
             // Update only the text content of spans
-            remainingTimeSpan.textContent = `(${remainingTimeString})`;
+            remainingTimeSpan.textContent = remainingTimeString;
             spawnTimeSpan.textContent = formattedSpawnTime;
             // Only update boss name part if it has actually changed
             const currentText = bossDetailsHighlight.textContent;
             if (!currentText.includes(nextBoss.name) || !currentText.includes(formattedSpawnTime)) {
-                 bossDetailsHighlight.innerHTML = `<span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">(${remainingTimeString})</span>`;
+                 bossDetailsHighlight.innerHTML = `<span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span>`;
             }
         } else {
-            DOM.nextBossDisplay.innerHTML = `<span class="next-boss-label">다음 보스</span><br><span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">(${remainingTimeString})</span></span>`;
+            DOM.nextBossDisplay.innerHTML = `<span class="next-boss-label">다음 보스</span><br><span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span></span>`;
         }
     } else {
         DOM.nextBossDisplay.textContent = '다음 보스 없음';
