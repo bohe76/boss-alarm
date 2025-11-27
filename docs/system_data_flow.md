@@ -4,27 +4,32 @@
 
 ## 1. 애플리케이션 초기 로드 및 내비게이션 메커니즘
 
-1.  **`index.html` 로드:** 브라우저가 `event-handlers.js`를 로드하고 `initApp()` 함수를 실행합니다.
+1.  **`index.html` 로드:** 브라우저가 `app.js`를 로드하고, `app.js`는 `event-handlers.js`의 `initApp()` 함수를 호출합니다.
 2.  **`event-handlers.js: initApp()` 실행:**
     *   `initDomElements()`를 호출하여 모든 DOM 요소 참조를 `DOM` 객체에 저장합니다.
     *   로거(`initLogger()`), 보스 목록(`loadBossLists()`), 로컬 스토리지(`LocalStorageManager.init()`), 커스텀 목록(`CustomListManager.init()`)과 같은 핵심 서비스를 초기화합니다.
     *   URL 파라미터(`?data=`) 또는 `default-boss-list.js`의 데이터를 파싱하여 `DOM.bossListInput.value`에 설정하고 `parseBossList()`를 통해 `BossDataManager`의 `bossSchedule` 상태를 초기화합니다.
-    *   `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId));`를 통해 전역 내비게이션 리스너를 등록합니다.
-    *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 전역 및 화면별 이벤트 핸들러를 설정합니다. 이 함수 내부에서 각 화면 모듈의 `init...Screen()` 함수들이 호출됩니다.
+    *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 전역 UI 이벤트 핸들러와 **핵심 화면 모듈(`dashboard`, `calculator`, `notifications` 등)의 이벤트 리스너를 즉시 등록**합니다.
+    *   `initGlobalEventListeners(DOM)`를 호출하여 전역 `EventBus` 리스너를 등록합니다.
+    *   `EventBus.on('navigate', ...)` 리스너를 등록하여 화면 전환 요청을 중앙에서 처리하도록 합니다.
     *   `showScreen(DOM, 'dashboard-screen')`을 호출하여 초기 화면을 대시보드로 설정합니다.
     *   `EventBus.emit('refresh-dashboard', DOM)`을 발행하여 대시보드 UI를 갱신합니다.
 3.  **`event-handlers.js: initEventHandlers()` 실행:**
-    *   `DOM.alarmToggleButton` 클릭 리스너를 설정하여 알람 시작/중지 및 `LocalStorageManager` 상태를 업데이트하고 `log()`를 기록합니다.
-    *   `DOM.muteToggleButton` 클릭 리스너를 설정하여 음소거 상태를 토글하고 `LocalStorageManager` 상태 및 `ui-renderer.js`의 `updateMuteButtonVisuals()`를 호출합니다.
-    *   사이드바 및 하단 내비게이션 링크에 대한 클릭 리스너를 설정합니다. 링크 클릭 시 해당 `data-screen` 속성 값을 `showScreen(DOM, screenId)`로 전달하여 화면 전환을 요청합니다.
-    *   '더보기' 메뉴 (모바일 뷰) 관련 이벤트 핸들러를 설정하여 메뉴 열기/닫기 및 접근성을 관리합니다.
-    *   각 화면 모듈의 `init...Screen()` 함수들(예: `initBossManagementScreen(DOM)`)을 호출하여 해당 화면의 특정 이벤트 리스너를 등록합니다.
+    *   `DOM.alarmToggleButton`, `DOM.muteToggleButton` 등 전역 UI 요소에 대한 `click` 리스너를 설정합니다.
+    *   사이드바 및 하단 내비게이션 링크에 대한 클릭 리스너를 설정합니다. 링크 클릭 시 해당 `data-screen` 속성 값을 `showScreen(DOM, screenId)`으로 전달하여 화면 전환을 요청합니다.
+    *   **주요 화면 모듈의 초기화 함수를 호출**하여 각 화면의 이벤트 리스너를 **즉시(eagerly) 등록**합니다.
+        *   `initDashboardScreen(DOM)`
+        *   `initBossManagementScreen(DOM)`
+        *   `initCalculatorScreen(DOM)`
+        *   `initBossSchedulerScreen(DOM)`
+        *   `initCustomListScreen(DOM)`
+        *   `initNotificationSettingsScreen(DOM)`
 4.  **`event-handlers.js: showScreen(DOM, screenId)` 실행:**
     *   모든 화면 요소에서 `active` 클래스를 제거하여 화면을 숨깁니다.
     *   지정된 `screenId`에 해당하는 요소에 `active` 클래스를 추가하여 화면을 표시합니다.
     *   모든 내비게이션 링크의 `active` 클래스를 동기화하여 현재 활성화된 화면을 강조합니다.
-    *   **특정 `screenId`에 대해 추가적인 초기화/렌더링 로직을 실행합니다:**
-        *   `dashboard-screen`: `renderDashboard(DOM)`를 직접 호출하여 대시보드를 렌더링합니다.
+    *   **특정 화면으로 전환될 때만 필요한 로직을 지연 실행(lazily)합니다:**
+        *   `dashboard-screen`: `EventBus.emit('refresh-dashboard', DOM)`를 통해 대시보드 렌더링을 요청합니다.
         *   `share-screen`: `initShareScreen(DOM)`을 호출하여 공유 링크 생성 로직을 실행합니다.
         *   `version-info-screen`: `initVersionInfoScreen(DOM)`을 호출하여 버전 정보를 렌더링합니다.
         *   `help-screen`: `initHelpScreen(DOM)`을 호출하여 도움말 콘텐츠를 로드하고 렌더링합니다.
@@ -32,18 +37,17 @@
         *   `alarm-log-screen`: `initAlarmLogScreen(DOM)`을 호출하여 알림 로그를 렌더링합니다.
         *   `boss-scheduler-screen`: `EventBus.emit('show-boss-scheduler-screen')` 이벤트를 발행하여 보스 스케줄러 화면의 렌더링을 트리거합니다.
 
-## 2. 알람 시작 및 주기적 갱신 흐름 (이전과 동일)
+## 2. 알람 시작 및 주기적 갱신 흐름
 
 1.  **사용자 입력:** 사용자가 '알람 시작' 버튼(`alarmToggleButton`)을 클릭합니다.
 2.  **`event-handlers.js` 이벤트 처리:** `initEventHandlers`에 등록된 클릭 리스너가 `alarm-scheduler.js`의 `startAlarm(DOM)` 함수를 호출합니다.
 3.  **`alarm-scheduler.js: startAlarm()` 실행:**
     1.  `LocalStorageManager.setAlarmRunningState(true)`를 호출하여 상태를 영구 저장합니다.
     2.  1초 간격의 `setInterval`을 시작합니다. 이 타이머는 매초 다음 두 가지 작업을 수행합니다.
-        -   **`checkAlarms()` 호출:** 현재 시간과 `BossDataManager`의 `bossSchedule`을 비교하여 알람(5분, 1분, 정각)을 트리거할지 결정합니다. 조건 충족 시 `log()`와 `speak()`를 호출합니다. 또한, 가장 가까운 다음 보스 정보를 계산하여 `BossDataManager.setNextBossInfo()`를 통해 상태를 업데이트합니다.
+        -   **`checkAlarms()` 호출:** 현재 시간과 `BossDataManager` 및 `LocalStorageManager`의 모든 알람 목록을 비교하여 알람(5분, 1분, 정각)을 트리거할지 결정합니다. 조건 충족 시 `log()`와 `speak()`를 호출합니다. 또한, 가장 가까운 다음 보스 정보를 계산하여 `BossDataManager.setNextBossInfo()`를 통해 상태를 업데이트합니다.
         -   `EventBus.emit('refresh-dashboard', DOM)` 발행:** 대시보드 UI 갱신을 요청합니다.
-4.  **`dashboard.js` 이벤트 수신:**
-    *   `dashboard.js`가 `refresh-dashboard` 이벤트를 수신합니다.
-    *   `renderDashboard(DOM)`를 호출합니다. 이 함수는 `BossDataManager`에서 방금 `checkAlarms()`가 업데이트한 최신 '다음 보스' 정보를 가져와 화면에 표시합니다.
+4.  **`global-event-listeners.js` 이벤트 수신:**
+    *   `refresh-dashboard` 이벤트를 수신하여 `ui-renderer.js`의 `renderDashboard(DOM)`를 호출합니다. 이 함수는 `BossDataManager`에서 방금 `checkAlarms()`가 업데이트한 최신 '다음 보스' 정보를 가져와 화면에 표시합니다.
 
 ## 3. 화면별 데이터 흐름
 
@@ -182,25 +186,19 @@
 *   **데이터 소스:** `BossDataManager`, `DOM.bossListInput.value`, `calculator.js`, `LightCalculator` 모듈 (내부 상태 및 로컬 스토리지 연동), `LocalStorageManager`.
 *   **데이터 흐름 요약:** "젠 계산기"는 사용자 입력 및 `BossDataManager`를 통해 보스 시간을 업데이트하고, "광 계산기"는 `LightCalculator` 모듈을 통해 스톱워치 기반의 시간 측정을 수행하고 로컬 스토리지에 기록합니다. 두 기능 모두 `ui-renderer.js`를 통해 UI를 갱신하고 `showToast` 등으로 사용자에게 피드백을 제공합니다.
 
-### 3.10. 알림 설정 화면 (`src/screens/notifications.js`) (분석된 파일 없음, `event-handlers.js` 내에서 직접 처리)
+### 3.10. 알림 설정 화면 (`src/screens/notifications.js`)
 
-*   `src/screens/notifications.js` 파일은 실제 분석 과정에서 존재하지 않았습니다. 알림 설정(고정 알림 관리)과 관련된 로직은 `event-handlers.js`와 `ui-renderer.js`에 분산되어 처리되고 있었습니다. 따라서 이 문서에서는 `event-handlers.js` 내의 알림 설정 관련 흐름을 설명했습니다.
-
-*   `event-handlers.js` 내 이벤트 리스너:
-    *   고정 알림 추가 버튼 (`addFixedAlarmButton`):
+*   **초기화:** `event-handlers.js`의 `initEventHandlers`에 의해 `initNotificationSettingsScreen(DOM)`이 호출되어 이벤트 리스너가 설정됩니다. 화면이 표시될 때 `ui-renderer.js`의 `renderFixedAlarms(DOM)`가 호출되어 최신 목록을 그립니다.
+*   **이벤트 리스너 (`DOM.fixedAlarmListDiv`에 위임):**
+    *   **알림 추가:** `renderFixedAlarms`에 의해 동적으로 생성된 '추가' 버튼에 연결된 이벤트 리스너가 동작합니다.
         1.  사용자가 입력한 시간과 이름(`newFixedAlarmTimeInput`, `newFixedAlarmNameInput`)을 가져옵니다.
         2.  시간 형식을 정규화(`normalizeTimeFormat()`)하고 유효성을 검사(`validateFixedAlarmTime()`)합니다.
         3.  유효한 입력이면 새 고정 알림 객체를 생성하고 `LocalStorageManager.addFixedAlarm()`을 호출하여 로컬 스토리지에 저장합니다.
         4.  `ui-renderer.js`의 `showToast()`로 성공 메시지를 표시하고 `renderFixedAlarms()`를 호출하여 목록을 다시 렌더링합니다.
         5.  입력 필드를 초기화하고 `log()`를 기록합니다.
     *   `DOM.fixedAlarmListDiv` (이벤트 위임):
-        *   **개별 토글 변경 (`.switch input[type="checkbox"]`):** `alarmId`를 가져와 `LocalStorageManager.updateFixedAlarm()`으로 `enabled` 상태를 토글하고 `updateFixedAlarmVisuals()`로 UI를 갱신합니다.
-        *   **편집 버튼 (`.edit-fixed-alarm-button`):** `alarmId`를 가져와 `LocalStorageManager.getFixedAlarms()`에서 해당 알림을 찾습니다. `prompt()`를 통해 새 시간과 이름을 입력받고 유효성을 검사한 후 `LocalStorageManager.updateFixedAlarm()`으로 업데이트, `renderFixedAlarms()`로 UI 갱신, `log()` 기록.
-        *   **삭제 버튼 (`.delete-fixed-alarm-button`):** `alarmId`를 가져와 `confirm()`으로 확인 후 `LocalStorageManager.deleteFixedAlarm()`으로 삭제, `renderFixedAlarms()`로 UI 갱신, `log()` 기록.
-*   **렌더링 (`ui-renderer.js`):** `renderFixedAlarms()`는 `LocalStorageManager.getFixedAlarms()`를 통해 모든 고정 알림을 가져와 HTML 목록으로 표시하며, `updateFixedAlarmVisuals()`는 각 알림의 `enabled` 상태에 따라 시각적 피드백(faded 효과)을 제공합니다.
+        *   **개별 토글 변경 (`.switch input[type="checkbox"]`):** `data-id`에서 `alarmId`를 가져와 `LocalStorageManager.updateFixedAlarm()`으로 `enabled` 상태를 토글하고, `ui-renderer.js`의 `updateFixedAlarmVisuals()`로 UI를 갱신합니다.
+        *   **편집 버튼 (`.edit-fixed-alarm-button`):** `data-id`에서 `alarmId`를 가져와 `LocalStorageManager.getFixedAlarms()`에서 해당 알림을 찾습니다. `prompt()`를 통해 새 시간과 이름을 입력받고 유효성을 검사한 후 `LocalStorageManager.updateFixedAlarm()`으로 업데이트하고, `renderFixedAlarms()`로 UI 갱신 후 `log()`를 기록합니다.
+        *   **삭제 버튼 (`.delete-fixed-alarm-button`):** `data-id`에서 `alarmId`를 가져와 `confirm()`으로 확인 후 `LocalStorageManager.deleteFixedAlarm()`으로 삭제하고, `renderFixedAlarms()`로 UI 갱신 후 `log()`를 기록합니다.
 *   **데이터 소스:** `LocalStorageManager` (고정 알림 저장 및 관리).
 *   **데이터 흐름 요약:** 고정 알림은 `LocalStorageManager`를 통해 추가, 편집, 삭제, 활성화/비활성화 상태 토글이 가능합니다. 모든 변경사항은 로컬 스토리지에 즉시 반영되며, `ui-renderer.js`의 헬퍼 함수들을 통해 UI가 갱신됩니다.
-
-### 3.11. (`src/screens/index.html`에 존재하지 않는) `notifications.js` 파일에 대한 주석
-
-*   `src/screens/notifications.js` 파일은 실제 분석 과정에서 존재하지 않았습니다. 알림 설정(고정 알림 관리)과 관련된 로직은 `event-handlers.js`와 `ui-renderer.js`에 분산되어 처리되고 있었습니다. 따라서 이 문서에서는 `event-handlers.js` 내의 알림 설정 관련 흐름을 설명했습니다.
