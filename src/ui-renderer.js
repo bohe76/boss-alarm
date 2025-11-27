@@ -1,19 +1,15 @@
 import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Import managers
 import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRunning
 import { log, getLogs } from './logger.js'; // Import log and getLogs
-import { loadJsonContent } from './api-service.js'; // Import loadJsonContent
+// import { loadJsonContent } from './api-service.js'; // loadJsonContent is no longer needed here
 import { CustomListManager } from './custom-list-manager.js';
 import { getGameNames, getBossNamesForGame } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
 
 import { validateFixedAlarmTime, formatTimeDifference, formatSpawnTime, normalizeTimeFormat } from './utils.js'; // New import
 
 
-
-
-
 const MUTE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`;
 const UNMUTE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>`;
-
 
 
 // Function to display toast messages
@@ -77,8 +73,7 @@ export function updateMuteButtonVisuals(DOM) {
 
 // --- Dashboard Rendering Functions ---
 export function updateNextBossDisplay(DOM) {
-    const nextBossDisplay = DOM.nextBossDisplay;
-    if (!nextBossDisplay) return;
+    if (!DOM.nextBossDisplay) return;
 
     const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
 
@@ -86,10 +81,9 @@ export function updateNextBossDisplay(DOM) {
         const remainingTimeString = formatTimeDifference(minTimeDiff);
         const formattedSpawnTime = formatSpawnTime(nextBoss.time);
 
-        // Check if the basic structure exists
-        const remainingTimeSpan = nextBossDisplay.querySelector('.remaining-time');
-        const spawnTimeSpan = nextBossDisplay.querySelector('.spawn-time');
-        const bossDetailsHighlight = nextBossDisplay.querySelector('.boss-details-highlight');
+        const remainingTimeSpan = DOM.nextBossDisplay.querySelector('.remaining-time');
+        const spawnTimeSpan = DOM.nextBossDisplay.querySelector('.spawn-time');
+        const bossDetailsHighlight = DOM.nextBossDisplay.querySelector('.boss-details-highlight');
 
         if (remainingTimeSpan && spawnTimeSpan && bossDetailsHighlight) {
             // Update only the text content of spans
@@ -97,29 +91,24 @@ export function updateNextBossDisplay(DOM) {
             spawnTimeSpan.textContent = formattedSpawnTime;
             // Only update boss name part if it has actually changed
             const currentText = bossDetailsHighlight.textContent;
-            // A simple check to see if the boss name part is likely different
-            // This might need refinement for edge cases, but covers primary use.
             if (!currentText.includes(nextBoss.name) || !currentText.includes(formattedSpawnTime)) {
                  bossDetailsHighlight.innerHTML = `<span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">(${remainingTimeString})</span>`;
             }
         } else {
-            // If the structure is not there (e.g., initial render or coming from "다음 보스 없음"),
-            // set the full innerHTML
-            nextBossDisplay.innerHTML = `<span class="next-boss-label">다음 보스</span><br><span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">(${remainingTimeString})</span></span>`;
+            DOM.nextBossDisplay.innerHTML = `<span class="next-boss-label">다음 보스</span><br><span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">(${remainingTimeString})</span></span>`;
         }
     } else {
-        nextBossDisplay.textContent = '다음 보스 없음';
+        DOM.nextBossDisplay.textContent = '다음 보스 없음';
     }
 }
 
 export function renderUpcomingBossList(DOM) {
-    const upcomingBossList = DOM.upcomingBossList;
-    if (!upcomingBossList) return;
+    if (!DOM.upcomingBossList) return;
 
-    const upcomingBosses = BossDataManager.getUpcomingBosses(11); // Get next 11 bosses to skip the first one
+    const upcomingBosses = BossDataManager.getUpcomingBosses(11);
     let html = '<ul>';
     if (upcomingBosses.length > 0) {
-        upcomingBosses.slice(1).forEach(boss => { // Skip the first boss
+        upcomingBosses.slice(1).forEach(boss => {
             const timeDiff = boss.timestamp - Date.now();
             const showSeconds = timeDiff < 5 * 60 * 1000;
             const remaining = formatTimeDifference(timeDiff, showSeconds);
@@ -133,33 +122,30 @@ export function renderUpcomingBossList(DOM) {
         html += '<li>예정된 보스가 없습니다.</li>';
     }
     html += '</ul>';
-    upcomingBossList.innerHTML = html;
+    DOM.upcomingBossList.innerHTML = html;
 }
 
 export function renderAlarmStatusSummary(DOM) {
-    const alarmStatusText = DOM.alarmStatusText;
-    if (!alarmStatusText) return;
+    if (!DOM.alarmStatusText) return;
 
     const isAlarmRunning = getIsAlarmRunning();
     let statusText = isAlarmRunning ? '알림 실행 중' : '알림 중지됨';
 
-    alarmStatusText.textContent = statusText;
+    DOM.alarmStatusText.textContent = statusText;
     if (isAlarmRunning) {
-        alarmStatusText.classList.add('alarm-status-running');
+        DOM.alarmStatusText.classList.add('alarm-status-running');
     } else {
-        alarmStatusText.classList.remove('alarm-status-running');
+        DOM.alarmStatusText.classList.remove('alarm-status-running');
     }
 }
 
 export function renderRecentAlarmLog(DOM) {
-    const recentAlarmLog = DOM.recentAlarmLog;
-    if (!recentAlarmLog) return;
+    if (!DOM.recentAlarmLog) return;
 
-    const logs = getLogs(); // Corrected call
+    const logs = getLogs();
     let html = '<ul>';
     if (logs.length > 0) {
-        // Display last 3 logs
-        const recentLogs = logs.slice(-1).reverse(); // Get last 1 and reverse to show newest first
+        const recentLogs = logs.slice(-1).reverse();
         recentLogs.forEach(logEntry => {
             html += `<li class="log-entry">${logEntry}</li>`;
         });
@@ -167,15 +153,43 @@ export function renderRecentAlarmLog(DOM) {
         html += '<li>최근 알림 기록 없음</li>';
     }
     html += '</ul>';
-    recentAlarmLog.innerHTML = html;
+    DOM.recentAlarmLog.innerHTML = html;
 }
 
-export function renderDashboard(DOM) { // DOM argument is still needed for updateMuteButtonVisuals
-    updateNextBossDisplay(DOM); // Called with DOM argument
-    renderUpcomingBossList(DOM); // Called with DOM argument
-    renderAlarmStatusSummary(DOM); // Called with DOM argument
-    updateMuteButtonVisuals(DOM); // Retain DOM argument here
-    renderRecentAlarmLog(DOM); // Called with DOM argument
+export function renderDashboard(DOM) {
+    updateNextBossDisplay(DOM);
+    renderUpcomingBossList(DOM);
+    renderAlarmStatusSummary(DOM);
+    updateMuteButtonVisuals(DOM);
+}
+
+// --- Help Screen Rendering Functions ---
+export function renderHelpScreen(DOM, helpData) {
+    if (helpData && DOM.featureGuideContent) {
+        let html = '';
+        helpData.forEach((section, index) => {
+            const isOpen = index === 0 ? 'open' : '';
+            html += `
+                <details class="help-section" ${isOpen}>
+                    <summary class="help-summary">${section.title}</summary>
+                    <div class="help-content">
+                        ${section.content.map(p => `<p>${p}</p>`).join('')}
+                        ${section.sub_sections ? section.sub_sections.map(sub => `
+                            <details class="help-sub-section">
+                                <summary class="help-sub-summary">${sub.title}</summary>
+                                <div class="help-sub-content">
+                                    ${sub.content.map(p => `<p>${p}</p>`).join('')}
+                                </div>
+                            </details>
+                        `).join('') : ''}
+                    </div>
+                </details>
+            `;
+        });
+        DOM.featureGuideContent.innerHTML = html;
+    } else if (DOM.featureGuideContent) {
+        DOM.featureGuideContent.innerHTML = `<p>도움말 콘텐츠를 불러오는 데 실패했습니다.</p>`;
+    }
 }
 
 // --- Light Calculator Display Functions ---
@@ -192,25 +206,25 @@ export function updateLightExpectedTimeDisplay(DOM, time, isOverTime) {
         const labelGroup = DOM.lightExpectedTimeDisplay.previousElementSibling;
 
         if (isOverTime) {
-            DOM.lightExpectedTimeDisplay.classList.add('over-time'); // Blue time
-            if (labelSpan) labelSpan.textContent = '오버 시간'; // Change label text
-            if (labelGroup) labelGroup.classList.add('over-time-label'); // Add class for blue label
+            DOM.lightExpectedTimeDisplay.classList.add('over-time');
+            if (labelSpan) labelSpan.textContent = '오버 시간';
+            if (labelGroup) labelGroup.classList.add('over-time-label');
         } else {
-            DOM.lightExpectedTimeDisplay.classList.remove('over-time'); // Red time
-            if (labelSpan) labelSpan.textContent = '예상 시간'; // Change label text back
-            if (labelGroup) labelGroup.classList.remove('over-time-label'); // Remove class for red label
+            DOM.lightExpectedTimeDisplay.classList.remove('over-time');
+            if (labelSpan) labelSpan.textContent = '예상 시간';
+            if (labelGroup) labelGroup.classList.remove('over-time-label');
         }
     }
 }
 
 export function renderLightTempResults(DOM, gwangTime, afterGwangTime, totalTime) {
     if (DOM.lightTempResults) {
-        if (!gwangTime && !afterGwangTime && !totalTime) { // If no results, hide the container
+        if (!gwangTime && !afterGwangTime && !totalTime) {
             DOM.lightTempResults.innerHTML = '';
             DOM.lightTempResults.style.display = 'none';
             return;
         }
-        DOM.lightTempResults.style.display = 'block'; // Show the container
+        DOM.lightTempResults.style.display = 'block';
         DOM.lightTempResults.innerHTML = `
             <div class="light-temp-results-card">
                 <h4>최근 계산 결과</h4>
@@ -430,13 +444,14 @@ export function updateFixedAlarmVisuals(DOM) {
 }
 
 
-export async function renderVersionInfo(DOM) {
-    let rawVersionData = await loadJsonContent(`docs/version_history.json?v=${window.APP_VERSION}`);
+export function renderVersionInfo(DOM, versionData) {
+    console.log('ui-renderer.js: renderVersionInfo received versionData:', versionData); // Debug log
+    console.log('ui-renderer.js: Array.isArray(versionData):', Array.isArray(versionData)); // Debug log
     let versionEntries = [];
 
-    // Check if rawVersionData is an array and process accordingly
-    if (Array.isArray(rawVersionData)) {
-        rawVersionData.forEach(item => {
+    // Check if versionData is an array and process accordingly
+    if (Array.isArray(versionData)) {
+        versionData.forEach(item => {
             if (item && item.fullVersion) { // This is a direct version entry like v2.7.0
                 versionEntries.push(item);
             } else if (item && item.value && Array.isArray(item.value)) { // This is the object containing 'value' array

@@ -1,9 +1,14 @@
-import { updateMuteButtonVisuals, renderDashboard } from '../ui-renderer.js';
+import { updateMuteButtonVisuals, renderRecentAlarmLog } from '../ui-renderer.js';
 import { LocalStorageManager } from '../data-managers.js';
 import { log } from '../logger.js';
+import { EventBus } from '../event-bus.js'; // Import EventBus
 
 export function initDashboardScreen(DOM) {
-    renderDashboard(DOM); // Call renderDashboard to initialize all dashboard components
+    // Initial render for recent alarm log
+    renderRecentAlarmLog(DOM);
+
+    // Listen for log updates
+    EventBus.on('log-updated', () => renderRecentAlarmLog(DOM));
 
     // Mute Toggle Button Listener
     if (DOM.muteToggleButton) {

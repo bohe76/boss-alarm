@@ -2,7 +2,7 @@
 
 import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning } from './alarm-scheduler.js';
-import { renderFixedAlarms, renderAlarmStatusSummary } from './ui-renderer.js';
+import { renderFixedAlarms, renderAlarmStatusSummary, renderDashboard } from './ui-renderer.js';
 import { log } from './logger.js';
 import { LocalStorageManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
@@ -23,6 +23,8 @@ import { getScreen as getHelpScreen } from './screens/help.js';
 import { getScreen as getNotificationSettingsScreen } from './screens/notifications.js';
 import { getScreen as getShareScreen } from './screens/share.js';
 import { getScreen as getVersionInfoScreen } from './screens/version-info.js';
+
+let dashboardRefreshInterval = null; // Declare the interval variable
 
 
 function registerAllRoutes() {
@@ -124,6 +126,17 @@ function showScreen(DOM, screenId) {
             screen.onTransition(DOM);
         }
     }
+
+    // Manage dashboard refresh interval
+    if (dashboardRefreshInterval) {
+        clearInterval(dashboardRefreshInterval);
+        dashboardRefreshInterval = null;
+    }
+
+    if (screenId === 'dashboard-screen') {
+        dashboardRefreshInterval = setInterval(() => renderDashboard(DOM), 1000);
+    }
+    // End manage dashboard refresh interval
 
     if (screenId === 'boss-scheduler-screen') EventBus.emit('show-boss-scheduler-screen');
 }
