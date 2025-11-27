@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateBossAppearanceTime } from './calculator.js';
+import { calculateBossAppearanceTime } from '../src/calculator.js';
 
 describe('calculateBossAppearanceTime', () => {
 
@@ -16,7 +16,12 @@ describe('calculateBossAppearanceTime', () => {
         expect(resultString).not.toBeNull();
         const [hours, minutes, seconds] = resultString.split(':').map(Number);
         const resultDate = new Date();
-        resultDate.setHours(hours, minutes, seconds);
+        resultDate.setHours(hours, minutes, seconds, 0); // Set milliseconds to 0 for consistency
+
+        // If the resulting time is earlier than the start time, it must be for the next day.
+        if (resultDate.getTime() < now.getTime()) {
+            resultDate.setDate(resultDate.getDate() + 1);
+        }
 
         // Allow for a small difference (e.g., 2 seconds) to account for test execution time
         const timeDifference = Math.abs(resultDate.getTime() - expectedDate.getTime());

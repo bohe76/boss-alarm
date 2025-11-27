@@ -200,8 +200,7 @@ export function getSortedBossListText(rawText) {
                 tempBosses.push({ time: parts[0], name: parts.slice(1).join(' ') });
             });
 
-            // Sort by time string within the block
-            tempBosses.sort((a, b) => a.time.localeCompare(b.time));
+
 
             // Assign full dates with dayOffset logic
             let dayOffset = 0;
