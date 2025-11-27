@@ -6,6 +6,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>보스 알리미</title>
     <link rel="stylesheet" href="src/style.css?v=2.7.4">
+        <style>
+            body.loading #dashboard-real-content {
+                display: none;
+            }
+
+            body.loading #dashboard-skeleton {
+                display: block;
+            }
+
+            #dashboard-skeleton {
+                display: none; /* Hidden by default */
+                padding: 15px;
+            }
+
+            .skeleton-header {
+                width: 60%;
+                height: 20px;
+                background-color: #e0e0e0;
+                margin-bottom: 20px;
+                border-radius: 4px;
+            }
+
+            .skeleton-card {
+                background-color: #f0f0f0;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .skeleton-line {
+                background-color: #e0e0e0;
+                border-radius: 4px;
+                height: 15px;
+                margin-bottom: 10px;
+            }
+
+            .skeleton-line.short {
+                width: 30%;
+            }
+
+            .skeleton-line.medium {
+                width: 60%;
+            }
+
+            .skeleton-line.long {
+                width: 90%;
+            }
+
+            /* Basic shimmer effect */
+            #dashboard-skeleton {
+                position: relative;
+                overflow: hidden;
+            }
+
+            #dashboard-skeleton::after {
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                transform: translateX(-100%);
+                background-image: linear-gradient(90deg,
+                        rgba(255, 255, 255, 0) 0,
+                        rgba(255, 255, 255, 0.2) 20%,
+                        rgba(255, 255, 255, 0.5) 60%,
+                        rgba(255, 255, 255, 0) 100%);
+                animation: shimmer 1.5s infinite;
+                content: '';
+            }
+
+            @keyframes shimmer {
+                100% {
+                    transform: translateX(100%);
+                }
+            }
+        </style>
     <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
 </head>
 
@@ -134,26 +210,46 @@
             <!-- All existing content will be moved here, and then dynamically loaded per screen -->
             <!-- For now, we'll put a placeholder or move existing content here temporarily -->
             <section id="dashboard-screen" class="screen active">
-                <h2>대시보드</h2>
-                <div id="nextBossDisplay" class="next-boss-highlight"></div>
-                <div id="upcomingBossList">
-                    <h3>다가오는 보스</h3>
-                    <!-- Upcoming boss list will be rendered here by JavaScript -->
+                <div id="dashboard-skeleton" class="skeleton-content">
+                    <div class="skeleton-header"></div>
+                    <div class="skeleton-line short"></div>
+                    <div class="skeleton-card">
+                        <div class="skeleton-line medium"></div>
+                        <div class="skeleton-line long"></div>
+                        <div class="skeleton-line short"></div>
+                    </div>
+                    <div class="skeleton-card">
+                        <div class="skeleton-line medium"></div>
+                        <div class="skeleton-line long"></div>
+                        <div class="skeleton-line short"></div>
+                    </div>
+                    <div class="skeleton-card">
+                        <div class="skeleton-line medium"></div>
+                        <div class="skeleton-line long"></div>
+                    </div>
                 </div>
-                <div id="alarmStatusSummary">
-                    <h3>알림 상태</h3>
-                    <div id="alarmStatusText"></div>
-                </div>
-                <div id="muteControlSection">
-                    <h3>소리 설정</h3>
-                    <button id="muteToggleButton" class="mute-button">
-                        <!-- Speaker Icon will be rendered here by JS -->
-                    </button>
-                </div>
-                <div id="recentAlarmLogSection">
-                    <h3>알림 로그</h3>
-                    <div id="recentAlarmLog">
-                        <!-- Recent logs go here -->
+                <div id="dashboard-real-content" class="real-content hidden">
+                    <h2>대시보드</h2>
+                    <div id="nextBossDisplay" class="next-boss-highlight"></div>
+                    <div id="upcomingBossList">
+                        <h3>다가오는 보스</h3>
+                        <!-- Upcoming boss list will be rendered here by JavaScript -->
+                    </div>
+                    <div id="alarmStatusSummary">
+                        <h3>알림 상태</h3>
+                        <div id="alarmStatusText"></div>
+                    </div>
+                    <div id="muteControlSection">
+                        <h3>소리 설정</h3>
+                        <button id="muteToggleButton" class="mute-button">
+                            <!-- Speaker Icon will be rendered here by JS -->
+                        </button>
+                    </div>
+                    <div id="recentAlarmLogSection">
+                        <h3>알림 로그</h3>
+                        <div id="recentAlarmLog">
+                            <!-- Recent logs go here -->
+                        </div>
                     </div>
                 </div>
             </section>

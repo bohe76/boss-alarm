@@ -324,6 +324,7 @@ function initEventHandlers(DOM, globalTooltip) {
 }
 
 export async function initApp() {
+    document.body.classList.add('loading'); // Activate skeleton UI
     const DOM = initDomElements();
     const globalTooltip = document.getElementById('global-tooltip');
 
@@ -372,4 +373,5 @@ export async function initApp() {
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(document.body);
     handleResize();
+    document.body.classList.remove('loading'); // Deactivate skeleton UI and show real content
 }
