@@ -4,7 +4,7 @@ import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning } from './alarm-scheduler.js';
 import { renderFixedAlarms, renderAlarmStatusSummary, renderDashboard } from './ui-renderer.js';
 import { log } from './logger.js';
-import { LocalStorageManager } from './data-managers.js';
+import { LocalStorageManager, BossDataManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
 import * as DefaultBossList from './default-boss-list.js';
 import { formatMonthDay } from './utils.js';
@@ -134,6 +134,7 @@ function showScreen(DOM, screenId) {
     }
 
     if (screenId === 'dashboard-screen') {
+        renderDashboard(DOM); // Immediate render
         dashboardRefreshInterval = setInterval(() => renderDashboard(DOM), 1000);
     }
     // End manage dashboard refresh interval
@@ -331,6 +332,9 @@ export async function initApp() {
     await initializeCoreServices(DOM);
     registerAllRoutes();
     loadInitialData(DOM);
+    
+    // Subscribe to BossDataManager changes to automatically refresh the dashboard
+    BossDataManager.subscribe(() => renderDashboard(DOM));
     
     renderFixedAlarms(DOM);
             
