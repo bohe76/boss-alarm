@@ -373,6 +373,6 @@ export async function initApp() {
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(document.body);
     handleResize();
-    // document.body.classList.remove('loading'); // Deactivate skeleton UI and show real content
-    // document.getElementById('dashboard-real-content').classList.remove('hidden');
+    document.body.classList.remove('loading'); // Deactivate skeleton UI and show real content
+    document.getElementById('dashboard-real-content').classList.remove('hidden');
 }
