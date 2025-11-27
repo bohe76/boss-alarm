@@ -65,9 +65,9 @@
 <details>
 <summary><strong>1.3. `event-handlers.js`의 `showScreen` 함수를 라우터 사용하도록 리팩토링</strong></summary>
 
-- [ ] **사전 분석:** `event-handlers.js`의 `showScreen` 함수 내부에 있는 긴 `if (screenId === ...)` 분기문을 확인합니다.
+- [ ] **사전 분석:** `app.js`의 `showScreen` 함수 내부에 있는 긴 `if (screenId === ...)` 분기문을 확인합니다. (참고: `showScreen` 함수는 `app.js`로 이전되었습니다.)
 - [ ] **실행 계획:**
-    1.  `src/event-handlers.js` 상단에 `import { getRoute } from './router.js';`를 추가합니다.
+    1.  `src/app.js` 상단에 `import { getRoute } from './router.js';`를 추가합니다.
     2.  `showScreen` 함수 내부의 `if` 분기문을 아래와 같이 라우터를 사용하는 코드로 대체합니다.
         ```javascript
         // ... (화면 숨김 및 네비게이션 링크 활성화 로직)
@@ -83,6 +83,10 @@
         }
         if (screenId === 'boss-scheduler-screen') {
             EventBus.emit('show-boss-scheduler-screen');
+        }
+        // 대시보드와 같이 동적 콘텐츠가 많은 화면의 경우, 초기 활성화 시 즉시 렌더링 함수를 호출하여 화면 표시 지연을 방지합니다.
+        if (screenId === 'dashboard-screen') {
+            renderDashboard(DOM); // renderDashboard는 ui-renderer.js에서 import 필요
         }
         ```
     3.  `initEventHandlers` 함수에 있던 화면별 `init...Screen()` 호출들을 제거하고, 라우터가 담당하도록 구조를 단순화합니다.
@@ -103,7 +107,8 @@
 - [ ] **실행 계획:**
     1.  `src/services.js` 파일을 새로 생성합니다.
     2.  `initializeCoreServices(DOM)` 라는 `async` 함수를 만들어 해당 로직을 옮기고 `export` 합니다.
-    3.  `event-handlers.js`의 `initApp`에서 `initializeCoreServices`를 `import` 하여 호출합니다.
+    3.  `app.js`의 `initApp`에서 `initializeCoreServices`를 `import` 하여 호출합니다.
+- [ ] **주의사항:** `initializeCoreServices` 내에서 초기화되는 `LocalStorageManager`, `CustomListManager` 등 데이터 관리자들은 `initApp`에서 `BossDataManager.subscribe` 전에 완전히 초기화되어야 합니다.
 - [ ] **검증:** 앱을 새로고침했을 때, 로그, 보스 목록, 로컬 스토리지 데이터가 모두 정상적으로 로드되는지 확인합니다.
 - [ ] **커밋 제안:** `refactor(core): 핵심 서비스 초기화 로직을 services.js로 분리`
 </details>
@@ -111,11 +116,11 @@
 <details>
 <summary><strong>2.2. 초기 데이터 로딩 및 파싱 로직 분리</strong></summary>
 
-- [ ] **사전 분석:** `initApp` 함수에서 URL 파라미터를 파싱하고, 기본 보스 목록을 설정하며, `parseBossList`를 호출하는 부분을 식별합니다.
+- [ ] **사전 분석:** `app.js`의 `initApp` 함수에서 URL 파라미터를 파싱하고, 기본 보스 목록을 설정하며, `parseBossList`를 호출하는 부분을 식별합니다.
 - [ ] **실행 계획:**
-    1.  `event-handlers.js` 내에 `loadInitialData(DOM)`와 같은 `async` 함수를 새로 만듭니다.
+    1.  `app.js` 내에 `loadInitialData(DOM)`와 같은 `async` 함수를 새로 만듭니다.
     2.  해당 로직을 `loadInitialData` 함수로 옮깁니다.
-    3.  `initApp`에서 `loadInitialData(DOM)`를 호출하도록 변경합니다.
+    3.  `app.js`의 `initApp`에서 `loadInitialData(DOM)`를 호출하도록 변경합니다.
 - [ ] **검증:**
     1.  `?data=` 파라미터가 있는 URL로 접속 시, 공유된 목록이 정상적으로 로드되는지 확인합니다.
     2.  파라미터 없이 접속 시, 기본 보스 목록이 날짜와 함께 정상적으로 표시되는지 확인합니다.
@@ -137,19 +142,20 @@
     2.  `subscribe(callback)` 메소드를 추가하여 `subscribers` 배열에 콜백 함수를 추가하는 로직을 작성합니다.
     3.  상태를 변경하는 함수(예: `setBossSchedule`, `setNextBossInfo`) 내부 마지막에, `subscribers` 배열을 순회하며 모든 콜백 함수를 실행하는 `notify()` 로직을 추가합니다.
 - [ ] **검증:** 없음 (내부 구조 변경).
+- [ ] **주의사항:** `BossDataManager`의 `subscribe` 메소드를 사용하는 모듈(예: `app.js`)에서는 `import { BossDataManager } from './data-managers.js';`와 같이 명시적으로 임포트해야 합니다.
 - [ ] **커밋 제안:** `feat(state): 데이터 변경 감지를 위한 구독/알림 패턴 추가`
 </details>
 
 <details>
 <summary><strong>3.2. 대시보드 자동 갱신 리팩토링</strong></summary>
 
-- [ ] **사전 분석:** `global-event-listeners.js`의 `EventBus.on('refresh-dashboard', ...)` 리스너와, 이 이벤트를 발생시키는 모든 `EventBus.emit('refresh-dashboard')` 호출 코드를 식별합니다. (`alarm-scheduler.js`, `event-handlers.js` 등)
+- [ ] **사전 분석:** `EventBus.on('refresh-dashboard', ...)` 리스너와, 이 이벤트를 발생시키는 모든 `EventBus.emit('refresh-dashboard')` 호출 코드를 식별합니다. (`alarm-scheduler.js`, `app.js` 등)
 - [ ] **실행 계획:**
-    1.  `global-event-listeners.js`에서 `EventBus.on('refresh-dashboard', ...)` 리스너를 제거합니다.
-    2.  대신 `initGlobalEventListeners` 함수에서 `BossDataManager.subscribe(() => renderDashboard(DOM));` 코드를 추가하여 데이터 변경 시 대시보드가 렌더링되도록 '구독'합니다.
+    1.  `EventBus.on('refresh-dashboard', ...)` 리스너를 제거합니다. (이 리스너는 `app.js`나 다른 모듈에 존재할 수 있습니다.)
+    2.  `app.js`의 `initApp` 함수 내부에 `BossDataManager.subscribe(() => renderDashboard(DOM));` 코드를 추가하여 데이터 변경 시 대시보드가 렌더링되도록 '구독'합니다.
     3.  프로젝트 전체에서 `EventBus.emit('refresh-dashboard')`를 호출하는 모든 코드를 찾아 제거합니다.
 - [ ] **검증:**
-    1.  알람을 켠 상태에서 1초마다 '다음 보스' 남은 시간이 자동으로 갱신되는지 확인합니다.
+    1.  알람을 켠 상태에서 1초마다 '다음 보스' 남은 시간이 자동으로 갱신되는지 확인합니다. (이것은 `app.js`의 `showScreen`에서 `setInterval`로 처리됩니다.)
     2.  '보스 관리' 화면에서 목록을 수정하거나 '시간순 정렬'을 눌렀을 때, 대시보드의 '다가오는 보스 목록'이 즉시 변경되는지 확인합니다.
 - [ ] **커밋 제안:** `refactor(state): EventBus 기반의 수동 갱신을 구독 패턴으로 변경`
 </details>
