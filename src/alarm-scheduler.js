@@ -4,7 +4,6 @@ import { log } from './logger.js';
 import { speak } from './speech.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Import managers
 import { renderAlarmStatusSummary } from './ui-renderer.js'; // Import UI function, renderAlarmStatusSummary
-import { EventBus } from './event-bus.js';
 
 let alertTimerId = null;
 // Removed: let isAlarmRunning = false; // No longer needed, rely on LocalStorageManager

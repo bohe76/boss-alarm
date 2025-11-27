@@ -48,16 +48,17 @@ export const BossDataManager = (() => {
                     if (date.getTime() < now) {
                         date.setDate(date.getDate() + 1);
                     }
-                    return { ...boss, timestamp: date.getTime() };
-                }).filter(boss => boss.timestamp > now)
-                .sort((a, b) => a.timestamp - b.timestamp);
-
-            for (const boss of allBosses) {
-                if (addedCount < count) {
-                    upcoming.push(boss);
-                    addedCount++;
-                } else {
-                    break;
+                                    return { ...boss, timestamp: date.getTime() };
+                                }).filter(boss => boss.timestamp > now)
+                                .sort((a, b) => a.timestamp - b.timestamp);
+                    
+                                console.log("getUpcomingBosses 필터링 직후 allBosses (최종 필터 전):", allBosses); // <-- 추가
+                    
+                                for (const boss of allBosses) {
+                                    if (addedCount < count) {
+                                        upcoming.push(boss);
+                                        addedCount++;
+                                    } else {                    break;
                 }
             }
             return upcoming;
