@@ -7,7 +7,6 @@ import { renderAlarmStatusSummary } from './ui-renderer.js'; // Import UI functi
 import { EventBus } from './event-bus.js';
 
 let alertTimerId = null;
-let dashboardTimerId = null; // New variable for dashboard interval
 // Removed: let isAlarmRunning = false; // No longer needed, rely on LocalStorageManager
 
 export function startAlarm(DOM) { // Added DOM parameter
@@ -17,9 +16,6 @@ export function startAlarm(DOM) { // Added DOM parameter
     speak("보스 알리미를 시작합니다.");
     log(`${BossDataManager.getBossSchedule().filter(item => item.type === 'boss').length}개의 보스가 목록에 있습니다.`, true);
     alertTimerId = setInterval(checkAlarms, 1000);
-    dashboardTimerId = setInterval(() => {
-        EventBus.emit('refresh-dashboard');
-    }, 1000);
     checkAlarms(); // Run once immediately to populate next boss info
     renderAlarmStatusSummary(DOM); // Update status immediately
 }
@@ -30,10 +26,6 @@ export function stopAlarm(DOM) {
     if (alertTimerId) {
         clearInterval(alertTimerId);
         alertTimerId = null;
-    }
-    if (dashboardTimerId) { // Reintroduce clearing dashboard interval
-        clearInterval(dashboardTimerId);
-        dashboardTimerId = null;
     }
     log("알림 시스템을 중지합니다.");
     speak("알리미를 중지합니다.");

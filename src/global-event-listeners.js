@@ -1,6 +1,7 @@
 // src/global-event-listeners.js
 
 import { EventBus } from './event-bus.js';
+import { BossDataManager } from './data-managers.js';
 import { renderDashboard } from './ui-renderer.js';
 import { renderAlarmLog } from './screens/alarm-log.js'; // Assuming renderAlarmLog will be exported
 
@@ -9,8 +10,8 @@ import { renderAlarmLog } from './screens/alarm-log.js'; // Assuming renderAlarm
  * @param {object} DOM - The DOM elements object.
  */
 export function initGlobalEventListeners(DOM) {
-    // Listener for refreshing the dashboard display
-    EventBus.on('refresh-dashboard', () => {
+    // Subscribe to BossDataManager changes to automatically refresh the dashboard
+    BossDataManager.subscribe(() => {
         renderDashboard(DOM);
     });
 

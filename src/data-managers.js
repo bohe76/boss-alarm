@@ -4,13 +4,27 @@ export const BossDataManager = (() => {
     let bossSchedule = []; // 파싱된 보스 정보를 저장할 배열
     let _nextBoss = null; // 다음 보스 정보를 저장할 변수
     let _minTimeDiff = Infinity; // 다음 보스까지 남은 시간을 저장할 변수
+    const subscribers = []; // 구독자(콜백 함수) 목록
+
+    const notify = () => {
+        for (const subscriber of subscribers) {
+            subscriber();
+        }
+    };
 
     return {
+        subscribe: (callback) => {
+            subscribers.push(callback);
+        },
         getBossSchedule: () => bossSchedule,
-        setBossSchedule: (newSchedule) => { bossSchedule = newSchedule; },
+        setBossSchedule: (newSchedule) => {
+            bossSchedule = newSchedule;
+            notify();
+        },
         setNextBossInfo: (nextBoss, minTimeDiff) => {
             _nextBoss = nextBoss;
             _minTimeDiff = minTimeDiff;
+            notify();
         },
         getNextBossInfo: () => ({ nextBoss: _nextBoss, minTimeDiff: _minTimeDiff }),
         getUpcomingBosses: (count) => {

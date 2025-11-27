@@ -1,7 +1,6 @@
 // src/screens/boss-management.js
 import { parseBossList, getSortedBossListText } from '../boss-parser.js';
 import { log } from '../logger.js';
-import { renderDashboard } from '../ui-renderer.js';
 
 export function initBossManagementScreen(DOM) {
     // "시간순 정렬" 버튼 이벤트 리스너
@@ -21,7 +20,6 @@ export function initBossManagementScreen(DOM) {
     // Update boss schedule when textarea input changes
     DOM.bossListInput.addEventListener('input', () => {
         parseBossList(DOM.bossListInput);
-        renderDashboard(DOM); // Re-render dashboard to reflect changes
     });
 }
 

@@ -6,7 +6,6 @@ import {
     showToast, 
     populateBossSelectionDropdown, 
     updateBossListTextarea, 
-    renderDashboard, 
     updateLightStopwatchDisplay, 
     updateLightExpectedTimeDisplay, 
     renderLightTempResults, 
@@ -85,7 +84,6 @@ export function initCalculatorScreen(DOM) {
                 DOM.bossListInput.value = finalBossListText;
 
                 parseBossList(DOM.bossListInput);
-                renderDashboard(DOM);
                 showToast(DOM, `${bossName} 보스 시간이 ${newBossTime}으로 업데이트 되었습니다.`);
 
                 DOM.remainingTimeInput.value = '';

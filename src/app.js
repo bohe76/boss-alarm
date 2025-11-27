@@ -125,7 +125,6 @@ function showScreen(DOM, screenId) {
         }
     }
 
-    if (screenId === 'dashboard-screen') EventBus.emit('refresh-dashboard', DOM);
     if (screenId === 'boss-scheduler-screen') EventBus.emit('show-boss-scheduler-screen');
 }
 
@@ -345,8 +344,6 @@ export async function initApp() {
     EventBus.on('navigate', (screenId) => showScreen(DOM, screenId));
     initEventHandlers(DOM, globalTooltip);
     
-    EventBus.emit('refresh-dashboard', DOM);
-
     const handleResize = () => {
         const isMobileView = window.innerWidth <= 768;
         document.body.classList.toggle('is-mobile-view', isMobileView);

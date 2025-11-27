@@ -1,4 +1,4 @@
-import { renderBossInputs, renderDashboard, renderBossSchedulerScreen } from '../ui-renderer.js';
+import { renderBossInputs, renderBossSchedulerScreen } from '../ui-renderer.js';
 import { calculateBossAppearanceTime } from '../calculator.js';
 import { log } from '../logger.js';
 import { parseBossList } from '../boss-parser.js';
@@ -139,7 +139,6 @@ export function initBossSchedulerScreen(DOM) {
                 DOM.bossListInput.value = finalText.trim();
                 
                 parseBossList(DOM.bossListInput); // Parse the new boss list
-                renderDashboard(DOM); // Re-render dashboard to reflect changes
                 
                 // Store current remaining times before navigating away
                 _remainingTimes = {}; // Clear previous state
@@ -155,7 +154,6 @@ export function initBossSchedulerScreen(DOM) {
         });
     }
 }
-
 export function getScreen() {
     return {
         id: 'boss-scheduler-screen',
