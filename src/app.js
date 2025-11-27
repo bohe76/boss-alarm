@@ -3,14 +3,14 @@
 import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning } from './alarm-scheduler.js';
 import { renderFixedAlarms, renderAlarmStatusSummary } from './ui-renderer.js';
-import { log, initLogger } from './logger.js';
+import { log } from './logger.js';
 import { LocalStorageManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
 import * as DefaultBossList from './default-boss-list.js';
-import { loadBossLists } from './boss-scheduler-data.js';
 import { formatMonthDay } from './utils.js';
 import { EventBus } from './event-bus.js';
 import { getRoute, registerRoute } from './router.js';
+import { initializeCoreServices } from './services.js';
 
 // Screen Modules
 import { getScreen as getAlarmLogScreen } from './screens/alarm-log.js';
@@ -127,6 +127,55 @@ function showScreen(DOM, screenId) {
 
     if (screenId === 'dashboard-screen') EventBus.emit('refresh-dashboard', DOM);
     if (screenId === 'boss-scheduler-screen') EventBus.emit('show-boss-scheduler-screen');
+}
+
+function loadInitialData(DOM) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('data')) {
+        DOM.bossListInput.value = decodeURIComponent(params.get('data'));
+        log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
+    } else {
+        const defaultBossList = DefaultBossList.bossPresets[0].list;
+        let updatedBossList = defaultBossList;
+        const hasDateEntries = /^(\d{2}\.\d{2})/m.test(defaultBossList);
+        if (!hasDateEntries) {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+            const todayFormatted = formatMonthDay(today);
+            const tomorrowFormatted = formatMonthDay(tomorrow);
+            const lines = defaultBossList.split('\n').filter(line => line.trim() !== '');
+            let insertIndex = -1;
+            let lastTimeInMinutes = -1;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                const timeMatch = line.match(/^(\d{2}):(\d{2})/);
+                if (timeMatch) {
+                    const currentTimeInMinutes = parseInt(timeMatch[1], 10) * 60 + parseInt(timeMatch[2], 10);
+                    if (lastTimeInMinutes !== -1 && currentTimeInMinutes < lastTimeInMinutes) {
+                        insertIndex = i;
+                        break;
+                    }
+                    lastTimeInMinutes = currentTimeInMinutes;
+                }
+            }
+            if (insertIndex !== -1) lines.splice(insertIndex, 0, tomorrowFormatted);
+            lines.unshift(todayFormatted);
+            updatedBossList = lines.join('\n');
+        }
+        DOM.bossListInput.value = updatedBossList;
+        log("기본 보스 목록을 불러왔습니다. (URL 데이터 없음)");
+    }
+
+    parseBossList(DOM.bossListInput);
+
+    if (params.has('fixedData')) {
+        if (LocalStorageManager.importFixedAlarms(decodeURIComponent(params.get('fixedData')))) {
+            log("URL에서 고정 알림을 성공적으로 불러왔습니다.");
+        } else {
+            log("URL에서 고정 알림을 불러오는 데 실패했습니다. 기본값을 사용합니다.", false);
+        }
+    }
 }
 
 // Function to initialize all event handlers
@@ -267,58 +316,9 @@ export async function initApp() {
 
     if (DOM.footerVersion) DOM.footerVersion.textContent = window.APP_VERSION;
 
-    initLogger(DOM.logContainer);
+    await initializeCoreServices(DOM);
     registerAllRoutes();
-
-    await loadBossLists();
-
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('data')) {
-        DOM.bossListInput.value = decodeURIComponent(params.get('data'));
-        log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
-    } else {
-        const defaultBossList = DefaultBossList.bossPresets[0].list;
-        let updatedBossList = defaultBossList;
-        const hasDateEntries = /^(\d{2}\.\d{2})/m.test(defaultBossList);
-        if (!hasDateEntries) {
-            const today = new Date();
-            const tomorrow = new Date(today);
-            tomorrow.setDate(today.getDate() + 1);
-            const todayFormatted = formatMonthDay(today);
-            const tomorrowFormatted = formatMonthDay(tomorrow);
-            const lines = defaultBossList.split('\n').filter(line => line.trim() !== '');
-            let insertIndex = -1;
-            let lastTimeInMinutes = -1;
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                const timeMatch = line.match(/^(\d{2}):(\d{2})/);
-                if (timeMatch) {
-                    const currentTimeInMinutes = parseInt(timeMatch[1], 10) * 60 + parseInt(timeMatch[2], 10);
-                    if (lastTimeInMinutes !== -1 && currentTimeInMinutes < lastTimeInMinutes) {
-                        insertIndex = i;
-                        break;
-                    }
-                    lastTimeInMinutes = currentTimeInMinutes;
-                }
-            }
-            if (insertIndex !== -1) lines.splice(insertIndex, 0, tomorrowFormatted);
-            lines.unshift(todayFormatted);
-            updatedBossList = lines.join('\n');
-        }
-        DOM.bossListInput.value = updatedBossList;
-        log("기본 보스 목록을 불러왔습니다. (URL 데이터 없음)");
-    }
-
-    parseBossList(DOM.bossListInput);
-    LocalStorageManager.init();
-
-    if (params.has('fixedData')) {
-        if (LocalStorageManager.importFixedAlarms(decodeURIComponent(params.get('fixedData')))) {
-            log("URL에서 고정 알림을 성공적으로 불러왔습니다.");
-        } else {
-            log("URL에서 고정 알림을 불러오는 데 실패했습니다. 기본값을 사용합니다.", false);
-        }
-    }
+    loadInitialData(DOM);
     
     renderFixedAlarms(DOM);
             
