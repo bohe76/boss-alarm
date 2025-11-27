@@ -35,26 +35,32 @@ export function getIsAlarmRunning() {
     return LocalStorageManager.getAlarmRunningState(); // Get state from LocalStorageManager
 }
 
-export function checkAlarms() { // Removed updateBossListTextarea parameter
+export function checkAlarms() {
     const now = new Date();
     const currentTimeString = now.toTimeString().substring(0, 5); 
 
     const fiveMinLater = new Date(now.getTime() + 5 * 60 * 1000);
     const oneMinLater = new Date(now.getTime() + 1 * 60 * 1000);
 
+    // Get mutable copies of schedules for local modification
+    let mutableBossSchedule = BossDataManager.getBossSchedule().filter(item => item.type === 'boss');
+    const fixedAlarms = LocalStorageManager.getFixedAlarms(); // Fixed alarms are managed by LocalStorageManager directly
+
+    let bossScheduleChanged = false; // Flag to indicate if mutableBossSchedule was modified
+
     // 자정(00:00)이 되면 모든 보스의 알림 상태를 'false'로 초기화 (매일 반복을 위함)
     if (currentTimeString === '00:00') {
         let resetCount = 0;
-        BossDataManager.getBossSchedule().forEach(boss => {
-            if (boss.type === 'boss' && (boss.alerted_5min || boss.alerted_1min || boss.alerted_0min)) {
+        mutableBossSchedule.forEach(boss => {
+            if (boss.alerted_5min || boss.alerted_1min || boss.alerted_0min) {
                 boss.alerted_5min = false;
                 boss.alerted_1min = false;
                 boss.alerted_0min = false;
+                bossScheduleChanged = true;
                 resetCount++;
             }
         });
         
-        const fixedAlarms = LocalStorageManager.getFixedAlarms();
         fixedAlarms.forEach(alarm => {
             if (alarm.alerted_5min || alarm.alerted_1min || alarm.alerted_0min) {
                 alarm.alerted_5min = false;
@@ -74,13 +80,13 @@ export function checkAlarms() { // Removed updateBossListTextarea parameter
     // Combine dynamic and fixed alarms for checking and next boss determination
     let allAlarms = [];
 
-    // Process dynamic bosses from BossDataManager
-    BossDataManager.getBossSchedule().filter(boss => boss.type === 'boss').forEach(boss => {
-        allAlarms.push({ ...boss }); // BossDataManager bosses already have scheduledDate
+    // Add dynamic bosses (references to mutableBossSchedule elements)
+    mutableBossSchedule.forEach(boss => {
+        allAlarms.push(boss);
     });
 
-    // Process fixed alarms from LocalStorageManager
-    LocalStorageManager.getFixedAlarms().filter(alarm => alarm.enabled).forEach(alarm => {
+    // Add fixed alarms (references to mutableFixedAlarms elements)
+    fixedAlarms.filter(alarm => alarm.enabled).forEach(alarm => {
         const [hours, minutes, seconds] = alarm.time.split(':').map(Number);
         let fixedScheduledDate = new Date(now);
         fixedScheduledDate.setHours(hours, minutes, seconds || 0, 0);
@@ -113,7 +119,11 @@ export function checkAlarms() { // Removed updateBossListTextarea parameter
         // --- 5분 전 알림 체크 ---
         if (Math.abs(bossScheduledTime - fiveMinLater.getTime()) < 1000 && !alarm.alerted_5min) {
             alarm.alerted_5min = true;
-            if (alarm.isFixed) LocalStorageManager.updateFixedAlarm(alarm.id, alarm);
+            if (alarm.isFixed) {
+                LocalStorageManager.updateFixedAlarm(alarm.id, alarm);
+            } else {
+                bossScheduleChanged = true; // Mark change for dynamic boss
+            }
             const msg = `5분 전, ${alarm.name}`;
             log(msg, true);
             speak(msg);
@@ -122,7 +132,11 @@ export function checkAlarms() { // Removed updateBossListTextarea parameter
         // --- 1분 전 알림 체크 ---
         if (Math.abs(bossScheduledTime - oneMinLater.getTime()) < 1000 && !alarm.alerted_1min) {
             alarm.alerted_1min = true;
-            if (alarm.isFixed) LocalStorageManager.updateFixedAlarm(alarm.id, alarm);
+            if (alarm.isFixed) {
+                LocalStorageManager.updateFixedAlarm(alarm.id, alarm);
+            } else {
+                bossScheduleChanged = true; // Mark change for dynamic boss
+            }
             const msg = `1분 전, ${alarm.name}`;
             log(msg, true);
             speak(msg);
@@ -131,23 +145,29 @@ export function checkAlarms() { // Removed updateBossListTextarea parameter
         // --- 정각 알림 체크 ---
         if (Math.abs(bossScheduledTime - now.getTime()) < 1000 && !alarm.alerted_0min) {
             alarm.alerted_0min = true;
-            if (alarm.isFixed) LocalStorageManager.updateFixedAlarm(alarm.id, alarm);
+            if (alarm.isFixed) {
+                LocalStorageManager.updateFixedAlarm(alarm.id, alarm);
+            } else {
+                bossScheduleChanged = true; // Mark change for dynamic boss
+                bossesToRemove.push(alarm); // Store reference to boss object for removal
+            }
             const msg = `${alarm.name} 젠 입니다.`;
             log(msg, true);
             speak(msg);
-            if (!alarm.isFixed) { // Only remove dynamic bosses
-                bossesToRemove.push(alarm); // Store reference to boss object
-            }
         }
     }
 
-    // 알림이 발생한 일반 보스를 bossSchedule에서 제거
+    // 알림이 발생한 일반 보스를 mutableBossSchedule에서 제거
     if (bossesToRemove.length > 0) {
-        let currentBossSchedule = BossDataManager.getBossSchedule();
-        currentBossSchedule = currentBossSchedule.filter(boss =>
-            !bossesToRemove.some(removedBoss => removedBoss === boss)
+        mutableBossSchedule = mutableBossSchedule.filter(boss =>
+            !bossesToRemove.some(removedBoss => removedBoss.id === boss.id)
         );
-        BossDataManager.setBossSchedule(currentBossSchedule);
+        bossScheduleChanged = true;
+    }
+
+    // 변경 사항이 있으면 BossDataManager 업데이트
+    if (bossScheduleChanged) {
+        BossDataManager.setBossSchedule(mutableBossSchedule);
     }
 
     // Determine the next boss for display
