@@ -31,3 +31,10 @@ export function initHelpScreen(DOM) {
         }
     })();
 }
+
+export function getScreen() {
+    return {
+        id: 'help-screen',
+        onTransition: initHelpScreen
+    };
+}

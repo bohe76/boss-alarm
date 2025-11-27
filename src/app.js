@@ -10,19 +10,19 @@ import * as DefaultBossList from './default-boss-list.js';
 import { loadBossLists } from './boss-scheduler-data.js';
 import { formatMonthDay } from './utils.js';
 import { EventBus } from './event-bus.js';
-import { registerRoute } from './router.js';
+import { getRoute, registerRoute } from './router.js';
 
 // Screen Modules
-import { getScreen as getAlarmLogScreen, initAlarmLogScreen } from './screens/alarm-log.js';
-import { getScreen as getBossManagementScreen, initBossManagementScreen } from './screens/boss-management.js';
-import { getScreen as getBossSchedulerScreen, initBossSchedulerScreen } from './screens/boss-scheduler.js';
-import { getScreen as getCalculatorScreen, initCalculatorScreen, handleCalculatorScreenTransition } from './screens/calculator.js';
-import { getScreen as getCustomListScreen, initCustomListScreen } from './screens/custom-list.js';
-import { getScreen as getDashboardScreen, initDashboardScreen } from './screens/dashboard.js';
-import { getScreen as getHelpScreen, initHelpScreen } from './screens/help.js';
-import { getScreen as getNotificationSettingsScreen, initNotificationSettingsScreen } from './screens/notifications.js';
-import { getScreen as getShareScreen, initShareScreen } from './screens/share.js';
-import { getScreen as getVersionInfoScreen, initVersionInfoScreen } from './screens/version-info.js';
+import { getScreen as getAlarmLogScreen } from './screens/alarm-log.js';
+import { getScreen as getBossManagementScreen } from './screens/boss-management.js';
+import { getScreen as getBossSchedulerScreen } from './screens/boss-scheduler.js';
+import { getScreen as getCalculatorScreen } from './screens/calculator.js';
+import { getScreen as getCustomListScreen } from './screens/custom-list.js';
+import { getScreen as getDashboardScreen } from './screens/dashboard.js';
+import { getScreen as getHelpScreen } from './screens/help.js';
+import { getScreen as getNotificationSettingsScreen } from './screens/notifications.js';
+import { getScreen as getShareScreen } from './screens/share.js';
+import { getScreen as getVersionInfoScreen } from './screens/version-info.js';
 
 
 function registerAllRoutes() {
@@ -88,8 +88,8 @@ function showScreen(DOM, screenId) {
         if (screen) screen.classList.remove('active');
     });
 
-    const activeScreen = document.getElementById(screenId);
-    if (activeScreen) activeScreen.classList.add('active');
+    const activeScreenElement = document.getElementById(screenId);
+    if (activeScreenElement) activeScreenElement.classList.add('active');
 
     if (DOM.mainContentArea) {
         requestAnimationFrame(() => {
@@ -114,12 +114,18 @@ function showScreen(DOM, screenId) {
         }
     });
 
+    const screen = getRoute(screenId);
+    if (screen) {
+        if (!screen.initialized && screen.init) {
+            screen.init(DOM);
+            screen.initialized = true;
+        }
+        if (screen.onTransition) {
+            screen.onTransition(DOM);
+        }
+    }
+
     if (screenId === 'dashboard-screen') EventBus.emit('refresh-dashboard', DOM);
-    if (screenId === 'share-screen') initShareScreen(DOM);
-    if (screenId === 'version-info-screen') initVersionInfoScreen(DOM);
-    if (screenId === 'help-screen') initHelpScreen(DOM);
-    if (screenId === 'calculator-screen') handleCalculatorScreenTransition(DOM);
-    if (screenId === 'alarm-log-screen') initAlarmLogScreen(DOM);
     if (screenId === 'boss-scheduler-screen') EventBus.emit('show-boss-scheduler-screen');
 }
 
@@ -138,8 +144,6 @@ function initEventHandlers(DOM, globalTooltip) {
             log("알림이 중지되었습니다.", true);
         }
     });
-
-    initDashboardScreen(DOM);
 
     DOM.sidebarToggle.addEventListener('click', () => {
         const isExpanded = DOM.sidebar.classList.toggle('expanded');
@@ -255,12 +259,6 @@ function initEventHandlers(DOM, globalTooltip) {
             if (DOM.sidebar.classList.contains('more-menu-open')) closeMoreMenu();
         });
     });
-
-    initBossSchedulerScreen(DOM);
-    initCustomListScreen(DOM);
-    initNotificationSettingsScreen(DOM);
-    initBossManagementScreen(DOM);
-    initCalculatorScreen(DOM);
 }
 
 export async function initApp() {

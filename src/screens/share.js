@@ -22,6 +22,6 @@ export function initShareScreen(DOM) {
 export function getScreen() {
     return {
         id: 'share-screen',
-        init: initShareScreen
+        onTransition: initShareScreen
     };
 }

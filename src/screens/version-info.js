@@ -7,6 +7,6 @@ export function initVersionInfoScreen(DOM) {
 export function getScreen() {
     return {
         id: 'version-info-screen',
-        init: initVersionInfoScreen
+        onTransition: initVersionInfoScreen
     };
 }
