@@ -2,7 +2,7 @@ process.env.TZ = 'UTC';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CustomListManager } from '../src/custom-list-manager.js';
 import { LocalStorageManager } from '../src/data-managers.js';
-import * as BossSchedulerData from '../src/boss-scheduler-data.js';
+
 
 // Mock dependencies
 vi.mock('../src/data-managers.js', () => ({
