@@ -1,5 +1,6 @@
 ---
-status: 미해결
+status: 해결됨
+resolved_at: 2025-11-28
 created_at: 2025-11-28
 priority: high
 assigned_to: Gemini
@@ -8,6 +9,7 @@ labels:
   - testing
   - mocking
   - timezone
+  - resolved
 ---
 # 이슈 008: 보스 스케줄러 기능 및 테스트의 지속적인 문제점
 
@@ -53,3 +55,19 @@ labels:
 ## 3. 예상되는 해결 방안 (다음 단계)
 
 `updateBossListTextarea` 함수가 `bossSchedule`에서 `type: 'date'` 항목을 올바르게 렌더링하지 못하는 문제에 집중하여 해결해야 합니다. `if (nextItem && nextItem.type === 'boss')` 조건이 날짜 표시를 잘못 필터링하는지 확인하고 수정해야 합니다. 또한, KST 기반 예상 테스트 결과와 실제 렌더링되는 결과 간의 정확한 일치를 확인해야 합니다.
+
+## 4. 해결 내용 (2025-11-28)
+
+이슈 006 해결과 함께 본 이슈의 원인인 테스트 환경 및 로직 문제를 모두 해결했습니다.
+
+1.  **테스트 Mocking 수정:**
+    *   `ui-renderer.js`를 모킹할 때 `updateBossListTextarea` 함수는 모킹하지 않고 실제 구현을 사용하도록 수정했습니다. 이를 통해 테스트 중에 실제 DOM 업데이트가 발생하고 검증이 가능해졌습니다.
+    *   `BossDataManager` 모킹 시 내부 변수(`mockBossSchedule`)를 활용하여 데이터 상태를 정확히 추적하도록 개선했습니다.
+
+2.  **데이터 격리 (Isolation):**
+    *   `beforeEach`에서 `mockBossSchedule`을 빈 배열(`[]`)로 초기화하여, 이전 테스트나 기본 데이터가 현재 테스트 케이스에 영향을 주지 않도록 격리했습니다.
+    *   각 테스트 케이스에서 필요한 데이터만 `DOM` 생성 시 `data-id` 속성으로 주입하여, 업데이트 로직이 정확히 동작하도록 환경을 구성했습니다.
+
+3.  **로직 수정 검증:**
+    *   `boss-scheduler.js`의 ID 기반 업데이트 및 Reconstruction 로직이 수정된 테스트 환경에서 올바르게 동작함을 검증했습니다. (`HH:MM` 포맷팅, 날짜 꼬임 방지, +12h 로직 등)
+    *   `boss-parser.test.js` 또한 새로운 파싱 로직(`Smart Merge`, 에러 반환)에 맞춰 전면 수정하고 통과를 확인했습니다.

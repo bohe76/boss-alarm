@@ -1,0 +1,9 @@
+docs: 이슈 #6, #8 해결 상태 업데이트 및 문서 최신화
+
+- docs/issues/issue-006-boss-scheduler-bug.md: 상태 '해결됨'으로 변경 및 해결 내용 상세 기술
+- docs/issues/issue-008-boss-scheduler-testing-problems.md: 상태 '해결됨'으로 변경 및 해결 내용 상세 기술
+- docs/system_architecture.md: SSOT 및 Reconstruction 전략 반영
+- docs/system_module_details.md: 파서, 스케줄러, 관리 화면 로직 변경 사항 반영
+- docs/system_module_dependencies.md: 의존성 관계 최신화
+- docs/system_data_flow.md: 명시적 저장 및 데이터 흐름 변경 사항 반영
+- test/boss-parser.test.js: 리팩토링된 로직에 맞춰 테스트 케이스 전면 수정 및 통과
