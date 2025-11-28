@@ -24,6 +24,10 @@ export function calculateBossAppearanceTime(remainingTimeString) {
             hours = parseInt(trimmedInput.substring(0, 2), 10);
             minutes = parseInt(trimmedInput.substring(2, 4), 10);
             seconds = parseInt(trimmedInput.substring(4, 6), 10);
+        } else if (trimmedInput.length === 3) { // HMM (e.g., 315 -> 0315 -> 3h 15m)
+            hours = parseInt(trimmedInput.substring(0, 1), 10); // First digit is H
+            minutes = parseInt(trimmedInput.substring(1, 3), 10); // Next two are MM
+            seconds = 0; // Explicitly set seconds to 0
         } else {
             return null; // Not a supported numeric format
         }

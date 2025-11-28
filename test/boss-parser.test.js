@@ -145,5 +145,25 @@ describe('boss-parser', () => {
             const dateMarkers = schedule.filter(item => item.type === 'date');
             expect(dateMarkers.length).toBeGreaterThanOrEqual(2); // 11.27 and 11.28
         });
+
+        it('should parse 3-digit number input as HMM (hours and minutes)', () => {
+            mockBossListInput.value = '315 Boss C'; // Should be 3 hours 15 minutes
+            
+            vi.mocked(calculator.calculateBossAppearanceTime).mockImplementation((timeString) => {
+                if (timeString === '315') return new Date('2025-11-27T03:15:00+09:00');
+                return null;
+            });
+
+            const result = parseBossList(mockBossListInput);
+
+            expect(result.success).toBe(true);
+            expect(result.errors).toHaveLength(0);
+            
+            const schedule = result.mergedSchedule;
+            const bossC = schedule.find(item => item.type === 'boss' && item.name === 'Boss C');
+            
+            expect(bossC).toBeDefined();
+            expect(bossC.time).toBe('03:15:00');
+        });
     });
 });
