@@ -10,12 +10,16 @@ let _remainingTimes = {}; // Encapsulated state
 
 function handleShowScreen(DOM) {
     renderBossSchedulerScreen(DOM, _remainingTimes);
+    updateCalculatedTimes(DOM);
 }
 
 export function initBossSchedulerScreen(DOM) {
     // Listen for the show screen event for this screen
     EventBus.on('show-boss-scheduler-screen', () => handleShowScreen(DOM));
-    EventBus.on('rerender-boss-scheduler', () => renderBossSchedulerScreen(DOM, _remainingTimes));
+    EventBus.on('rerender-boss-scheduler', () => {
+        renderBossSchedulerScreen(DOM, _remainingTimes);
+        updateCalculatedTimes(DOM);
+    });
 
     // Event handlers
     if (DOM.bossSchedulerScreen) {
@@ -23,6 +27,7 @@ export function initBossSchedulerScreen(DOM) {
         DOM.bossSchedulerScreen.addEventListener('change', (event) => {
             if (event.target === DOM.gameSelect) {
                 renderBossInputs(DOM, DOM.gameSelect.value);
+                updateCalculatedTimes(DOM);
             }
         });
 
@@ -127,20 +132,33 @@ export function initBossSchedulerScreen(DOM) {
         // Move to Boss Settings button
         DOM.bossSchedulerScreen.addEventListener('click', (event) => {
             if (event.target === DOM.moveToBossSettingsButton) {
+                // Check if there is at least one valid input
+                const hasValidInput = Array.from(DOM.bossInputsContainer.querySelectorAll('.remaining-time-input'))
+                    .some(input => input.value.trim() !== '' && input.dataset.calculatedDate);
+
+                if (!hasValidInput) {
+                    alert("보스 설정에 내용이 전혀 없습니다.\n남은 시간을 1개 이상 입력 후 보스 설정 적용 버튼을 눌러 주세요.");
+                    return;
+                }
+
                 const specialBossNames = [
                     "오딘", "오딘(본섭, 침공)",
                     "파르바", "셀로비아", "흐니르", "페티", "바우티", "니드호그", "야른", "라이노르", "비요른", "헤르모드", "스칼라니르", "브륀힐드", "라타토스크", "수드리", "지감4층",
                     "침공 파르바", "침공 셀로비아", "침공 흐니르", "침공 페티", "침공 바우티", "침공 니드호그", "침공 야른", "침공 라이노르", "침공 비요른", "침공 헤르모드", "침공 스칼라니르", "침공 브륀힐드", "침공 라타토스크", "침공 수드리"
                 ];
 
-                // 1. Get Current Data & Prepare for Reconstruction
-                // We only keep actual boss data, date markers will be regenerated.
+                const now = new Date();
+
+                // 1. Get Current Data for ID Lookup
+                // We will build a NEW list based on inputs, ignoring previous schedule (Fresh Start)
                 const currentSchedule = BossDataManager.getBossSchedule();
-                let currentBosses = currentSchedule.filter(item => item.type === 'boss');
-                
-                // Map for easy ID-based lookup
+                // We need existing bosses only for ID mapping to preserve settings if possible
+                const existingBossesForMap = currentSchedule.filter(item => item.type === 'boss');
                 const bossMap = new Map();
-                currentBosses.forEach(boss => bossMap.set(boss.id, boss));
+                existingBossesForMap.forEach(boss => bossMap.set(boss.id, boss));
+
+                // Start with an empty list for the new schedule
+                let currentBosses = [];
 
                 // 2. Process User Inputs (Update existing or Add new)
                 DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
@@ -157,14 +175,18 @@ export function initBossSchedulerScreen(DOM) {
                         const timeStr = `${padNumber(appearanceTime.getHours())}:${padNumber(appearanceTime.getMinutes())}:${padNumber(appearanceTime.getSeconds())}`;
 
                         if (bossId && bossMap.has(bossId)) {
-                            // Update existing boss
-                            const boss = bossMap.get(bossId);
-                            boss.scheduledDate = appearanceTime;
-                            boss.time = timeStr;
-                            // Reset alert states
-                            boss.alerted_5min = false;
-                            boss.alerted_1min = false;
-                            boss.alerted_0min = false;
+                            // Found existing boss ID, clone and update it
+                            const existingBoss = bossMap.get(bossId);
+                            const updatedBoss = {
+                                ...existingBoss,
+                                scheduledDate: appearanceTime,
+                                time: timeStr,
+                                // Reset alert states
+                                alerted_5min: false,
+                                alerted_1min: false,
+                                alerted_0min: false
+                            };
+                            currentBosses.push(updatedBoss);
                         } else {
                             // Add new boss (if not found in map, though renderBossInputs should have handled known bosses)
                             const newBoss = {
@@ -179,7 +201,8 @@ export function initBossSchedulerScreen(DOM) {
                             };
                             currentBosses.push(newBoss);
                             // If it's a new boss, we might want to add it to the map if we need to reference it later for +12h logic
-                             bossMap.set(newBoss.id, newBoss);
+                            // But for +12h logic below, we iterate 'currentBosses' which we are building now.
+                            // So we don't need to update bossMap.
                         }
                     }
                 });
@@ -277,9 +300,6 @@ export function initBossSchedulerScreen(DOM) {
                     newScheduleItems.push(boss);
                 });
 
-                console.log('--- Debug Boss Scheduler (Reconstructed) ---');
-                console.log('newScheduleItems:', newScheduleItems);
-
                 // 7. Save & Update UI
                 BossDataManager.setBossSchedule(newScheduleItems);
                 updateBossListTextarea(DOM);
@@ -297,6 +317,16 @@ export function initBossSchedulerScreen(DOM) {
             }
         });
     }
+}
+
+// Helper function to trigger input events for initial values
+function updateCalculatedTimes(DOM) {
+    if (!DOM.bossInputsContainer) return;
+    DOM.bossInputsContainer.querySelectorAll('.remaining-time-input').forEach(input => {
+        if (input.value) {
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
 }
 export function getScreen() {
     return {
