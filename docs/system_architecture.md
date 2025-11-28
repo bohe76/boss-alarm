@@ -44,15 +44,29 @@ UI는 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 �
 
 코드 품질을 보장하고, 회귀를 방지하며, 안정적인 리팩토링 프로세스를 촉진하기 위해 이 프로젝트는 테스트 프레임워크로 **Vitest**를 도입했습니다.
 
-*   **테스트 디렉터리:** 모든 유닛 테스트 파일은 프로젝트 루트의 `test/` 디렉터리에 위치합니다. 이 디렉터리 내의 테스트 파일은 `*.test.js` 명명 규칙을 따릅니다.
+*   **테스트 디렉터리 및 구조:**
+    *   모든 유닛 테스트 파일은 프로젝트 루트의 `test/` 디렉터리에 위치합니다. 이 디렉터리 내의 테스트 파일은 `*.test.js` 명명 규칙을 따릅니다.
+    *   복잡도가 높은 모듈의 테스트는 기능별 관심사에 따라 여러 파일로 분리하여 관리합니다. (예: `boss-scheduler` 모듈은 `boss-scheduler.init.test.js`, `boss-scheduler.apply.test.js`, `boss-scheduler.ui.test.js` 등으로 분리하여 초기화, 로직 적용, UI 상호작용 등 특정 기능에 집중합니다.)
 *   **테스트 범위:** 현재 다음 핵심 모듈에 대한 유닛 테스트가 포함되어 있습니다.
     *   `src/utils.js`: 범용 유틸리티 함수
     *   `src/calculator.js`: 젠 계산기 로직
     *   `src/boss-parser.js`: 보스 목록 파싱 및 정렬 로직
     *   `src/light-calculator.js`: 광 계산기 로직
     *   `src/custom-list-manager.js`: 사용자 지정 보스 목록 관리 로직
+    *   `src/screens/boss-scheduler.js`: 보스 스케줄러 화면의 핵심 로직 및 UI 상호작용
 *   **프레임워크:** [Vitest](https://vitest.dev/) - Vite 프로젝트와 호환되는 최신의 빠르고 기능이 풍부한 테스트 프레임워크이지만, ES 모듈을 사용하는 바닐라 JavaScript 프로젝트에서도 훌륭하게 작동합니다.
 *   **환경:** [JSDOM](https://jsdom.github.io/) - 테스트 환경은 Node.js 환경 내에서 가상 DOM 구현을 제공하는 JSDOM을 사용하도록 구성되어 있습니다. 이를 통해 전체 브라우저 인스턴스를 실행할 필요 없이 DOM 조작 및 브라우저와 유사한 동작을 테스트할 수 있습니다.
+*   **주요 테스트 방법론:**
+    *   **Mocking 전략:**
+        *   `vi.mock('module-path', () => ({ ... }))`를 사용하여 모듈 전체를 Mocking하거나 특정 변수를 하드 코딩합니다.
+        *   `vi.spyOn(module, 'function').mockImplementation(() => ...)`을 사용하여 모듈 내 특정 함수의 호출을 가로채고 Mocking 또는 스파이합니다.
+        *   `EventBus`와 같이 이벤트 기반 통신을 사용하는 모듈의 경우, `vi.mock` 내에서 `listeners` 객체를 관리하고 `emit` 함수가 등록된 콜백들을 실제로 실행하도록 구현하여 실제 이벤트 흐름을 시뮬레이션합니다.
+    *   **DOM 상태 직접 제어:**
+        *   JSDOM 환경의 비일관적인 이벤트 처리를 보완하기 위해, `beforeEach`에서 `DOM.innerHTML = \`...\``와 같이 필요한 DOM 구조를 직접 명시적으로 구성합니다.
+        *   `input.dataset.calculatedDate`와 같은 중요 메타데이터는 Mocking된 함수의 반환값을 사용하여 `input.dispatchEvent`를 통해 정확히 설정되도록 합니다.
+        *   `src` 코드에서 참조하는 모든 필수 DOM 요소(예: `DOM.bossListInput`)는 테스트의 `DOM` Mock 객체에 명시적으로 추가하여 `undefined` 오류를 방지합니다.
+    *   **데이터 Mocking (JSON 하드 코딩):**
+        *   `src/default-boss-list.js`와 같이 외부 JSON 데이터를 로드하는 모듈은 `vi.mock`을 통해 테스트 코드 내에서 **하드 코딩된 JavaScript 객체 리터럴**(`DEFAULT_BOSS_LIST_KOR: [...]`)을 반환하도록 설정합니다. 이를 통해 파일 시스템 의존성을 제거하고 테스트의 안정성과 예측 가능성을 높입니다.
 *   **구성:**
     *   테스트 설정은 `vitest.config.js`에 정의되어 있습니다.
     *   `globals`가 활성화되어(`globals: true`) 일반적인 테스트 함수(`describe`, `it`, `expect`, `vi`)를 명시적인 가져오기 없이 모든 테스트 파일에서 사용할 수 있습니다.
