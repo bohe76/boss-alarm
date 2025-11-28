@@ -118,7 +118,7 @@ body {
         .sidebar-menu {
             list-style: none;
             padding: 0;
-            margin: 0;
+            margin-top: 20px;
             width: 100%;
         }
 
@@ -1372,6 +1372,12 @@ h3 {
     body.is-mobile-view #sidebarToggle {
         display: none;
     }
+    #sidebarToggle {
+        display: none; /* 모바일에서 기본적으로 숨김 */
+    }
+    nav.sidebar {
+        display: none; /* 모바일에서 기본적으로 숨김 */
+    }
     /* --- Show and style the bottom navigation bar --- */
     .bottom-nav {
         display: flex;
@@ -1393,6 +1399,7 @@ h3 {
     }
 
     main {
+        min-height: calc(100vh - var(--header-height) - var(--bottom-nav-height) - 55px - 40px); /* Ensures main pushes footer below fixed bottom nav */
         /* padding-bottom is now on the body to lift the footer as well */
     }
 
@@ -1464,6 +1471,7 @@ h3 {
     }
 
     .more-menu-close-button {
+        display: none; /* 모바일에서 기본적으로 숨김 */
         /* Hide by default on desktop - handled by media query below */
     }
 

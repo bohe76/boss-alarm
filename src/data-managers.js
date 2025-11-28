@@ -52,7 +52,7 @@ export const BossDataManager = (() => {
                                 }).filter(boss => boss.timestamp > now)
                                 .sort((a, b) => a.timestamp - b.timestamp);
                     
-                                console.log("getUpcomingBosses 필터링 직후 allBosses (최종 필터 전):", allBosses); // <-- 추가
+
                     
                                 for (const boss of allBosses) {
                                     if (addedCount < count) {
