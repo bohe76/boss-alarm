@@ -2,7 +2,13 @@
 
 import { log } from './logger.js';
 import { BossDataManager } from './data-managers.js'; // Import manager
+import { generateUniqueId, padNumber } from './utils.js'; // Import utils
 
+/**
+ * 보스 목록 텍스트를 파싱하고 기존 데이터와 병합합니다.
+ * @param {HTMLTextAreaElement} bossListInput - 보스 목록이 입력된 텍스트 영역
+ * @returns {Object} - { success: boolean, mergedSchedule: Array, errors: string[] }
+ */
 export function parseBossList(bossListInput) {
     const text = bossListInput.value;
     const now = new Date();
@@ -13,81 +19,89 @@ export function parseBossList(bossListInput) {
     let dayOffset = 0;
     let lastBossTimeInSeconds = -1;
     
-    let removedPastBossCount = 0;
-    const newBossSchedule = [];
+    const parsedBosses = []; // Only store boss objects temporarily
+    const errors = []; // Store validation errors
 
     const normalizedText = text.replace(/\r\n|\r/g, '\n').replace(/[^\S\n]+/g, ' ').trim();
     const lines = normalizedText.split('\n').map(line => line.trim()).filter(line => line);
+    
+    // Check if there are any date headers in the text
+    const hasDateHeaders = lines.some(line => line.match(/^(\d{1,2})\.(\d{1,2})$/));
 
     try {
-        // First, find a base date from the first line if it exists
+        // 1. Initial Parsing (Text -> Object with calculated Date)
         if (lines.length > 0) {
             const firstDateMatch = lines[0].match(/^(\d{1,2})\.(\d{1,2})$/);
             if (firstDateMatch) {
                 const month = parseInt(firstDateMatch[1], 10) - 1;
                 const day = parseInt(firstDateMatch[2], 10);
                 baseDate = new Date(now.getFullYear(), month, day);
-                if (isNaN(baseDate.getTime())) { // Check for invalid date
-                    log(`경고: 유효하지 않은 날짜 형식입니다: ${lines[0]}. 현재 날짜를 기준으로 파싱을 계속합니다.`, false);
+                if (isNaN(baseDate.getTime())) {
                     baseDate = new Date(now);
                 }
             }
         }
-        // If no date was found in the whole file, default to today
         if (!baseDate) {
             baseDate = new Date(now);
         }
-        baseDate.setHours(0,0,0,0); // Start at midnight for calculations
+        baseDate.setHours(0,0,0,0);
 
-        lines.forEach(line => {
+        lines.forEach((line, index) => {
             const dateMatch = line.match(/^(\d{1,2})\.(\d{1,2})$/);
             if (dateMatch) {
-                // When we find a date marker, we reset our base date and offsets
-                            const month = parseInt(dateMatch[1], 10) - 1;
-                            const day = parseInt(dateMatch[2], 10);
-                
-                            // Add range validation for month and day
-                            if (month < 0 || month > 11 || day < 1 || day > 31) {
-                                log(`경고: 유효하지 않은 날짜 값입니다: ${line}. 월은 1-12, 일은 1-31 사이여야 합니다. 이 줄은 건너뜁니다.`, false);
-                                return;
-                            }
-                
-                            const parsedDate = new Date(now.getFullYear(), month, day);
-                            if (isNaN(parsedDate.getTime())) { // This check is still useful for things like Feb 30th
-                                log(`경고: 유효하지 않은 날짜 형식입니다: ${line}. 이 줄은 건너뜁니다.`, false);
-                                return;
-                            }                baseDate = parsedDate;
+                const month = parseInt(dateMatch[1], 10) - 1;
+                const day = parseInt(dateMatch[2], 10);
+                if (month < 0 || month > 11 || day < 1 || day > 31) {
+                    const msg = `[줄 ${index + 1}] 유효하지 않은 날짜 값입니다: ${line}. 월은 1-12, 일은 1-31 사이여야 합니다.`;
+                    log(msg, false);
+                    errors.push(msg);
+                    return;
+                }
+                const parsedDate = new Date(now.getFullYear(), month, day);
+                if (isNaN(parsedDate.getTime())) {
+                    const msg = `[줄 ${index + 1}] 유효하지 않은 날짜 형식입니다: ${line}.`;
+                    log(msg, false);
+                    errors.push(msg);
+                    return;
+                }
+                baseDate = parsedDate;
                 baseDate.setHours(0,0,0,0);
                 dayOffset = 0;
-                lastBossTimeInSeconds = -1; // Reset for the new day's chronological check
-                newBossSchedule.push({ type: 'date', value: line });
-                return;
+                lastBossTimeInSeconds = -1;
+                return; 
             }
 
             const parts = line.split(' ');
             if (parts.length < 2) {
-                log(`경고: 보스 이름이 없습니다: ${line}. 이 줄은 건너뜁니다.`, false);
+                const msg = `[줄 ${index + 1}] 보스 이름이 없습니다: ${line}. (형식: HH:MM 보스이름)`;
+                log(msg, false);
+                errors.push(msg);
                 return;
             }
 
             const timeMatch = parts[0].match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
             if (!timeMatch) {
-                log(`경고: 유효하지 않은 시간 형식입니다: ${parts[0]}. 이 줄은 건너뜁니다.`, false);
+                const msg = `[줄 ${index + 1}] 유효하지 않은 시간 형식입니다: ${parts[0]}. (형식: HH:MM)`;
+                log(msg, false);
+                errors.push(msg);
                 return;
             }
+            
             const bossHour = parseInt(timeMatch[1], 10);
             const bossMinute = parseInt(timeMatch[2], 10);
             const bossSecond = timeMatch[3] ? parseInt(timeMatch[3], 10) : 0;
 
             if (isNaN(bossHour) || isNaN(bossMinute) || isNaN(bossSecond) || bossHour < 0 || bossHour > 23 || bossMinute < 0 || bossMinute > 59 || bossSecond < 0 || bossSecond > 59) {
-                log(`경고: 유효하지 않은 시간 값입니다: ${parts[0]}. 이 줄은 건너뜁니다.`, false);
+                const msg = `[줄 ${index + 1}] 유효하지 않은 시간 값입니다: ${parts[0]}.`;
+                log(msg, false);
+                errors.push(msg);
                 return;
             }
 
             const bossTimeInSeconds = bossHour * 3600 + bossMinute * 60 + bossSecond;
 
-            // Handle chronological wrap-around (e.g., 23:00 -> 01:00)
-            if (lastBossTimeInSeconds !== -1 && bossTimeInSeconds < lastBossTimeInSeconds) {
+            // Only apply chronological wrap-around if explicit date headers are NOT present
+            if (!hasDateHeaders && lastBossTimeInSeconds !== -1 && bossTimeInSeconds < lastBossTimeInSeconds) {
                 dayOffset++;
             }
             lastBossTimeInSeconds = bossTimeInSeconds;
@@ -96,16 +110,12 @@ export function parseBossList(bossListInput) {
             scheduledDate.setDate(baseDate.getDate() + dayOffset);
             scheduledDate.setHours(bossHour, bossMinute, bossSecond);
 
-            // Final, single filter for past bosses
-            if (scheduledDate.getTime() < now.getTime()) {
-                removedPastBossCount++;
-                return; // Skip this boss
-            }
+            // Filtering past bosses logic removed as per instruction to allow editing.
 
-            newBossSchedule.push({
+            parsedBosses.push({
                 type: 'boss',
-                id: generateUniqueId(), // Add a unique ID here
-                time: parts[0],
+                // ID will be assigned in the merge step
+                time: `${padNumber(bossHour)}:${padNumber(bossMinute)}:${padNumber(bossSecond)}`,
                 name: parts.slice(1).join(' '),
                 scheduledDate: scheduledDate,
                 alerted_5min: false,
@@ -113,139 +123,87 @@ export function parseBossList(bossListInput) {
                 alerted_0min: false,
             });
         });
+
+        if (errors.length > 0) {
+            return { success: false, mergedSchedule: [], errors: errors };
+        }
+
+        // 2. Smart Merge with Existing Data (SSOT)
+        const currentSchedule = BossDataManager.getBossSchedule();
+        const existingBosses = currentSchedule.filter(item => item.type === 'boss');
+        const mergedBosses = [];
         
-        BossDataManager.setBossSchedule(newBossSchedule);
+        const existingBossPool = [...existingBosses];
 
-        if (newBossSchedule.filter(item => item.type === 'boss').length === 0) {
-            log("보스 목록에서 유효한 보스 일정을 찾을 수 없습니다. 형식을 확인해주세요.", false);
-        } else {
-            log(`${newBossSchedule.filter(item => item.type === 'boss').length}개의 보스 일정을 불러왔습니다.`);
-        }
-        if (removedPastBossCount > 0) {
-            log(`${removedPastBossCount}개의 지난 보스 일정을 목록에서 제거했습니다.`, true);
-        }
-    } catch (error) {
-        log(`보스 목록 파싱 중 오류가 발생했습니다: ${error.message}`, true);
-        console.error("Boss list parsing error:", error);
-    }
-}
-
-// Helper function to generate a unique ID
-function generateUniqueId() {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
-}
-
-export function getSortedBossListText(rawText) {
-    try {
-        const now = new Date();
-        const allBossObjects = [];
-        const normalizedText = rawText.replace(/\r\n|\r/g, '\n').trim();
-        if (!normalizedText) return "";
-
-        // Step 1: Group lines by the date markers that precede them.
-        const dateBlockRegex = /(\d{1,2}\.\d{1,2})/;
-        const parts = normalizedText.split(dateBlockRegex).filter(Boolean);
-
-        const blocks = [];
-        let i = 0;
-        // If the first part is not a date, it belongs to "today" or the first available date
-        if (parts.length > 0 && !parts[0].match(dateBlockRegex)) {
-            blocks.push({ date: null, lines: parts[0].trim().split('\n') });
-            i = 1;
-        }
-
-        for (; i < parts.length; i += 2) {
-            const date = parts[i];
-            const lines = (parts[i + 1] || "").trim().split('\n');
-            blocks.push({ date, lines });
-        }
-
-        // Step 2: Process each block
-        for (const block of blocks) {
-            let baseDate;
-            if (block.date) {
-                const month = parseInt(block.date.split('.')[0], 10) - 1;
-                const day = parseInt(block.date.split('.')[1], 10);
-                if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
-                    const parsedDate = new Date(now.getFullYear(), month, day);
-                    if (!isNaN(parsedDate.getTime())) {
-                        baseDate = parsedDate;
-                    }
-                }
-            }
+        parsedBosses.forEach(parsed => {
+            const matchIndex = existingBossPool.findIndex(existing => existing.name === parsed.name);
             
-            if (!baseDate) {
-                // Find the first valid date in the whole text if the first block has no date
-                const firstDateMatch = normalizedText.match(dateBlockRegex);
-                if(firstDateMatch) {
-                    const month = parseInt(firstDateMatch[0].split('.')[0], 10) - 1;
-                    const day = parseInt(firstDateMatch[0].split('.')[1], 10);
-                    baseDate = new Date(now.getFullYear(), month, day);
-                } else {
-                    baseDate = new Date(now);
-                }
+            if (matchIndex !== -1) {
+                // Found a match! Preserve ID and State.
+                const existing = existingBossPool[matchIndex];
+                mergedBosses.push({
+                    ...existing, // Keep ID, alert states
+                    time: parsed.time, // Update time string
+                    scheduledDate: parsed.scheduledDate // Update calculated date
+                });
+                // Remove from pool to avoid double matching
+                existingBossPool.splice(matchIndex, 1);
+            } else {
+                // New boss
+                mergedBosses.push({
+                    ...parsed,
+                    id: generateUniqueId() // Assign new ID
+                });
             }
-            baseDate.setHours(0, 0, 0, 0);
-
-            const bossLinesInBlock = block.lines.map(l => l.trim()).filter(Boolean);
-            const tempBosses = [];
-
-            // Create simple objects
-            bossLinesInBlock.forEach(line => {
-                const normalizedLine = line.replace(/[^\S\n]+/g, ' '); // 여러 공백을 단일 공백으로 정규화
-                const parts = normalizedLine.split(' ');
-                if (parts.length < 2) return;
-                const timeMatch = parts[0].match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-                if (!timeMatch) return;
-                tempBosses.push({ time: parts[0], name: parts.slice(1).join(' ') });
-            });
-
-
-
-            // Assign full dates with dayOffset logic
-            let dayOffset = 0;
-            let lastBossTimeInSeconds = -1;
-            tempBosses.forEach(boss => {
-                const timeMatch = boss.time.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-                const bossHour = parseInt(timeMatch[1], 10);
-                const bossMinute = parseInt(timeMatch[2], 10);
-                const bossSecond = timeMatch[3] ? parseInt(timeMatch[3], 10) : 0;
-                if (isNaN(bossHour) || isNaN(bossMinute)) return;
-
-                const bossTimeInSeconds = bossHour * 3600 + bossMinute * 60 + bossSecond;
-                if (lastBossTimeInSeconds !== -1 && bossTimeInSeconds < lastBossTimeInSeconds) {
-                    dayOffset++;
-                }
-                lastBossTimeInSeconds = bossTimeInSeconds;
-
-                let scheduledDate = new Date(baseDate);
-                scheduledDate.setDate(baseDate.getDate() + dayOffset);
-                scheduledDate.setHours(bossHour, bossMinute, bossSecond);
-
-                allBossObjects.push({ ...boss, scheduledDate });
-            });
-        }
-
-        // Step 3: Final sort and reconstruction
-        allBossObjects.sort((a, b) => a.scheduledDate - b.scheduledDate);
-
-        let newText = "";
-        let lastDateStr = "";
-        allBossObjects.forEach(boss => {
-            const d = boss.scheduledDate;
-            const currentDateStr = `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-            if (currentDateStr !== lastDateStr) {
-                if (newText !== "") newText += "\n";
-                newText += currentDateStr;
-                lastDateStr = currentDateStr;
-            }
-            newText += `\n${boss.time} ${boss.name}`;
         });
 
-        return newText.trim();
+        // 3. Sort
+        mergedBosses.sort((a, b) => a.scheduledDate - b.scheduledDate);
+
+        // 4. Reconstruction with Date Markers
+        const finalSchedule = [];
+        let lastDateStr = "";
+
+        mergedBosses.forEach(boss => {
+            const d = boss.scheduledDate;
+            const month = d.getMonth() + 1;
+            const day = d.getDate();
+            const currentDateStr = `${padNumber(month)}.${padNumber(day)}`;
+
+            if (currentDateStr !== lastDateStr) {
+                const markerDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                finalSchedule.push({
+                    type: 'date',
+                    value: currentDateStr,
+                    scheduledDate: markerDate
+                });
+                lastDateStr = currentDateStr;
+            }
+            finalSchedule.push(boss);
+        });
+        
+        // BossDataManager.setBossSchedule(finalSchedule); // Removed auto-save
+
+        return { success: true, mergedSchedule: finalSchedule, errors: [] };
+
     } catch (error) {
-        log(`보스 목록 정렬 중 오류가 발생했습니다: ${error.message}`, true);
-        console.error("Boss list sorting error:", error);
-        return rawText;
+        const msg = `보스 목록 파싱 중 치명적 오류: ${error.message}`;
+        log(msg, true);
+        console.error("Boss list parsing error:", error);
+        return { success: false, mergedSchedule: [], errors: [msg] };
     }
+}
+
+// Deprecated: The sorting logic is now integrated into parseBossList and UI rendering.
+// We keep a simplified version that just triggers the parse-sort-update cycle via BossDataManager.
+export function getSortedBossListText(rawText) {
+    // This function is now just a placeholder or helper.
+    // Since we want "Time Sort" button to work, we should rely on parseBossList to sort and set data,
+    // and then updateBossListTextarea to show it.
+    // But this function is expected to RETURN text.
+    
+    // For now, let's just return the input text.
+    // The actual sorting happens because 'parseBossList' updates the DataManager, 
+    // and the UI subscribes to it.
+    return rawText; 
 }

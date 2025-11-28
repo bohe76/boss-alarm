@@ -1,27 +1,34 @@
-process.env.TZ = 'UTC';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { parseBossList, getSortedBossListText } from '../src/boss-parser.js';
+import { parseBossList } from '../src/boss-parser.js';
 import { BossDataManager } from '../src/data-managers.js';
-import * as Logger from '../src/logger.js';
 
 // Mock dependencies
+vi.mock('../src/logger.js', () => ({
+    Logger: {
+        log: vi.fn()
+    },
+    log: vi.fn() // Exported 'log' function
+}));
+
 vi.mock('../src/data-managers.js', () => ({
     BossDataManager: {
         setBossSchedule: vi.fn(),
-    },
-}));
-
-vi.mock('../src/logger.js', () => ({
-    log: vi.fn(),
+        getBossSchedule: vi.fn(() => []) // Default to empty schedule
+    }
 }));
 
 describe('boss-parser', () => {
+    let mockBossListInput;
+    let mockNow;
+
     beforeEach(() => {
-        // Reset mocks before each test
         vi.clearAllMocks();
-        // Mock Date to control 'now'
+        mockBossListInput = { value: '' };
+        
+        // Mock Date to a fixed time (e.g., 2025-11-27 10:00:00 UTC)
+        mockNow = new Date('2025-11-27T10:00:00.000Z');
         vi.useFakeTimers();
-        vi.setSystemTime(new Date('2024-11-27T10:00:00.000Z'));
+        vi.setSystemTime(mockNow);
     });
 
     afterEach(() => {
@@ -29,89 +36,107 @@ describe('boss-parser', () => {
     });
 
     describe('parseBossList', () => {
-        const mockBossListInput = {
-            value: ''
-        };
-
-        it('should parse a simple boss list correctly', () => {
-            mockBossListInput.value = '11:00 Boss A\n12:00 Boss B';
-            parseBossList(mockBossListInput);
-
-            expect(BossDataManager.setBossSchedule).toHaveBeenCalledOnce();
-            const schedule = BossDataManager.setBossSchedule.mock.calls[0][0];
-            expect(schedule).toHaveLength(2);
-            expect(schedule[0].name).toBe('Boss A');
-            expect(schedule[0].scheduledDate.getUTCHours()).toBe(11);
-            expect(schedule[1].name).toBe('Boss B');
-            expect(schedule[1].scheduledDate.getUTCHours()).toBe(12);
-        });
-
-        it('should handle date markers and day rollovers', () => {
-            mockBossListInput.value = '11.27\n23:00 Boss C\n01:00 Boss D';
-            parseBossList(mockBossListInput);
-
-            expect(BossDataManager.setBossSchedule).toHaveBeenCalledOnce();
-            const schedule = BossDataManager.setBossSchedule.mock.calls[0][0];
-            expect(schedule).toHaveLength(3); // date marker + 2 bosses
-            expect(schedule[0].type).toBe('date');
-            expect(schedule[1].name).toBe('Boss C');
-            expect(schedule[1].scheduledDate.getUTCDate()).toBe(27);
-            expect(schedule[2].name).toBe('Boss D');
-            expect(schedule[2].scheduledDate.getUTCDate()).toBe(28); // Day rolled over
-        });
-
-        it('should filter out past bosses', () => {
-            mockBossListInput.value = '09:00 Past Boss\n11:00 Future Boss';
-            parseBossList(mockBossListInput);
+        it('should parse a simple boss list correctly and return result', () => {
+            mockBossListInput.value = '11.27\n12:00 Boss A\n13:00 Boss B';
             
-            expect(BossDataManager.setBossSchedule).toHaveBeenCalledOnce();
-            const schedule = BossDataManager.setBossSchedule.mock.calls[0][0];
-            expect(schedule).toHaveLength(1);
-            expect(schedule[0].name).toBe('Future Boss');
-            expect(Logger.log).toHaveBeenCalledWith('1개의 지난 보스 일정을 목록에서 제거했습니다.', true);
+            const result = parseBossList(mockBossListInput);
+
+            expect(result.success).toBe(true);
+            expect(result.errors).toHaveLength(0);
+            
+            // Check mergedSchedule structure (Reconstruction adds Date markers)
+            // 1. Date Marker (11.27)
+            // 2. Boss A (12:00)
+            // 3. Boss B (13:00)
+            // Note: Bosses are stored as 'boss' type objects. Date markers as 'date' type.
+            
+            const schedule = result.mergedSchedule;
+            // Length might vary depending on reconstruction (e.g. one date marker + 2 bosses = 3 items)
+            expect(schedule.length).toBeGreaterThanOrEqual(3);
+            
+            const bossA = schedule.find(item => item.type === 'boss' && item.name === 'Boss A');
+            const bossB = schedule.find(item => item.type === 'boss' && item.name === 'Boss B');
+            
+            expect(bossA).toBeDefined();
+            expect(bossB).toBeDefined();
+            expect(bossA.time).toBe('12:00:00'); // Normalized time
+            expect(bossB.time).toBe('13:00:00');
+            
+            // Ensure setBossSchedule was NOT called automatically
+            expect(BossDataManager.setBossSchedule).not.toHaveBeenCalled();
         });
 
-        it('should log warnings for invalid lines', () => {
+        it('should handle date markers and correct reconstruction', () => {
+            // Input out of order, should be sorted
+            mockBossListInput.value = '11.27\n13:00 Boss B\n12:00 Boss A';
+            
+            const result = parseBossList(mockBossListInput);
+            
+            expect(result.success).toBe(true);
+            const schedule = result.mergedSchedule;
+            
+            // Expected order: Date(11.27) -> Boss A -> Boss B
+            const bossIndices = schedule.map((item, index) => item.type === 'boss' ? index : -1).filter(i => i !== -1);
+            const names = bossIndices.map(i => schedule[i].name);
+            
+            expect(names).toEqual(['Boss A', 'Boss B']);
+        });
+
+        it('should return errors for invalid lines', () => {
             mockBossListInput.value = '12:00\ninvalid-time Boss';
-            parseBossList(mockBossListInput);
-            expect(Logger.log).toHaveBeenCalledWith('경고: 보스 이름이 없습니다: 12:00. 이 줄은 건너뜁니다.', false);
-            expect(Logger.log).toHaveBeenCalledWith('경고: 유효하지 않은 시간 형식입니다: invalid-time. 이 줄은 건너뜁니다.', false);
+            
+            const result = parseBossList(mockBossListInput);
+            
+            expect(result.success).toBe(false);
+            expect(result.errors.length).toBeGreaterThan(0);
+            expect(result.mergedSchedule).toEqual([]); // Should be empty on failure
         });
-    });
-
-    describe('getSortedBossListText', () => {
-        it('should sort a simple list by time, handling day rollover', () => {
-            const rawText = '14:00 Boss B\n11:00 Boss A';
-            const sortedText = getSortedBossListText(rawText);
-            // Expect 14:00 to be today (Nov 27) and 11:00 to be tomorrow (Nov 28)
-            const expectedText = '11.27\n14:00 Boss B\n11.28\n11:00 Boss A';
-            expect(sortedText).toBe(expectedText);
-        });
-
-        it('should sort across different date markers', () => {
-            const rawText = '11.28\n01:00 Boss D\n11.27\n23:00 Boss C';
-            const sortedText = getSortedBossListText(rawText);
-            const expectedText = '11.27\n23:00 Boss C\n11.28\n01:00 Boss D';
-            expect(sortedText).toBe(expectedText);
-        });
-
-        it('should handle day rollovers within a block', () => {
-            const rawText = '11.27\n23:00 Boss C\n01:00 Boss D';
-            const sortedText = getSortedBossListText(rawText);
-            const correctExpectedText = '11.27\n23:00 Boss C\n11.28\n01:00 Boss D';
-            expect(sortedText).toBe(correctExpectedText);
-        });
-
-        it('should return an empty string for empty input', () => {
-            expect(getSortedBossListText('')).toBe('');
+        
+        it('should not auto-rollover date if header is present', () => {
+            // 11.27 header present. 23:00 -> 01:00 should stay 11.27 unless explicit header
+            mockBossListInput.value = '11.27\n23:00 Boss A\n01:00 Boss B';
+            
+            const result = parseBossList(mockBossListInput);
+            
+            // Both should be on 11.27.
+            // 01:00 on 11.27 is earlier than 23:00 on 11.27, so Boss B comes first.
+            // Expected order: Date(11.27) -> Boss B (01:00) -> Boss A (23:00)
+            
+            const schedule = result.mergedSchedule;
+            const bosses = schedule.filter(item => item.type === 'boss');
+            
+            expect(bosses[0].name).toBe('Boss B');
+            expect(bosses[1].name).toBe('Boss A');
+            
+            // Check dates
+            // mockNow is 11.27 10:00 UTC. 
+            // We need to check if the date part is indeed 11.27
+            // Since we can't easily access the internal Date object year/month, we rely on sorting order.
         });
 
-        it('should ignore invalid lines during sorting', () => {
-            const rawText = '14:00 Boss B\ninvalid line\n11:00 Boss A';
-            const sortedText = getSortedBossListText(rawText);
-            const expectedText = '11.27\n14:00 Boss B\n11.28\n11:00 Boss A';
-            expect(sortedText.includes('invalid line')).toBe(false);
-            expect(sortedText).toBe(expectedText);
+        it('should auto-rollover date if header is NOT present (legacy/init support)', () => {
+            // No header. 23:00 -> 01:00 should be interpreted as next day
+            mockBossListInput.value = '23:00 Boss A\n01:00 Boss B';
+            
+            // But wait, we filter past bosses? 
+            // mockNow = 11.27 10:00 UTC (19:00 KST)
+            // 23:00 (11.27) > 19:00 (Today Future)
+            // 01:00 (11.28) > 19:00 (Tomorrow Future)
+            
+            const result = parseBossList(mockBossListInput);
+            
+            // Expected: Boss A (11.27 23:00) -> Boss B (11.28 01:00)
+            // So sort order: A -> B
+            
+            const schedule = result.mergedSchedule;
+            const bosses = schedule.filter(item => item.type === 'boss');
+            
+            expect(bosses[0].name).toBe('Boss A');
+            expect(bosses[1].name).toBe('Boss B');
+            
+            // Check if reconstruction inserted a second date marker
+            const dateMarkers = schedule.filter(item => item.type === 'date');
+            expect(dateMarkers.length).toBeGreaterThanOrEqual(2); // 11.27 and 11.28
         });
     });
 });

@@ -5,7 +5,7 @@ import { log, getLogs } from './logger.js'; // Import log and getLogs
 import { CustomListManager } from './custom-list-manager.js';
 import { getGameNames, getBossNamesForGame } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
 
-import { validateFixedAlarmTime, formatTimeDifference, formatSpawnTime, normalizeTimeFormat } from './utils.js'; // New import
+import { validateFixedAlarmTime, formatTimeDifference, formatSpawnTime, normalizeTimeFormat, formatBossListTime } from './utils.js'; // New import
 
 
 const MUTE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`;
@@ -304,13 +304,11 @@ export function updateBossListTextarea(DOM) { // Function signature remains unch
     for (let i = 0; i < bossSchedule.length; i++) {
         const currentItem = bossSchedule[i];
         if (currentItem.type === 'date') {
-            // Peek ahead: only show date if it has bosses under it
-            const nextItem = bossSchedule[i + 1];
-            if (nextItem && nextItem.type === 'boss') {
-                outputLines.push(currentItem.value);
-            }
+            outputLines.push(currentItem.value);
         } else if (currentItem.type === 'boss') {
-            outputLines.push(`${currentItem.time} ${currentItem.name}`);
+            // Use formatBossListTime to conditionally show seconds
+            const formattedTime = formatBossListTime(currentItem.time);
+            outputLines.push(`${formattedTime} ${currentItem.name}`);
         }
     }
     DOM.bossListInput.value = outputLines.join('\n');
@@ -617,12 +615,27 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}) {
         DOM.bossInputsContainer.innerHTML = '<p>선택된 게임/목록에 보스가 없습니다.</p>';
         return;
     }
+
+    // Get current schedule to find existing IDs
+    const currentSchedule = BossDataManager.getBossSchedule();
+    const bossMap = new Map();
+    currentSchedule.forEach(item => {
+        if (item.type === 'boss') {
+            // Map boss name to ID. Note: If duplicate names exist, this simple map might pick one arbitrarily.
+            // However, for the scheduler view which typically lists unique boss names per game, this serves as a bridge.
+            if (!bossMap.has(item.name)) {
+                bossMap.set(item.name, item.id);
+            }
+        }
+    });
+
     DOM.bossInputsContainer.innerHTML = bossNames.map(bossName => {
         const initialValue = remainingTimes[bossName] || '';
+        const bossId = bossMap.get(bossName) || ''; // Get existing ID or empty string
         return `
             <div class="boss-input-item">
                 <span class="boss-name">${bossName}</span>
-                <input type="text" class="remaining-time-input" data-boss-name="${bossName}" value="${initialValue}">
+                <input type="text" class="remaining-time-input" data-boss-name="${bossName}" data-id="${bossId}" value="${initialValue}">
                 <span class="calculated-spawn-time">--:--:--</span>
             </div>
         `;
