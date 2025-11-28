@@ -1,4 +1,0 @@
-docs: 해결된 이슈 문서(006, 008)를 resolved 폴더로 이동
-
-- issue-006-boss-scheduler-bug.md -> resolved/
-- issue-008-boss-scheduler-testing-problems.md -> resolved/

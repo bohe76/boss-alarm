@@ -369,6 +369,13 @@ export async function initApp() {
 
     await initializeCoreServices(DOM);
     registerAllRoutes();
+    
+    // Initialize Custom List Modal functionality explicitly as it's not a route
+    const customListScreen = getCustomListScreen();
+    if (customListScreen && customListScreen.init) {
+        customListScreen.init(DOM);
+    }
+
     loadInitialData(DOM);
     
     // Subscribe to BossDataManager changes to automatically refresh the dashboard
