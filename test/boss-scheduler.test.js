@@ -2,7 +2,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { initBossSchedulerScreen } from '../src/screens/boss-scheduler.js';
 import { EventBus } from '../src/event-bus.js';
-import { LocalStorageManager } from '../src/data-managers.js';
 import * as UIRenderer from '../src/ui-renderer.js';
 import { log } from '../src/logger.js';
 
@@ -32,7 +31,7 @@ vi.mock('../src/ui-renderer.js', async (importOriginal) => {
         ...actual,
         renderBossInputs: vi.fn(),
         renderBossSchedulerScreen: vi.fn(),
-        updateBossListTextarea: vi.fn(), // Ensure updateBossListTextarea is mocked
+        // updateBossListTextarea: vi.fn(), // Removed to use actual implementation
     };
 });
 
@@ -81,17 +80,7 @@ describe('BossSchedulerScreen', () => {
         vi.spyOn(window, 'confirm').mockReturnValue(true);
 
         listeners = {}; // Clear EventBus listeners for each test
-        mockBossSchedule = [ // Initialize with a realistic schedule (KST times converted to UTC)
-            { type: 'date', value: '11.28' },
-            { type: 'boss', id: 'id-우로보로스', time: '09:00:00', name: '우로보로스', scheduledDate: new Date('2025-11-28T00:00:00.000Z') }, // 09:00 KST = 00:00 UTC
-            { type: 'boss', id: 'id-셀로비아', time: '11:00:00', name: '셀로비아', scheduledDate: new Date('2025-11-28T02:00:00.000Z') }, // 11:00 KST = 02:00 UTC
-            { type: 'boss', id: 'id-페티', time: '11:00:00', name: '페티', scheduledDate: new Date('2025-11-28T02:00:00.000Z') }, // 11:00 KST = 02:00 UTC
-            { type: 'boss', id: 'id-파르바', time: '00:00:00', name: '파르바', scheduledDate: new Date('2025-11-28T15:00:00.000Z') }, // 00:00 KST on 11.29 = 15:00 UTC on 11.28
-            { type: 'boss', id: 'id-오딘', time: '05:00:00', name: '오딘', scheduledDate: new Date('2025-11-28T20:00:00.000Z') }, // 05:00 KST on 11.29 = 20:00 UTC on 11.28
-            { type: 'boss', id: 'id-일반보스', time: '10:30:00', name: '일반 보스', scheduledDate: new Date('2025-11-29T01:30:00.000Z') }, // 10:30 KST on 11.29 = 01:30 UTC on 11.29
-            { type: 'boss', id: 'id-침공흐니르', time: '11:00:00', name: '침공 흐니르', scheduledDate: new Date('2025-11-29T02:00:00.000Z') }, // 11:00 KST on 11.29 = 02:00 UTC on 11.29
-        ];
-
+        mockBossSchedule = []; // Initialize with empty schedule to avoid pollution
 
         // Mock DOM elements
         DOM = {
@@ -131,26 +120,26 @@ describe('BossSchedulerScreen', () => {
     });
 
     it('should correctly process boss times for today and next day and sort them', () => {
-        // Setup boss inputs
+        // Setup boss inputs with data-id to match mockBossSchedule for updates
         DOM.bossInputsContainer.innerHTML = `
             <div class="boss-input-item">
                 <span class="boss-name">우로보로스</span>
-                <input type="text" class="remaining-time-input" value="09:24:00">
+                <input type="text" class="remaining-time-input" data-id="id-우로보로스" value="09:24:00">
                 <span class="calculated-time">--:--:--</span>
             </div>
             <div class="boss-input-item">
                 <span class="boss-name">셀로비아</span>
-                <input type="text" class="remaining-time-input" value="10:50:13">
+                <input type="text" class="remaining-time-input" data-id="id-셀로비아" value="10:50:13">
                 <span class="calculated-time">--:--:--</span>
             </div>
             <div class="boss-input-item">
                 <span class="boss-name">페티</span>
-                <input type="text" class="remaining-time-input" value="11:00:00">
+                <input type="text" class="remaining-time-input" data-id="id-페티" value="11:00:00">
                 <span class="calculated-time">--:--:--</span>
             </div>
             <div class="boss-input-item">
                 <span class="boss-name">파르바</span>
-                <input type="text" class="remaining-time-input" value="00:00:00">
+                <input type="text" class="remaining-time-input" data-id="id-파르바" value="00:00:00">
                 <span class="calculated-time">--:--:--</span>
             </div>
         `;
@@ -161,10 +150,10 @@ describe('BossSchedulerScreen', () => {
         const expectedText = `11.29
 00:00 파르바
 09:24 우로보로스
-10:50 셀로비아
+10:50:13 셀로비아
 11:00 페티
 12:00 파르바
-22:50 셀로비아
+22:50:13 셀로비아
 23:00 페티`;
 
         expect(DOM.bossListInput.value.trim()).toEqual(expectedText);
@@ -175,12 +164,12 @@ describe('BossSchedulerScreen', () => {
         DOM.bossInputsContainer.innerHTML = `
             <div class="boss-input-item">
                 <span class="boss-name">오딘</span>
-                <input type="text" class="remaining-time-input" value="05:00:00">
+                <input type="text" class="remaining-time-input" data-id="id-오딘" value="05:00:00">
                 <span class="calculated-time">--:--:--</span>
             </div>
             <div class="boss-input-item">
                 <span class="boss-name">파르바</span>
-                <input type="text" class="remaining-time-input" value="10:00:00">
+                <input type="text" class="remaining-time-input" data-id="id-파르바" value="10:00:00">
                 <span class="calculated-time">--:--:--</span>
             </div>
         `;
@@ -209,12 +198,12 @@ describe('BossSchedulerScreen', () => {
             </div>
             <div class="boss-input-item">
                 <span class="boss-name">침공 흐니르</span>
-                <input type="text" class="remaining-time-input" value="11:00:00">
+                <input type="text" class="remaining-time-input" data-id="id-침공흐니르" value="11:00:00">
                 <span class="calculated-time">--:--:--</span>
             </div>
             <div class="boss-input-item">
                 <span class="boss-name">일반 보스</span>
-                <input type="text" class="remaining-time-input" value="10:30:00">
+                <input type="text" class="remaining-time-input" data-id="id-일반보스" value="10:30:00">
                 <span class="calculated-time">--:--:--</span>
             </div>
         `;

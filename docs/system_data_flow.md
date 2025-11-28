@@ -63,22 +63,26 @@
 
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initBossManagementScreen(DOM)`이 호출됩니다.
 *   **이벤트 리스너:**
-    *   **"시간순 정렬" 버튼 (`DOM.sortBossListButton`):** 클릭 시 `DOM.bossListInput.value`의 내용을 `boss-parser.js`의 `getSortedBossListText()`로 정렬하고 `DOM.bossListInput.value`를 업데이트합니다. 이후 `DOM.bossListInput`의 `input` 이벤트가 트리거되어 `parseBossList()` 및 `renderDashboard()`를 호출합니다.
-    *   **보스 목록 텍스트 영역 (`DOM.bossListInput`) `input` 이벤트:** 사용자가 텍스트 영역을 수정하면 `boss-parser.js`의 `parseBossList()`를 호출하여 `BossDataManager.bossSchedule` 상태를 갱신합니다. `BossDataManager`의 변경은 대시보드를 반응적으로 갱신합니다.
-*   **데이터 흐름 요약:** `DOM.bossListInput` 텍스트 영역의 내용을 직접 수정하거나 정렬 버튼으로 변경하면, `boss-parser.js` 모듈을 통해 애플리케이션의 중앙 보스 스케줄(`BossDataManager`)이 업데이트되고, 이는 대시보드 등 구독하는 다른 화면에 즉시 반영됩니다.
+    *   **"보스 설정 저장" 버튼 (`DOM.sortBossListButton`):** 클릭 시 `boss-parser.js`의 `parseBossList()`를 호출하여 텍스트 영역의 내용을 파싱하고 유효성을 검사합니다.
+        *   **유효성 실패:** 에러 메시지를 담은 경고창(`alert`)을 띄우고 저장을 중단합니다.
+        *   **유효성 성공:** 파싱된 결과를 `BossDataManager.setBossSchedule()`로 저장하고, `ui-renderer.js`의 `updateBossListTextarea(DOM)`를 호출하여 정렬 및 포맷팅된 텍스트로 갱신합니다. `window.isBossListDirty`를 `false`로 초기화합니다.
+    *   **보스 목록 텍스트 영역 (`DOM.bossListInput`) `input` 이벤트:** 사용자가 텍스트 영역을 수정하면 `window.isBossListDirty = true`로 설정하여 저장되지 않은 변경 사항이 있음을 표시합니다. (실시간 저장은 하지 않습니다.)
+*   **화면 이탈 방지:** `app.js`의 `showScreen` 함수에서 다른 화면으로 이동 시 `isDirty`가 `true`이면 경고창(`confirm`)을 띄워 데이터 손실을 방지합니다.
+*   **데이터 흐름 요약:** 텍스트 영역 수정은 임시 상태이며, "보스 설정 저장" 버튼을 눌러야만 파싱, 검증, 병합 과정을 거쳐 `BossDataManager`에 반영됩니다.
 
 ### 3.3. 보스 스케줄러 화면 (`src/screens/boss-scheduler.js`)
 
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initBossSchedulerScreen(DOM)`이 호출됩니다. `EventBus.on('show-boss-scheduler-screen', ...)` 리스너가 화면 전환 시 `ui-renderer.js`의 `renderBossSchedulerScreen()`을 호출합니다.
 *   **이벤트 리스너 (DOM.bossSchedulerScreen에 위임):**
-    *   **게임 선택 변경 (`DOM.gameSelect`):** `ui-renderer.js`의 `renderBossInputs()`를 호출하여 선택된 게임에 맞는 보스 입력 필드를 렌더링합니다.
-    *   **남은 시간 입력 (`.remaining-time-input`):** `calculator.js`의 `calculateBossAppearanceTime()`로 출현 시간을 계산하여 표시합니다.
+    *   **게임 선택 변경 (`DOM.gameSelect`):** `ui-renderer.js`의 `renderBossInputs()`를 호출하여 선택된 게임에 맞는 보스 입력 필드를 렌더링합니다. 이때 기존 보스의 ID를 `data-id` 속성에 매핑합니다.
+    *   **남은 시간 입력 (`.remaining-time-input`):** `calculateBossAppearanceTime()`로 출현 시간을 계산하여 표시하고, 정확한 `Date` 객체를 계산하여 `dataset`에 저장합니다.
     *   **"모든 남은 시간 지우기" 버튼 (`DOM.clearAllRemainingTimesButton`):** 모든 입력 필드를 초기화합니다.
     *   **"보스 설정 적용" 버튼 (`DOM.moveToBossSettingsButton`):**
-        1.  입력된 남은 시간을 바탕으로 보스 출현 시간을 계산하고, 특수 보스 규칙(12시간 추가 등) 및 필터링(`침공` 보스)을 적용합니다.
-        2.  결과를 `DOM.bossListInput.value`에 설정한 후 `boss-parser.js`의 `parseBossList()`를 호출하여 `BossDataManager.bossSchedule` 상태를 업데이트합니다. (`BossDataManager` 변경은 대시보드 갱신을 트리거).
-        3.  `EventBus.emit('navigate', 'boss-management-screen')`을 발행하여 '보스 관리' 화면으로 전환을 요청합니다.
-*   **데이터 흐름 요약:** 사용자 입력(`remainingTime`)을 바탕으로 보스 출현 시간을 계산하고, 복잡한 규칙을 거쳐 정렬된 보스 목록 텍스트를 생성합니다. 이 텍스트는 `DOM.bossListInput`에 반영되어 `BossDataManager`의 핵심 스케줄을 업데이트하고 대시보드 및 '보스 관리' 화면 전환에 영향을 미칩니다.
+        1.  입력된 남은 시간(및 저장된 `Date`)과 `data-id`를 기반으로 기존 보스 데이터를 업데이트하거나 신규 보스를 생성합니다.
+        2.  전체 보스 리스트를 `scheduledDate` 기준으로 정렬하고, 날짜 마커(`type: 'date'`)를 적절한 위치에 새로 삽입하는 **재구성(Reconstruction)** 과정을 거칩니다.
+        3.  완성된 리스트를 `BossDataManager.setBossSchedule()`에 저장하고 `updateBossListTextarea`를 호출합니다.
+        4.  `EventBus.emit('navigate', 'boss-management-screen')`을 발행하여 '보스 관리' 화면으로 전환을 요청합니다.
+*   **데이터 흐름 요약:** 사용자 입력을 바탕으로 정확한 시간(`Date`)을 계산하고, ID를 통해 데이터를 안전하게 업데이트하며, 전체 리스트를 재구성하여 데이터 꼬임을 방지합니다.
 
 ### 3.4. 알림 로그 화면 (`src/screens/alarm-log.js`)
 
@@ -113,9 +117,9 @@
 ### 3.9. 보탐 계산기 화면 (`src/screens/calculator.js`)
 
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 'calculator-screen'으로 내비게이션될 때 `handleCalculatorScreenTransition(DOM)`이 호출되어 계산기 UI 및 `LightCalculator` 상태를 초기화하고 렌더링합니다.
-*   **처리 흐름 (젠 계산기):** 남은 시간 입력 시 `calculator.js`를 통해 보스 출현 시간을 계산하고, "업데이트" 버튼 클릭 시 `BossDataManager`를 통해 보스 시간을 업데이트합니다. 이는 `BossDataManager`의 변경을 통해 대시보드를 갱신합니다.
+*   **처리 흐름 (젠 계산기):** 남은 시간 입력 시 `calculator.js`를 통해 보스 출현 시간을 계산합니다. "업데이트" 버튼 클릭 시 `BossDataManager`에서 해당 보스(ID 기준)를 찾아 시간을 업데이트하고, 전체 리스트를 재구성(Reconstruction)하여 저장합니다. 이후 `updateBossListTextarea`를 호출하여 UI를 갱신합니다.
 *   **처리 흐름 (광 계산기):** "시작", "광", "캡처" 버튼 클릭을 통해 `LightCalculator` 모듈이 스톱워치를 제어하고, `LocalStorageManager`를 통해 기록을 저장합니다.
-*   **데이터 흐름 요약:** "젠 계산기"는 사용자 입력 및 `BossDataManager`를 통해 보스 시간을 업데이트하고, "광 계산기"는 `LightCalculator` 모듈을 통해 스톱워치 기반의 시간 측정을 수행하고 로컬 스토리지에 기록합니다.
+*   **데이터 흐름 요약:** "젠 계산기"는 사용자 입력 및 `BossDataManager`를 통해 보스 시간을 직접 업데이트하고 재구성하며, "광 계산기"는 `LightCalculator` 모듈을 통해 스톱워치 기반의 시간 측정을 수행하고 로컬 스토리지에 기록합니다.
 
 ### 3.10. 알림 설정 화면 (`src/screens/notifications.js`)
 

@@ -104,6 +104,7 @@
 *   `renderDashboard(DOM)`: '다음 보스', '다가오는 보스', '알림 실행 상태', '음소거 버튼' 등 대시보드 전체 UI를 업데이트하는 오케스트레이터 함수입니다.
 *   `renderHelpScreen(DOM, helpData)`: '도움말' 화면의 콘텐츠(아코디언 형태)를 렌더링합니다.
 *   `renderVersionInfo(DOM, versionData)`: '릴리즈 노트' 화면의 버전 기록을 렌더링합니다.
+*   `updateBossListTextarea(DOM)`: `BossDataManager`의 데이터를 기반으로 보스 목록 텍스트 영역을 업데이트합니다. `bossSchedule` 배열을 순회하며 날짜 마커를 출력하고, 보스 시간은 `formatBossListTime`을 통해 포맷팅(초가 00이면 생략)하여 출력합니다.
 *   그 외 `Calculator`, `Boss Scheduler`, `Custom List`, `Fixed Alarm` 관련 상세 렌더링 함수들.
 
 ---
@@ -205,10 +206,9 @@
 
 ### `src/boss-parser.js`
 
-- **역할:** 사용자 입력 텍스트(보스 목록)를 파싱하여 `BossDataManager`가 관리하는 구조화된 `bossSchedule` 데이터로 변환합니다. 보스 목록 텍스트의 정렬 기능도 제공합니다.
+- **역할:** 사용자 입력 텍스트(보스 목록)를 파싱하여 구조화된 데이터로 변환하고, 기존 데이터와 지능적으로 병합(Smart Merge)합니다.
 - **주요 `export` 함수:**
-    - `parseBossList(bossListInput)`: 텍스트 영역의 내용을 파싱하여 보스 스케줄을 업데이트합니다.
-    - `getSortedBossListText(rawText)`: 원시 텍스트 보스 목록을 시간순으로 정렬한 텍스트를 반환합니다.
+    - `parseBossList(bossListInput)`: 텍스트 영역의 내용을 파싱합니다. 기존 `BossDataManager`의 데이터와 비교하여 ID를 유지하며 병합하고, 날짜 마커를 재구성한 결과 객체(`{ success, mergedSchedule, errors }`)를 반환합니다. 자동 저장을 수행하지 않으므로 호출자가 반환값을 확인 후 저장해야 합니다.
 
 ### `src/boss-scheduler-data.js`
 
@@ -255,8 +255,8 @@
 | 모듈 파일 | 주요 `export` 함수 | 상세 역할 및 내부 로직 |
 |---|---|---|
 | **`alarm-log.js`** | `getScreen()` | `onTransition` 시 `renderAlarmLog(DOM)`를 호출하여 `logger.js`의 모든 로그를 표시합니다. `global-event-listeners.js`에서 `EventBus.on('log-updated', ...)`를 통해 동적으로 갱신됩니다. |
-| **`boss-management.js`** | `getScreen()` | `init` 시 보스 목록 `textarea`의 정렬 및 입력 변화에 따른 파싱 이벤트 리스너를 등록합니다. |
-| **`boss-scheduler.js`** | `getScreen()` | `init` 시 게임 선택, 보스 시간 입력(`remaining-time-input`), '모든 시간 초기화', '보스 설정으로 전송' 버튼 등 보스 스케줄러 화면의 이벤트 리스너를 등록합니다. 입력된 시간을 계산하여 메인 보스 목록으로 변환하는 복잡한 로직을 포함합니다. |
+| **`boss-management.js`** | `getScreen()` | `init` 시 "보스 설정 저장" 버튼의 이벤트 리스너를 등록합니다. 버튼 클릭 시 `parseBossList`를 호출하여 유효성을 검사하고, 성공 시에만 `BossDataManager`에 저장합니다. 텍스트 수정 시 `isDirty` 플래그를 관리하여 저장되지 않은 변경 사항을 추적합니다. |
+| **`boss-scheduler.js`** | `getScreen()` | `init` 시 게임 선택, 보스 시간 입력(`remaining-time-input`) 등의 이벤트 리스너를 등록합니다. "보스 설정 적용" 버튼 클릭 시 입력된 `data-id`를 기반으로 기존 보스 데이터를 업데이트하고, 전체 리스트를 재구성(Reconstruction)하여 저장합니다. |
 | **`calculator.js`** | `getScreen()` | `init` 시 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 계산기 상태를 초기화하고 `ui-renderer.js`의 함수들을 호출하여 화면을 렌더링합니다. |
 | **`custom-list.js`** | `getScreen()` | `init` 시 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. 모달은 `boss-scheduler-screen`에서 트리거됩니다. |
 | **`dashboard.js`** | `getScreen()` | `init` 시 음소거 토글 버튼의 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링한 후 `global-event-listeners.js`의 `log-updated` 이벤트에 반응하여 갱신합니다. |

@@ -2,7 +2,7 @@
 
 import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning } from './alarm-scheduler.js';
-import { renderFixedAlarms, renderAlarmStatusSummary, renderDashboard } from './ui-renderer.js';
+import { renderFixedAlarms, renderAlarmStatusSummary, renderDashboard, updateBossListTextarea } from './ui-renderer.js';
 import { log } from './logger.js';
 import { LocalStorageManager, BossDataManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
@@ -74,6 +74,22 @@ function hideTooltip(globalTooltip) {
 
 // Function to show a specific screen and hide others
 function showScreen(DOM, screenId) {
+    // Unsaved changes check for Boss Management Screen
+    const activeScreen = document.querySelector('.screen.active');
+    if (activeScreen && activeScreen.id === 'boss-management-screen' && window.isBossListDirty) {
+        if (!confirm("값이 저장되지 않았습니다. 그래도 화면을 이동하시겠습니까?\n(확인 시 수정 사항은 반영되지 않습니다.)")) {
+            return; // Cancel navigation
+        }
+        window.isBossListDirty = false; // Reset flag on confirm
+        // Optional: Revert textarea to last saved state? 
+        // For now, we just allow navigation. If user comes back, they might see dirty text or reset text depending on implementation.
+        // To be safe, let's force a reset of the textarea from DATA when leaving or entering?
+        // Actually, 'boss-management-screen' doesn't have 'onTransition' to reset. 
+        // But since we didn't save, DATA is pristine. 
+        // If we want to clear the dirty text, we should do it here.
+        updateBossListTextarea(DOM); // Revert UI to match saved DATA
+    }
+
     const screens = [
         DOM.dashboardScreen,
         DOM.bossManagementScreen,
@@ -144,10 +160,22 @@ function showScreen(DOM, screenId) {
 
 function loadInitialData(DOM) {
     const params = new URLSearchParams(window.location.search);
+    let loadSuccess = false;
+
     if (params.has('data')) {
         DOM.bossListInput.value = decodeURIComponent(params.get('data'));
-        log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
-    } else {
+        const result = parseBossList(DOM.bossListInput);
+        if (result.success) {
+            BossDataManager.setBossSchedule(result.mergedSchedule);
+            loadSuccess = true;
+            log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
+        } else {
+            alert("URL의 보스 설정 값이 올바르지 않습니다. 오류:\n" + result.errors.join('\n') + "\n\n기본값으로 초기화합니다.");
+            log("URL 데이터 파싱 실패. 기본값으로 복구합니다.", false);
+        }
+    } 
+    
+    if (!loadSuccess) {
         const defaultBossList = DefaultBossList.bossPresets[0].list;
         let updatedBossList = defaultBossList;
         const hasDateEntries = /^(\d{2}\.\d{2})/m.test(defaultBossList);
@@ -177,10 +205,16 @@ function loadInitialData(DOM) {
             updatedBossList = lines.join('\n');
         }
         DOM.bossListInput.value = updatedBossList;
-        log("기본 보스 목록을 불러왔습니다. (URL 데이터 없음)");
+        
+        const result = parseBossList(DOM.bossListInput);
+        if (result.success) {
+            BossDataManager.setBossSchedule(result.mergedSchedule);
+            log("기본 보스 목록을 불러왔습니다.");
+        } else {
+            console.error("Critical: Default boss list parsing failed!", result.errors);
+            alert("기본 보스 목록 로드에 실패했습니다. 시스템 관리자에게 문의하세요.");
+        }
     }
-
-    parseBossList(DOM.bossListInput);
 
     if (params.has('fixedData')) {
         if (LocalStorageManager.importFixedAlarms(decodeURIComponent(params.get('fixedData')))) {
@@ -189,6 +223,8 @@ function loadInitialData(DOM) {
             log("URL에서 고정 알림을 불러오는 데 실패했습니다. 기본값을 사용합니다.", false);
         }
     }
+    
+    updateBossListTextarea(DOM); // Ensure UI reflects the parsed and normalized data
 }
 
 // Function to initialize all event handlers
@@ -324,6 +360,7 @@ function initEventHandlers(DOM, globalTooltip) {
 }
 
 export async function initApp() {
+    window.isBossListDirty = false; // Initialize dirty flag
     document.body.classList.add('loading'); // Activate skeleton UI
     const DOM = initDomElements();
     const globalTooltip = document.getElementById('global-tooltip');

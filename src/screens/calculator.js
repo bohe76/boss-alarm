@@ -1,7 +1,6 @@
 import { calculateBossAppearanceTime } from '../calculator.js';
 import { LightCalculator } from '../light-calculator.js';
 import { LocalStorageManager, BossDataManager } from '../data-managers.js';
-import { getSortedBossListText, parseBossList } from '../boss-parser.js';
 import { 
     showToast, 
     populateBossSelectionDropdown, 
@@ -12,7 +11,7 @@ import {
     renderLightSavedList, 
     renderCalculatorScreen 
 } from '../ui-renderer.js';
-import { formatTime } from '../utils.js';
+import { formatTime, padNumber } from '../utils.js';
 import { log } from '../logger.js';
 
 // Helper to check if Zen Calculator update button should be enabled
@@ -58,32 +57,82 @@ export function initCalculatorScreen(DOM) {
 
             const [newHour, newMinute, newSecond] = newBossTime.split(':').map(Number);
             const newScheduledDate = new Date(targetDate);
-            newScheduledDate.setHours(newHour, newMinute, newSecond || 0, 0);
+            newScheduledDate.setHours(newHour, newMinute, newSecond || 0); // Fix: seconds handling
 
-            const currentBossSchedule = BossDataManager.getBossSchedule();
+            // 1. Get existing schedule and find the boss to update
+            const currentSchedule = BossDataManager.getBossSchedule();
             let bossFoundAndUpdated = false;
+            
+            // Filter out date markers, we will reconstruct them.
+            let allBosses = currentSchedule.filter(item => item.type === 'boss');
 
-            const updatedSchedule = currentBossSchedule.map(boss => {
-                if (boss.type === 'boss' && boss.id === targetId) {
+            // Update the specific boss
+            allBosses = allBosses.map(boss => {
+                if (boss.id === targetId) {
                     bossFoundAndUpdated = true;
+                    // If new time is in the past relative to *now* (not relative to its original time), 
+                    // we might need logic. But here we just apply the calculated time.
+                    // The calculator calculates time based on 'now', so it's usually future or near future.
+                    // However, we need to be careful about the DATE.
+                    // `newScheduledDate` uses `targetDate` (original date) but sets new HH:MM:SS.
+                    // If original was 11.28 23:00 and we change to 01:00, it becomes 11.28 01:00 (past).
+                    // Ideally, the calculator should return a full Date object or we should infer date.
+                    // But `calculateBossAppearanceTime` returns a string based on `now`.
+                    // So `newBossTime` is relative to TODAY/NOW.
+                    // Therefore, we should construct `newScheduledDate` based on `now`, not `targetDate`.
+                    
+                    const now = new Date();
+                    let updatedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), newHour, newMinute, newSecond || 0);
+                    
+                    // If the calculated time is earlier than now (e.g. rolled over to next day in calc logic, but here we only have string),
+                    // Wait, `calculateBossAppearanceTime` uses `now` and adds remaining time. It handles rollover in hours > 24?
+                    // No, `calculateBossAppearanceTime` returns HH:MM:SS string.
+                    // If remaining time is 25 hours, it returns time next day.
+                    // We need to trust that if the user says "remaining time", the resulting time is future.
+                    if (updatedDate.getTime() < now.getTime()) {
+                         updatedDate.setDate(updatedDate.getDate() + 1);
+                    }
+                    
                     return {
                         ...boss,
                         time: newBossTime,
-                        scheduledDate: newScheduledDate,
+                        scheduledDate: updatedDate,
+                        alerted_5min: false, alerted_1min: false, alerted_0min: false
                     };
                 }
                 return boss;
             });
 
             if (bossFoundAndUpdated) {
-                BossDataManager.setBossSchedule(updatedSchedule);
+                // 2. Sort
+                allBosses.sort((a, b) => a.scheduledDate - b.scheduledDate);
 
-                updateBossListTextarea(DOM);
-                let finalBossListText = DOM.bossListInput.value;
-                finalBossListText = getSortedBossListText(finalBossListText);
-                DOM.bossListInput.value = finalBossListText;
+                // 3. Reconstruct with Date Markers
+                const newSchedule = [];
+                let lastDateStr = "";
 
-                parseBossList(DOM.bossListInput);
+                allBosses.forEach(boss => {
+                    const d = boss.scheduledDate;
+                    const month = d.getMonth() + 1;
+                    const day = d.getDate();
+                    const currentDateStr = `${padNumber(month)}.${padNumber(day)}`;
+
+                    if (currentDateStr !== lastDateStr) {
+                        const markerDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                        newSchedule.push({
+                            type: 'date',
+                            value: currentDateStr,
+                            scheduledDate: markerDate
+                        });
+                        lastDateStr = currentDateStr;
+                    }
+                    newSchedule.push(boss);
+                });
+
+                // 4. Save and Update UI
+                BossDataManager.setBossSchedule(newSchedule);
+                updateBossListTextarea(DOM); // This will use the new formatted output logic
+                
                 showToast(DOM, `${bossName} 보스 시간이 ${newBossTime}으로 업데이트 되었습니다.`);
 
                 DOM.remainingTimeInput.value = '';
