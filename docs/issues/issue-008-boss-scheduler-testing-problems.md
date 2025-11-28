@@ -1,0 +1,51 @@
+---
+status: 미해결
+created_at: 2025-11-28
+priority: high
+assigned_to: Gemini
+labels:
+  - bug
+  - testing
+  - mocking
+  - timezone
+---
+# 이슈 008: 보스 스케줄러 기능 및 테스트의 지속적인 문제점
+
+## 1. 문제점
+
+보스 스케줄러 기능 (`src/screens/boss-scheduler.js`) 및 관련 테스트(`test/boss-scheduler.test.js`)에 지속적인 문제가 발생하고 있습니다. `BossDataManager`와의 직접적인 병합 로직을 구현하고 KST(한국 표준시) 기반 시간 처리를 적용했음에도 불구하고, 테스트가 여전히 실패하고 UI 렌더링에 문제가 발생하고 있습니다.
+
+주요 문제점은 다음과 같습니다.
+
+### 1.1. 테스트 실패 (`AssertionError: expected '' to deeply equal '...'`)
+
+`test/boss-scheduler.test.js` 내의 다음 테스트들이 `DOM.bossListInput.value`가 예상되는 보스 목록 텍스트 대신 빈 문자열로 나타나기 때문에 실패하고 있습니다.
+
+*   `should correctly process boss times for today and next day and sort them`
+*   `should handle special bosses with +12h logic and sort them correctly`
+*   `should filter out invasion bosses that are not today`
+
+이는 `updateBossListTextarea(DOM)` 함수가 `BossDataManager`에서 데이터를 가져와 올바른 텍스트를 생성하지 못하고 있음을 시사합니다.
+
+### 1.2. `updateBossListTextarea` 로직 문제 (빈 문자열 출력)
+
+`src/ui-renderer.js`의 `updateBossListTextarea` 함수는 `bossSchedule` 배열을 기반으로 텍스트를 생성하지만, `if (nextItem && nextItem.type === 'boss')`와 같은 조건부 로직으로 인해 `type: 'date'` 항목이 올바르게 렌더링되지 않거나, `bossSchedule`의 구조가 예상과 달라 빈 문자열을 생성하는 것으로 추정됩니다. 콘솔 로그 확인 결과 `BossDataManager`의 `mockBossSchedule`은 올바르게 데이터가 채워져 있으나, 텍스트 영역에는 빈 문자열이 나타납니다.
+
+### 1.3. `BossDataManager` 모의 문제 (가능성)
+
+`test/boss-scheduler.test.js`의 `BossDataManager` 모의가 `vi.mock`의 `importOriginal`을 사용하여 `mockBossSchedule`에 대한 동적 저장 및 검색을 구현했음에도 불구하고, `updateBossListTextarea`가 여전히 빈 데이터를 받고 있는 것으로 보입니다.
+
+### 1.4. 시간대(Timezone) 처리의 복잡성
+
+애플리케이션은 한국 표준시(KST, UTC+9)를 기준으로 모든 계산 및 표시를 수행해야 하지만, `Date` 객체의 로컬/UTC 메서드 사용 및 `JSDOM` 테스트 환경에서의 시간대 동작 불일치로 인해 예상치 못한 결과가 계속 발생하고 있습니다. 테스트 환경(`process.env.TZ = 'UTC';` 설정 여부)과 실제 애플리케이션 코드 간의 시간대 처리 일관성을 확보하는 것이 중요합니다.
+
+## 2. 현재 상태
+
+*   `fix/boss-scheduler-v2` 브랜치에서 작업 중입니다.
+*   `src/screens/boss-scheduler.js`에는 KST 기반 로직과 `BossDataManager`를 직접 업데이트하는 새로운 병합 로직이 적용되어 있습니다.
+*   `src/calculator.js` 및 `src/ui-renderer.js`는 KST 기반 로컬 시간 메서드를 사용하도록 확인되었습니다.
+*   `test/boss-scheduler.test.js`에는 `process.env.TZ = 'UTC';`가 설정되어 있으며, 모든 모의(EventBus, BossDataManager, UIRenderer)가 최신 버전으로 업데이트되어 있습니다. `mockBossSchedule`은 `beforeEach`에서 현실적인 데이터로 초기화됩니다.
+
+## 3. 예상되는 해결 방안 (다음 단계)
+
+`updateBossListTextarea` 함수가 `bossSchedule`에서 `type: 'date'` 항목을 올바르게 렌더링하지 못하는 문제에 집중하여 해결해야 합니다. `if (nextItem && nextItem.type === 'boss')` 조건이 날짜 표시를 잘못 필터링하는지 확인하고 수정해야 합니다. 또한, KST 기반 예상 테스트 결과와 실제 렌더링되는 결과 간의 정확한 일치를 확인해야 합니다.

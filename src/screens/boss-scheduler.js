@@ -3,6 +3,8 @@ import { calculateBossAppearanceTime } from '../calculator.js';
 import { log } from '../logger.js';
 import { parseBossList } from '../boss-parser.js';
 import { EventBus } from '../event-bus.js';
+import { BossDataManager } from '../data-managers.js';
+import { updateBossListTextarea } from '../ui-renderer.js';
 
 let _remainingTimes = {}; // Encapsulated state
 
@@ -63,22 +65,31 @@ export function initBossSchedulerScreen(DOM) {
                 const bossObjectList = [];
                 const now = new Date();
 
-                // 1. Data Collection & Objectification
+                // 1. Data Collection & Objectification (KST-based)
                 DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
                     const bossName = item.querySelector('.boss-name').textContent;
                     const remainingTimeInput = item.querySelector('.remaining-time-input');
                     const remainingTime = remainingTimeInput.value;
 
                     if (remainingTime) {
-                        const appearanceTime = new Date(now);
                         const timeParts = remainingTime.split(':').map(Number);
                         const hours = timeParts[0] || 0;
                         const minutes = timeParts[1] || 0;
                         const seconds = timeParts[2] || 0;
 
-                        appearanceTime.setHours(appearanceTime.getHours() + hours);
-                        appearanceTime.setMinutes(appearanceTime.getMinutes() + minutes);
-                        appearanceTime.setSeconds(appearanceTime.getSeconds() + seconds);
+                        let appearanceTime = new Date(
+                            now.getFullYear(),
+                            now.getMonth(),
+                            now.getDate(),
+                            hours,
+                            minutes,
+                            seconds
+                        );
+
+                        // If the calculated time is in the past, assume it's for the next day (using local methods)
+                        if (appearanceTime.getTime() < now.getTime()) {
+                            appearanceTime.setDate(appearanceTime.getDate() + 1);
+                        }
 
                         bossObjectList.push({
                             name: bossName,
@@ -87,7 +98,7 @@ export function initBossSchedulerScreen(DOM) {
                     }
                 });
 
-                // 2. Add +12h Bosses
+                // 2. Add +12h Bosses (KST-based)
                 const additionalBosses = [];
                 bossObjectList.forEach(boss => {
                     if (specialBossNames.includes(boss.name)) {
@@ -102,7 +113,7 @@ export function initBossSchedulerScreen(DOM) {
 
                 const combinedList = [...bossObjectList, ...additionalBosses];
 
-                // 3. Filtering Step for '침공' bosses
+                // 3. Filtering Step for '침공' bosses (KST-based)
                 const todayString = new Date().toDateString();
                 const fullBossList = combinedList.filter(boss => {
                     const isInvasionBoss = boss.name.includes("침공");
@@ -113,32 +124,78 @@ export function initBossSchedulerScreen(DOM) {
                     return boss.appearanceTime.toDateString() === todayString;
                 });
 
-                // 4. Accurate Time Sorting
+                // 4. Accurate Time Sorting (KST-based)
                 fullBossList.sort((a, b) => a.appearanceTime - b.appearanceTime);
 
-                // 5. Reconstruct Text Format
-                let finalText = "";
-                let lastDateStr = "";
+                console.log('--- Debug Boss Scheduler ---');
+                console.log('fullBossList (after sorting):', fullBossList);
 
+                // --- NEW LOGIC: Direct BossDataManager Merge ---
+                console.log('Before BossDataManager.getBossSchedule(), mockBossSchedule should be:', BossDataManager.getBossSchedule());
+                const currentBossSchedule = BossDataManager.getBossSchedule();
+                console.log('currentBossSchedule (from BossDataManager):', currentBossSchedule);
+                const processedBossesMap = new Map();
+                
+                // Prepare a map of processed bosses from fullBossList keyed by name for easy lookup
                 fullBossList.forEach(boss => {
-                    const d = boss.appearanceTime;
-                    const currentDateStr = `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-                    const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-
-                    if (currentDateStr !== lastDateStr) {
-                        if (finalText !== "") {
-                            finalText += "\n";
-                        }
-                        finalText += currentDateStr;
-                        lastDateStr = currentDateStr;
-                    }
-                    finalText += `\n${timeStr} ${boss.name}`;
+                    // boss has: name, appearanceTime (Date object)
+                    const timeStr = `${String(boss.appearanceTime.getHours()).padStart(2, '0')}:${String(boss.appearanceTime.getMinutes()).padStart(2, '0')}:${String(boss.appearanceTime.getSeconds()).padStart(2, '0')}`;
+                    processedBossesMap.set(boss.name, {
+                        name: boss.name,
+                        time: timeStr, // Add formatted time string
+                        scheduledDate: boss.appearanceTime, // Use the new Date object
+                    });
                 });
 
-                // 6. Apply to Textarea
-                DOM.bossListInput.value = finalText.trim();
+                // Create the new schedule by iterating through the currentBossSchedule
+                const newScheduleItems = currentBossSchedule.map(item => {
+                    if (item.type === 'boss' && processedBossesMap.has(item.name)) {
+                        // This boss was processed by scheduler, update its info
+                        const updatedInfo = processedBossesMap.get(item.name);
+                        return {
+                            ...item, // Preserve original ID and other properties
+                            time: updatedInfo.time,
+                            scheduledDate: updatedInfo.scheduledDate,
+                            // Ensure alert states are reset for updated boss
+                            alerted_5min: false, alerted_1min: false, alerted_0min: false
+                        };
+                    }
+                    return item; // Keep date markers and unprocessed bosses as is
+                });
                 
-                parseBossList(DOM.bossListInput); // Parse the new boss list
+                // Sort the newScheduleItems after merging all updates
+                newScheduleItems.sort((a, b) => {
+                    let dateA, dateB;
+
+                    // Helper to convert MM.DD string to Date object for comparison
+                    const getDateFromItem = (item, currentYear) => {
+                        if (item.type === 'boss') {
+                            return item.scheduledDate;
+                        } else if (item.type === 'date') {
+                            const [month, day] = item.value.split('.').map(Number);
+                            // Use local time for date markers as the app is KST-centric
+                            return new Date(currentYear, month - 1, day);
+                        }
+                        return null;
+                    };
+
+                    const currentYear = now.getFullYear(); // Use 'now' from the handler scope
+
+                    dateA = getDateFromItem(a, currentYear);
+                    dateB = getDateFromItem(b, currentYear);
+
+                    if (!dateA || !dateB) {
+                        // If one of the dates couldn't be formed or is null, maintain relative order
+                        return 0; 
+                    }
+
+                    return dateA.getTime() - dateB.getTime();
+                });
+                
+                console.log('newScheduleItems (before BossDataManager.setBossSchedule):', newScheduleItems);
+                BossDataManager.setBossSchedule(newScheduleItems);
+                updateBossListTextarea(DOM); // Refresh the UI from BossDataManager
+                // --- End NEW LOGIC ---
                 
                 // Store current remaining times before navigating away
                 _remainingTimes = {}; // Clear previous state
