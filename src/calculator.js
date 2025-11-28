@@ -53,13 +53,19 @@ export function calculateBossAppearanceTime(remainingTimeString) {
     }
 
     const now = new Date();
-    now.setHours(now.getHours() + hours);
-    now.setMinutes(now.getMinutes() + minutes);
-    now.setSeconds(now.getSeconds() + seconds);
+    if (hours === 0 && minutes === 0 && seconds === 0) {
+        // Special case: 00:00:00 means next day's midnight.
+        now.setDate(now.getDate() + 1);
+        now.setHours(0, 0, 0, 0);
+    } else {
+        now.setHours(now.getHours() + hours);
+        now.setMinutes(now.getMinutes() + minutes);
+        now.setSeconds(now.getSeconds() + seconds);
+    }
 
     const appearanceHours = String(now.getHours()).padStart(2, '0');
     const appearanceMinutes = String(now.getMinutes()).padStart(2, '0');
     const appearanceSeconds = String(now.getSeconds()).padStart(2, '0');
 
-    return `${appearanceHours}:${appearanceMinutes}:${appearanceSeconds}`;
+    return now;
 }
