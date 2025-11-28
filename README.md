@@ -1,6 +1,6 @@
 # Boss Alarm (보스 알리미)
 
-![Boss Alarm Screenshot](https://i.postimg.cc/9f4Tx78r/odin-boss-alarm.png)
+![Boss Alarm Screenshot](https://i.postimg.cc/8Ph5mW7x/BOSS.png)
 
 ## 🚀 프로젝트 소개 (Project Introduction)
 
@@ -15,13 +15,13 @@ This project is a client-side web application designed to provide notifications 
     *   **보스 관리:** 보스 목록 입력 및 프리셋 관리.
     *   **알림 설정:** 고정 알림 추가, 편집, 삭제 및 활성화/비활성화.
     *   **젠 계산기:** 남은 시간을 기준으로 보스 출현 시간 계산.
-    *   **보스 스케줄러:** 게임별 보스 목록에서 남은 시간을 설정하여 보스 목록 자동 생성.
+    *   **보스 스케줄러:** 게임별 보스 목록에서 남은 시간을 설정하여 보스 목록 자동 생성. **(정확한 시간 계산과 안정성 강화)**
     *   **공유:** 현재 보스 목록을 공유 가능한 짧은 URL로 생성.
     *   **알림 로그:** 모든 알림 및 시스템 메시지 기록.
     *   **도움말:** 애플리케이션 사용법 및 기능 설명.
     *   **릴리즈 노트:** 버전별 업데이트 내역 확인.
 
-*   **시간 기반 알림 (Time-Based Notifications):** 보스 출현 5분 전, 1분 전, 0분 전에 알림이 트리거됩니다.
+*   **시간 기반 알림 (Time-Based Notifications):** 보스 출현 5분 전, 1분 전, 0분 전에 알림이 트리거됩니다. **(자정(00:00:00) 시간 처리 및 전체적인 시간 계산 정확성, 안정성 향상)**
 *   **오디오 알림 (Audio Notifications):** 웹 음성 API (`window.speechSynthesis`)를 활용하여 음성 알림을 제공합니다.
 *   **로깅 (Logging):** 트리거된 모든 알림 및 시스템 메시지 로그를 UI에 표시합니다.
 *   **공유 가능한 URL (Shareable URLs):** 현재 보스 목록을 인코딩하여 다른 사용자를 위해 미리 채워주는 짧은 URL(TinyURL API를 통해)을 생성합니다.
@@ -46,6 +46,13 @@ This project is a client-side web application designed to provide notifications 
 *   **바닐라 자바스크립트** (모듈화된 파일 `src/` 폴더 내에서 import하여 사용)
 *   **Web Speech API** (`window.speechSynthesis`를 통한 음성 알림)
 *   **TinyURL API** (URL 단축용)
+
+## 🚦 코드 품질 및 검증 (Code Quality & Verification)
+
+본 프로젝트는 높은 코드 품질을 유지하고 잠재적인 오류를 사전에 방지하기 위해 다음과 같은 도구를 활용합니다.
+
+*   **ESLint:** 코드의 문법 오류, 잠재적인 버그, 스타일 규칙 위반 등을 코드를 실행하기 전에 찾아냅니다. (`npm run lint`로 실행)
+*   **Vitest:** 핵심 로직의 정확성을 검증하고, 회귀를 방지하며, 코드의 안정성을 보장하기 위한 유닛 테스트 프레임워크입니다. (`npm test`로 실행)
 
 ## 🤝 기여 (Contributing)
 
