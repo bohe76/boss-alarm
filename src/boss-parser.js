@@ -3,6 +3,7 @@
 import { log } from './logger.js';
 import { BossDataManager } from './data-managers.js'; // Import manager
 import { generateUniqueId, padNumber } from './utils.js'; // Import utils
+import { calculateBossAppearanceTime } from './calculator.js'; // Import calculateBossAppearanceTime
 
 /**
  * 보스 목록 텍스트를 파싱하고 기존 데이터와 병합합니다.
@@ -79,24 +80,19 @@ export function parseBossList(bossListInput) {
                 return;
             }
 
-            const timeMatch = parts[0].match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-            if (!timeMatch) {
-                const msg = `[줄 ${index + 1}] 유효하지 않은 시간 형식입니다: ${parts[0]}. (형식: HH:MM)`;
-                log(msg, false);
-                errors.push(msg);
-                return;
-            }
-            
-            const bossHour = parseInt(timeMatch[1], 10);
-            const bossMinute = parseInt(timeMatch[2], 10);
-            const bossSecond = timeMatch[3] ? parseInt(timeMatch[3], 10) : 0;
+            const timeString = parts[0];
+            const appearanceTime = calculateBossAppearanceTime(timeString);
 
-            if (isNaN(bossHour) || isNaN(bossMinute) || isNaN(bossSecond) || bossHour < 0 || bossHour > 23 || bossMinute < 0 || bossMinute > 59 || bossSecond < 0 || bossSecond > 59) {
-                const msg = `[줄 ${index + 1}] 유효하지 않은 시간 값입니다: ${parts[0]}.`;
+            if (!appearanceTime) {
+                const msg = `[줄 ${index + 1}] 유효하지 않은 시간 형식입니다: ${timeString}. (형식: HH:MM, HH:MM:SS, HHMM, HHMMSS)`;
                 log(msg, false);
                 errors.push(msg);
                 return;
             }
+
+            const bossHour = appearanceTime.getHours();
+            const bossMinute = appearanceTime.getMinutes();
+            const bossSecond = appearanceTime.getSeconds();
 
             const bossTimeInSeconds = bossHour * 3600 + bossMinute * 60 + bossSecond;
 

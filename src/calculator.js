@@ -16,10 +16,10 @@ export function calculateBossAppearanceTime(remainingTimeString) {
 
     if (numericOnlyRegex.test(trimmedInput)) {
         // Handle numeric format (MMSS or HHMMSS)
-        if (trimmedInput.length === 4) { // MMSS
-            minutes = parseInt(trimmedInput.substring(0, 2), 10);
-            seconds = parseInt(trimmedInput.substring(2, 4), 10);
-            hours = 0; // Explicitly set hours to 0
+        if (trimmedInput.length === 4) { // HHMM
+            hours = parseInt(trimmedInput.substring(0, 2), 10);
+            minutes = parseInt(trimmedInput.substring(2, 4), 10);
+            seconds = 0; // Explicitly set seconds to 0
         } else if (trimmedInput.length === 6) { // HHMMSS
             hours = parseInt(trimmedInput.substring(0, 2), 10);
             minutes = parseInt(trimmedInput.substring(2, 4), 10);
@@ -40,10 +40,10 @@ export function calculateBossAppearanceTime(remainingTimeString) {
             hours = parseInt(match[1], 10);
             minutes = parseInt(match[2], 10);
             seconds = parseInt(match[3], 10);
-        } else { // MM:SS format (originally HH:MM)
-            hours = 0; // Explicitly set hours to 0
-            minutes = parseInt(match[1], 10);
-            seconds = parseInt(match[2], 10);
+        } else { // HH:MM format (originally MM:SS)
+            hours = parseInt(match[1], 10);
+            minutes = parseInt(match[2], 10);
+            seconds = 0; // Explicitly set seconds to 0
         }
     }
 
