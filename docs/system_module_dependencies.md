@@ -57,7 +57,7 @@
 | **`boss-scheduler.js`**| `ui-renderer.js`, `calculator.js`, `logger.js`, `boss-parser.js`, `event-bus.js`, `data-managers.js`, `utils.js` | `renderBossInputs()`, `calculateBossAppearanceTime()`, `log()`, `parseBossList()`(미사용), `EventBus.emit()`, `BossDataManager.*`, `generateUniqueId()`, `padNumber()` |
 | **`custom-list.js`** | `ui-renderer.js`, `custom-list-manager.js`, `event-bus.js` | `showCustomListTab()`, `renderCustomListManagementModalContent()`, `showToast()`, `CustomListManager.*`, `EventBus.emit('rerender-boss-scheduler')` |
 | **`dashboard.js`** | `ui-renderer.js`, `data-managers.js`, `logger.js`, `event-bus.js` | `updateMuteButtonVisuals()`, `renderRecentAlarmLog()`, `LocalStorageManager.get/setMuteState()`, `log()`, `EventBus.on('log-updated', ...)` |
-| **`help.js`** | `api-service.js`, `ui-renderer.js` | `loadJsonContent()`, `renderHelpScreen()` |
+| **`help.js`** | `api-service.js`, `ui-renderer.js` | `loadJsonContent()`, `renderHelpScreen()`, `renderFaqScreen()` |
 | **`notifications.js`** | `data-managers.js`, `ui-renderer.js`, `utils.js`, `logger.js` | `LocalStorageManager.*`, `renderFixedAlarms()`, `updateFixedAlarmVisuals()`, `validateFixedAlarmTime()`, `normalizeTimeFormat()`, `log()` |
 | **`share.js`** | `api-service.js`, `data-managers.js`, `logger.js` | `getShortUrl()`, `LocalStorageManager.exportFixedAlarms()`, `log()` |
 | **`version-info.js`**| `api-service.js`, `ui-renderer.js` | `loadJsonContent()`, `renderVersionInfo()` |

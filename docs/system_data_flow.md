@@ -104,9 +104,9 @@
 
 ### 3.7. 도움말 화면 (`src/screens/help.js`)
 
-*   **초기화:** `app.js`의 `showScreen` 함수를 통해 'help-screen'으로 내비게이션될 때 `initHelpScreen(DOM)`이 호출됩니다.
-*   **처리 흐름:** `api-service.js`의 `loadJsonContent()`를 통해 `docs/feature_guide.json` 파일에서 도움말 콘텐츠를 비동기적으로 로드하고, `ui-renderer.js`의 `renderHelpScreen()`를 호출하여 `DOM.featureGuideContent`에 표시합니다.
-*   **데이터 흐름 요약:** 화면 전환 시 `api-service.js`를 통해 `feature_guide.json` 파일에서 도움말 콘텐츠를 로드하여 `DOM.featureGuideContent`에 표시합니다.
+*   **초기화 (`init`):** `app.js`의 `showScreen` 함수를 통해 화면에 처음 진입할 때 한 번만 호출됩니다. '도움말'과 'FAQ' 탭 버튼에 대한 클릭 이벤트 리스너를 등록하여, 탭 클릭 시 해당 탭과 콘텐츠 패널에 `.active` 클래스를 토글하는 역할을 합니다.
+*   **처리 흐름 (`onTransition`):** 화면에 진입할 때마다 호출됩니다. `api-service.js`의 `loadJsonContent()`를 통해 `docs/feature_guide.json`과 `docs/faq_guide.json`을 병렬로 로드합니다. 로드가 완료되면, `ui-renderer.js`의 `renderHelpScreen()`과 `renderFaqScreen()`을 각각 호출하여 '도움말' 탭과 'FAQ' 탭의 콘텐츠를 아코디언 형태로 렌더링합니다.
+*   **데이터 흐름 요약:** 화면 진입 시 두 개의 JSON 파일에서 데이터를 로드하여 각 탭 콘텐츠를 렌더링하고, 탭 클릭을 통해 두 콘텐츠 뷰를 전환하는 탭 기반 인터페이스로 동작합니다.
 
 ### 3.8. 개인 보스 목록 화면 (`src/screens/custom-list.js`)
 

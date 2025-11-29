@@ -102,7 +102,8 @@
 *   `renderAlarmStatusSummary(DOM)`: 대시보드의 '알림 실행 상태' 텍스트를 갱신합니다.
 *   `renderRecentAlarmLog(DOM)`: 대시보드의 '최근 알림 로그'를 렌더링합니다. (이벤트 기반 갱신)
 *   `renderDashboard(DOM)`: '다음 보스', '다가오는 보스', '알림 실행 상태', '음소거 버튼' 등 대시보드 전체 UI를 업데이트하는 오케스트레이터 함수입니다.
-*   `renderHelpScreen(DOM, helpData)`: '도움말' 화면의 콘텐츠(아코디언 형태)를 렌더링합니다.
+*   `renderHelpScreen(DOM, helpData)`: '도움말' 탭의 콘텐츠(`feature_guide.json` 기반)를 아코디언 형태로 렌더링합니다.
+*   `renderFaqScreen(DOM, faqData)`: 'FAQ' 탭의 콘텐츠(`faq_guide.json` 기반)를 아코디언 형태로 렌더링합니다.
 *   `renderVersionInfo(DOM, versionData)`: '릴리즈 노트' 화면의 버전 기록을 렌더링합니다.
 *   `updateBossListTextarea(DOM)`: `BossDataManager`의 데이터를 기반으로 보스 목록 텍스트 영역을 업데이트합니다. `bossSchedule` 배열을 순회하며 날짜 마커를 출력하고, 보스 시간은 `formatBossListTime`을 통해 포맷팅(초가 00이면 생략)하여 출력합니다.
 *   그 외 `Calculator`, `Boss Scheduler`, `Custom List`, `Fixed Alarm` 관련 상세 렌더링 함수들.
@@ -260,7 +261,7 @@
 | **`calculator.js`** | `getScreen()` | `init` 시 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 계산기 상태를 초기화하고 `ui-renderer.js`의 함수들을 호출하여 화면을 렌더링합니다. |
 | **`custom-list.js`** | `getScreen()` | `init` 시 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. 모달은 `boss-scheduler-screen`에서 트리거됩니다. |
 | **`dashboard.js`** | `getScreen()` | `init` 시 음소거 토글 버튼의 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링한 후 `global-event-listeners.js`의 `log-updated` 이벤트에 반응하여 갱신합니다. |
-| **`help.js`** | `getScreen()` | `onTransition` 시 `api-service.js`를 통해 `docs/feature_guide.json`을 로드하고 `ui-renderer.js`의 `renderHelpScreen(DOM, helpData)`를 호출하여 도움말 콘텐츠를 렌더링합니다. |
+| **`help.js`** | `getScreen()` | `init` 시 '도움말'과 'FAQ' 탭 전환 이벤트 리스너를 등록하고, `onTransition` 시 `feature_guide.json`과 `faq_guide.json`을 로드하여 `renderHelpScreen()`과 `renderFaqScreen()`으로 각 탭의 콘텐츠를 렌더링합니다. |
 | **`notifications.js`** | `getScreen()` | `init` 시 고정 알림 목록의 개별 토글, 편집, 삭제 버튼에 대한 이벤트 리스너를 위임 방식으로 등록합니다. |
 | **`share.js`** | `getScreen()` | `onTransition` 시 `api-service.js`를 통해 TinyURL을 생성하고 클립보드에 복사하는 비동기 로직을 수행합니다. |
 | **`version-info.js`** | `getScreen()` | `onTransition` 시 `api-service.js`를 통해 `docs/version_history.json`을 로드하고 `ui-renderer.js`의 `renderVersionInfo(DOM, versionData)`를 호출하여 릴리즈 노트 콘텐츠를 렌더링합니다. |
