@@ -1,7 +1,6 @@
 // test/boss-scheduler.ui.test.js
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { initBossSchedulerScreen } from '../src/screens/boss-scheduler.js';
-import { log } from '../src/logger.js';
 import * as calculator from '../src/calculator.js';
 
 let calculateBossAppearanceTimeSpy;

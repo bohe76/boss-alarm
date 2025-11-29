@@ -1,4 +1,4 @@
-import { calculateBossAppearanceTime } from '../calculator.js';
+import { calculateAppearanceTimeFromMinutes } from '../calculator.js';
 import { LightCalculator } from '../light-calculator.js';
 import { LocalStorageManager, BossDataManager } from '../data-managers.js';
 import { 
@@ -28,9 +28,16 @@ export function initCalculatorScreen(DOM) {
     if (DOM.remainingTimeInput) {
         DOM.remainingTimeInput.addEventListener('input', () => {
             const remainingTime = DOM.remainingTimeInput.value;
-            const bossAppearanceTime = calculateBossAppearanceTime(remainingTime);
+            const bossAppearanceTime = calculateAppearanceTimeFromMinutes(remainingTime);
             if (DOM.bossAppearanceTimeDisplay) {
-                DOM.bossAppearanceTimeDisplay.textContent = bossAppearanceTime || '--:--:--';
+                if (bossAppearanceTime) {
+                    const hours = padNumber(bossAppearanceTime.getHours());
+                    const minutes = padNumber(bossAppearanceTime.getMinutes());
+                    const seconds = padNumber(bossAppearanceTime.getSeconds());
+                    DOM.bossAppearanceTimeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+                } else {
+                    DOM.bossAppearanceTimeDisplay.textContent = '--:--:--';
+                }
             }
             checkZenCalculatorUpdateButtonState(DOM); // Check button state
         });

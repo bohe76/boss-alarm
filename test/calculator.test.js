@@ -10,13 +10,10 @@ describe('calculateBossAppearanceTime', () => {
         const expectedDate = new Date(now.getTime() + (1 * 60 * 60 * 1000) + (30 * 60 * 1000) + (15 * 1000));
 
         // Act
-        const resultString = calculateBossAppearanceTime(remainingTime); // e.g., "11:30:15"
+        const resultDate = calculateBossAppearanceTime(remainingTime);
         
         // Assert
-        expect(resultString).not.toBeNull();
-        const [hours, minutes, seconds] = resultString.split(':').map(Number);
-        const resultDate = new Date();
-        resultDate.setHours(hours, minutes, seconds, 0); // Set milliseconds to 0 for consistency
+        expect(resultDate).not.toBeNull();
 
         // If the resulting time is earlier than the start time, it must be for the next day.
         if (resultDate.getTime() < now.getTime()) {

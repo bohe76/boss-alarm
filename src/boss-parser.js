@@ -2,8 +2,7 @@
 
 import { log } from './logger.js';
 import { BossDataManager } from './data-managers.js'; // Import manager
-import { generateUniqueId, padNumber } from './utils.js'; // Import utils
-import { calculateBossAppearanceTime } from './calculator.js'; // Import calculateBossAppearanceTime
+import { generateUniqueId, padNumber, parseTime } from './utils.js'; // Import utils
 
 /**
  * 보스 목록 텍스트를 파싱하고 기존 데이터와 병합합니다.
@@ -81,18 +80,16 @@ export function parseBossList(bossListInput) {
             }
 
             const timeString = parts[0];
-            const appearanceTime = calculateBossAppearanceTime(timeString);
+            const timeParts = parseTime(timeString);
 
-            if (!appearanceTime) {
+            if (!timeParts) {
                 const msg = `[줄 ${index + 1}] 유효하지 않은 시간 형식입니다: ${timeString}. (형식: HH:MM, HH:MM:SS, HHMM, HHMMSS)`;
                 log(msg, false);
                 errors.push(msg);
                 return;
             }
 
-            const bossHour = appearanceTime.getHours();
-            const bossMinute = appearanceTime.getMinutes();
-            const bossSecond = appearanceTime.getSeconds();
+            const { hours: bossHour, minutes: bossMinute, seconds: bossSecond } = timeParts;
 
             const bossTimeInSeconds = bossHour * 3600 + bossMinute * 60 + bossSecond;
 

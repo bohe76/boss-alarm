@@ -144,3 +144,49 @@ export function formatBossListTime(timeStr) {
     return timeStr; // Return "HH:MM:SS"
 }
 
+/**
+ * Parses a time string (HH:MM, HH:MM:SS, HHMM, HHMMSS) into its components.
+ * This function PURELY parses the string and does NOT calculate based on current time.
+ * @param {string} timeString - The time string to parse.
+ * @returns {{hours: number, minutes: number, seconds: number}|null}
+ */
+export function parseTime(timeString) {
+    const trimmedInput = timeString.trim();
+    const numericOnlyRegex = /^\d+$/;
+
+    let hours = 0;
+    let minutes = 0;
+    let seconds = 0;
+
+    if (numericOnlyRegex.test(trimmedInput)) {
+        if (trimmedInput.length === 3) { // HMM (e.g., 315 -> 0315 -> 3h 15m)
+            hours = parseInt(trimmedInput.substring(0, 1), 10);
+            minutes = parseInt(trimmedInput.substring(1, 3), 10);
+        } else if (trimmedInput.length === 4) { // HHMM
+            hours = parseInt(trimmedInput.substring(0, 2), 10);
+            minutes = parseInt(trimmedInput.substring(2, 4), 10);
+        } else if (trimmedInput.length === 6) { // HHMMSS
+            hours = parseInt(trimmedInput.substring(0, 2), 10);
+            minutes = parseInt(trimmedInput.substring(2, 4), 10);
+            seconds = parseInt(trimmedInput.substring(4, 6), 10);
+        } else {
+            return null; // Not a supported numeric format
+        }
+    } else {
+        const timeRegex = /^(?:(\d{1,2}):(\d{2})(?::(\d{2}))?)$/;
+        const match = trimmedInput.match(timeRegex);
+
+        if (!match) return null;
+
+        hours = parseInt(match[1], 10);
+        minutes = parseInt(match[2], 10);
+        seconds = match[3] !== undefined ? parseInt(match[3], 10) : 0;
+    }
+
+    if (isNaN(hours) || isNaN(minutes) || isNaN(seconds) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59 || seconds < 0 || seconds > 59) {
+        return null; // Invalid time values
+    }
+
+    return { hours, minutes, seconds };
+}
+

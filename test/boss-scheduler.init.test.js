@@ -3,13 +3,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { initBossSchedulerScreen } from '../src/screens/boss-scheduler.js';
 import { EventBus } from '../src/event-bus.js';
 import * as UIRenderer from '../src/ui-renderer.js';
-import { BossDataManager, LocalStorageManager } from '../src/data-managers.js';
+import { BossDataManager } from '../src/data-managers.js';
 import * as calculator from '../src/calculator.js';
 
-let listeners = {};
 let mockBossSchedule = [];
 
-let setBossScheduleSpy;
 let calculateBossAppearanceTimeSpy;
 
 vi.mock('../src/event-bus.js', () => {
@@ -56,7 +54,6 @@ describe('BossSchedulerScreen Initialization and UI State', () => {
         
         mockBossSchedule = [];
         vi.spyOn(BossDataManager, 'getBossSchedule').mockImplementation(() => mockBossSchedule);
-        setBossScheduleSpy = vi.spyOn(BossDataManager, 'setBossSchedule').mockImplementation((newSchedule) => { mockBossSchedule = newSchedule; });
         vi.spyOn(BossDataManager, 'subscribe').mockImplementation(() => {});
 
         calculateBossAppearanceTimeSpy = vi.spyOn(calculator, 'calculateBossAppearanceTime').mockImplementation(() => new Date('2025-11-28T19:00:00+09:00'));

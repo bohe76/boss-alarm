@@ -4,7 +4,6 @@ import { initBossSchedulerScreen, handleApplyBossSettings } from '../src/screens
 import { BossDataManager } from '../src/data-managers.js';
 import * as calculator from '../src/calculator.js';
 
-let listeners = {}; 
 let mockBossSchedule = [];
 let setBossScheduleSpy;
 let calculateBossAppearanceTimeSpy;

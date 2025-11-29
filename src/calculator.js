@@ -67,9 +67,43 @@ export function calculateBossAppearanceTime(remainingTimeString) {
         now.setSeconds(now.getSeconds() + seconds);
     }
 
-    const appearanceHours = String(now.getHours()).padStart(2, '0');
-    const appearanceMinutes = String(now.getMinutes()).padStart(2, '0');
-    const appearanceSeconds = String(now.getSeconds()).padStart(2, '0');
+    return now;
+}
 
+/**
+ * Calculates the boss appearance time from a remaining time string in MM:SS or MMSS format.
+ * @param {string} remainingTimeString - The remaining time.
+ * @returns {Date|null} The calculated appearance time as a Date object, or null if invalid.
+ */
+export function calculateAppearanceTimeFromMinutes(remainingTimeString) {
+    const trimmedInput = remainingTimeString.trim();
+    let minutes = 0;
+    let seconds = 0;
+
+    if (/^\d+$/.test(trimmedInput)) { // MMSS format
+        if (trimmedInput.length <= 2) {
+            seconds = parseInt(trimmedInput, 10);
+        } else {
+            seconds = parseInt(trimmedInput.slice(-2), 10);
+            minutes = parseInt(trimmedInput.slice(0, -2), 10);
+        }
+    } else { // MM:SS format
+        const parts = trimmedInput.split(':');
+        if (parts.length === 2) {
+            minutes = parseInt(parts[0], 10);
+            seconds = parseInt(parts[1], 10);
+        } else {
+            return null; // Invalid format
+        }
+    }
+
+    // Validation
+    if (isNaN(minutes) || isNaN(seconds) || minutes < 0 || seconds < 0 || seconds > 59) {
+        return null;
+    }
+
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + minutes);
+    now.setSeconds(now.getSeconds() + seconds);
     return now;
 }
