@@ -218,13 +218,7 @@ function loadInitialData(DOM) {
 
 
     
-    if (params.has('fixedData')) {
-        if (LocalStorageManager.importFixedAlarms(decodeURIComponent(params.get('fixedData')))) {
-            log("URL에서 고정 알림을 성공적으로 불러왔습니다.");
-        } else {
-            log("URL에서 고정 알림을 불러오는 데 실패했습니다. 기본값을 사용합니다.", false);
-        }
-    }
+
     
     updateBossListTextarea(DOM); // Ensure UI reflects the parsed and normalized data
 }

@@ -1,5 +1,5 @@
 ---
-status: 미해결
+status: 해결됨
 created_at: 2025-11-29
 priority: medium
 assigned_to: Gemini
