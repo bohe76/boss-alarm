@@ -40,3 +40,9 @@
         *   입력/표시 창의 너비(`--zen-input-width`)를 164px로 조정하고, 광 계산기 디스플레이 스타일을 젠 계산기와 픽셀 단위까지 일치시킴.
         *   `.zen-grid-row` 마진(30px), 라벨 마진(12px) 조정.
         *   광 계산기 버튼 너비(104px) 통일 및 레이아웃 마진 미세 조정.
+*   **'최근 계산 결과' 및 '광 계산 목록' UI 통일:**
+    *   **스타일 통일 (`src/style.css`):** '최근 계산 결과'(`div#lightTempResults`)의 불필요한 카드 스타일(배경, 테두리)을 제거하고, 테이블 스타일(`.light-saved-table`)을 공유하여 '광 계산 목록'과 시각적으로 일치시킴.
+    *   **계층 구조 개선 (`src/ui-renderer.js`, `src/style.css`):**
+        *   '최근 계산 결과'와 '광 계산 목록'의 제목을 `<h3>`에서 `<h4>`로 변경하고, `.card-header h4` 스타일(`font-size: 1.0em`)을 정의.
+        *   '목록 초기화' 버튼을 제목 아래 별도의 행(`.light-list-action`)으로 분리하여 우측 정렬.
+    *   **여백 조정:** `.light-saved-list`의 `margin-top`을 24px로, 테이블의 `margin-top`을 12px로 조정하여 간격 최적화.

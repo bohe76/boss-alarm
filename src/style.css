@@ -813,6 +813,12 @@ textarea:-ms-input-placeholder {
     margin: 0;
 }
 
+.card-header h4 {
+    margin: 0;
+    font-size: 1.0em;
+    color: #333;
+}
+
 .light-calculator-controls {
     display: flex;
     flex-direction: column;
@@ -911,37 +917,29 @@ textarea:-ms-input-placeholder {
 
 .light-temp-results {
     margin-top: 20px;
-    padding: 16px;
-    background-color: #f8f8f8;
-    border-radius: 8px;
-    border: 1px solid #eee;
+    padding: 0; /* Remove padding */
+    background-color: transparent; /* Remove background */
+    border: none; /* Remove border */
+    border-radius: 0;
 }
 
 .light-temp-results.compact-top {
     margin-top: 0;
 }
 
-.light-temp-results-card h4 {
-    margin-top: 0;
-    color: #333;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 10px;
-    margin-bottom: 16px; /* Changed from 15px to 16px (spacing-md) */
-}
+/* Removed .light-temp-results-card h4 styling as we will use h3 without border */
 
-.light-temp-results-card p {
-    margin: 5px 0;
-    color: #555;
-}
-
-.light-temp-table {
+/* Unified Table Styles */
+.light-temp-table,
+.light-saved-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
 }
 
 .light-temp-table th,
-.light-temp-table td {
+.light-temp-table td,
+.light-saved-table th,
+.light-saved-table td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: center;
@@ -949,41 +947,29 @@ textarea:-ms-input-placeholder {
     white-space: nowrap; /* Prevent text wrapping */
 }
 
-.light-temp-table th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-    color: #333;
-}
-
-.light-saved-list {
-    margin-top: 30px;
-}
-
-.light-saved-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-.light-saved-table th,
-.light-saved-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
-}
-
+.light-temp-table th,
 .light-saved-table th {
     background-color: #f2f2f2;
     font-weight: bold;
     color: #333;
 }
 
-.light-saved-table tbody tr:nth-child(even) {
+.light-saved-table tbody tr:nth-child(even),
+.light-temp-table tbody tr:nth-child(even) { /* Apply to temp table too if needed, though usually 1 row */
     background-color: #f9f9f9;
 }
 
-.light-saved-table tbody tr:hover {
+.light-saved-table tbody tr:hover,
+.light-temp-table tbody tr:hover {
     background-color: #f0f0f0;
+}
+
+.light-saved-table {
+    margin-top: 12px;
+}
+
+.light-saved-list {
+    margin-top: 24px; /* Adjusted to 24px */
 }
 
 /* Boss Scheduler Screen Styles */

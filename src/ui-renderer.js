@@ -258,25 +258,25 @@ export function renderLightTempResults(DOM, gwangTime, afterGwangTime, totalTime
         }
         DOM.lightTempResults.style.display = 'block';
         DOM.lightTempResults.innerHTML = `
-            <div class="light-temp-results-card">
+            <div class="card-header">
                 <h4>최근 계산 결과</h4>
-                <table class="light-temp-table">
-                    <thead>
-                        <tr>
-                            <th>광</th>
-                            <th>잡힘</th>
-                            <th>총 시간</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>${gwangTime}</td>
-                            <td>${afterGwangTime}</td>
-                            <td>${totalTime}</td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
+            <table class="light-temp-table">
+                <thead>
+                    <tr>
+                        <th>광</th>
+                        <th>잡힘</th>
+                        <th>총 시간</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>${gwangTime}</td>
+                        <td>${afterGwangTime}</td>
+                        <td>${totalTime}</td>
+                    </tr>
+                </tbody>
+            </table>
         `;
     }
 }
@@ -286,8 +286,10 @@ export function renderLightSavedList(DOM, records) {
         if (records.length === 0) {
             DOM.lightSavedList.innerHTML = `
                 <div class="card-header">
-                    <h3>광 계산 목록</h3>
-                    <button id="clearLightRecordsButton" class="button" disabled>기록 초기화</button>
+                    <h4>광 계산 목록</h4>
+                </div>
+                <div class="light-list-action">
+                    <button id="clearLightRecordsButton" class="button" disabled>목록 초기화</button>
                 </div>
                 <p>저장된 기록이 없습니다.</p>
             `;
@@ -295,8 +297,10 @@ export function renderLightSavedList(DOM, records) {
         } else {
             let html = `
                 <div class="card-header">
-                    <h3>광 계산 목록</h3>
-                    <button id="clearLightRecordsButton" class="button">기록 초기화</button>
+                    <h4>광 계산 목록</h4>
+                </div>
+                <div class="light-list-action">
+                    <button id="clearLightRecordsButton" class="button">목록 초기화</button>
                 </div>
                 <table class="light-saved-table">
                     <thead>
