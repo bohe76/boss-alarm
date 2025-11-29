@@ -27,6 +27,7 @@
 *   **'젠 계산기' 입력/표시 필드:**
     *   '남은 시간' 입력창 및 '보스 출현 시간' 표시 영역의 높이 및 정렬 개선 (`src/style.css`, `index.html` 플레이스홀더 포함).
     *   `.zen-grid-row` 내부 요소들의 `align-items: flex-start;` 제거하여 젠 계산기 내부 요소들의 가로 정렬 문제 해결 (`src/style.css`).
+    *   **레이아웃 정렬 개선:** `.zen-grid-row`에 `justify-content: center;`를 추가하여 내부 입력 그룹들을 카드 중앙에 배치하고, 내부 그룹(`.input-group` 등)에 `align-items: center;`를 추가하여 라벨과 요소를 중앙 정렬함 (`src/style.css`).
 *   **'광 계산기' 화면의 하단 여백 최적화 및 동적 조정 (`src/style.css`, `src/screens/calculator.js`, `src/ui-renderer.js`):**
     *   '광 계산 목록'(`div#lightSavedList`)의 가시성 상태에 따라 '최근 계산 결과'(`div#lightTempResults`)의 상단 여백을 동적으로 조절하여 카드 하단의 불필요한 공간 최소화.
     *   `DOM.lightListButton` 클릭 시 '광 계산 목록'의 가시성 토글 기능 추가.
