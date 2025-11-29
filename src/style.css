@@ -415,7 +415,7 @@ body {
             margin-top: 10px; /* Space between title and card */
             display: flex; /* Use flexbox for alignment */
             align-items: center; /* Vertically align items */
-            gap: 10px; /* Space between inputs and button */
+            gap: 12px; /* Space between inputs and button */
         }
         .add-alarm-card input[type="text"] {
             width: 118px; /* Fixed width for inputs */
@@ -467,7 +467,7 @@ textarea:-ms-input-placeholder {
 
         .fixed-alarm-action-buttons {
             display: flex;
-            gap: 10px; /* Space between edit and delete buttons */
+            gap: 12px; /* Space between edit and delete buttons */
             margin-top: 5px; /* Space from the info/toggle line */
         }
 
@@ -605,7 +605,7 @@ textarea:-ms-input-placeholder {
 
 /* Zen Calculator Screen Styles */
 :root {
-    --zen-input-width: 160px; /* Adjusted fixed width, should accommodate HH:MM:SS */
+    --zen-input-width: 164px; /* Adjusted fixed width, should accommodate HH:MM:SS */
     --zen-input-height: 40px; /* Standard height for inputs/displays */
 }
 
@@ -613,8 +613,8 @@ textarea:-ms-input-placeholder {
     display: flex;
     flex-direction: row;
     justify-content: center; /* Center align the content */
-    gap: 10px; /* Consistent gap between columns */
-    margin-bottom: 20px;
+    gap: 12px; /* Consistent gap between columns */
+    margin-bottom: 30px;
 }
 
 .zen-grid-row:last-of-type { /* Adjust margin for the last row to avoid excessive spacing */
@@ -623,7 +623,9 @@ textarea:-ms-input-placeholder {
 
 .zen-grid-row .input-group, /* Targets 남은 시간 and 업데이트할 보스 columns */
 .zen-grid-row .result-display, /* Targets 보스 출현 시간 column */
-.zen-grid-row .button-group { /* Targets 업데이트 버튼 column */
+.zen-grid-row .button-group, /* Targets 업데이트 버튼 column */
+.zen-grid-row .light-stopwatch-display-group,
+.zen-grid-row .light-expected-time-group {
     display: flex;
     flex-direction: column;
     align-items: center; /* Center align items within the column */
@@ -637,7 +639,7 @@ textarea:-ms-input-placeholder {
 
 .zen-grid-row label {
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     color: #777;
     line-height: 1; /* Adjust line-height to potentially improve vertical alignment */
 }
@@ -815,7 +817,7 @@ textarea:-ms-input-placeholder {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 0; /* Remove bottom margin */
 }
 
 .light-stopwatch-display-group,
@@ -830,7 +832,7 @@ textarea:-ms-input-placeholder {
 .light-expected-time-group label,
 .light-over-time-group label {
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 12px; /* Matched to Zen Calculator's 10px */
     color: #777;
 }
 
@@ -847,28 +849,31 @@ textarea:-ms-input-placeholder {
 }
 
 #lightStopwatchDisplay {
+    width: var(--zen-input-width);
+    /* height: 46px; Removed fixed height to match bossAppearanceTimeDisplay behavior */
     font-size: 2em;
     font-weight: 700;
     color: #111; /* Black for stopwatch */
     background-color: #f8f8f8;
-    padding: 6px 16px 8px 16px; /* Changed from 10px 15px to 8px 16px (spacing-xs top/bottom, spacing-md left/right) */
+    padding: 6px 16px 8px 16px; /* Matched to bossAppearanceTimeDisplay */
     border-radius: 8px;
     border: 1px solid #ccc;
-    min-width: 152px;
+    box-sizing: border-box;
     text-align: center;
 }
 
 #lightExpectedTimeDisplay {
+    width: var(--zen-input-width);
+    /* height: 46px; Removed fixed height */
     font-size: 2em;
     font-weight: 700;
     color: #ea4335; /* Red for expected time */
     background-color: #f8f8f8;
-    padding: 6px 16px 8px 16px; /* Changed from 10px 15px to 8px 16px (spacing-xs top/bottom, spacing-md left/right) */
+    padding: 6px 16px 8px 16px; /* Matched to bossAppearanceTimeDisplay */
     border-radius: 8px;
     border: 1px solid #ccc;
-    min-width: 150px;
-    text-align: center; /* Rely on text-align for centering */
-    /* Removed display:flex, justify-content, align-items, line-height */
+    box-sizing: border-box;
+    text-align: center;
 }
 
 #lightExpectedTimeDisplay.over-time {
@@ -878,8 +883,19 @@ textarea:-ms-input-placeholder {
 .light-buttons {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin-top: 10px;
+    gap: 12px;
+    margin-top: -14px; /* Remove top margin as gap is handled by container */
+}
+
+.light-buttons button {
+    width: 104px; /* Fixed width for uniformity */
+}
+
+.light-list-action {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -3px;
+    width: 100%;
 }
 
 
@@ -1014,14 +1030,14 @@ textarea:-ms-input-placeholder {
 .action-buttons {
     display: flex;
     justify-content: flex-start; /* Align to the left */
-    gap: 10px; /* Space between buttons */
+    gap: 12px; /* Space between buttons */
     margin-bottom: 20px; /* Space below the button group */
 }
 
 .boss-input-header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     padding: 0 0 10px 0; /* Adjusted padding to be only at bottom */
     margin-bottom: 10px; /* Space between header and scrollable list */
     font-weight: bold;
@@ -1078,7 +1094,7 @@ textarea:-ms-input-placeholder {
     border-radius: 0; /* Remove border-radius */
     box-shadow: none; /* Remove shadow */
     border-bottom: 1px dashed #eee; /* Line separator */
-    gap: 10px;
+    gap: 12px;
     width: 100%; /* Take full width of parent */
 }
 

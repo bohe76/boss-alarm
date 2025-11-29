@@ -342,7 +342,7 @@
                                                 <input type="text" id="remainingTimeInput" placeholder="48:09">
                                             </div>
                                             <div class="result-display">
-                                                <label>보스 젠 시간</label>
+                                                <label>젠 시간</label>
                                                 <span id="bossAppearanceTimeDisplay" class="result-display">--:--:--</span>
                                             </div>
                                         </div>
@@ -366,26 +366,33 @@
                                     <div id="lightCalculatorCard" class="card-standard card-size-standard">
                                         <div class="card-header">
                                             <h3>광 계산기</h3>
-                                            <button id="lightListButton" class="button">목록</button>
                                         </div>
-                                        <div class="light-calculator-controls">
-                                            <div class="light-stopwatch-display-group">
+                                        
+                                        <!-- Row 1: Stopwatch and Expected Time (Side by Side) -->
+                                        <div class="zen-grid-row">
+                                            <div class="light-stopwatch-display-group input-group">
                                                 <label>경과 시간</label>
                                                 <span id="lightStopwatchDisplay" class="result-display">00:00</span>
                                             </div>
-                                            <div class="light-buttons">
-                                                <button id="lightStartButton" class="button" disabled>시작</button>
-                                                <button id="lightGwangButton" class="button primary-button" disabled>광</button>
-                                                <button id="lightCaptureButton" class="button" disabled>잡힘</button>
-                                            </div>
-                                        </div>
-                                        <div class="light-calculation-results">
-                                            <div class="light-expected-time-group">
+                                            <div class="light-expected-time-group result-display">
                                                 <label><span class="expected-text">잡힘</span> <span class="expected-label">예상
                                                         시간</span></label>
                                                 <span id="lightExpectedTimeDisplay" class="result-display">--:--</span>
                                             </div>
                                         </div>
+
+                                        <!-- Row 2: Buttons -->
+                                        <div class="light-calculator-controls">
+                                            <div class="light-buttons">
+                                                <button id="lightStartButton" class="button" disabled>시작</button>
+                                                <button id="lightGwangButton" class="button primary-button" disabled>광</button>
+                                                <button id="lightCaptureButton" class="button" disabled>잡힘</button>
+                                            </div>
+                                            <div class="light-list-action">
+                                                <button id="lightListButton" class="button">목록</button>
+                                            </div>
+                                        </div>
+
                                         <div id="lightTempResults" class="light-temp-results">
                                             <!-- Temporary results after capture will be displayed here -->
                                         </div>
