@@ -9,7 +9,7 @@
     *   `initDomElements()`를 호출하여 모든 DOM 요소 참조를 `DOM` 객체에 수집합니다.
     *   `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자(LocalStorageManager, CustomListManager), 보스 데이터 로딩(data/boss_lists.json)과 같은 핵심 서비스를 초기화합니다.
     *   `registerAllRoutes()`를 호출하여 `src/screens/*.js`의 모든 화면 모듈을 `src/router.js`에 등록합니다.
-    *   `loadInitialData(DOM)`를 호출하여 URL 파라미터 또는 `default-boss-list.js`의 데이터를 파싱하고 `DOM.bossListInput.value`에 설정한 후 `parseBossList()`를 통해 `BossDataManager`의 `bossSchedule` 상태를 초기화합니다.
+    *   `loadInitialData(DOM)`를 호출하여 URL 파라미터(`data`) 또는 `default-boss-list.js`의 기본 데이터를 파싱하여 `BossDataManager`의 `bossSchedule` 상태를 초기화합니다. (URL에 `fixedData`가 있더라도 무시합니다.)
     *   `BossDataManager.subscribe(() => renderDashboard(DOM))`를 등록하여 `BossDataManager`의 데이터 변경 시 대시보드 UI가 반응적으로 갱신되도록 합니다.
     *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 전역 UI 이벤트 핸들러(알람 토글, 사이드바, 내비게이션 링크 등)를 등록합니다.
     *   `initGlobalEventListeners(DOM)`를 호출하여 전역 `EventBus` 리스너(예: 로그 업데이트 시 알림 로그 화면 갱신)를 등록합니다.
@@ -93,8 +93,8 @@
 ### 3.5. 공유 화면 (`src/screens/share.js`)
 
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 'share-screen'으로 내비게이션될 때 `initShareScreen(DOM)`이 호출됩니다.
-*   **처리 흐름:** `DOM.bossListInput.value` 및 `LocalStorageManager.exportFixedAlarms()`를 통해 현재 보스 목록 및 고정 알림 데이터를 수집하고, 이를 URL 파라미터로 인코딩합니다. `api-service.js`의 `getShortUrl()`을 통해 단축 URL을 생성하고 클립보드에 복사한 후, `DOM.shareMessage`에 결과를 표시합니다.
-*   **데이터 흐름 요약:** 현재 보스 목록과 고정 알림 데이터를 URL 파라미터로 인코딩한 후 TinyURL API를 통해 단축 URL을 생성하여 클립보드에 복사하고, 결과를 사용자에게 알립니다.
+*   **처리 흐름:** `DOM.bossListInput.value`를 통해 현재 동적 보스 목록 데이터만 수집하고, 이를 URL 파라미터(`data`)로 인코딩합니다. `api-service.js`의 `getShortUrl()`을 통해 단축 URL을 생성하고 클립보드에 복사한 후, `DOM.shareMessage`에 결과를 표시합니다.
+*   **데이터 흐름 요약:** 현재 동적 보스 목록만 URL 파라미터로 인코딩한 후 TinyURL API를 통해 단축 URL을 생성하여 클립보드에 복사하고, 결과를 사용자에게 알립니다. (고정 알림은 공유되지 않습니다.)
 
 ### 3.6. 버전 정보 화면 (`src/screens/version-info.js`)
 

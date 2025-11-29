@@ -59,7 +59,7 @@
 | **`dashboard.js`** | `ui-renderer.js`, `data-managers.js`, `logger.js`, `event-bus.js` | `updateMuteButtonVisuals()`, `renderRecentAlarmLog()`, `LocalStorageManager.get/setMuteState()`, `log()`, `EventBus.on('log-updated', ...)` |
 | **`help.js`** | `api-service.js`, `ui-renderer.js` | `loadJsonContent()`, `renderHelpScreen()`, `renderFaqScreen()` |
 | **`notifications.js`** | `data-managers.js`, `ui-renderer.js`, `utils.js`, `logger.js` | `LocalStorageManager.*`, `renderFixedAlarms()`, `updateFixedAlarmVisuals()`, `validateFixedAlarmTime()`, `normalizeTimeFormat()`, `log()` |
-| **`share.js`** | `api-service.js`, `data-managers.js`, `logger.js` | `getShortUrl()`, `LocalStorageManager.exportFixedAlarms()`, `log()` |
+| **`share.js`** | `api-service.js`, `logger.js` | `getShortUrl()`, `log()` |
 | **`version-info.js`**| `api-service.js`, `ui-renderer.js` | `loadJsonContent()`, `renderVersionInfo()` |
 
 ## 5. 핵심 로직 및 서비스 모듈 (간접 의존성 포함)

@@ -41,9 +41,9 @@
     4.  대시보드 (`dashboard-screen`)로 전환될 경우, `renderDashboard(DOM)`를 즉시 호출하여 화면을 렌더링한 후, `setInterval(renderDashboard, 1000)`를 설정하여 1초마다 대시보드 UI를 갱신합니다. 다른 화면으로 전환 시에는 해당 `setInterval`을 해제합니다.
 
 #### `loadInitialData(DOM)` (내부 함수)
-- **설명:** 애플리케이션 시작 시 URL 쿼리 파라미터 또는 `default-boss-list.js`에서 초기 보스 목록 및 고정 알림 데이터를 로드합니다.
+- **설명:** 애플리케이션 시작 시 URL 쿼리 파라미터(`data`) 또는 `default-boss-list.js`에서 초기 동적 보스 목록을 로드합니다.
 - **인자:** `DOM` (`Object`)
-- **핵심 내부 로직:** URL `data` 및 `fixedData` 파라미터를 파싱하여 보스 목록 `textarea`와 `LocalStorageManager`를 초기화합니다.
+- **핵심 내부 로직:** URL `data` 파라미터가 있으면 해당 목록을, 없으면 기본 보스 목록을 로드합니다. URL에 `fixedData` 파라미터가 있더라도 보안 및 데이터 무결성을 위해 무시합니다.
 
 #### `initEventHandlers(DOM, globalTooltip)` (내부 함수)
 - **설명:** 애플리케이션의 모든 주요 UI 요소(알람 토글, 사이드바 토글, 내비게이션 링크, 모바일 "더보기" 메뉴)에 대한 전역 이벤트 리스너를 등록합니다.
@@ -263,5 +263,5 @@
 | **`dashboard.js`** | `getScreen()` | `init` 시 음소거 토글 버튼의 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링한 후 `global-event-listeners.js`의 `log-updated` 이벤트에 반응하여 갱신합니다. |
 | **`help.js`** | `getScreen()` | `init` 시 '도움말'과 'FAQ' 탭 전환 이벤트 리스너를 등록하고, `onTransition` 시 `feature_guide.json`과 `faq_guide.json`을 로드하여 `renderHelpScreen()`과 `renderFaqScreen()`으로 각 탭의 콘텐츠를 렌더링합니다. |
 | **`notifications.js`** | `getScreen()` | `init` 시 고정 알림 목록의 개별 토글, 편집, 삭제 버튼에 대한 이벤트 리스너를 위임 방식으로 등록합니다. |
-| **`share.js`** | `getScreen()` | `onTransition` 시 `api-service.js`를 통해 TinyURL을 생성하고 클립보드에 복사하는 비동기 로직을 수행합니다. |
+| **`share.js`** | `getScreen()` | `onTransition` 시 현재의 동적 보스 목록(`data`)만 인코딩하여 `api-service.js`를 통해 짧은 URL을 생성하고 클립보드에 복사합니다. (고정 알림은 공유되지 않습니다.) |
 | **`version-info.js`** | `getScreen()` | `onTransition` 시 `api-service.js`를 통해 `docs/version_history.json`을 로드하고 `ui-renderer.js`의 `renderVersionInfo(DOM, versionData)`를 호출하여 릴리즈 노트 콘텐츠를 렌더링합니다. |
