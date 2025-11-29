@@ -31,27 +31,6 @@
 *   **자동 검증:** **코드를 수정하거나 추가하는 모든 작업 후에는 사용자님의 별도 승인 없이도 `npm run lint` 및 `npm test` 명령을 반드시 실행하여 코드 변경 사항을 검증합니다.**
 *   **오류 수정:** Lint 또는 테스트 검사에서 오류가 발견될 경우, 즉시 해당 오류를 수정하는 작업을 진행합니다. 이를 통해 코드 변경으로 인한 사이드 이펙트와 런타임 오류를 최소화합니다.
 
-### 디버깅 및 검증 도구
-
-#### 1. 로컬 서버 백그라운드 실행 (PowerShell)
-Python의 `http.server` 모듈을 사용하여 로컬 정적 파일 서버를 백그라운드에서 실행할 수 있습니다. 이는 `run_shell_command` 도구를 통해 실행됩니다.
-
-```powershell
-Start-Process python -ArgumentList "-m", "http.server", "8080" -NoNewWindow
-```
-*   포트 번호(예: 8080)는 필요에 따라 변경 가능합니다.
-*   서버 실행 후 `chrome-devtools-mcp` 도구로 접속하여 테스트할 수 있습니다.
-
-#### 2. Chrome DevTools MCP 사용법
-브라우저를 직접 제어하고 콘솔 로그를 확인하거나 DOM을 조작하여 실시간 디버깅을 수행할 수 있습니다.
-
-*   `navigate_page`: 특정 URL로 브라우저를 이동시킵니다. (예: `http://localhost:8080`)
-*   `take_snapshot`: 현재 페이지의 DOM 구조와 요소별 UID를 스냅샷으로 캡처합니다. 요소를 찾을 때 필수입니다.
-*   `click`: UID를 사용하여 요소를 클릭합니다.
-*   `fill`: UID를 사용하여 입력 필드에 값을 채웁니다.
-*   `evaluate_script`: 페이지 내에서 JavaScript 코드를 실행합니다.
-*   `list_console_messages`: 브라우저 콘솔에 출력된 로그를 가져옵니다. 디버깅 로그(`console.log`) 확인 시 유용합니다.
-
 ---
 
 ### 에이전트 업무 준비
