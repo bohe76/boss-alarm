@@ -50,3 +50,5 @@
     *   전체 콘텐츠를 중앙 정렬하기 위해 `.boss-scheduler-layout` 컨테이너 추가 및 Flexbox 스타일 적용 (`index.html`, `src/style.css`).
     *   주요 버튼(`manage-custom-lists-button`, `clearAllRemainingTimesButton`, `moveToBossSettingsButton`)과 드롭다운(`gameSelect`)의 너비를 **184px**로 통일 (`src/style.css`).
     *   버튼 그룹 및 컨트롤 섹션을 중앙 정렬로 변경 (`justify-content: center`).
+*   **'공유' 화면 레이아웃 개선:**
+    *   제목(`h2`)을 제외한 본문 콘텐츠(`p`, `#shareMessage`)를 `.share-content-layout`으로 감싸 중앙 정렬 및 텍스트 중앙 정렬 적용 (`index.html`, `src/style.css`).

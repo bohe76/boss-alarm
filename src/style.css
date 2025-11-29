@@ -999,6 +999,14 @@ textarea:-ms-input-placeholder {
     width: 100%;
 }
 
+.share-content-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+}
+
 .boss-scheduler-controls {
     margin-bottom: 20px; /* Keep spacing after dropdown */
     display: flex;
