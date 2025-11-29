@@ -233,10 +233,11 @@ body {
         /* Specific width for action buttons */
         #manage-custom-lists-button,
         #clearAllRemainingTimesButton,
-        #moveToBossSettingsButton {
-            width: 148px;
+        #moveToBossSettingsButton,
+        #gameSelect {
+            width: 184px;
+            box-sizing: border-box; /* Ensure padding doesn't increase width */
         }
-
         /* Primary Button Styles */
         .primary-button {
             background-color: #AD1457;
@@ -327,17 +328,19 @@ body {
         #log-container {
             height: 400px;
             overflow-y: auto;
-        }        #log-container ul {
+        }        
+        #log-container ul {
           list-style-type: none;
           padding: 0;
           margin: 0;
         }
-                        .log-entry {
-                            padding: 4px 0; /* Changed from 5px 0 to 4px 0 (spacing-xxs) */
-                            border-bottom: 1px dashed #eee;
-                            font-size: 1.0em;
-                            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-                        }        .log-entry.important {
+        .log-entry {
+            padding: 4px 0; /* Changed from 5px 0 to 4px 0 (spacing-xxs) */
+            border-bottom: 1px dashed #ccc;
+            font-size: 1.0em;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        }        
+         .log-entry.important {
             color: #ea4335;
         }
         #recentAlarmLog .log-entry:first-child {
@@ -989,6 +992,13 @@ textarea:-ms-input-placeholder {
     overflow-y: auto; /* Enable vertical scrolling */
 }
 
+.boss-scheduler-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
 .boss-scheduler-controls {
     margin-bottom: 20px; /* Keep spacing after dropdown */
     display: flex;
@@ -998,7 +1008,7 @@ textarea:-ms-input-placeholder {
 
 .boss-scheduler-actions {
     display: flex;
-    justify-content: flex-start; /* Ensure left alignment */
+    justify-content: center; /* Changed from flex-start to center */
     gap: 10px;
     margin-top: 0px; /* Adjusted to be closer to dropdown */
     margin-bottom: 20px; /* Space before boss input header */
@@ -1008,14 +1018,15 @@ textarea:-ms-input-placeholder {
 .control-group-horizontal {
     display: flex;
     align-items: center;
-    gap: 10px; /* Space between items */
+    justify-content: center; /* Added center alignment */
+    gap: 12px; /* Space between items */
     margin-bottom: 15px; /* Add some margin below the group */
 }
 
 /* Horizontal alignment for action buttons */
 .action-buttons {
     display: flex;
-    justify-content: flex-start; /* Align to the left */
+    justify-content: center; /* Changed from flex-start to center */
     gap: 12px; /* Space between buttons */
     margin-bottom: 20px; /* Space below the button group */
 }

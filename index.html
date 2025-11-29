@@ -409,31 +409,35 @@
             <section id="boss-scheduler-screen" class="screen">
                 <h2>보스 스케줄러</h2>
 
-                <div class="scheduler-section">
-                    <h3>보스 목록</h3>
-                    <div class="control-group-horizontal">
-                        <select id="gameSelect"></select>
-                        <button id="manage-custom-lists-button" class="button">커스텀 보스 관리</button>
-                    </div>
-                </div>
-
-                <div class="action-buttons">
-                    <button id="clearAllRemainingTimesButton" class="button">남은 시간 초기화</button>
-                    <button id="moveToBossSettingsButton" class="button primary-button">보스 설정 적용</button>
-                </div>
-
-                <div class="boss-list-display-container card-standard card-size-standard">
-                    <div class="boss-input-header">
-                        <span class="boss-name-header">보스이름</span>
-                        <span class="remaining-time-header">남은 시간</span>
-                        <span class="spawn-time-header">젠 시간</span>
-                    </div>
-                    <div class="scheduler-card">
-                        <div id="bossInputsContainer">
-                            <!-- Boss input fields will be rendered here -->
+                <div class="boss-scheduler-layout">
+                    <div class="scheduler-section">
+                        <h3>보스 목록</h3>
+                        <div class="control-group-horizontal">
+                            <select id="gameSelect"></select>
+                            <button id="manage-custom-lists-button" class="button">커스텀 보스 관리</button>
                         </div>
                     </div>
-                </div> <!-- Custom Boss List Management Modal -->
+
+                    <div class="action-buttons">
+                        <button id="clearAllRemainingTimesButton" class="button">남은 시간 초기화</button>
+                        <button id="moveToBossSettingsButton" class="button primary-button">보스 설정 적용</button>
+                    </div>
+
+                    <div class="boss-list-display-container card-standard card-size-standard">
+                        <div class="boss-input-header">
+                            <span class="boss-name-header">보스이름</span>
+                            <span class="remaining-time-header">남은 시간</span>
+                            <span class="spawn-time-header">젠 시간</span>
+                        </div>
+                        <div class="scheduler-card">
+                            <div id="bossInputsContainer">
+                                <!-- Boss input fields will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- End of boss-scheduler-layout -->
+
+                <!-- Custom Boss List Management Modal -->
                 <div id="custom-boss-list-modal" class="modal" style="display: none;">
                     <div class="modal-content">
                         <div class="modal-header">
