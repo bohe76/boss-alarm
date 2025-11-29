@@ -146,8 +146,8 @@ export function renderRecentAlarmLog(DOM) {
     let html = '<ul>';
     if (logs.length > 0) {
         const recentLogs = logs.slice(-1).reverse();
-        recentLogs.forEach(logEntry => {
-            html += `<li class="log-entry">${logEntry}</li>`;
+        recentLogs.forEach(logObj => {
+            html += `<li class="log-entry ${logObj.important ? 'important' : ''}">${logObj.html}</li>`;
         });
     } else {
         html += '<li>최근 알림 기록 없음</li>';
@@ -357,7 +357,7 @@ export function renderFixedAlarms(DOM) {
 
     fixedAlarms.forEach((alarm) => {
         const itemDiv = document.createElement('div');
-        itemDiv.className = 'fixed-alarm-item';
+        itemDiv.className = 'card-list-item fixed-alarm-item';
         itemDiv.id = `fixed-alarm-item-${alarm.id}`;
 
         const infoAndToggleDiv = document.createElement('div');
@@ -410,7 +410,7 @@ export function renderFixedAlarms(DOM) {
     addAlarmSection.className = 'add-fixed-alarm-section';
                     addAlarmSection.innerHTML = `
                         <h3>새 고정 알림 추가</h3>
-                        <div class="add-alarm-card">
+                        <div class="card-list-item add-alarm-card">
                             <input type="text" id="newFixedAlarmTime" placeholder="HH:MM 또는 HHMM">
                             <input type="text" id="newFixedAlarmName" placeholder="이름">
                             <button id="addFixedAlarmButton" class="button">추가</button>

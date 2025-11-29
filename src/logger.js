@@ -21,7 +21,9 @@ export function log(message, isImportant = false) {
     const seconds = now.getSeconds().toString().padStart(2, '0');
     const formattedTime = `${hours}:${minutes}:${seconds}`;
     const logEntryHTML = `<strong>[${formattedTime}]</strong> ${message}`;
-    logs.push(logEntryHTML); // Store the HTML formatted log entry
+    
+    // Store an object with html and importance flag
+    logs.push({ html: logEntryHTML, important: isImportant });
 
     const entry = document.createElement('div');
     entry.className = 'log-entry';

@@ -8,10 +8,12 @@ export function renderAlarmLog(DOM) {
     if (DOM.logContainer) { // Use DOM.logContainer
         const logs = getLogs();
         if (logs.length > 0) {
-            // Join logs with a <br> for better readability if they are already HTML formatted
-            DOM.logContainer.innerHTML = logs.map(logEntry => `<li>${logEntry}</li>`).join('');
+            const logHtml = logs.map(logObj => 
+                `<li class="log-entry ${logObj.important ? 'important' : ''}">${logObj.html}</li>`
+            ).join('');
+            DOM.logContainer.innerHTML = `<ul>${logHtml}</ul>`;
         } else {
-            DOM.logContainer.innerHTML = '<li>로그가 없습니다.</li>';
+            DOM.logContainer.innerHTML = '<ul><li>로그가 없습니다.</li></ul>';
         }
         DOM.logContainer.scrollTop = DOM.logContainer.scrollHeight; // Scroll to bottom
     }

@@ -325,12 +325,12 @@ body {
 
         /* 알림 로그 창 */
         #log-container {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 16px;
             height: 400px;
             overflow-y: auto;
+        }        #log-container ul {
+          list-style-type: none;
+          padding: 0;
+          margin: 0;
         }
                         .log-entry {
                             padding: 4px 0; /* Changed from 5px 0 to 4px 0 (spacing-xxs) */
@@ -412,22 +412,37 @@ body {
         }
 
         .add-alarm-card {
-            background-color: #fff; /* Card background */
-            padding: 16px; /* Internal spacing */
-            border-radius: 8px; /* Rounded corners */
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow */
             margin-top: 10px; /* Space between title and card */
             display: flex; /* Use flexbox for alignment */
             align-items: center; /* Vertically align items */
             gap: 10px; /* Space between inputs and button */
         }
-
         .add-alarm-card input[type="text"] {
             width: 118px; /* Fixed width for inputs */
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+
+/* Placeholder text color */
+input::placeholder,
+textarea::placeholder {
+    color: #999;
+    opacity: 1; /* Firefox default opacity can make it lighter */
+}
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+    color: #999;
+}
+input::-moz-placeholder,
+textarea::-moz-placeholder {
+    color: #999;
+    opacity: 1;
+}
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+    color: #999;
+}
 
                 .fixed-alarm-header {
             display: flex;
@@ -438,13 +453,7 @@ body {
         .fixed-alarm-item {
             display: flex;
             flex-direction: column; /* Stack children vertically */
-            background-color: #fff; /* Card background */
-            padding: 16px; /* Internal spacing */
-            margin-bottom: 10px; /* Space between cards */
-            border-radius: 8px; /* Rounded corners */
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow */
         }
-
         .fixed-alarm-item:last-child {
             margin-bottom: 10px; /* Ensure last item also has margin */
         }
@@ -586,6 +595,14 @@ body {
   font-weight: 700;
 }
 
+.calculator-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    align-items: flex-start;
+}
+
 /* Zen Calculator Screen Styles */
 :root {
     --zen-input-width: 160px; /* Adjusted fixed width, should accommodate HH:MM:SS */
@@ -608,7 +625,7 @@ body {
 .zen-grid-row .button-group { /* Targets 업데이트 버튼 column */
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    /* align-items: flex-start; */
 }
 
 .zen-grid-row .input-group,
@@ -618,8 +635,8 @@ body {
 
 .zen-grid-row label {
     font-weight: bold;
-    margin-bottom: 5px;
-    color: #111;
+    margin-bottom: 10px;
+    color: #777;
     line-height: 1; /* Adjust line-height to potentially improve vertical alignment */
 }
 
@@ -627,7 +644,7 @@ body {
 .hidden-label {
     visibility: hidden; /* Hide the label but keep its space */
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
     color: #111;
     display: block;
 }
@@ -635,13 +652,16 @@ body {
 /* Specific styling for elements within zen-grid-row */
 .zen-grid-row #remainingTimeInput { /* Removed #bossAppearanceTimeDisplay, #bossSelectionDropdown and #updateBossTimeButton from this group */
     width: var(--zen-input-width);
-    height: var(--zen-input-height);
-    padding: 8px;
+    height: 46px;
+    padding: 33px 16px 33px 16px;
     border: 1px solid #ccc;
     border-radius: 8px;
-    font-size: 1em;
+    font-size: 2em;
+    font-weight: 700;
     background-color: #f8f8f8;
     box-sizing: border-box;
+    text-align: center;
+    line-height: 1;
 }
 
 .zen-grid-row #bossSelectionDropdown { /* Specific styling for dropdown */
@@ -665,19 +685,15 @@ body {
 
 .zen-grid-row #bossAppearanceTimeDisplay {
     width: var(--zen-input-width); /* Re-add width */
-    height: var(--zen-input-height); /* Re-add height */
     border: 1px solid #ccc; /* Re-add border */
     border-radius: 8px; /* Re-add border-radius */
     background-color: #f8f8f8; /* Re-add background-color */
     box-sizing: border-box; /* Re-add box-sizing */
-    font-size: 1.1em;
+    font-size: 2em;
     font-weight: 700;
     color: #ea4335;
-    display: flex; /* Use flex to align content within the span */
-    align-items: center; /* Center vertically */
-    justify-content: center; /* Center horizontally */
     text-align: center; /* Fallback for older browsers */
-    padding: 7px 8px 8px 8px; /* Reduce bottom padding by 1px, increase top by 1px */
+    padding: 6px 16px 8px 16px;
 }
 
 .zen-grid-row #updateBossTimeButton {
@@ -690,11 +706,9 @@ body {
 #remainingTimeInput,
 #bossSelectionDropdown {
     width: var(--zen-input-width); /* Apply consistent width */
-    height: var(--zen-input-height); /* Apply consistent height */
-    padding: 8px;
     border: 1px solid #ccc;
     border-radius: 8px;
-    font-size: 1em;
+    font-size: 1em; /* This font-size will be overridden by the more specific rule for #remainingTimeInput */
     background-color: #f8f8f8;
     box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
@@ -742,39 +756,58 @@ body {
 }
 
 
-
-/* Calculator Card Styles (for both Zen and Light) */
-.calculator-card {
+/* ---- Unified Card Styles ---- */
+.card-standard {
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     margin-bottom: 20px;
+    box-sizing: border-box;
 }
 
-.calculator-card h3 {
-    margin-top: 0;
-    color: #333;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 8px; /* Changed from 10px to 8px (spacing-xs) */
-    margin-bottom: 20px;
+.card-list-item {
+    background-color: #fff;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 10px;
 }
+
+/* ---- Card Sizing Classes ---- */
+.card-size-standard {
+    max-width: 380px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.card-size-small {
+    max-width: 170px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.card-size-list {
+    max-width: 800px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+/* --------------------------- */
+
 
 /* Light Calculator Specific Styles */
-.light-calculator-header {
+.card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #ccc; /* Apply border to the header */
-    padding-bottom: 8px;          /* Apply padding to the header */
-    margin-bottom: 20px;          /* Apply margin to the header */
+    /*border-bottom: 1px solid #ccc;  Apply border to the header */
+    padding-bottom: 16px;          /* Apply padding to the header */
+    /*margin-bottom: 20px;           Apply margin to the header */
 }
 
-.light-calculator-header h3 {
-    /* Reset properties from the generic .calculator-card h3 rule */
-    border-bottom: none;
-    padding-bottom: 0;
-    margin-bottom: 0;
+.card-header h3 {
+    margin: 0;
 }
 
 .light-calculator-controls {
@@ -797,11 +830,11 @@ body {
 .light-over-time-group label {
     font-weight: bold;
     margin-bottom: 5px;
-    color: #111;
+    color: #777;
 }
 
 .light-expected-time-group label .expected-text {
-    color: #111; /* Default black for "잡힘" */
+    color: #777; /* Default black for "잡힘" */
 }
 
 .light-expected-time-group label .expected-label {
@@ -820,7 +853,7 @@ body {
     padding: 6px 16px 8px 16px; /* Changed from 10px 15px to 8px 16px (spacing-xs top/bottom, spacing-md left/right) */
     border-radius: 8px;
     border: 1px solid #ccc;
-    min-width: 150px;
+    min-width: 152px;
     text-align: center;
 }
 
@@ -942,11 +975,6 @@ body {
 
 /* Boss Scheduler Screen Styles */
 .boss-list-display-container {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    margin-bottom: 20px;
-    padding: 20px;
     display: flex; /* Make it a flex container */
     flex-direction: column; /* Stack children vertically */
     height: 400px; /* Fixed height for the entire card, adjust as needed */
@@ -1084,7 +1112,6 @@ body {
     flex-basis: 80px; /* Fixed width for calculated time */
     text-align: center;
     flex-shrink: 0;
-    padding-left: 18px;
 }
 
 
