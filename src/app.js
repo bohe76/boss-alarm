@@ -216,6 +216,8 @@ function loadInitialData(DOM) {
         }
     }
 
+
+    
     if (params.has('fixedData')) {
         if (LocalStorageManager.importFixedAlarms(decodeURIComponent(params.get('fixedData')))) {
             log("URL에서 고정 알림을 성공적으로 불러왔습니다.");
