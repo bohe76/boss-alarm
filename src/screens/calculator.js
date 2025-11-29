@@ -24,6 +24,11 @@ function checkZenCalculatorUpdateButtonState(DOM) {
 }
 
 export function initCalculatorScreen(DOM) {
+    // Ensure lightSavedList is hidden by default
+    if (DOM.lightSavedList) {
+        DOM.lightSavedList.style.display = 'none';
+    }
+    
     // --- Zen Calculator Screen Event Handlers ---
     if (DOM.remainingTimeInput) {
         DOM.remainingTimeInput.addEventListener('input', () => {
@@ -201,9 +206,18 @@ export function initCalculatorScreen(DOM) {
         });
     }
 
-    if (DOM.lightListButton) {
+    if (DOM.lightListButton && DOM.lightSavedList && DOM.lightTempResults) {
         DOM.lightListButton.addEventListener('click', () => {
-            renderLightSavedList(DOM, LightCalculator.getLightCalculatorRecords());
+            const isListCurrentlyHidden = DOM.lightSavedList.style.display === 'none';
+
+            if (isListCurrentlyHidden) {
+                renderLightSavedList(DOM, LightCalculator.getLightCalculatorRecords()); // Render content when showing
+                DOM.lightSavedList.style.display = 'block'; // Show the list
+                DOM.lightTempResults.classList.remove('compact-top'); // List is visible, keep original margin
+            } else {
+                DOM.lightSavedList.style.display = 'none'; // Hide the list
+                DOM.lightTempResults.classList.add('compact-top'); // List is hidden, set margin-top to 0
+            }
         });
     }
 
@@ -232,6 +246,11 @@ export function handleCalculatorScreenTransition(DOM) {
         updateLightStopwatchDisplay(DOM, '00:00'); // Ensure display is 00:00
         updateLightExpectedTimeDisplay(DOM, '--:--', false); // Ensure expected time is reset
         renderLightTempResults(DOM, '', '', ''); // Clear temporary results
+        // Ensure initial state of compact-top and savedList visibility
+        if (DOM.lightSavedList && DOM.lightTempResults) {
+            DOM.lightSavedList.style.display = 'none'; // Initially hide the list
+            DOM.lightTempResults.classList.add('compact-top'); // Set compact margin initially
+        }
     }
 }
 

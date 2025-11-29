@@ -778,8 +778,7 @@ textarea:-ms-input-placeholder {
 .card-size-standard {
     max-width: 380px;
     width: 100%;
-    margin-left: auto;
-    margin-right: auto;
+    margin-bottom: 20px;
 }
 .card-size-small {
     max-width: 170px;
@@ -888,16 +887,20 @@ textarea:-ms-input-placeholder {
 .light-calculation-results {
     display: flex;
     justify-content: space-around;
-    margin-bottom: 20px;
+    margin-bottom: 0;
     gap: 10px;
 }
 
 .light-temp-results {
     margin-top: 20px;
-    padding: 16px; /* Changed from 15px to 16px (spacing-md) */
+    padding: 16px;
     background-color: #f8f8f8;
     border-radius: 8px;
     border: 1px solid #eee;
+}
+
+.light-temp-results.compact-top {
+    margin-top: 0;
 }
 
 .light-temp-results-card h4 {
@@ -936,14 +939,6 @@ textarea:-ms-input-placeholder {
 
 .light-saved-list {
     margin-top: 30px;
-}
-
-.light-saved-list h4 {
-    margin-top: 0;
-    color: #333;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 10px;
-    margin-bottom: 16px; /* Changed from 15px to 16px (spacing-md) */
 }
 
 .light-saved-table {

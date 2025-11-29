@@ -282,48 +282,50 @@ export function renderLightTempResults(DOM, gwangTime, afterGwangTime, totalTime
 }
 
 export function renderLightSavedList(DOM, records) {
-    if (DOM.lightSavedList) {
+    if (DOM.lightSavedList && DOM.lightTempResults) { // Ensure both elements exist
         if (records.length === 0) {
             DOM.lightSavedList.innerHTML = `
-                <div class="light-saved-list-header">
-                    <h4>광 계산 목록</h4>
+                <div class="card-header">
+                    <h3>광 계산 목록</h3>
                     <button id="clearLightRecordsButton" class="button" disabled>기록 초기화</button>
                 </div>
                 <p>저장된 기록이 없습니다.</p>
             `;
-            return;
-        }
-        let html = `
-            <div class="light-saved-list-header">
-                <h4>광 계산 목록</h4>
-                <button id="clearLightRecordsButton" class="button">기록 초기화</button>
-            </div>
-            <table class="light-saved-table">
-                <thead>
-                    <tr>
-                        <th>이름</th>
-                        <th>광</th>
-                        <th>잡힘</th>
-                        <th>총 시간</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-        records.forEach(record => {
-            html += `
-                <tr>
-                    <td>${record.bossName}</td>
-                    <td>${record.gwangTime}</td>
-                    <td>${record.afterGwangTime}</td>
-                    <td>${record.totalTime}</td>
-                </tr>
+            DOM.lightTempResults.classList.add('compact-top'); // Add class when no records
+        } else {
+            let html = `
+                <div class="card-header">
+                    <h3>광 계산 목록</h3>
+                    <button id="clearLightRecordsButton" class="button">기록 초기화</button>
+                </div>
+                <table class="light-saved-table">
+                    <thead>
+                        <tr>
+                            <th>이름</th>
+                            <th>광</th>
+                            <th>잡힘</th>
+                            <th>총 시간</th>
+                        </tr>
+                    </thead>
+                    <tbody>
             `;
-        });
-        html += `
-                </tbody>
-            </table>
-        `;
-        DOM.lightSavedList.innerHTML = html;
+            records.forEach(record => {
+                html += `
+                    <tr>
+                        <td>${record.bossName}</td>
+                        <td>${record.gwangTime}</td>
+                        <td>${record.afterGwangTime}</td>
+                        <td>${record.totalTime}</td>
+                    </tr>
+                `;
+            });
+            html += `
+                    </tbody>
+                </table>
+            `;
+            DOM.lightSavedList.innerHTML = html;
+            DOM.lightTempResults.classList.remove('compact-top'); // Remove class when records exist
+        }
     }
 }
 
