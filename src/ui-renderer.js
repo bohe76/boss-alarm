@@ -165,9 +165,11 @@ export function renderDashboard(DOM) {
 
 // --- Help Screen Rendering Functions ---
 export function renderHelpScreen(DOM, helpData) {
-    if (helpData && DOM.featureGuideContent) {
+    const helpContentContainer = DOM.helpScreen.querySelector('#featureGuideContent');
+    if (helpData && helpContentContainer) {
         let html = '';
         helpData.forEach((section, index) => {
+            // Expand the first accordion item by default.
             const isOpen = index === 0 ? 'open' : '';
             html += `
                 <details class="help-section" ${isOpen}>
@@ -186,9 +188,39 @@ export function renderHelpScreen(DOM, helpData) {
                 </details>
             `;
         });
-        DOM.featureGuideContent.innerHTML = html;
-    } else if (DOM.featureGuideContent) {
-        DOM.featureGuideContent.innerHTML = `<p>도움말 콘텐츠를 불러오는 데 실패했습니다.</p>`;
+        helpContentContainer.innerHTML = html;
+    } else if (helpContentContainer) {
+        helpContentContainer.innerHTML = `<p>도움말 콘텐츠를 불러오는 데 실패했습니다.</p>`;
+    }
+}
+
+export function renderFaqScreen(DOM, faqData) {
+    const faqContentContainer = DOM.helpScreen.querySelector('#faq-content');
+    if (faqData && faqContentContainer) {
+        let html = '';
+        faqData.forEach((section, index) => {
+            // Expand the first accordion item by default for consistency.
+            const isOpen = index === 0 ? 'open' : '';
+            html += `
+                <details class="help-section" ${isOpen}>
+                    <summary class="help-summary">${section.title}</summary>
+                    <div class="help-content">
+                        ${section.content.map(p => `<p>${p}</p>`).join('')}
+                        ${section.sub_sections ? section.sub_sections.map(sub => `
+                            <details class="help-sub-section">
+                                <summary class="help-sub-summary">${sub.title}</summary>
+                                <div class="help-sub-content">
+                                    ${sub.content.map(p => `<p>${p}</p>`).join('')}
+                                </div>
+                            </details>
+                        `).join('') : ''}
+                    </div>
+                </details>
+            `;
+        });
+        faqContentContainer.innerHTML = html;
+    } else if (faqContentContainer) {
+        faqContentContainer.innerHTML = `<p>FAQ 콘텐츠를 불러오는 데 실패했습니다.</p>`;
     }
 }
 

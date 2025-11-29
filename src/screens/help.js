@@ -1,17 +1,60 @@
 import { loadJsonContent } from '../api-service.js';
-import { renderHelpScreen } from '../ui-renderer.js'; // Import renderHelpScreen
+import { renderHelpScreen, renderFaqScreen } from '../ui-renderer.js';
 
-export function initHelpScreen(DOM) {
-    // Directly load feature guide content when opening help screen
+function handleTabSwitching(DOM) {
+    const tabContainer = DOM.helpScreen.querySelector('.modal-tabs');
+    const tabContents = DOM.helpScreen.querySelectorAll('.custom-list-tab-content');
+
+    // Prevent adding listener multiple times
+    if (tabContainer.dataset.listenerAttached) {
+        return;
+    }
+    tabContainer.dataset.listenerAttached = 'true';
+
+    tabContainer.addEventListener('click', (event) => {
+        if (event.target.classList.contains('tab-button')) {
+            const tabId = event.target.dataset.tab;
+
+            // Deactivate all tabs and content
+            tabContainer.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Activate the clicked tab and content
+            event.target.classList.add('active');
+            DOM.helpScreen.querySelector(`#${tabId}`).classList.add('active');
+        }
+    });
+}
+
+
+function onHelpScreenTransition(DOM) {
+    // Load both guides at the same time
     (async () => {
-        const helpData = await loadJsonContent(`docs/feature_guide.json?v=${window.APP_VERSION}`);
-        renderHelpScreen(DOM, helpData); // Call the centralized renderer
+        try {
+            const [helpData, faqData] = await Promise.all([
+                loadJsonContent(`docs/feature_guide.json?v=${window.APP_VERSION}`),
+                loadJsonContent(`docs/faq_guide.json?v=${window.APP_VERSION}`)
+            ]);
+            
+            renderHelpScreen(DOM, helpData);
+            renderFaqScreen(DOM, faqData); 
+        } catch (error) {
+            console.error("Failed to load help content:", error);
+            // Optionally, render an error message to the user
+        }
     })();
 }
 
 export function getScreen() {
     return {
         id: 'help-screen',
-        onTransition: initHelpScreen
+        init: (DOM) => {
+            handleTabSwitching(DOM);
+        },
+        onTransition: onHelpScreenTransition
     };
 }

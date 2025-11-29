@@ -489,8 +489,19 @@
 
             <section id="help-screen" class="screen">
                 <h2>도움말</h2>
-                <div id="featureGuideContent">
-                    <!-- Feature Guide content will be loaded here -->
+                <div class="modal-tabs"> <!-- Reusing class for styling -->
+                    <button class="tab-button active" data-tab="help-content">도움말</button>
+                    <button class="tab-button" data-tab="faq-content">FAQ</button>
+                </div>
+                <div class="modal-body"> <!-- Reusing class for styling -->
+                    <div id="help-content" class="custom-list-tab-content active">
+                        <div id="featureGuideContent">
+                            <!-- Feature Guide content will be loaded here -->
+                        </div>
+                    </div>
+                    <div id="faq-content" class="custom-list-tab-content">
+                        <!-- FAQ content will be loaded here -->
+                    </div>
                 </div>
             </section>
 
