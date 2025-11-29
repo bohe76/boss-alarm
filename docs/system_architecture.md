@@ -62,7 +62,7 @@ UI는 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 �
         *   `vi.spyOn(module, 'function').mockImplementation(() => ...)`을 사용하여 모듈 내 특정 함수의 호출을 가로채고 Mocking 또는 스파이합니다.
         *   `EventBus`와 같이 이벤트 기반 통신을 사용하는 모듈의 경우, `vi.mock` 내에서 `listeners` 객체를 관리하고 `emit` 함수가 등록된 콜백들을 실제로 실행하도록 구현하여 실제 이벤트 흐름을 시뮬레이션합니다.
     *   **DOM 상태 직접 제어:**
-        *   JSDOM 환경의 비일관적인 이벤트 처리를 보완하기 위해, `beforeEach`에서 `DOM.innerHTML = \`...\``와 같이 필요한 DOM 구조를 직접 명시적으로 구성합니다.
+        *   JSDOM 환경의 비일관적인 이벤트 처리를 보완하기 위해, `beforeEach`에서 `DOM.innerHTML = `...``와 같이 필요한 DOM 구조를 직접 명시적으로 구성합니다.
         *   `input.dataset.calculatedDate`와 같은 중요 메타데이터는 Mocking된 함수의 반환값을 사용하여 `input.dispatchEvent`를 통해 정확히 설정되도록 합니다.
         *   `src` 코드에서 참조하는 모든 필수 DOM 요소(예: `DOM.bossListInput`)는 테스트의 `DOM` Mock 객체에 명시적으로 추가하여 `undefined` 오류를 방지합니다.
     *   **데이터 Mocking (JSON 하드 코딩):**
