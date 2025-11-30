@@ -56,17 +56,20 @@ body {
         .alarm-icon {
             width: 40px;
             height: 40px;
-            stroke: #ccc; /* Directly set stroke color for off state */
             transition: all 0.3s ease; /* Transition for all properties */
-            fill: none; /* Added */
-            stroke-width: 2.5; /* Added for thicker lines */
             transform: translateZ(0); /* Force hardware acceleration */
         }
 
-                    .alarm-toggle-button.alarm-on .alarm-icon {
-                        stroke: #ea4335; /* Direct red stroke for on state */
-                        animation: hueCycle 6s linear infinite; /* Re-add animation */
-                    }
+        .alarm-icon path {
+            stroke: #ccc; /* Directly set stroke color for off state */
+            fill: none; /* Added */
+            stroke-width: 2.5; /* Added for thicker lines */
+        }
+
+        .alarm-toggle-button.alarm-on .alarm-icon path {
+            stroke: #ea4335; /* Direct red stroke for on state */
+            animation: hueCycle 6s linear infinite; /* Re-add animation */
+        }
         .alarm-toggle-button.alarm-off .alarm-icon {
             color: #333; /* Darker gray for off state */
         }
