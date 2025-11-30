@@ -292,7 +292,7 @@ body {
             font-weight: bold;
         }        
         .boss-details-highlight {
-            color: #AD1457; /* 변경: 이전 빨간색에서 #AD1457로 변경 */
+            color: #43AA8B; /* 변경: 보스 이름을 청록색으로 변경 */
             font-weight: bold;
             font-size: 1.4em;
         }
@@ -335,17 +335,26 @@ body {
             color: #666; /* Grey for sound OFF (muted) */
         }
         .remaining-time {
-            color: #43AA8B; /* Blue color for remaining time */
+            color: #ea4335; /* 변경: 남은 시간의 빨간색으로 변경 */
             font-size: 2.0em; /* 남은 시간 폰트 크기 증가 */
         }        
         .imminent-boss-info {
-            color: #AD1457; /* 변경: 5분 미만 보스 이름의 색상을 #AD1457로 변경 */
+            color: #43AA8B; /* 변경: 5분 미만 보스 이름의 색상을 청록색으로 변경 */
             font-weight: bold;
         }
 
         .imminent-remaining-time {
-            color: #43AA8B; /* Blue color for remaining time within 5 minutes */
+            color: #ea4335; /* 변경: 5분 미만 남은 시간의 빨간색으로 변경 */
             font-weight: bold;
+        }
+
+        /* 다가오는 보스 목록: 1시간 미만일 때 남은 시간 색상을 빨간색으로 오버라이드 */
+        #upcomingBossListContent span.remaining-time.medium-priority {
+            color: #ea4335;
+        }
+        /* 다가오는 보스 목록: 기본(1시간 이상)일 때 남은 시간 색상을 빨간색으로 오버라이드 */
+        #upcomingBossListContent span.remaining-time.default-grey {
+            color: #ea4335;
         }
 
         /* State: < 1 hour */
