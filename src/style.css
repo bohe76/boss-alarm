@@ -292,12 +292,16 @@ body {
             font-weight: bold;
         }        
         .boss-details-highlight {
-            color: #ea4335; /* Red color */
+            color: #AD1457; /* 변경: 이전 빨간색에서 #AD1457로 변경 */
             font-weight: bold;
             font-size: 1.4em;
         }
         .alarm-status-running {
-            color: #ea4335; /* Red color for running state */
+            color: #43AA8B; /* 변경: 남은 시간의 청록색과 동일하게 변경 */
+        }
+        #alarmStatusText {
+            font-weight: bold; /* 알림 상태 텍스트 항상 굵게 */
+            font-size: 1.4em; /* 폰트 크기 1.4em으로 변경 */
         }
         
         /* Removed #alarmStatusSummary style as it is now part of a card */
@@ -324,7 +328,7 @@ body {
             justify-content: center;
             cursor: pointer;
             padding: 0;
-            color: #ea4335; /* Red for sound ON (default) */
+            color: #43AA8B; /* 변경: 남은 시간의 청록색과 동일하게 변경 */
             transition: color 0.3s ease, background-color 0.3s ease;
         }
         .mute-button.muted {
@@ -335,7 +339,7 @@ body {
             font-size: 2.0em; /* 남은 시간 폰트 크기 증가 */
         }        
         .imminent-boss-info {
-            color: #ea4335; /* Red color for boss name within 5 minutes */
+            color: #AD1457; /* 변경: 5분 미만 보스 이름의 색상을 #AD1457로 변경 */
             font-weight: bold;
         }
 
