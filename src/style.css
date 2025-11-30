@@ -292,7 +292,7 @@ body {
             font-weight: bold;
         }        
         .boss-details-highlight {
-            color: #00B0FF; /* 변경: 보스 이름을 청록색으로 변경 */
+            color: #1E88E5; /* 변경: 다음 보스*/
             font-weight: bold;
             font-size: 1.4em;
         }
@@ -339,7 +339,7 @@ body {
             font-size: 2.0em; /* 남은 시간 폰트 크기 증가 */
         }        
         .imminent-boss-info {
-            color: #00B0FF; /* 변경: 5분 미만 보스 이름의 색상을 청록색으로 변경 */
+            color: #1E88E5; /* 변경: 5분 미만 보스 */
             font-weight: bold;
         }
 
