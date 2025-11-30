@@ -353,6 +353,9 @@ body {
          .log-entry.important {
             color: #ea4335;
         }
+        #log-container .log-entry strong {
+            color: #111;
+        }
         #recentAlarmLog .log-entry:first-child {
             padding-top: 0; /* 제목과의 간격을 맞추기 위해 첫 항목의 상단 패딩 제거 */
         }
@@ -616,9 +619,11 @@ textarea:-ms-input-placeholder {
   margin: 0;
 }
 
-#upcomingBossListContent .spawn-time,
-.boss-details-highlight .spawn-time {
+#upcomingBossListContent .spawn-time, /* 다가오는 보스 시간 */
+.boss-details-highlight .spawn-time, /* 다음 보스 시간 */
+#recentAlarmLogContent .log-entry strong { /* 알림 로그 시간 */
   font-weight: 700;
+  color: #111; /* Changed to #111 */
 }
 
 .calculator-container {

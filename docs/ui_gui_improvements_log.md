@@ -67,8 +67,16 @@
 *   **'알림 설정' 화면 개선:**
     *   고정 알림 목록 아이템(`fixed-alarm-item`)에서 시간 표시(`alarm.time`)를 볼드체로 변경하고, **폰트 크기를 `2.0em`으로 조정** (`src/ui-renderer.js`).
     *   고정 알림 목록 아이템(`fixed-alarm-item`)에서 시간 표시(`alarm.time`)와 이름(`alarm.name`) 사이에 **`&nbsp;&nbsp;` 엔티티를 사용하여 공백 2개를 명시** (`src/ui-renderer.js`).
+    *   새 고정 알림 추가 섹션(`.add-fixed-alarm-section`)에 `margin-top: 20px` 추가하여 상단 요소와의 간격 확보.
 *   **로그 메시지 개선:**
     *   `custom-list-manager.js`에서 `[CustomListManager]` 접두사를 제거.
     *   `boss-scheduler-data.js`에서 보스 목록 로드 성공 시 로그 메시지에서 `data/boss_lists.json` 파일 경로를 제거하여 간결하게 표시.
+*   **'알림 로그' 화면 개선:**
+    *   알림 로그 리스트 아이템(`.log-entry`)의 하단 라인을 점선(`1px dashed #ccc`)으로 변경.
+    *   알림 로그 화면(`alarm-log-screen`)에서도 리스트 아이템 내부의 시간(`<strong>` 태그) 색상을 `#111`로 변경.
+*   **'보스 설정' 화면 개선:**
+    *   안내 메시지 두 줄을 `p` 태그 내에 `br` 태그를 사용하여 줄바꿈하는 형태로 변경하여, 의미론적 구조를 유지하면서 시각적 간결성 확보.
 *   **'다가오는 보스' 화면 개선:**
     *   `다가오는 보스` 리스트 아이템(`upcomingBossListContent ul li`)에 알림 로그(`.log-entry`)와 유사한 스타일(패딩, 점선 하단 라인, 폰트 크기 등)을 적용하고, 마지막 아이템의 하단 라인 제거.
+*   **'대시보드' 화면 개선:**
+    *   '다음 보스', '다가오는 보스', '알림 로그'에서 `[hh:mm:ss]` 부분의 폰트 색상을 `#111`로 변경하여 강조. (`알림 로그`는 `<strong>` 태그를 타겟팅). (단, `boss-details-highlight`의 다른 텍스트는 `#ea4335` 유지)
