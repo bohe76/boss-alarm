@@ -332,6 +332,7 @@ body {
         }
         .remaining-time {
             color: #43AA8B; /* Blue color for remaining time */
+            font-size: 2.0em; /* 남은 시간 폰트 크기 증가 */
         }        
         .imminent-boss-info {
             color: #ea4335; /* Red color for boss name within 5 minutes */

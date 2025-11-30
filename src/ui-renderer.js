@@ -78,7 +78,8 @@ export function updateNextBossDisplay(DOM) {
     const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
 
     if (nextBoss) {
-        const remainingTimeString = formatTimeDifference(minTimeDiff);
+        const remainingTimeStringRaw = formatTimeDifference(minTimeDiff);
+        const remainingTimeString = remainingTimeStringRaw.replace(/[()]/g, ''); // Remove parentheses
         const formattedSpawnTime = formatSpawnTime(nextBoss.time);
 
         const remainingTimeSpan = DOM.nextBossContent.querySelector('.remaining-time');
@@ -92,10 +93,10 @@ export function updateNextBossDisplay(DOM) {
             // Only update boss name part if it has actually changed
             const currentText = bossDetailsHighlight.textContent;
             if (!currentText.includes(nextBoss.name) || !currentText.includes(formattedSpawnTime)) {
-                 bossDetailsHighlight.innerHTML = `<span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span>`;
+                 bossDetailsHighlight.innerHTML = `<span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name}<br><span class="remaining-time">${remainingTimeString}</span>`;
             }
         } else {
-            DOM.nextBossContent.innerHTML = `<span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span></span>`;
+            DOM.nextBossContent.innerHTML = `<span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name}<br><span class="remaining-time">${remainingTimeString}</span></span>`;
         }
     } else {
         DOM.nextBossContent.textContent = '다음 보스 없음';
