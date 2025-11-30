@@ -1222,7 +1222,7 @@ textarea:-ms-input-placeholder {
     flex-basis: 80px; /* Match calculated-spawn-time flex-basis */
     text-align: center;
     flex-shrink: 0;
-    padding-left: 30px;
+    padding-left: 10px;
 }
 
 #gameSelect {
