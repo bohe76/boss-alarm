@@ -97,3 +97,7 @@
     *   `src/style.css`의 `.alarm-icon` 클래스에 `stroke: currentColor;`와 `fill: none;`을 추가하여 윤곽선 아이콘이 올바르게 렌더링되도록 개선.
     *   `src/style.css`의 `.alarm-icon` 클래스에 `stroke-width: 2.5;`를 추가하여 아이콘 선의 굵기를 강조.
     *   `src/style.css`의 `.alarm-icon` 클래스 `width`와 `height`를 `40px`로 조정하여 아이콘 크기를 최적화.
+
+*   **헤더 알람 아이콘 애니메이션 추가:**
+    *   알람이 ON 상태일 때, 헤더의 알람 아이콘에 무한 색조 회전(`hue-rotate`) 애니메이션을 추가하여 시각적 피드백을 강화했습니다. (`src/style.css`)
+    *   `hue-rotate-animation`이라는 이름의 `@keyframes`를 정의하고, `.alarm-toggle-button.alarm-on .alarm-icon`에 2초 동안 무한 반복되는 `linear` 애니메이션으로 적용했습니다.

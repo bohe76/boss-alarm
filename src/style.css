@@ -69,6 +69,19 @@ body {
         .alarm-toggle-button.alarm-on .alarm-icon path {
             stroke: #ea4335; /* Direct red stroke for on state */
         }
+
+        .alarm-toggle-button.alarm-on .alarm-icon {
+            animation: hue-rotate-animation 2s linear infinite;
+        }
+
+        @keyframes hue-rotate-animation {
+            0% {
+                filter: hue-rotate(0deg);
+            }
+            100% {
+                filter: hue-rotate(360deg);
+            }
+        }
         .alarm-toggle-button.alarm-off .alarm-icon {
             color: #333; /* Darker gray for off state */
         }
