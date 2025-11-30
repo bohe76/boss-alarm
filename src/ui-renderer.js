@@ -370,7 +370,7 @@ export function renderFixedAlarms(DOM) {
         infoAndToggleDiv.className = 'fixed-alarm-info-toggle';
 
         const bossInfoSpan = document.createElement('span');
-        bossInfoSpan.textContent = `${alarm.time} ${alarm.name}`;
+        bossInfoSpan.innerHTML = `<span style="font-weight: bold; font-size: 2.0em;">${alarm.time}</span>&nbsp;&nbsp;${alarm.name}`; // 공백 2개를 &nbsp; 엔티티로 명시
         infoAndToggleDiv.appendChild(bossInfoSpan);
 
         // Toggle Switch

@@ -77,7 +77,7 @@ let customBossLists = [];
  */
 function init() {
     customBossLists = LocalStorageManager.get(CUSTOM_BOSS_LISTS_KEY) || [];
-    log(`[CustomListManager] ${customBossLists.length}개의 사용자 지정 목록을 로드했습니다.`);
+    log(`${customBossLists.length}개의 사용자 지정 목록을 로드했습니다.`);
 }
 
 /**

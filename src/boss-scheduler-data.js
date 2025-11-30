@@ -18,7 +18,7 @@ export async function loadBossLists(filePath = 'data/boss_lists.json') {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         bossLists = await response.json();
-        log(`보스 목록을 ${filePath}에서 성공적으로 로드했습니다.`);
+        log(`보스 목록을 성공적으로 로드했습니다.`);
         return bossLists;
     } catch (error) {
         log(`보스 목록 로드 실패: ${error.message}.`);

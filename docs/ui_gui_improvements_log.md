@@ -64,3 +64,9 @@
     *   `.dashboard-layout`, `.dashboard-column-left`, `.dashboard-column-right`, `.dashboard-small-cards-row` 등 모든 대시보드 Flex 컨테이너의 `gap`을 `16px`로 통일하여 카드 및 그룹 사이의 세로/가로 간격을 일관되게 유지.
     *   **`card-size-small` 너비 조정:** `.card-size-small`의 `max-width`를 `182px`로 조정하여 `.dashboard-small-cards-row` 내에서 두 카드가 `gap: 16px`와 함께 `376px` 너비에 정확히 배치되도록 최적화.
     *   **'알림 상태' / '소리 설정' 카드 내부 정렬 개선:** `status-content` 및 `mute-control-content`에 `flex-direction: column`을 추가하여 내부 콘텐츠의 수직/가로 중앙 정렬을 보장.
+*   **'알림 설정' 화면 개선:**
+    *   고정 알림 목록 아이템(`fixed-alarm-item`)에서 시간 표시(`alarm.time`)를 볼드체로 변경하고, **폰트 크기를 `2.0em`으로 조정** (`src/ui-renderer.js`).
+    *   고정 알림 목록 아이템(`fixed-alarm-item`)에서 시간 표시(`alarm.time`)와 이름(`alarm.name`) 사이에 **`&nbsp;&nbsp;` 엔티티를 사용하여 공백 2개를 명시** (`src/ui-renderer.js`).
+*   **로그 메시지 개선:**
+    *   `custom-list-manager.js`에서 `[CustomListManager]` 접두사를 제거.
+    *   `boss-scheduler-data.js`에서 보스 목록 로드 성공 시 로그 메시지에서 `data/boss_lists.json` 파일 경로를 제거하여 간결하게 표시.

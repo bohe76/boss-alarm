@@ -248,8 +248,11 @@ body {
         }
 
 
-        h1, h2, h3 {
+        h1, h2 {
             color: #111;
+        }
+        h3 {
+            color: #1D3557;
         }
         textarea {
             width: 95%;
@@ -266,12 +269,13 @@ body {
         main h3,
         .next-boss-label {
             font-size: 1.1em;
-            color: #111; /* Black color */
+            color: #1D3557; /* Black color */
             font-weight: bold;
-        }        .boss-details-highlight {
+        }        
+        .boss-details-highlight {
             color: #ea4335; /* Red color */
             font-weight: bold;
-            font-size: 1.5em;
+            font-size: 1.4em;
         }
         .alarm-status-running {
             color: #ea4335; /* Red color for running state */
@@ -483,6 +487,10 @@ textarea:-ms-input-placeholder {
                 .fixed-alarm-item.faded {
             opacity: 0.5;
             transition: opacity 0.3s ease-in-out;
+        }
+
+        .add-fixed-alarm-section {
+            margin-top: 20px;
         }
 
         .log-header {
@@ -818,12 +826,13 @@ textarea:-ms-input-placeholder {
 
 .card-header h3 {
     margin: 0;
+    color: #1D3557;
 }
 
 .card-header h4 {
     margin: 0;
     font-size: 1.0em;
-    color: #333;
+    color: #1D3557;
 }
 
 .light-calculator-controls {
