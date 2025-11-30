@@ -279,7 +279,17 @@ body {
         
         /* Removed #alarmStatusSummary style as it is now part of a card */
         /* Removed #muteControlSection style as it is now part of a card */
-        
+        .status-content,
+        .mute-control-content {
+            display: flex;
+            flex-direction: column; /* 추가 */
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+        }
+
+
         .mute-button {
             background: none;
             border: 2px solid;
@@ -765,7 +775,7 @@ textarea:-ms-input-placeholder {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    margin-bottom: 20px;
+    margin-bottom: 0; /* Changed from 20px to 0 */
     box-sizing: border-box;
 }
 
@@ -781,10 +791,10 @@ textarea:-ms-input-placeholder {
 .card-size-standard {
     max-width: 380px;
     width: 100%;
-    margin-bottom: 20px;
+    margin-bottom: 0; /* Changed from 20px to 0 */
 }
 .card-size-small {
-    max-width: 180px;
+    max-width: 182px; /* Changed from 180px to 182px */
     width: 100%;
 }
 .card-size-list {
@@ -1018,22 +1028,54 @@ textarea:-ms-input-placeholder {
     width: 100%;
 }
 
-.status-content,
-.mute-control-content {
+.dashboard-layout {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+    flex-direction: column; /* Mobile: all columns/cards stack vertically */
+    align-items: center;   /* Center align all cards */
+    gap: 16px;             /* Changed from 20px to 16px */
+    width: 100%;
+    max-width: 800px; /* Limit overall dashboard max width */
+    margin: 0 auto; /* Center align the entire dashboard */
 }
 
+/* Each column (behaves as a block on mobile) */
+.dashboard-column-left,
+.dashboard-column-right {
+    display: flex;
+    flex-direction: column; /* Cards within each column stack vertically */
+    gap: 16px; /* Changed from 20px to 16px */
+    align-items: center; /* Center align cards within column */
+    width: 100%; /* Occupy full parent width on mobile */
+    max-width: 380px; /* Match max width of individual cards */
+}
+
+
+/* --- PC (wide screen) layout --- */
+@media (min-width: 769px) { /* Tablet/Desktop breakpoint */
+    .dashboard-layout {
+        flex-direction: row; /* PC: arrange two columns horizontally */
+        justify-content: center; /* Center align the two columns themselves */
+        align-items: flex-start; /* Align columns from the top */
+        gap: 16px; /* Changed from 40px to 16px */
+    }
+
+    .dashboard-column-left,
+    .dashboard-column-right {
+        width: 380px; /* Fix column width to match card max width */
+        min-width: 380px; /* Prevent shrinking */
+        max-width: 380px;
+    }
+}
+
+/* 알림 상태 & 소리 설정 카드 묶음 (항상 가로 배치) */
 .dashboard-small-cards-row {
     display: flex;
     flex-direction: row; /* Always horizontal */
     flex-wrap: wrap;     /* Wrap if space is insufficient */
     justify-content: center; /* Center align items */
-    gap: 20px;           /* Gap between cards */
+    gap: 16px;           /* Changed from 20px to 16px */
     width: 100%;         /* Occupy full parent width */
-    max-width: 380px;    /* Consider max-width for small cards combination */
+    max-width: 380px;    /* Max-width for two small cards combination */
 }
 
 .boss-scheduler-controls {

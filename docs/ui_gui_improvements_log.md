@@ -52,13 +52,15 @@
     *   버튼 그룹 및 컨트롤 섹션을 중앙 정렬로 변경 (`justify-content: center`).
 *   **'공유' 화면 레이아웃 개선:**
     *   제목(`h2`)을 제외한 본문 콘텐츠(`p`, `#shareMessage`)를 `.share-content-layout`으로 감싸 중앙 정렬 및 텍스트 중앙 정렬 적용 (`index.html`, `src/style.css`).
-*   **'대시보드' 화면 UI 전면 개편:**
-    *   모든 대시보드 요소를 카드 UI로 전환 (`index.html`).
-        *   '다음 보스', '다가오는 보스', '알림 로그'는 `card-standard`, `card-size-standard` 적용.
-        *   '알림 상태', '소리 설정'은 `card-standard`, `card-size-small` 적용.
-    *   카드 헤더(`<h3>` 또는 `<h4>`)와 동적 콘텐츠(`div`) 분리하여 렌더링 효율성 개선 (`index.html`, `src/ui-renderer.js`).
-    *   `src/dom-elements.js`에서 변경된 ID(`nextBossContent`, `upcomingBossListContent`, `recentAlarmLogContent`) 반영.
-    *   '알림 상태'와 '소리 설정' 카드를 `.dashboard-small-cards-row`로 묶어 항상 가로 배치되도록 구조화 (`index.html`, `src/style.css`).
-    *   `.card-size-small`의 `max-width`를 `180px`로 조정하여 `.dashboard-small-cards-row` 내에서 두 카드가 `gap: 20px`와 함께 380px 너비에 정확히 배치되도록 최적화 (`src/style.css`).
-    *   '다가오는 보스'와 '알림 로그' 목록의 불릿을 제거하고 시간 표시를 볼드체로 복구 (`src/style.css`).
-    *   더 이상 사용되지 않는 CSS 스타일 제거 (`#alarmStatusSummary`, `#muteControlSection` 등) (`src/style.css`).
+*   **'대시보드' 화면 반응형 레이아웃 재구성:**
+    *   PC (넓은 화면)와 모바일 (좁은 화면)에 따라 다른 레이아웃 적용.
+    *   `index.html`에 `.dashboard-flexible-layout`, `.dashboard-column-left`, `.dashboard-column-right` 구조 추가.
+    *   `src/style.css`에 Flexbox와 미디어 쿼리(`min-width: 769px`)를 사용하여 다음 규칙 구현:
+        *   **PC:** 두 개의 컬럼(`.dashboard-column-left`, `.dashboard-column-right`)이 가로로 배치되며 각각 너비를 고정하고, 그 안에 카드들이 수직으로 쌓임.
+        *   **모바일:** 모든 컬럼과 카드들이 수직으로 쌓임.
+        *   '알림 상태'와 '소리 설정' 카드는 `.dashboard-small-cards-row`로 묶여 **항상 가로 배치** (공간 부족 시 줄바꿈) 되도록 유지.
+        *   대시보드 제목을 제외한 모든 카드 및 그룹은 중앙 정렬.
+    *   **간격 시스템 통일:** 모든 `.card-standard`의 `margin-bottom`을 `0`으로 설정하여 Flex `gap` 속성과의 중복 마진 문제를 해결.
+    *   `.dashboard-layout`, `.dashboard-column-left`, `.dashboard-column-right`, `.dashboard-small-cards-row` 등 모든 대시보드 Flex 컨테이너의 `gap`을 `16px`로 통일하여 카드 및 그룹 사이의 세로/가로 간격을 일관되게 유지.
+    *   **`card-size-small` 너비 조정:** `.card-size-small`의 `max-width`를 `182px`로 조정하여 `.dashboard-small-cards-row` 내에서 두 카드가 `gap: 16px`와 함께 `376px` 너비에 정확히 배치되도록 최적화.
+    *   **'알림 상태' / '소리 설정' 카드 내부 정렬 개선:** `status-content` 및 `mute-control-content`에 `flex-direction: column`을 추가하여 내부 콘텐츠의 수직/가로 중앙 정렬을 보장.

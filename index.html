@@ -291,57 +291,62 @@
                 </div>
                 <div id="dashboard-real-content" class="real-content hidden">
                     <h2>대시보드</h2>
-                    
-                    <!-- Next Boss Card -->
-                    <div id="nextBossCard" class="card-standard card-size-standard">
-                        <div class="card-header">
-                            <h3>다음 보스</h3>
-                        </div>
-                        <div id="nextBossContent" class="next-boss-content">
-                            <!-- Dynamic content will be rendered here -->
-                        </div>
-                    </div>
-
-                    <!-- Upcoming Boss List Card -->
-                    <div id="upcomingBossListCard" class="card-standard card-size-standard">
-                        <div class="card-header">
-                            <h3>다가오는 보스</h3>
-                        </div>
-                        <div id="upcomingBossListContent">
-                            <!-- Dynamic list will be rendered here -->
-                        </div>
-                    </div>
-
-                    <!-- Status and Mute Cards wrapper -->
-                    <div class="dashboard-small-cards-row">
-                        <!-- Status Card -->
-                        <div class="card-standard card-size-small">
-                            <div class="card-header">
-                                <h3>알림 상태</h3>
+                    <div class="dashboard-layout">
+                        <div class="dashboard-column-left">
+                            <!-- Next Boss Card -->
+                            <div id="nextBossCard" class="card-standard card-size-standard">
+                                <div class="card-header">
+                                    <h3>다음 보스</h3>
+                                </div>
+                                <div id="nextBossContent" class="next-boss-content">
+                                    <!-- Dynamic content will be rendered here -->
+                                </div>
                             </div>
-                            <div id="alarmStatusText" class="status-content"></div>
-                        </div>
 
-                        <!-- Mute Card -->
-                        <div class="card-standard card-size-small">
-                            <div class="card-header">
-                                <h3>소리 설정</h3>
-                            </div>
-                            <div class="mute-control-content">
-                                <button id="muteToggleButton" class="mute-button">
-                                    <!-- Speaker Icon will be rendered here by JS -->
-                                </button>
+                            <!-- Upcoming Boss List Card -->
+                            <div id="upcomingBossListCard" class="card-standard card-size-standard">
+                                <div class="card-header">
+                                    <h3>다가오는 보스</h3>
+                                </div>
+                                <div id="upcomingBossListContent">
+                                    <!-- Dynamic list will be rendered here -->
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Recent Alarm Log Card -->
-                    <div class="card-standard card-size-standard">
-                        <div class="card-header">
-                            <h3>알림 로그</h3>
-                        </div>
-                        <div id="recentAlarmLogContent">
-                            <!-- Recent logs go here -->
+                        <div class="dashboard-column-right">
+                            <!-- Status and Mute Cards wrapper -->
+                            <div class="dashboard-small-cards-row">
+                                <!-- Status Card -->
+                                <div class="card-standard card-size-small">
+                                    <div class="card-header">
+                                        <h3>알림 상태</h3>
+                                    </div>
+                                    <div id="alarmStatusText" class="status-content"></div>
+                                </div>
+
+                                <!-- Mute Card -->
+                                <div class="card-standard card-size-small">
+                                    <div class="card-header">
+                                        <h3>소리 설정</h3>
+                                    </div>
+                                    <div class="mute-control-content">
+                                        <button id="muteToggleButton" class="mute-button">
+                                            <!-- Speaker Icon will be rendered here by JS -->
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Alarm Log Card -->
+                            <div class="card-standard card-size-standard">
+                                <div class="card-header">
+                                    <h3>알림 로그</h3>
+                                </div>
+                                <div id="recentAlarmLogContent">
+                                    <!-- Recent logs go here -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
