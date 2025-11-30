@@ -25,6 +25,7 @@
     ```shell
     node ./node_modules/vitest/vitest.mjs run
     ```
+*   **실행 정책:** 테스트는 .js와 같이 관련 코드가 변경될 때만 실행하고, **.md, .html, .css** 같은 정적 파일 변경 시에는 **생략**합니다. (Run tests only when relevant code like .js files are changed. Skip tests for static file changes like .md, .html, .css.)
 
 #### 3. 에이전트 작업 원칙
 
@@ -35,7 +36,7 @@
 
 ### 에이전트 업무 준비
 
-*   사용자님이 "업무준비"라고 지시하면, 다음 문서들을 학습합니다.
+*   사용자님이 "업무준비"라고 지시하면, 다음 4개의 핵심 문서를 학습합니다.
     *   `docs/system_architecture.md`
     *   `docs/system_module_details.md`
     *   `docs/system_module_dependencies.md`
