@@ -369,6 +369,12 @@ body {
         #upcomingBossListContent ul li:last-child {
             border-bottom: none;
         }
+
+        #upcomingBossListContent ul li:first-child,
+        #recentAlarmLogContent ul li.log-entry:first-child,
+        #log-container ul li.log-entry:first-child { /* Added this line */
+            border-top: 1px dashed #ccc;
+        }
         /* Switch styles */
         .switch {
             position: relative;
