@@ -36,7 +36,7 @@
     *   현재 시간 기준으로 5분 후, 1분 후, 현재 시간을 계산합니다.
     *   자정(00:00)이 되면 모든 보스의 `alerted` 상태를 초기화하여 매일 알람이 반복되도록 준비합니다.
     *   `BossDataManager.getBossSchedule()`의 동적 보스와 `LocalStorageManager.getFixedAlarms()`의 활성화된 고정 알람을 결합하여 `allAlarms` 목록을 생성합니다.
-    *   각 알람에 대해 `scheduledDate`를 계산하고, 오늘 이미 지난 알람은 다음 날로 자동 조정합니다.
+    *   각 알람에 대해 동적 보스의 경우 기존 `scheduledDate`를 존중하고, 고정 알림의 경우 현재 날짜를 기반으로 `scheduledDate`를 결정합니다. 이후 오늘 이미 지난 알람은 다음 날로 자동 조정하여 `allAlarms` 목록의 정확한 순서를 보장합니다.
     *   `allAlarms`를 `scheduledDate` 기준으로 정렬합니다.
     *   정렬된 `allAlarms`를 순회하며 각 보스에 대해 5분 전, 1분 전, 정각 알림 조건이 충족되었는지 확인합니다.
         *   조건 충족 시 해당 보스의 `alerted_Xmin` 플래그를 `true`로 설정하고, `logger.js`와 `speech.js`를 통해 알림 메시지를 로깅 및 음성 출력합니다.

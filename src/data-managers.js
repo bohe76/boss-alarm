@@ -42,13 +42,18 @@ export const BossDataManager = (() => {
                 .filter(boss => boss.time) // Filter out entries without a 'time' property (i.e., date entries)
                 .map(boss => {
                     const [hours, minutes, seconds] = boss.time.split(':').map(Number);
-                    const date = new Date();
-                    date.setHours(hours, minutes, seconds || 0, 0);
-                    // If the boss time has already passed today, set it for tomorrow
-                    if (date.getTime() < now) {
-                        date.setDate(date.getDate() + 1);
+                    let bossDateTime;
+                    if (boss.scheduledDate) { // Dynamic boss: use its scheduledDate
+                        bossDateTime = new Date(boss.scheduledDate);
+                    } else { // Fixed boss: use current date
+                        bossDateTime = new Date();
                     }
-                                    return { ...boss, timestamp: date.getTime() };
+                    bossDateTime.setHours(hours, minutes, seconds || 0, 0);
+                    // If the boss time has already passed today, set it for tomorrow
+                    if (bossDateTime.getTime() < now) {
+                        bossDateTime.setDate(bossDateTime.getDate() + 1);
+                    }
+                                    return { ...boss, timestamp: bossDateTime.getTime() };
                                 }).filter(boss => boss.timestamp > now)
                                 .sort((a, b) => a.timestamp - b.timestamp);
                     

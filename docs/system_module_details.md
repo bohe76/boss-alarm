@@ -124,7 +124,7 @@
     *   `setBossSchedule(newSchedule)`: `void`. 새로운 보스 일정 배열로 교체하고, 모든 구독자에게 데이터 변경을 알립니다.
     *   `getNextBossInfo()`: `{ nextBoss, minTimeDiff }`. 현재 가장 가까운 다음 보스 정보와 남은 시간을 반환합니다.
     *   `setNextBossInfo(nextBoss, minTimeDiff)`: `void`. 다음 보스 정보를 설정하고, 모든 구독자에게 데이터 변경을 알립니다.
-    *   `getUpcomingBosses(count)`: `Array`. 현재 시간 이후 예정된 보스 목록을 `count`만큼 반환합니다. 고정 알림과 동적 알림을 통합하여 처리합니다.
+    *   `getUpcomingBosses(count)`: `Array`. 현재 시간 이후 예정된 보스 목록을 `count`만큼 정확히 반환합니다. 동적 보스의 `scheduledDate`를 존중하고 고정 알림은 현재 날짜를 기반으로 하여 통합 처리합니다.
     *   `subscribe(callback)`: `void`. `BossDataManager`의 데이터 변경을 감지할 콜백 함수를 등록합니다. **반응형 상태 관리 패턴(Observer Pattern)**을 구현합니다.
 
 #### `LocalStorageManager` (싱글톤 객체)
