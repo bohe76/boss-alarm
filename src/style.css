@@ -342,6 +342,22 @@ body {
             color: #43AA8B; /* Blue color for remaining time within 5 minutes */
             font-weight: bold;
         }
+
+        /* State: < 1 hour */
+        #upcomingBossListContent .medium-priority {
+            color: #111;
+            font-weight: bold;
+        }
+
+        /* State: Default (>= 1 hour) */
+        .default-grey {
+            color: #777;
+        }
+
+        /* 기본 상태(1시간 이상)의 출현 시간 색상도 회색으로 지정 */
+        #upcomingBossListContent .spawn-time.default-grey {
+            color: #777 !important;
+        }
                 
         /* 알림 시작/중지 버튼 */
         #startButton { background-color: #1D3557; color: white; }

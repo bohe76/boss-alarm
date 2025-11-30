@@ -110,13 +110,31 @@ export function renderUpcomingBossList(DOM) {
     if (upcomingBosses.length > 0) {
         upcomingBosses.slice(1).forEach(boss => {
             const timeDiff = boss.timestamp - Date.now();
-            const showSeconds = timeDiff < 5 * 60 * 1000;
-            const remaining = formatTimeDifference(timeDiff, showSeconds);
+            const isImminent = timeDiff < 5 * 60 * 1000;
+            const isMedium = timeDiff < 60 * 60 * 1000; // Less than 1 hour
 
+            const remaining = formatTimeDifference(timeDiff, isImminent);
             const formattedSpawnTime = formatSpawnTime(boss.time);
-            const bossNameClass = showSeconds ? 'imminent-boss-info' : '';
-            const remainingTimeClass = showSeconds ? 'imminent-remaining-time' : '';
-            html += `<li><span class="spawn-time ${bossNameClass}">${formattedSpawnTime}</span> <span class="${bossNameClass}">${boss.name}</span> <span class="${remainingTimeClass}">${remaining}</span></li>`;
+
+            let spawnTimeClass = '';
+            let bossNameClass = '';
+            let remainingTimeClass = '';
+
+            if (isImminent) { // < 5 minutes (Highest priority)
+                spawnTimeClass = 'imminent-boss-info';
+                bossNameClass = 'imminent-boss-info';
+                remainingTimeClass = 'imminent-remaining-time';
+            } else if (isMedium) { // < 1 hour
+                spawnTimeClass = 'medium-priority';
+                bossNameClass = 'medium-priority';
+                remainingTimeClass = 'medium-priority';
+            } else { // Default: >= 1 hour
+                spawnTimeClass = 'default-grey';
+                bossNameClass = 'default-grey';
+                remainingTimeClass = 'default-grey';
+            }
+
+            html += `<li><span class="spawn-time ${spawnTimeClass}">${formattedSpawnTime}</span> <span class="${bossNameClass}">${boss.name}</span> <span class="${remainingTimeClass}">${remaining}</span></li>`;
         });
     } else {
         html += '<li>예정된 보스가 없습니다.</li>';
