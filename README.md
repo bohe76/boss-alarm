@@ -1,6 +1,6 @@
 # Boss Alarm (보스 알리미)
 
-![Boss Alarm Screenshot](https://i.postimg.cc/8Ph5mW7x/BOSS.png)
+![Boss Alarm Screenshot](https://i.postimg.cc/kX2syHhV/BOSS.png)
 
 ## 🚀 프로젝트 소개 (Project Introduction)
 
