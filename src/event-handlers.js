@@ -157,7 +157,7 @@ function showScreen(DOM, screenId) {
     if (screenId === 'help-screen') {
         // Directly load feature guide content when opening help screen
         (async () => {
-            const helpData = await loadJsonContent(`docs/feature_guide.json?v=${window.APP_VERSION}`);
+            const helpData = await loadJsonContent(`data/feature_guide.json?v=${window.APP_VERSION}`);
             if (helpData && DOM.featureGuideContent) {
                 let html = '';
                 helpData.forEach((section, index) => {

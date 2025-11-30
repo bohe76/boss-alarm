@@ -36,8 +36,8 @@ function onHelpScreenTransition(DOM) {
     (async () => {
         try {
             const [helpData, faqData] = await Promise.all([
-                loadJsonContent(`docs/feature_guide.json?v=${window.APP_VERSION}`),
-                loadJsonContent(`docs/faq_guide.json?v=${window.APP_VERSION}`)
+                loadJsonContent(`data/feature_guide.json?v=${window.APP_VERSION}`),
+                loadJsonContent(`data/faq_guide.json?v=${window.APP_VERSION}`)
             ]);
             
             renderHelpScreen(DOM, helpData);

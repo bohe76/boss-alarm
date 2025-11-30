@@ -37,7 +37,7 @@
 *   **현재 `system_architecture.md`:** Git 관련 정보가 없습니다.
 *   **`GEMINI.md`의 내용:**
     *   **Git 커밋 원칙:** 커밋 메시지 유형, 여러 줄 메시지, 실행 절차 및 서브모듈 원칙을 다루는 상세한 "Git 커밋 워크플로우 원칙"이 포함되어 있습니다.
-    *   **버전 관리:** `index.html`의 CSS 링크 버전, `window.APP_VERSION` 및 `docs/version_history.json` 파일 업데이트와 같은 버전 제어 절차가 설명되어 있습니다.
+    *   **버전 관리:** `index.html`의 CSS 링크 버전, `window.APP_VERSION` 및 `data/version_history.json` 파일 업데이트와 같은 버전 제어 절차가 설명되어 있습니다.
     *   **릴리즈 노트 작성 원칙:** 릴리즈 노트의 목적, 형식 및 내용에 대한 지침이 제공됩니다.
 
 #### 6. 파일 명명/참조 불일치 (내부 관찰)

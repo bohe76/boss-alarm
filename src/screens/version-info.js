@@ -3,7 +3,7 @@ import { loadJsonContent } from '../api-service.js'; // Import loadJsonContent
 
 export function initVersionInfoScreen(DOM) {
     (async () => {
-        const versionData = await loadJsonContent(`docs/version_history.json?v=${window.APP_VERSION}`);
+        const versionData = await loadJsonContent(`data/version_history.json?v=${window.APP_VERSION}`);
         renderVersionInfo(DOM, versionData);
     })();
 }
