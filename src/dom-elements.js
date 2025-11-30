@@ -47,12 +47,12 @@ export function initDomElements() {
         sortBossListButton: document.getElementById('sortBossListButton'), // New
 
         // Elements within Dashboard Screen
-        nextBossDisplay: document.getElementById('nextBossDisplay'),
-        upcomingBossList: document.getElementById('upcomingBossList'), // New
+        nextBossContent: document.getElementById('nextBossContent'),
+        upcomingBossListContent: document.getElementById('upcomingBossListContent'), // New
         alarmStatusSummary: document.getElementById('alarmStatusSummary'), // New
         alarmStatusText: document.getElementById('alarmStatusText'),
         muteToggleButton: document.getElementById('muteToggleButton'), // New
-        recentAlarmLog: document.getElementById('recentAlarmLog'),
+        recentAlarmLogContent: document.getElementById('recentAlarmLogContent'),
 
         // Elements within Notification Settings Screen
         fixedAlarmListDiv: document.getElementById('fixedAlarmList'),

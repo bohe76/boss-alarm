@@ -52,3 +52,13 @@
     *   버튼 그룹 및 컨트롤 섹션을 중앙 정렬로 변경 (`justify-content: center`).
 *   **'공유' 화면 레이아웃 개선:**
     *   제목(`h2`)을 제외한 본문 콘텐츠(`p`, `#shareMessage`)를 `.share-content-layout`으로 감싸 중앙 정렬 및 텍스트 중앙 정렬 적용 (`index.html`, `src/style.css`).
+*   **'대시보드' 화면 UI 전면 개편:**
+    *   모든 대시보드 요소를 카드 UI로 전환 (`index.html`).
+        *   '다음 보스', '다가오는 보스', '알림 로그'는 `card-standard`, `card-size-standard` 적용.
+        *   '알림 상태', '소리 설정'은 `card-standard`, `card-size-small` 적용.
+    *   카드 헤더(`<h3>` 또는 `<h4>`)와 동적 콘텐츠(`div`) 분리하여 렌더링 효율성 개선 (`index.html`, `src/ui-renderer.js`).
+    *   `src/dom-elements.js`에서 변경된 ID(`nextBossContent`, `upcomingBossListContent`, `recentAlarmLogContent`) 반영.
+    *   '알림 상태'와 '소리 설정' 카드를 `.dashboard-small-cards-row`로 묶어 항상 가로 배치되도록 구조화 (`index.html`, `src/style.css`).
+    *   `.card-size-small`의 `max-width`를 `180px`로 조정하여 `.dashboard-small-cards-row` 내에서 두 카드가 `gap: 20px`와 함께 380px 너비에 정확히 배치되도록 최적화 (`src/style.css`).
+    *   '다가오는 보스'와 '알림 로그' 목록의 불릿을 제거하고 시간 표시를 볼드체로 복구 (`src/style.css`).
+    *   더 이상 사용되지 않는 CSS 스타일 제거 (`#alarmStatusSummary`, `#muteControlSection` 등) (`src/style.css`).

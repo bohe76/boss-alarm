@@ -276,13 +276,10 @@ body {
         .alarm-status-running {
             color: #ea4335; /* Red color for running state */
         }
-        #alarmStatusSummary {
-            margin-bottom: 20px; /* Add spacing below alarm status */
-        }
-        #muteControlSection {
-            margin-bottom: 20px;
-        }
-
+        
+        /* Removed #alarmStatusSummary style as it is now part of a card */
+        /* Removed #muteControlSection style as it is now part of a card */
+        
         .mute-button {
             background: none;
             border: 2px solid;
@@ -302,8 +299,7 @@ body {
         }
         .remaining-time {
             color: #43AA8B; /* Blue color for remaining time */
-        }
-        
+        }        
         .imminent-boss-info {
             color: #ea4335; /* Red color for boss name within 5 minutes */
             font-weight: bold;
@@ -585,15 +581,15 @@ textarea:-ms-input-placeholder {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
         }
 
-#upcomingBossList ul,
-#recentAlarmLog ul {
+#upcomingBossListContent ul,
+#recentAlarmLogContent ul {
   list-style-type: none;
   /* 제목과의 일관된 간격을 위해 브라우저 기본 여백 모두 제거 */
   padding: 0;
   margin: 0;
 }
 
-#upcomingBossList .spawn-time,
+#upcomingBossListContent .spawn-time,
 .boss-details-highlight .spawn-time {
   font-weight: 700;
 }
@@ -788,10 +784,8 @@ textarea:-ms-input-placeholder {
     margin-bottom: 20px;
 }
 .card-size-small {
-    max-width: 170px;
+    max-width: 180px;
     width: 100%;
-    margin-left: auto;
-    margin-right: auto;
 }
 .card-size-list {
     max-width: 800px;
@@ -1005,6 +999,41 @@ textarea:-ms-input-placeholder {
     align-items: center;
     text-align: center;
     width: 100%;
+}
+
+.next-boss-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    /* min-height: 100px; Optional: ensure some height if empty */
+}
+
+.dashboard-layout {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+}
+
+.status-content,
+.mute-control-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.dashboard-small-cards-row {
+    display: flex;
+    flex-direction: row; /* Always horizontal */
+    flex-wrap: wrap;     /* Wrap if space is insufficient */
+    justify-content: center; /* Center align items */
+    gap: 20px;           /* Gap between cards */
+    width: 100%;         /* Occupy full parent width */
+    max-width: 380px;    /* Consider max-width for small cards combination */
 }
 
 .boss-scheduler-controls {

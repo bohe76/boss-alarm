@@ -73,7 +73,7 @@ export function updateMuteButtonVisuals(DOM) {
 
 // --- Dashboard Rendering Functions ---
 export function updateNextBossDisplay(DOM) {
-    if (!DOM.nextBossDisplay) return;
+    if (!DOM.nextBossContent) return;
 
     const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
 
@@ -81,9 +81,9 @@ export function updateNextBossDisplay(DOM) {
         const remainingTimeString = formatTimeDifference(minTimeDiff);
         const formattedSpawnTime = formatSpawnTime(nextBoss.time);
 
-        const remainingTimeSpan = DOM.nextBossDisplay.querySelector('.remaining-time');
-        const spawnTimeSpan = DOM.nextBossDisplay.querySelector('.spawn-time');
-        const bossDetailsHighlight = DOM.nextBossDisplay.querySelector('.boss-details-highlight');
+        const remainingTimeSpan = DOM.nextBossContent.querySelector('.remaining-time');
+        const spawnTimeSpan = DOM.nextBossContent.querySelector('.spawn-time');
+        const bossDetailsHighlight = DOM.nextBossContent.querySelector('.boss-details-highlight');
 
         if (remainingTimeSpan && spawnTimeSpan && bossDetailsHighlight) {
             // Update only the text content of spans
@@ -95,15 +95,15 @@ export function updateNextBossDisplay(DOM) {
                  bossDetailsHighlight.innerHTML = `<span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span>`;
             }
         } else {
-            DOM.nextBossDisplay.innerHTML = `<span class="next-boss-label">다음 보스</span><br><span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span></span>`;
+            DOM.nextBossContent.innerHTML = `<span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name} <span class="remaining-time">${remainingTimeString}</span></span>`;
         }
     } else {
-        DOM.nextBossDisplay.textContent = '다음 보스 없음';
+        DOM.nextBossContent.textContent = '다음 보스 없음';
     }
 }
 
 export function renderUpcomingBossList(DOM) {
-    if (!DOM.upcomingBossList) return;
+    if (!DOM.upcomingBossListContent) return;
 
     const upcomingBosses = BossDataManager.getUpcomingBosses(11);
     let html = '<ul>';
@@ -122,7 +122,7 @@ export function renderUpcomingBossList(DOM) {
         html += '<li>예정된 보스가 없습니다.</li>';
     }
     html += '</ul>';
-    DOM.upcomingBossList.innerHTML = html;
+    DOM.upcomingBossListContent.innerHTML = html;
 }
 
 export function renderAlarmStatusSummary(DOM) {
@@ -140,7 +140,7 @@ export function renderAlarmStatusSummary(DOM) {
 }
 
 export function renderRecentAlarmLog(DOM) {
-    if (!DOM.recentAlarmLog) return;
+    if (!DOM.recentAlarmLogContent) return;
 
     const logs = getLogs();
     let html = '<ul>';
@@ -153,7 +153,7 @@ export function renderRecentAlarmLog(DOM) {
         html += '<li>최근 알림 기록 없음</li>';
     }
     html += '</ul>';
-    DOM.recentAlarmLog.innerHTML = html;
+    DOM.recentAlarmLogContent.innerHTML = html;
 }
 
 export function renderDashboard(DOM) {
