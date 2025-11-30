@@ -91,3 +91,9 @@
 *   **하단 네비게이션 활성 아이콘 개선:**
     *   `src/style.css`를 수정하여, 활성화된 하단 네비게이션 메뉴 아이콘(`.bottom-nav-item.active .menu-icon`)에 `transform: scale(1.3)`을 적용하여 시각적 강조 효과를 추가.
     *   기본 아이콘(`.bottom-nav-item .menu-icon`)에 `transition` 속성을 추가하여 크기 변경이 부드러운 애니메이션으로 표시되도록 개선.
+
+*   **헤더 알람 아이콘 개선:**
+    *   `index.html`에서 알람 아이콘 SVG의 `fill="currentColor"` 속성을 제거하여 CSS를 통한 제어가 가능하도록 수정.
+    *   `src/style.css`의 `.alarm-icon` 클래스에 `stroke: currentColor;`와 `fill: none;`을 추가하여 윤곽선 아이콘이 올바르게 렌더링되도록 개선.
+    *   `src/style.css`의 `.alarm-icon` 클래스에 `stroke-width: 2.5;`를 추가하여 아이콘 선의 굵기를 강조.
+    *   `src/style.css`의 `.alarm-icon` 클래스 `width`와 `height`를 `40px`로 조정하여 아이콘 크기를 최적화.
