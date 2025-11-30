@@ -79,7 +79,7 @@ body {
         }
 
         nav.sidebar {
-            width: 60px; /* Collapsed width */
+            width: 54px; /* Collapsed width */
             background-color: #f8f8f8; /* Changed to body's background color */
             color: white;
             padding-top: 16px; /* Changed from 15px to 16px (spacing-md) */
@@ -151,10 +151,11 @@ body {
         .menu-icon {
             width: 30px;
             height: 30px;
-            min-width: 30px; /* Ensure minimum width */
-            min-height: 30px; /* Ensure minimum height */
+            min-width: 30px;
+            min-height: 30px;
             margin-right: 15px;
-            fill: #666;
+            fill: none !important; /* !important 추가 */
+            stroke: currentColor; /* Added */
             flex-shrink: 0; /* Prevent icon from shrinking */
         }
 
@@ -1235,7 +1236,7 @@ textarea:-ms-input-placeholder {
             position: fixed; /* Position relative to the viewport */
             background-color: #555;
             color: white;
-            padding: 4px 8px; /* Changed from 5px 10px to 4px 8px (spacing-xxs top/bottom, spacing-xs left/right) */
+            padding: 4px 12px; /* Changed from 5px 10px to 4px 8px (spacing-xxs top/bottom, spacing-xs left/right) */
             border-radius: 4px;
             white-space: nowrap;
             z-index: 1000; /* Ensure it's on top */
