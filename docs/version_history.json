@@ -5,7 +5,7 @@
       "changes": [
         {
           "type": "feat",
-          "description": "UI/UX 대폭 개선 및 반응형 개선",
+          "description": "UI/UX 대폭 개선 및 반응형 디자인 개선",
           "details": [
             "전반적인 사용자 인터페이스와 경험이 크게 향상되었으며, 다양한 기기에서의 반응형 디자인이 개선되었습니다."
           ]
