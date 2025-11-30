@@ -11,7 +11,6 @@ let bossLists = {};
  * @returns {Promise<object>} A promise that resolves with the boss list data.
  */
 export async function loadBossLists(filePath = 'data/boss_lists.json') {
-    CustomListManager.init(); // Initialize custom lists from localStorage
     try {
         const response = await fetch(filePath);
         if (!response.ok) {

@@ -1,6 +1,5 @@
 // src/screens/share.js
 import { getShortUrl } from '../api-service.js';
-import { LocalStorageManager } from '../data-managers.js';
 import { log } from '../logger.js';
 
 export function initShareScreen(DOM) {

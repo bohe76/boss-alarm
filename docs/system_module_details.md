@@ -260,7 +260,7 @@
 | **`boss-scheduler.js`** | `getScreen()` | `init` 시 게임 선택, 보스 시간 입력(`remaining-time-input`) 등의 이벤트 리스너를 등록합니다. "보스 설정 적용" 버튼 클릭 시 입력된 `data-id`를 기반으로 기존 보스 데이터를 업데이트하고, 전체 리스트를 재구성(Reconstruction)하여 저장합니다. |
 | **`calculator.js`** | `getScreen()` | `init` 시 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 계산기 상태를 초기화하고 `ui-renderer.js`의 함수들을 호출하여 화면을 렌더링합니다. |
 | **`custom-list.js`** | `getScreen()` | `init` 시 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. 모달은 `boss-scheduler-screen`에서 트리거됩니다. |
-| **`dashboard.js`** | `getScreen()` | `init` 시 음소거 토글 버튼의 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링한 후 `global-event-listeners.js`의 `log-updated` 이벤트에 반응하여 갱신합니다. |
+| **`dashboard.js`** | `getScreen()` | `init` 시 음소거 토글 버튼의 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링한 후 `log-updated` 이벤트에 반응하여 갱신합니다. |
 | **`help.js`** | `getScreen()` | `init` 시 '도움말'과 'FAQ' 탭 전환 이벤트 리스너를 등록하고, `onTransition` 시 `feature_guide.json`과 `faq_guide.json`을 로드하여 `renderHelpScreen()`과 `renderFaqScreen()`으로 각 탭의 콘텐츠를 렌더링합니다. |
 | **`notifications.js`** | `getScreen()` | `init` 시 고정 알림 목록의 개별 토글, 편집, 삭제 버튼에 대한 이벤트 리스너를 위임 방식으로 등록합니다. |
 | **`share.js`** | `getScreen()` | `onTransition` 시 현재의 동적 보스 목록(`data`)만 인코딩하여 `api-service.js`를 통해 짧은 URL을 생성하고 클립보드에 복사합니다. (고정 알림은 공유되지 않습니다.) |

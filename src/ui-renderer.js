@@ -145,7 +145,7 @@ export function renderRecentAlarmLog(DOM) {
     const logs = getLogs();
     let html = '<ul>';
     if (logs.length > 0) {
-        const recentLogs = logs.slice(-1).reverse();
+        const recentLogs = logs.slice(-3).reverse();
         recentLogs.forEach(logObj => {
             html += `<li class="log-entry ${logObj.important ? 'important' : ''}">${logObj.html}</li>`;
         });

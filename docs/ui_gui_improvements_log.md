@@ -86,3 +86,6 @@
     *   `src/style.css`에서 `.menu-icon`의 `fill`을 `none`으로, `stroke`를 `currentColor`로 변경하여 아웃라인 스타일 지원.
     *   **하단 내비게이션 아이콘:** 모든 하단 내비게이션 아이콘의 SVG 태그에서 `fill` 속성을 제거하여 Heroicons 아웃라인 스타일이 올바르게 적용되도록 수정. (`#more-menu-button` 아이콘은 기존 유지).
     *   `src/style.css`에서 `.menu-icon`의 `fill` 속성에 `!important`를 추가하여 아웃라인 스타일 강제.
+*   **하단 네비게이션 활성 아이콘 개선:**
+    *   `src/style.css`를 수정하여, 활성화된 하단 네비게이션 메뉴 아이콘(`.bottom-nav-item.active .menu-icon`)에 `transform: scale(1.3)`을 적용하여 시각적 강조 효과를 추가.
+    *   기본 아이콘(`.bottom-nav-item .menu-icon`)에 `transition` 속성을 추가하여 크기 변경이 부드러운 애니메이션으로 표시되도록 개선.
