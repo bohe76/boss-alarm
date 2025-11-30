@@ -56,17 +56,17 @@ body {
         .alarm-icon {
             width: 40px;
             height: 40px;
-            color: #ccc; /* Default color (off state) */
-            transition: color 0.3s ease;
-            stroke: currentColor; /* Added */
+            stroke: #ccc; /* Directly set stroke color for off state */
+            transition: all 0.3s ease; /* Transition for all properties */
             fill: none; /* Added */
             stroke-width: 2.5; /* Added for thicker lines */
+            transform: translateZ(0); /* Force hardware acceleration */
         }
 
-        .alarm-toggle-button.alarm-on .alarm-icon {
-            color: #ea4335; /* Red for on state */
-        }
-
+                    .alarm-toggle-button.alarm-on .alarm-icon {
+                        stroke: #ea4335; /* Direct red stroke for on state */
+                        animation: hueCycle 6s linear infinite; /* Re-add animation */
+                    }
         .alarm-toggle-button.alarm-off .alarm-icon {
             color: #333; /* Darker gray for off state */
         }
@@ -1667,3 +1667,8 @@ h3 {
 footer p {
     margin: 0;
 }
+ @ k e y f r a m e s   h u e C y c l e   { 
+         0 %       {   f i l t e r :   h u e - r o t a t e ( 0 d e g ) ;   } 
+         1 0 0 %   {   f i l t e r :   h u e - r o t a t e ( 3 6 0 d e g ) ;   } 
+ }  
+ 
