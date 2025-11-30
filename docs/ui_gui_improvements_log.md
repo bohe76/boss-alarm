@@ -70,3 +70,5 @@
 *   **로그 메시지 개선:**
     *   `custom-list-manager.js`에서 `[CustomListManager]` 접두사를 제거.
     *   `boss-scheduler-data.js`에서 보스 목록 로드 성공 시 로그 메시지에서 `data/boss_lists.json` 파일 경로를 제거하여 간결하게 표시.
+*   **'다가오는 보스' 화면 개선:**
+    *   `다가오는 보스` 리스트 아이템(`upcomingBossListContent ul li`)에 알림 로그(`.log-entry`)와 유사한 스타일(패딩, 점선 하단 라인, 폰트 크기 등)을 적용하고, 마지막 아이템의 하단 라인 제거.
