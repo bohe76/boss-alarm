@@ -22,7 +22,52 @@
 
 이 리팩토링은 코드의 일관성과 유지보수성을 높이는 장점이 있지만, 현재 애플리케이션에 기능적인 오류가 없는 상태에서 코드 변경은 현재 작업 범주에 포함되지 않는다는 사용자 지시에 따라 보류되었습니다.
 
-향후 리팩토링 작업 시 고려될 수 있도록 이슈로 기록합니다.
+향후 리팩토링 작업 시 `src/global-event-listeners.js` 모듈 리팩토링과 함께 고려될 수 있도록 이슈로 기록합니다.
+
+---
+
+## 3. `src/screens/alarm-log.js` 모듈 관련 문제점 및 제안
+
+### 3.1. 개요
+
+`src/screens/alarm-log.js` 모듈의 `initAlarmLogScreen` 함수는 "15개 보기" 토글 버튼의 초기 상태 로딩 로직을 두 번 호출하고 있으며, `EventBus.on('log-updated', ...)` 리스너를 `initAlarmLogScreen` 내부에 직접 등록하고 있습니다. 이 리스너는 `src/global-event-listeners.js`에서 중앙 집중화될 것으로 주석에 명시되어 있으나, 실제로는 그렇지 않습니다.
+
+### 3.2. 문제점
+
+*   **중복 코드**: `initAlarmLogScreen` 함수 내에서 `DOM.viewMoreLogsButton.classList.toggle('active', isToggleActive);`와 같은 토글 버튼 초기 상태 적용 로직이 두 번 호출됩니다.
+*   **불일치하는 주석**: `src/screens/alarm-log.js` 코드 내부에 `// The EventBus.on('log-updated', ...) listener is now handled centrally in initGlobalEventListeners.` 주석이 있지만, 실제로는 `EventBus.on('log-updated', ...)` 리스너가 `initAlarmLogScreen` 내에서 직접 등록됩니다. 이는 코드와 주석 간의 불일치이며, 개발자에게 혼란을 줄 수 있습니다.
+*   **중앙 집중화 부족**: `EventBus` 리스너의 중앙 집중화라는 `global-event-listeners.js`의 목적이 달성되지 않고, `alarm-log.js`가 자체적으로 리스너를 등록하고 있습니다. 이는 `Issue-012`의 `src/global-event-listeners.js` 관련 문제점과 직접적으로 연결됩니다.
+
+### 3.3. 제안된 해결 방안 (리팩토링)
+
+`src/global-event-listeners.js`가 `app.js`에서 호출되는 방향으로 리팩토링된다면, `src/screens/alarm-log.js` 내의 `EventBus.on('log-updated', ...)` 리스너 등록 코드를 제거하고, `global-event-listeners.js`에서 해당 리스너를 중앙 집중식으로 관리해야 합니다. 또한 `initAlarmLogScreen` 내부의 토글 버튼 초기 상태 적용 로직 중 중복되는 부분을 제거해야 합니다.
+
+### 3.4. 현재 상태 및 결정
+
+이 리팩토링은 코드의 명확성과 유지보수성을 향상시키지만, 현재 애플리케이션에 기능적인 오류가 없는 상태에서 코드 변경은 현재 작업 범주에 포함되지 않는다는 사용자 지시에 따라 보류되었습니다.
+
+향후 리팩토링 작업 시 `src/global-event-listeners.js` 및 `src/event-handlers.js` 모듈 리팩토링과 함께 고려될 수 있도록 이슈로 기록합니다.
+
+---
+
+## 4. `src/styles/style.css` 테두리 반경 불일치 문제점 및 제안
+
+### 4.1. 개요
+
+`docs/design_system_guide.md`에 정의된 테두리 반경 시스템은 `4px`, `8px`, `12px`, `50%`로 구성되어 있습니다. 그러나 `src/styles/style.css`의 `.toggle-button`에는 `48px`의 `border-radius`가 사용되고 있습니다.
+
+### 4.2. 문제점
+
+*   **디자인 시스템과의 불일치**: `48px`라는 값이 정의된 테두리 반경 시스템에 속하지 않아 디자인 일관성을 해칠 수 있습니다.
+*   **가이드라인 미준수**: 정의된 시스템을 따르지 않는 임의의 값이 사용될 경우, 향후 UI 요소의 통일성을 유지하기 어렵습니다.
+
+### 4.3. 제안된 해결 방안 (리팩토링)
+
+`48px`가 특정 UI 요소(예: 캡슐형 버튼)에 필요한 고유한 값이라면, 디자인 시스템 가이드에 새로운 테두리 반경 (`radius-pill` 또는 `radius-round` 등)으로 정의하고 사용법을 명시합니다. 또는, 기존의 `radius-full` (`50%`)을 사용하여 `48px`와 유사한 시각적 효과를 내도록 조정할 수 있는지 검토합니다.
+
+### 4.4. 현재 상태 및 결정
+
+현재 기능적인 문제는 없으나, 디자인 시스템의 일관성을 위해 향후 리팩토링 시 고려되어야 합니다.
 
 ---
 
