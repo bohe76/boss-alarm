@@ -208,25 +208,21 @@
 ### 주요 `export` 함수
 
 #### `initGlobalEventListeners(DOM)`
-- **설명:** 애플리케이션 시작 시 `app.js`에 의해 한 번만 호출되어 전역 `EventBus` 리스너들을 등록합니다.
+- **설명:** 전역 `EventBus` 리스너들을 등록하는 함수입니다. 현재 `app.js`에서 직접 호출되지 않고 있으며, 그 내부의 `BossDataManager` 구독 및 `EventBus.on('log-updated')` 리스너는 각각 `app.js`와 `alarm-log.js`에서 개별적으로 처리됩니다. 이 함수는 현재 사용되지 않습니다.
 - **인자:** `DOM` (`Object`)
 - **반환값:** `void`
-- **핵심 내부 로직:**
-    1.  `BossDataManager.subscribe(() => renderDashboard(DOM));`를 등록하여 `BossDataManager`의 데이터 변경 시 대시보드를 갱신합니다. (반응형 업데이트)
-    2.  `EventBus.on('log-updated', () => { ... });`를 등록하여 `logger.js`에서 로그 발생 시 "알림 로그" 화면이 활성화되어 있다면 해당 화면의 내용을 갱신합니다. (이벤트 기반 업데이트)
+- **핵심 내부 로직:** 이 함수가 현재 호출되지 않으므로, 내부 로직은 실행되지 않습니다.
 
----
 
-## 9. 기타 유틸리티 및 도우미 모듈
 
-### `src/event-handlers.js`
+## 9. `src/event-handlers.js`
 
 - **역할:** 다양한 UI 구성 요소(알람 토글, 사이드바, 내비게이션 링크, 모바일 메뉴 등)에 대한 구체적인 이벤트 리스너들을 등록합니다.
 - **주요 `export` 함수:**
     - `initEventHandlers(DOM, globalTooltip)`: `app.js`의 `initApp`에서 호출되어 애플리케이션의 주요 이벤트 핸들러들을 등록합니다.
 - **주의사항:** 이 모듈은 이전에 `initApp` 및 `showScreen`과 같은 최상위 오케스트레이션 로직을 포함했으나, 현재는 `app.js`가 해당 역할을 전담합니다. 이 파일 내부에 더 이상 사용되지 않는 `showScreen` 및 `initApp` 함수 정의가 존재하지만, 실제 애플리케이션 로직에서는 `app.js`의 해당 함수들이 사용됩니다.
 
-### `src/logger.js`
+## 10. `src/logger.js`
 
 - **역할:** 애플리케이션 전반의 메시지 로깅을 담당합니다. 로그를 저장하고, 지정된 DOM 요소에 표시하며, `EventBus`를 통해 로그 업데이트를 알립니다.
 - **주요 `export` 함수:**
@@ -234,26 +230,26 @@
     - `log(message, isImportant)`: 메시지를 로깅하고, `logContainer`에 추가하며, `EventBus.emit('log-updated')`를 발생시킵니다.
     - `getLogs()`: 현재까지 저장된 모든 로그 항목을 반환합니다.
 
-### `src/speech.js`
+## 11. `src/speech.js`
 
 - **역할:** 웹 음성 API (`window.speechSynthesis`)를 활용하여 텍스트를 음성으로 변환하여 출력합니다. 음성 요청 큐를 관리하며 음소거 상태를 고려합니다.
 - **주요 `export` 함수:**
     - `speak(text)`: 주어진 텍스트를 음성으로 출력 요청 큐에 추가합니다.
 
-### `src/api-service.js`
+## 12. `src/api-service.js`
 
 - **역할:** TinyURL API를 통한 URL 단축 및 로컬 JSON 파일 로드와 같은 외부 서비스와의 비동기 통신을 처리합니다.
 - **주요 `export` 함수:**
     - `getShortUrl(longUrl)`: TinyURL API를 사용하여 긴 URL을 단축합니다.
     - `loadJsonContent(filePath)`: 지정된 경로에서 JSON 파일을 비동기적으로 로드합니다.
 
-### `src/boss-parser.js`
+## 13. `src/boss-parser.js`
 
 - **역할:** 사용자 입력 텍스트(보스 목록)를 파싱하여 구조화된 데이터로 변환하고, 기존 데이터와 지능적으로 병합(Smart Merge)합니다.
 - **주요 `export` 함수:**
     - `parseBossList(bossListInput)`: 텍스트 영역의 내용을 파싱합니다. 기존 `BossDataManager`의 데이터와 비교하여 ID를 유지하며 병합하고, 날짜 마커를 재구성한 결과 객체(`{ success, mergedSchedule, errors }`)를 반환합니다. 자동 저장을 수행하지 않으므로 호출자가 반환값을 확인 후 저장해야 합니다.
 
-### `src/boss-scheduler-data.js`
+## 14. `src/boss-scheduler-data.js`
 
 - **역할:** 미리 정의된 보스 목록 (`data/boss_lists.json`) 및 `CustomListManager`를 통해 관리되는 사용자 지정 보스 목록 데이터를 로드하고 접근하는 인터페이스를 제공합니다.
 - **주요 `export` 함수:**
@@ -261,37 +257,52 @@
     - `getGameNames()`: 미리 정의된 게임 및 사용자 지정 목록 이름을 반환합니다.
     - `getBossNamesForGame(gameName)`: 특정 게임 또는 목록의 보스 이름들을 반환합니다.
 
-### `src/custom-list-manager.js`
+## 15. `src/custom-list-manager.js`
 
 - **역할:** 사용자 지정 보스 목록(이름, 내용)의 생성, 조회, 수정, 삭제(CRUD) 로직을 관리하고 `LocalStorageManager`를 통해 영구 저장합니다. 강력한 유효성 검사 및 이름 중복 확인 기능을 포함합니다.
 - **주요 `export` 객체:**
     - `CustomListManager`: `init()`, `addCustomList()`, `updateCustomList()`, `deleteCustomList()`, `renameCustomList()`, `getBossNamesForCustomList()`, `getCustomListContent()`, `isPredefinedGameName()` 등의 메소드를 제공합니다.
 
-### `src/utils.js`
+## 16. `src/utils.js`
 
 - **역할:** 숫자 패딩, 날짜 포맷팅, 시간 유효성 검사, 시간 차이 계산, 고유 ID 생성 등 애플리케이션 전반에 걸쳐 사용되는 범용 유틸리티 함수들을 모아놓은 모듈입니다.
 - **주요 `export` 함수:** `padNumber()`, `formatMonthDay()`, `validateStandardClockTime()`, `formatTimeDifference()`, `generateUniqueId()`, `normalizeTimeFormat()` 등.
 
-### `src/calculator.js`
+## 17. `src/calculator.js`
 
 - **역할:** 젠 계산기(`Zen Calculator`)의 핵심 로직을 포함하며, 남은 시간을 기반으로 보스 출현 시간을 계산합니다.
 - **주요 `export` 함수:**
-    - `calculateBossAppearanceTime(remainingTime)`: 주어진 남은 시간으로부터 보스의 정확한 출현 시간을 계산하여 반환합니다.
+    *   `calculateBossAppearanceTime(remainingTime)`: 주어진 남은 시간으로부터 보스의 정확한 출현 시간을 계산하여 반환합니다.
 
-### `src/light-calculator.js`
+#### `calculateAppearanceTimeFromMinutes(remainingTimeString)`
+- **설명:** 'MM:SS' 또는 'MMSS' 형식의 남은 시간 문자열로부터 보스 출현 시간을 `Date` 객체로 계산하여 반환합니다.
+- **인자:** `remainingTimeString` (`string`): 'MM:SS' 또는 'MMSS' 형식의 남은 시간.
+- **반환값:** `Date|null`
+
+## 18. `src/event-bus.js`
+
+- **역할:** 모듈 간의 느슨하게 결합된 통신을 위한 간단한 전역 이벤트 버스를 제공합니다.
+
+- **주요 `export` 객체:**
+    - `EventBus`:
+        - `on(event, listener)`: 특정 이벤트에 대한 리스너를 등록합니다.
+        - `emit(event, data)`: 특정 이벤트를 발생시키고 등록된 모든 리스너에게 데이터를 전달합니다.
+
+
+## 19. `src/light-calculator.js`
 
 - **역할:** 광 계산기(`Light Calculator`)의 복잡한 로직과 상태를 관리하는 싱글톤 객체입니다. 스톱워치, 광/잡힘 시간 기록, 예상 시간 계산, 그리고 기록 저장 및 관리를 담당합니다.
 - **주요 `export` 객체:**
     - `LightCalculator`: `startStopwatch()`, `stopStopwatch()`, `triggerGwang()`, `saveLightCalculation()`, `resetCalculator()`, `getLightCalculatorRecords()` 등의 메소드를 제공합니다.
 
-### `src/default-boss-list.js`
+## 20. `src/default-boss-list.js`
 
 - **역할:** 애플리케이션에 미리 정의된 기본 보스 목록 데이터(`bossPresets`)를 제공합니다.
 - **주요 `export` 상수:** `bossPresets`.
 
 ---
 
-## 10. 화면 모듈 상세 (`src/screens/*.js`)
+## 21. 화면 모듈 상세 (`src/screens/*.js`)
 
 각 화면의 초기화 및 전환 시 로직을 담당하며, `src/router.js`에 등록됩니다.
 
