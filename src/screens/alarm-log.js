@@ -8,7 +8,7 @@ export function renderAlarmLog(DOM) {
     if (DOM.logContainer) { // Use DOM.logContainer
         const logs = getLogs();
         if (logs.length > 0) {
-            const logHtml = logs.map(logObj => 
+            const logHtml = logs.slice().reverse().map(logObj => 
                 `<li class="log-entry ${logObj.important ? 'important' : ''}">${logObj.html}</li>`
             ).join('');
             DOM.logContainer.innerHTML = `<ul>${logHtml}</ul>`;

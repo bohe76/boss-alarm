@@ -385,8 +385,8 @@ body {
 
         /* 알림 로그 창 */
         #log-container {
-            height: 400px;
-            overflow-y: auto;
+            /* height: 400px; */ /* Removed fixed height */
+            /* overflow-y: auto; */ /* Removed scroll */
         }        
         #log-container ul {
           list-style-type: none;
