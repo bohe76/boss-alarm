@@ -58,7 +58,9 @@ export function initDomElements() {
         fixedAlarmListDiv: document.getElementById('fixedAlarmList'),
 
         // Elements within Alarm Log Screen
-        logContainer: document.getElementById('log-container'),
+        alarmLogCard: document.getElementById('alarmLogCard'), // New
+        viewMoreLogsButton: document.getElementById('viewMoreLogsButton'), // New
+        logContainer: document.getElementById('log-container'), // Retained
 
         // Elements within Version Info Screen
         versionHistoryContent: document.getElementById('versionHistoryContent'),

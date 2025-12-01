@@ -5,12 +5,9 @@ import { getLogs } from '../logger.js';
  * @param {object} DOM - The DOM elements object.
  */
 export function renderAlarmLog(DOM) {
-    if (DOM.logContainer) { // Use DOM.logContainer
+    if (DOM.logContainer) { // Log entries are rendered directly into DOM.logContainer
         const logs = getLogs();
         let logContentHtml = '';
-
-        // Add the card header with the title "이벤트 로그"
-
 
         if (logs.length > 0) {
             const logHtml = logs.slice().reverse().map(logObj =>
@@ -20,7 +17,6 @@ export function renderAlarmLog(DOM) {
         } else {
             logContentHtml += '<ul><li>로그가 없습니다.</li></ul>';
         }
-
         DOM.logContainer.innerHTML = logContentHtml;
         DOM.logContainer.scrollTop = DOM.logContainer.scrollHeight; // Scroll to bottom
     }
@@ -33,6 +29,13 @@ export function initAlarmLogScreen(DOM) {
     // Initial render when the screen is navigated to
     renderAlarmLog(DOM);
 
+    // Add event listener for the "15개 보기" button
+    if (DOM.viewMoreLogsButton) {
+        DOM.viewMoreLogsButton.addEventListener('click', () => {
+            // TODO: Implement logic to load/display more logs
+            console.log("15개 보기 버튼 클릭됨!");
+        });
+    }
 }
 
 export function getScreen() {
@@ -41,3 +44,4 @@ export function getScreen() {
         onTransition: initAlarmLogScreen
     };
 }
+
