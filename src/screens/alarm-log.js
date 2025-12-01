@@ -10,11 +10,7 @@ export function renderAlarmLog(DOM) {
         let logContentHtml = '';
 
         // Add the card header with the title "이벤트 로그"
-        logContentHtml += `
-            <div class="card-header">
-                <h3>이벤트 로그</h3>
-            </div>
-        `;
+
 
         if (logs.length > 0) {
             const logHtml = logs.slice().reverse().map(logObj =>
