@@ -51,10 +51,10 @@
 
 | 화면 모듈 | 의존하는 모듈 | 호출하는 함수 / 발행하는 이벤트 |
 |---|---|---|
-| **`alarm-log.js`** | `logger.js`, `data-managers.js` | `getLogs()`, `renderAlarmLog()` (조건부 렌더링), `LocalStorageManager.get/set()` |
+| **`alarm-log.js`** | `logger.js`, `data-managers.js`, `ui-renderer.js` | `getLogs()`, `renderAlarmLog()` (조건부 렌더링), `LocalStorageManager.get/set()`, `EventBus.on()`을 통한 로그 업데이트 갱신 |
 | **`boss-management.js`**| `boss-parser.js`, `ui-renderer.js`, `data-managers.js`, `logger.js` | `parseBossList()`(결과 반환), `updateBossListTextarea()`, `BossDataManager.setBossSchedule()`, `log()` |
-| **`calculator.js`** | `calculator.js`(core), `light-calculator.js`, `data-managers.js`, `ui-renderer.js`, `utils.js`, `logger.js` | `calculateBossAppearanceTime()`, `LightCalculator.*`, `LocalStorageManager.*`, `BossDataManager.*`, `updateBossListTextarea()`, `padNumber()`, `showToast()`, `log()` |
-| **`boss-scheduler.js`**| `ui-renderer.js`, `calculator.js`, `logger.js`, `boss-parser.js`, `event-bus.js`, `data-managers.js`, `utils.js` | `renderBossInputs()`, `calculateBossAppearanceTime()`, `log()`, `parseBossList()`(미사용), `EventBus.emit()`, `BossDataManager.*`, `generateUniqueId()`, `padNumber()` |
+| **`calculator.js`** | `calculator.js`, `light-calculator.js`, `data-managers.js`, `ui-renderer.js`, `utils.js`, `logger.js` | `initCalculatorScreen()`, `handleCalculatorScreenTransition()`, `calculateAppearanceTimeFromMinutes()`, `LightCalculator.*`, `LocalStorageManager.*`, `BossDataManager.*`, `showToast()`, `log()` |
+| **`boss-scheduler.js`**| `ui-renderer.js`, `calculator.js`, `logger.js`, `event-bus.js`, `data-managers.js`, `utils.js` | `renderBossSchedulerScreen()`, `handleApplyBossSettings()`, `calculateBossAppearanceTime()`, `log()`, `EventBus.emit()`, `BossDataManager.setBossSchedule()`, `generateUniqueId()`, `padNumber()` |
 | **`custom-list.js`** | `ui-renderer.js`, `custom-list-manager.js`, `event-bus.js` | `showCustomListTab()`, `renderCustomListManagementModalContent()`, `showToast()`, `CustomListManager.*`, `EventBus.emit('rerender-boss-scheduler')` |
 | **`dashboard.js`** | `ui-renderer.js`, `data-managers.js`, `logger.js`, `event-bus.js` | `updateMuteButtonVisuals()`, `renderRecentAlarmLog()`, `LocalStorageManager.get/setMuteState()`, `log()`, `EventBus.on('log-updated', ...)` |
 | **`help.js`** | `api-service.js`, `ui-renderer.js` | `loadJsonContent()` (from `data/` folder), `renderHelpScreen()`, `renderFaqScreen()` |
