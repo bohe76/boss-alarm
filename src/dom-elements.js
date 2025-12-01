@@ -50,7 +50,6 @@ export function initDomElements() {
         nextBossContent: document.getElementById('nextBossContent'),
         upcomingBossListContent: document.getElementById('upcomingBossListContent'), // New
         alarmStatusText: document.getElementById('alarmStatusText'),
-        alarmStatusText: document.getElementById('alarmStatusText'),
         muteToggleButton: document.getElementById('muteToggleButton'), // New
         recentAlarmLogContent: document.getElementById('recentAlarmLogContent'),
 
