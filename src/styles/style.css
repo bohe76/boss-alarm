@@ -503,8 +503,12 @@ body {
             align-items: center; /* Vertically align items */
             gap: 12px; /* Space between inputs and button */
         }
+        .add-alarm-card #addFixedAlarmButton {
+            margin-left: auto; /* Push the button to the far right */
+        }
+
         .add-alarm-card input[type="text"] {
-            width: 118px; /* Fixed width for inputs */
+            width: 108px; /* Fixed width for inputs */
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;

@@ -436,7 +436,7 @@ export function renderFixedAlarms(DOM) {
                     addAlarmSection.innerHTML = `
                         <h3>새 고정 알림 추가</h3>
                         <div class="card-list-item add-alarm-card">
-                            <input type="text" id="newFixedAlarmTime" placeholder="HH:MM 또는 HHMM">
+                            <input type="text" id="newFixedAlarmTime" placeholder="HHMM">
                             <input type="text" id="newFixedAlarmName" placeholder="이름">
                             <button id="addFixedAlarmButton" class="button">추가</button>
                         </div>
