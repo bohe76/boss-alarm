@@ -49,7 +49,7 @@ export function initDomElements() {
         // Elements within Dashboard Screen
         nextBossContent: document.getElementById('nextBossContent'),
         upcomingBossListContent: document.getElementById('upcomingBossListContent'), // New
-        alarmStatusSummary: document.getElementById('alarmStatusSummary'), // New
+        alarmStatusText: document.getElementById('alarmStatusText'),
         alarmStatusText: document.getElementById('alarmStatusText'),
         muteToggleButton: document.getElementById('muteToggleButton'), // New
         recentAlarmLogContent: document.getElementById('recentAlarmLogContent'),
