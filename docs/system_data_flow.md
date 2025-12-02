@@ -10,8 +10,8 @@
     *   `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자(LocalStorageManager, CustomListManager), 보스 데이터 로딩(data/boss_lists.json)과 같은 핵심 서비스를 초기화합니다.
     *   `registerAllRoutes()`를 호출하여 `src/screens/*.js`의 모든 화면 모듈을 `src/router.js`에 등록합니다.
     *   `loadInitialData(DOM)`를 호출하여 URL 파라미터(`data`) 또는 `default-boss-list.js`의 기본 데이터를 파싱하여 `BossDataManager`의 `bossSchedule` 상태를 초기화합니다. (URL에 `fixedData`가 있더라도 무시합니다.)
-    *   `BossDataManager.subscribe(() => renderDashboard(DOM))`를 등록하여 `BossDataManager`의 데이터 변경 시 대시보드 UI가 반응적으로 갱신되도록 합니다.
-    *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 전역 UI 이벤트 핸들러(알람 토글, 사이드바, 내비게이션 링크 등)를 등록합니다.
+    *   `initGlobalEventListeners(DOM)`를 호출하여, `BossDataManager` 데이터 변경 감지나 로그 업데이트 같은 전역 이벤트 리스너를 중앙에서 활성화합니다.
+    *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
     *   `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링하며, 1초마다 주기적으로 갱신되도록 `setInterval`을 설정합니다.
     *   `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.
 3.  **`app.js: showScreen(DOM, screenId)` 실행:**
@@ -44,9 +44,9 @@
     *   제거 대상 동적 보스를 `BossDataManager.getBossSchedule()`에서 제거한 후 `BossDataManager.setBossSchedule()`을 호출하여 스케줄을 업데이트합니다.
     *   `allAlarms`에서 현재 시간 이후의 보스를 필터링하여 가장 가까운 `nextBoss`와 `minTimeDiff`를 결정합니다.
     *   `BossDataManager.setNextBossInfo(nextBoss, minTimeDiff)`를 호출하여 다음 보스 정보를 업데이트합니다. **이 호출은 `BossDataManager.subscribe`에 등록된 콜백(`renderDashboard(DOM)`)을 트리거하여 대시보드 UI를 반응적으로 갱신합니다.**
-5.  **`app.js: dashboardRefreshInterval` 및 `BossDataManager.subscribe`:**
-    *   `app.js`의 `showScreen` 함수에 의해 설정된 `setInterval`은 1초마다 `ui-renderer.js`의 `renderDashboard(DOM)`를 호출하여 '다음 보스', '다가오는 보스' 카운트다운 등을 주기적으로 갱신합니다.
-    *   `app.js`의 `initApp` 함수에서 `BossDataManager.subscribe(() => renderDashboard(DOM))`를 통해, `checkAlarms()`에서 `BossDataManager.setNextBossInfo()` 또는 `BossDataManager.setBossSchedule()` 호출 시 대시보드가 즉시 갱신됩니다. 이는 `setInterval` 갱신과 더불어 데이터 변경에 대한 반응성을 제공합니다.
+5.  **`app.js` 및 `global-event-listeners.js`의 반응형 갱신:**
+    *   **주기적 갱신:** `app.js`의 `showScreen` 함수에 의해 설정된 `setInterval`은 1초마다 `ui-renderer.js`의 `renderDashboard(DOM)`를 호출하여 '다음 보스', '다가오는 보스' 카운트다운 등을 주기적으로 갱신합니다.
+    *   **데이터 기반 반응형 갱신:** `checkAlarms()` 함수가 `BossDataManager`의 데이터를 변경하면, `global-event-listeners.js`에 등록된 구독(subscribe) 리스너가 이를 감지하고 `renderDashboard(DOM)`를 즉시 호출합니다. 이는 `setInterval`과 별개로 데이터 변경에 즉각 반응하여 UI를 최신 상태로 유지합니다.
 
 ## 3. 화면별 데이터 흐름 상세
 
