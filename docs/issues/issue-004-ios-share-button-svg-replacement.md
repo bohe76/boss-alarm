@@ -1,16 +1,20 @@
 ---
-status: 미해결
-created_at: 2025-11-23
-priority: low
-assigned_to: Gemini
+id: issue-004
+title: "iOS PWA 설치 안내 모달 내 공유 버튼 SVG 교체 필요"
+status: "미해결"
+priority: "Low"
+assignee: "Gemini"
 labels:
   - feature
   - ui
   - ios
   - pwa
   - svg
+created_date: "2025-11-23"
+resolved_date: ""
 ---
-# 이슈-004: iOS PWA 설치 안내 모달 내 공유 버튼 SVG 교체 필요
+
+# Issue-004: iOS PWA 설치 안내 모달 내 공유 버튼 SVG 교체 필요
 
 ## 문제점
 

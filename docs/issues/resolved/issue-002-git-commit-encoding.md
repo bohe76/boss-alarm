@@ -1,16 +1,18 @@
 ---
-status: 해결됨
-created_at: 2025-11-23
-resolved_at: 2025-11-23
-priority: high
-assigned_to: Gemini
+id: issue-002
+title: "Git 커밋 메시지 한글 깨짐 현상 (PowerShell 환경)"
+status: "해결됨"
+priority: "High"
+assignee: "Gemini"
 labels:
   - bug
   - encoding
   - powershell
   - workflow
+created_date: "2025-11-23"
+resolved_date: "2025-11-23"
 ---
-# 이슈 002: Git 커밋 메시지 한글 깨짐 현상 (PowerShell 환경)
+# Issue-002: Git 커밋 메시지 한글 깨짐 현상 (PowerShell 환경)
 
 - **상태:** 해결됨
 - **설명:** Windows PowerShell 환경에서 `git log` 또는 `git commit`과 같은 Git 명령을 실행할 때, 한글로 작성된 커밋 메시지가 깨져서(garbled characters) 표시되는 현상이 발생합니다. 이는 PowerShell의 기본 출력 인코딩 설정이 UTF-8이 아니거나, Git의 출력을 PowerShell이 올바르게 해석하지 못하기 때문에 발생합니다.

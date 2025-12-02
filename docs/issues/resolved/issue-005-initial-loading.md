@@ -1,14 +1,17 @@
 ---
-status: 해결됨
-created_at: 2025-11-24
-priority: medium
-assigned_to: Gemini
+id: issue-005
+title: "초기 로딩 시 깜빡임 문제 및 스켈레톤 UI 적용 준비"
+status: "해결됨"
+priority: "Medium"
+assignee: "Gemini"
 labels:
   - ui
   - ux
   - performance
+created_date: "2025-11-24"
+resolved_date: ""
 ---
-# 이슈 005: 초기 로딩 시 깜빡임 문제 및 스켈레톤 UI 적용 준비
+# Issue-005: 초기 로딩 시 깜빡임 문제 및 스켈레톤 UI 적용 준비
 
 ## 문제점
 

@@ -1,15 +1,17 @@
 ---
-status: 해결됨
-resolved_at: 2025-11-28
-created_at: 2025-11-25
-priority: medium
-assigned_to: Gemini
+id: issue-006
+title: "보스 스케줄러 시간 적용 버그"
+status: "해결됨"
+priority: "Medium"
+assignee: "Gemini"
 labels:
   - bug
   - boss-scheduler
   - resolved
+created_date: "2025-11-25"
+resolved_date: "2025-11-28"
 ---
-# 이슈 006: 보스 스케줄러 시간 적용 버그
+# Issue-006: 보스 스케줄러 시간 적용 버그
 
 ## 0. 배경 설명: 보스 시간 입력 및 관리 규칙
 

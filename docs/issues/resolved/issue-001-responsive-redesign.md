@@ -1,17 +1,19 @@
 ---
-status: 해결됨
-created_at: 2025-11-23
-resolved_at: 2025-11-30
-priority: medium
-assigned_to: Gemini
+id: issue-001
+title: "반응형 레이아웃 및 모바일 UX 개선"
+status: "해결됨"
+priority: "Medium"
+assignee: "Gemini"
 labels:
   - feature
   - ui
   - responsive
   - mobile
   - refactoring
+created_date: "2025-11-23"
+resolved_date: "2025-11-30"
 ---
-# 이슈 001: 반응형 레이아웃 및 모바일 UX 개선
+# Issue-001: 반응형 레이아웃 및 모바일 UX 개선
 
 ## 1. 문제점
 

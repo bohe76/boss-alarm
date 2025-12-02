@@ -1,3 +1,16 @@
+---
+id: issue-012
+title: "코드 중복 및 모듈성 리팩토링 제안"
+status: "해결됨"
+priority: "Medium"
+assignee: "Gemini"
+labels:
+  - refactoring
+  - core
+created_date: ""
+resolved_date: "2025-12-02"
+---
+
 # Issue-012: 코드 중복 및 모듈성 리팩토링 제안
 
 ## 1. `src/global-event-listeners.js` 모듈 관련 개요

@@ -1,16 +1,20 @@
 ---
-status: 미해결
-created_at: 2025-11-23
-priority: medium
-assigned_to: Gemini
+id: issue-003
+title: "모바일 음성 알림 이슈 (Web Speech API 제약)"
+status: "미해결"
+priority: "Medium"
+assignee: "Gemini"
 labels:
   - bug
   - mobile
   - audio
   - notification
   - web-speech-api
+created_date: "2025-11-23"
+resolved_date: ""
 ---
-# 이슈 003: 모바일 음성 알림 이슈 (Web Speech API 제약)
+
+# Issue-003: 모바일 음성 알림 이슈 (Web Speech API 제약)
 
 - **상태:** 인지됨 (해결 방안 모색 중)
 - **설명:** 모바일 환경(특히 iOS Safari)에서 보스 알리미의 음성 알림(`window.speechSynthesis`)이 제대로 작동하지 않거나, 사용자 상호작용 없이는 재생되지 않는 문제가 발생합니다. 이는 모바일 브라우저의 오디오 자동 재생 정책 및 Web Speech API 지원의 불일치 때문입니다.

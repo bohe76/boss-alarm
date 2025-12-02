@@ -1,14 +1,17 @@
 ---
-status: 해결
-created_at: 2025-11-26
-priority: high
-assigned_to: Gemini
+id: issue-007
+title: "다음 보스 계산 로직 날짜 구분 오류"
+status: "해결됨"
+priority: "High"
+assignee: "Gemini"
 labels:
   - bug
   - logic
   - boss-scheduler
+created_date: "2025-11-26"
+resolved_date: ""
 ---
-# 이슈 007: 다음 보스 계산 로직 날짜 구분 오류
+# Issue-007: 다음 보스 계산 로직 날짜 구분 오류
 
 ## 1. 문제점
 

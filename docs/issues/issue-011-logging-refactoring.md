@@ -1,3 +1,18 @@
+---
+id: issue-011
+title: "로그 시스템 리팩토링 및 다색상 로깅 기능 구현"
+status: "미해결"
+priority: "Medium"
+assignee: "Gemini"
+labels:
+  - feature
+  - refactoring
+  - logging
+  - ui
+created_date: ""
+resolved_date: ""
+---
+
 # Issue-011: 로그 시스템 리팩토링 및 다색상 로깅 기능 구현
 
 ## 1. 문제점

@@ -1,3 +1,17 @@
+---
+id: issue-013
+title: "광 계산기 화면 전환 시 초기화 문제 및 1시간 경고 기능 추가"
+status: "미해결"
+priority: "Medium"
+assignee: "Gemini"
+labels:
+  - bug
+  - feature
+  - calculator
+created_date: ""
+resolved_date: ""
+---
+
 # Issue-013: 광 계산기 화면 전환 시 초기화 문제 및 1시간 경고 기능 추가
 
 ## 1. 문제점

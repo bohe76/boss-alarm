@@ -1,17 +1,19 @@
 ---
-status: 해결됨
-resolved_at: 2025-11-28
-created_at: 2025-11-28
-priority: high
-assigned_to: Gemini
+id: issue-008
+title: "보스 스케줄러 기능 및 테스트의 지속적인 문제점"
+status: "해결됨"
+priority: "High"
+assignee: "Gemini"
 labels:
   - bug
   - testing
   - mocking
   - timezone
   - resolved
+created_date: "2025-11-28"
+resolved_date: "2025-11-28"
 ---
-# 이슈 008: 보스 스케줄러 기능 및 테스트의 지속적인 문제점
+# Issue-008: 보스 스케줄러 기능 및 테스트의 지속적인 문제점
 
 ## 1. 문제점
 

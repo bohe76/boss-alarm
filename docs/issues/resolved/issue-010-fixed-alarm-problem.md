@@ -1,14 +1,17 @@
 ---
-status: 해결됨
-created_at: 2025-11-29
-priority: medium
-assigned_to: Gemini
+id: issue-010
+title: "고정 알림 URL 데이터 처리 문제"
+status: "해결됨"
+priority: "Medium"
+assignee: "Gemini"
 labels:
   - bug
   - data-management
   - ux
+created_date: "2025-11-29"
+resolved_date: ""
 ---
-# 이슈 010: 고정 알림 URL 데이터 처리 문제
+# Issue-010: 고정 알림 URL 데이터 처리 문제
 
 ## 1. 문제점
 

@@ -1,4 +1,17 @@
-**이슈 009: 테스트 코드의 불안정성 및 복잡성 문제 해결 (프런트엔드 메타데이터 관점)**
+---
+id: issue-009
+title: "테스트 코드의 불안정성 및 복잡성 문제 해결 (프런트엔드 메타데이터 관점)"
+status: "해결됨"
+priority: "High"
+assignee: "Gemini"
+labels:
+  - bug
+  - testing
+  - refactoring
+created_date: ""
+resolved_date: ""
+---
+# Issue-009: 테스트 코드의 불안정성 및 복잡성 문제 해결 (프런트엔드 메타데이터 관점)
 
 **상태:** 해결됨
 
@@ -42,5 +55,3 @@
 
 **결과:**
 위 해결 방법들을 적용한 결과, 모든 테스트 케이스가 성공적으로 통과하여 `BossSchedulerScreen` 관련 로직의 안정성과 정확성을 확보했습니다.
-
----
