@@ -1,0 +1,52 @@
+# 기능 명세서
+
+이 문서는 애플리케이션의 주요 기능 명세를 상세히 설명합니다. 각 기능은 별도의 문서로 분리되어 있으며, 아래 링크를 통해 접근할 수 있습니다.
+
+## 목차
+
+1.  [애플리케이션 공통 기능](application-common-features.md)
+    *   초기 로딩 및 화면 전환
+    *   전역 알림 시스템 (음성 및 시각적 알림)
+    *   Local Storage를 통한 설정 및 데이터 저장
+    *   TinyURL을 통한 URL 단축 및 공유
+    *   EventBus를 통한 모듈 간 통신
+2.  [대시보드 (Dashboard)](dashboard.md)
+    *   다음 보스 정보 표시
+    *   다가오는 보스 목록 표시
+    *   알림 실행 상태 및 음소거 버튼
+    *   최근 알림 로그 표시
+3.  [보스 관리 (Boss Management)](boss-management.md)
+    *   보스 목록 텍스트 영역 입력 및 파싱
+    *   보스 설정 저장 및 데이터 유효성 검사
+    *   날짜 마커 및 시간 포맷팅
+    *   저장되지 않은 변경 사항 감지 및 경고
+4.  [보스 스케줄러 (Boss Scheduler)](boss-scheduler.md)
+    *   게임 선택 드롭다운 및 동적 보스 입력 필드 렌더링
+    *   남은 시간 입력 및 보스 출현 시간 계산 (젠 계산기 통합)
+    *   "모든 남은 시간 지우기" 기능
+    *   "보스 설정 적용" 및 데이터 재구성 (Reconstruction)
+    *   특수 보스(+12h) 및 '침공' 보스 처리
+    *   커스텀 보스 목록 관리
+5.  [알림 로그 (Alarm Log)](alarm-log.md)
+    *   알림 로그 목록 표시
+    *   "15개 보기" 토글 및 전체 로그 보기
+    *   로그 업데이트 반응형 갱신
+6.  [공유 (Share)](share.md)
+    *   현재 동적 보스 목록 URL 인코딩
+    *   TinyURL을 통한 단축 URL 생성
+    *   클립보드 복사 기능
+7.  [버전 정보 (Version Info)](version-info.md)
+    *   `data/version_history.json` 로드 및 표시
+    *   릴리즈 노트 콘텐츠 렌더링
+8.  [도움말 및 FAQ (Help & FAQ)](help-faq.md)
+    *   `data/feature_guide.json` 및 `data/faq_guide.json` 로드
+    *   탭 전환 기능
+    *   아코디언 형태의 콘텐츠 표시
+9.  [보탐 계산기 (Calculator)](calculator.md)
+    *   젠 계산기 (Zen Calculator)
+    *   광 계산기 (Light Calculator)
+10. [알림 설정 (Notifications)](notifications.md)
+    *   고정 알림 목록 표시 및 관리
+    *   고정 알림 추가, 편집, 삭제 (CRUD)
+    *   고정 알림 활성화/비활성화 토글
+    *   시간 유효성 검사 및 포맷팅
