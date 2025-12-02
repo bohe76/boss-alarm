@@ -14,9 +14,10 @@
 *   **Primary Action Hover:** `#263238`
 *   **Secondary Action (버튼 강조):** `#AD1457` (진한 핑크색)
 *   **Secondary Action Hover:** `#880E4F`
-*   **Danger (알림/경고):** `#ea4335` (빨간색) - 알람 ON, 중요 로그, 임박 보스/시간, 광 계산기 예상 시간
+*   **Danger (알림/경고):** `#ea4335` (빨간색) - 알람 ON, 중요 로그, 임박 보스 남은 시간, 광 계산기 예상 시간
 *   **Success (긍정):** `#43AA8B` (초록색) - 남은 시간, 광 계산기 오버 시간
 *   **Info (정보 강조):** `#1D3557` (짙은 파란색) - 광 계산기 오버 시간 라벨, 스위치 ON 배경
+*   **Boss Highlight:** `#1E88E5` (밝은 파란색) - 다음 보스 이름, 임박 보스 이름
 
 ### 2.2. 중립 색상 (그레이 스케일)
 
@@ -105,6 +106,15 @@ UI 요소의 둥근 정도를 통일하기 위한 시스템을 정의합니다.
 *   **특정 버튼 너비:**
     *   보스 스케줄러 컨트롤 버튼 (`#manage-custom-lists-button`, `#clearAllRemainingTimesButton`, `#moveToBossSettingsButton`): `184px`
     *   광 계산기 버튼 (`.light-buttons button`): `104px`
+
+### 7.1.1. 토글 버튼 (`.toggle-button`)
+
+*   **기본 스타일 (`.toggle-button`):**
+    *   `.button` 기본 스타일을 따르며, `background-color`: `#f0f0f0`, `color`: `#666`, `border-radius`: `48px` 적용
+    *   `hover`: `background-color`: `#e0e0e0`
+*   **활성 상태 (`.toggle-button.active`):**
+    *   `background-color`: `#FF8F00`, `color`: `#ffffff`, `border-radius`: `48px`
+    *   `hover`: `background-color`: `#FF6F00`
 
 ### 7.2. 카드
 

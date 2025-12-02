@@ -12,7 +12,6 @@
     *   `loadInitialData(DOM)`를 호출하여 URL 파라미터(`data`) 또는 `default-boss-list.js`의 기본 데이터를 파싱하여 `BossDataManager`의 `bossSchedule` 상태를 초기화합니다. (URL에 `fixedData`가 있더라도 무시합니다.)
     *   `BossDataManager.subscribe(() => renderDashboard(DOM))`를 등록하여 `BossDataManager`의 데이터 변경 시 대시보드 UI가 반응적으로 갱신되도록 합니다.
     *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 전역 UI 이벤트 핸들러(알람 토글, 사이드바, 내비게이션 링크 등)를 등록합니다.
-    *   `initGlobalEventListeners(DOM)`를 호출하여 전역 `EventBus` 리스너(예: 로그 업데이트 시 알림 로그 화면 갱신)를 등록합니다.
     *   `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링하며, 1초마다 주기적으로 갱신되도록 `setInterval`을 설정합니다.
     *   `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.
 3.  **`app.js: showScreen(DOM, screenId)` 실행:**
@@ -87,8 +86,9 @@
 ### 3.4. 알림 로그 화면 (`src/screens/alarm-log.js`)
 
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 'alarm-log-screen'으로 내비게이션될 때 `initAlarmLogScreen(DOM)`이 호출됩니다.
-*   **렌더링:** `initAlarmLogScreen` 함수는 `logger.js`의 `getLogs()`를 호출하여 애플리케이션 내 모든 로그 메시지를 가져와 `DOM.logContainer` 요소에 HTML `<li>` 목록 형태로 표시합니다. `global-event-listeners.js`에 등록된 `EventBus.on('log-updated', ...)` 리스너에 의해 새로운 로그 발생 시 `DOM.logContainer`가 갱신됩니다.
-*   **데이터 흐름 요약:** `logger.js`로부터 모든 로그를 가져와 보여주는 화면이며, 새로운 로그 발생 시에만 이벤트 기반으로 갱신됩니다.
+*   **렌더링 및 필터링:** `initAlarmLogScreen`은 "15개 보기" 토글 버튼의 상태를 `LocalStorageManager`에서 로드하고, `DOM.viewMoreLogsButton`의 시각적 상태를 업데이트합니다. `renderAlarmLog(DOM)`는 토글 버튼의 상태에 따라 `logger.js`의 `getLogs()`를 통해 가져온 전체 로그 또는 최근 15개의 로그만 `DOM.logContainer` 요소에 HTML `<li>` 목록 형태로 표시합니다. `global-event-listeners.js`에 등록된 `EventBus.on('log-updated', ...)` 리스너에 의해 새로운 로그 발생 시 `DOM.logContainer`가 갱신됩니다.
+*   **이벤트 리스너:** "15개 보기" 버튼 클릭 시 토글 상태가 변경되고 `LocalStorageManager`에 저장되며, `renderAlarmLog(DOM)`를 다시 호출하여 로그 표시를 업데이트합니다.
+*   **데이터 흐름 요약:** `logger.js`로부터 가져온 로그를 "15개 보기" 토글 상태에 따라 필터링하여 보여주는 화면이며, 새로운 로그 발생 시 이벤트 기반으로 갱신되고 사용자 설정(토글 상태)은 로컬 스토리지에 유지됩니다.
 
 ### 3.5. 공유 화면 (`src/screens/share.js`)
 

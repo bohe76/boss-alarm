@@ -1,6 +1,6 @@
 # Boss Alarm (보스 알리미)
 
-![Boss Alarm Screenshot](https://i.postimg.cc/kX2syHhV/BOSS.png)
+![Boss Alarm Screenshot](https://i.postimg.cc/gcZddxqV/screencapture-127-0-0-1-5500-index-html-2025-12-01-15-48-11.png)
 
 ## 🚀 프로젝트 소개 (Project Introduction)
 
@@ -17,7 +17,7 @@ This project is a client-side web application designed to provide notifications 
     *   **젠 계산기:** 남은 시간을 기준으로 보스 출현 시간 계산.
     *   **보스 스케줄러:** 게임별 보스 목록에서 남은 시간을 설정하여 보스 목록 자동 생성. **(정확한 시간 계산과 안정성 강화)**
     *   **공유:** 현재 보스 목록을 공유 가능한 짧은 URL로 생성.
-    *   **알림 로그:** 모든 알림 및 시스템 메시지 기록.
+    *   **알림 로그:** 모든 알림 및 시스템 메시지 기록. "15개 보기" 토글을 통해 최근 15개 또는 전체 로그를 볼 수 있으며, 이 설정은 로컬 스토리지에 유지됩니다.
     *   **도움말:** 애플리케이션 사용법 및 기능 설명.
     *   **릴리즈 노트:** 버전별 업데이트 내역 확인.
 
@@ -28,6 +28,7 @@ This project is a client-side web application designed to provide notifications 
 *   **고정 알림 (Fixed Alarms):** 특정 보스에 대한 고정된 알림을 설정하고 개별적으로 ON/OFF 할 수 있으며, 로컬 스토리지에 저장됩니다.
 *   **로컬 스토리지 저장 (Local Storage Persistence):** 사용자 설정(고정 알림, 로그 가시성, 사이드바 상태, 활성 화면 등)이 브라우저에 저장되어 재접속 시에도 유지됩니다.
 *   **자정 넘김 시간 처리 (Cross-Midnight Time Handling):** 자정을 넘어가는 보스 시간도 정확하게 처리합니다.
+*   **스켈레톤 UI (Skeleton UI):** 애플리케이션 초기 로딩 시 사용자에게 시각적인 피드백을 제공하여 로딩 경험을 개선합니다.
 
 ## 🛠️ 사용 방법 (How to Use)
 
@@ -42,7 +43,9 @@ This project is a client-side web application designed to provide notifications 
 ## ⚙️ 기술 스택 (Tech Stack)
 
 *   **HTML5**
-*   **CSS3** (외부 파일 `src/style.css`로 링크)
+*   **CSS3** (외부 파일 `src/styles/style.css`로 링크)
+*   **정적 자원:** 이미지 파일 등은 `src/assets/images` 경로에 관리됩니다.
+*   **데이터 파일:** `data/` 폴더에 설정 및 데이터 파일 (예: `boss_lists.json`, `faq_guide.json`)을 관리합니다.
 *   **바닐라 자바스크립트** (모듈화된 파일 `src/` 폴더 내에서 import하여 사용)
 *   **Web Speech API** (`window.speechSynthesis`를 통한 음성 알림)
 *   **TinyURL API** (URL 단축용)
