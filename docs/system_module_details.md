@@ -21,8 +21,8 @@
     2.  `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자(LocalStorageManager, CustomListManager), 보스 데이터 로딩을 초기화합니다.
     3.  `registerAllRoutes()`를 호출하여 모든 화면 모듈을 `src/router.js`에 등록합니다.
     4.  `loadInitialData(DOM)`를 호출하여 URL 파라미터 또는 기본값으로부터 초기 보스 목록 및 고정 알림 데이터를 로드합니다.
-    5.  `BossDataManager.subscribe(() => renderDashboard(DOM))`를 등록하여 보스 데이터 변경 시 대시보드를 반응적으로 갱신합니다.
-    6.  `initEventHandlers(DOM, globalTooltip)`를 호출하여 전역 UI 이벤트 핸들러 및 화면별 이벤트 핸들러를 등록합니다.
+    5.  `initGlobalEventListeners(DOM)`를 호출하여, `BossDataManager` 데이터 변경 감지, 로그 업데이트 등 애플리케이션 전반의 핵심 이벤트 리스너를 중앙에서 등록하고 활성화합니다.
+    6.  `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
     7.  `renderFixedAlarms(DOM)`, `renderAlarmStatusSummary(DOM)`를 호출하여 초기 UI 상태를 설정합니다.
     8.  `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링합니다.
     10. `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여, 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.
@@ -203,26 +203,21 @@
 ## 8. `src/global-event-listeners.js` (전역 EventBus 리스너 관리)
 
 ### 역할
-애플리케이션 생명주기 내내 활성화되어야 하는 핵심적인 전역 `EventBus` 리스너들을 한곳에서 관리합니다. 이는 `EventBus` 리스너 등록의 안정성을 보장하고, 각 모듈의 관심사를 더욱 분리합니다.
+애플리케이션 생명주기 내내 활성화되어야 하는 핵심적인 전역 `EventBus` 리스너들을 한곳에서 중앙 관리합니다. `app.js`의 `initApp` 함수에 의해 호출되어, `BossDataManager` 데이터 변경 감지, 로그 업데이트와 같은 반응형 로직을 담당합니다.
 
 ### 주요 `export` 함수
 
 #### `initGlobalEventListeners(DOM)`
-- **설명:** 전역 `EventBus` 리스너들을 등록하는 함수입니다. 현재 `app.js`에서 직접 호출되지 않고 있으며, 그 내부의 `BossDataManager` 구독 및 `EventBus.on('log-updated')` 리스너는 각각 `app.js`와 `alarm-log.js`에서 개별적으로 처리됩니다. 이 함수는 현재 사용되지 않습니다.
+- **설명:** `app.js`에 의해 호출되어, 모든 전역 `EventBus` 리스너를 등록하고 활성화합니다.
 - **인자:** `DOM` (`Object`)
 - **반환값:** `void`
-- **핵심 내부 로직:** 이 함수가 현재 호출되지 않으므로, 내부 로직은 실행되지 않습니다.
+- **핵심 내부 로직:**
+    1.  `BossDataManager.subscribe`: 데이터 변경 시 대시보드 UI(`renderDashboard`)를 자동으로 갱신하는 리스너를 등록합니다.
+    2.  `EventBus.on('log-updated')`: 새로운 로그가 발생했을 때, 현재 '알림 로그' 화면이 활성화 상태이면 로그 목록(`renderAlarmLog`)을 실시간으로 갱신하는 리스너를 등록합니다.
 
 
 
-## 9. `src/event-handlers.js`
-
-- **역할:** 다양한 UI 구성 요소(알람 토글, 사이드바, 내비게이션 링크, 모바일 메뉴 등)에 대한 구체적인 이벤트 리스너들을 등록합니다.
-- **주요 `export` 함수:**
-    - `initEventHandlers(DOM, globalTooltip)`: `app.js`의 `initApp`에서 호출되어 애플리케이션의 주요 이벤트 핸들러들을 등록합니다.
-- **주의사항:** 이 모듈은 이전에 `initApp` 및 `showScreen`과 같은 최상위 오케스트레이션 로직을 포함했으나, 현재는 `app.js`가 해당 역할을 전담합니다. 이 파일 내부에 더 이상 사용되지 않는 `showScreen` 및 `initApp` 함수 정의가 존재하지만, 실제 애플리케이션 로직에서는 `app.js`의 해당 함수들이 사용됩니다.
-
-## 10. `src/logger.js`
+## 9. `src/logger.js`
 
 - **역할:** 애플리케이션 전반의 메시지 로깅을 담당합니다. 로그를 저장하고, 지정된 DOM 요소에 표시하며, `EventBus`를 통해 로그 업데이트를 알립니다.
 - **주요 `export` 함수:**
@@ -312,7 +307,7 @@
 
 | 모듈 파일 | 주요 `export` 함수 | 상세 역할 및 내부 로직 |
 |---|---|---|
-| **`alarm-log.js`** | `getScreen()` | `onTransition` 시 `initAlarmLogScreen(DOM)`을 호출하여 로그 화면을 초기화합니다. `initAlarmLogScreen`은 `LocalStorageManager`를 통해 "15개 보기" 토글 버튼의 상태를 로드/저장하고, `EventBus.on('log-updated', ...)` 리스너를 등록하여 새로운 로그 발생 시 `renderAlarmLog(DOM)`를 호출하여 로그를 갱신합니다. `renderAlarmLog`는 토글 상태에 따라 최근 15개 또는 전체 로그를 렌더링합니다. |
+| **`alarm-log.js`** | `getScreen()` | `onTransition` 시 `initAlarmLogScreen(DOM)`을 호출하여 로그 화면을 초기화합니다. `initAlarmLogScreen`은 `LocalStorageManager`를 통해 "15개 보기" 토글 버튼의 상태를 로드/저장하고 관련 이벤트 리스너를 등록합니다. 로그의 실시간 갱신은 `global-event-listeners.js`에 중앙화된 `log-updated` 이벤트 리스너를 통해 자동으로 처리됩니다. `renderAlarmLog`는 토글 상태에 따라 최근 15개 또는 전체 로그를 렌더링합니다. |
 | **`boss-management.js`** | `getScreen()` | `init` 시 "보스 설정 저장" 버튼의 이벤트 리스너를 등록합니다. 버튼 클릭 시 `parseBossList`를 호출하여 유효성을 검사하고, 성공 시에만 `BossDataManager`에 저장합니다. 텍스트 수정 시 `isDirty` 플래그를 관리하여 저장되지 않은 변경 사항을 추적합니다. |
 | **`boss-scheduler.js`** | `getScreen()` | `init` 시 `EventBus.on('show-boss-scheduler-screen')` 및 `EventBus.on('rerender-boss-scheduler')` 리스너를 등록하고, `renderBossSchedulerScreen(DOM, _remainingTimes)`를 통해 UI를 렌더링합니다. `handleApplyBossSettings(DOM)` 함수는 "보스 설정 적용" 버튼 클릭 시 호출되며, 입력된 `data-id`와 계산된 시간을 기반으로 보스 데이터를 업데이트하고, 특수 보스(+12h) 및 '침공' 보스 필터링 로직을 적용한 후, 전체 리스트를 재구성(Reconstruction)하여 `BossDataManager`에 저장합니다. `remaining-time-input` 필드에서는 `calculateBossAppearanceTime`을 통해 젠 시간을 계산하고, `focusout` 시 유효성 검사를 수행합니다. 화면 전환 전 입력된 `remaining-time-input` 값은 `_remainingTimes` 내부에 임시로 저장됩니다. `updateCalculatedTimes(DOM)`는 계산된 시간을 갱신합니다. |
 | **`calculator.js`** | `getScreen()` | `init` 시 `initCalculatorScreen(DOM)`이 호출되어 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 `handleCalculatorScreenTransition(DOM)`이 호출되어 `LightCalculator`의 상태를 초기화하고 `ui-renderer.js`의 `renderCalculatorScreen(DOM)`을 호출하여 화면을 렌더링합니다. `checkZenCalculatorUpdateButtonState(DOM)` 헬퍼 함수를 통해 '보스 시간 업데이트' 버튼의 활성화/비활성화 상태를 관리합니다. |

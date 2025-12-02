@@ -11,6 +11,7 @@ import { formatMonthDay } from './utils.js';
 import { EventBus } from './event-bus.js';
 import { getRoute, registerRoute } from './router.js';
 import { initializeCoreServices } from './services.js';
+import { initGlobalEventListeners } from './global-event-listeners.js';
 
 // Screen Modules
 import { getScreen as getAlarmLogScreen } from './screens/alarm-log.js';
@@ -374,8 +375,6 @@ export async function initApp() {
 
     loadInitialData(DOM);
     
-    // Subscribe to BossDataManager changes to automatically refresh the dashboard
-    BossDataManager.subscribe(() => renderDashboard(DOM));
     
     renderFixedAlarms(DOM);
             
@@ -400,6 +399,7 @@ export async function initApp() {
     DOM.navDashboard.classList.add('active');
 
     EventBus.on('navigate', (screenId) => showScreen(DOM, screenId));
+    initGlobalEventListeners(DOM);
     initEventHandlers(DOM, globalTooltip);
     
     const handleResize = () => {

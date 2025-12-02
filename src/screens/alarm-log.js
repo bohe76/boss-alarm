@@ -35,36 +35,26 @@ export function renderAlarmLog(DOM) {
 const ALARM_LOG_TOGGLE_STATE_KEY = 'alarmLogToggleButtonState';
 
 export function initAlarmLogScreen(DOM) {
-    // Initial render when the screen is navigated to
+    // Ensure the toggle button state is loaded and applied on every transition
+    let isToggleActive = LocalStorageManager.get(ALARM_LOG_TOGGLE_STATE_KEY);
+    if (isToggleActive === null) { // If no state is saved, set to default
+        isToggleActive = true;
+        LocalStorageManager.set(ALARM_LOG_TOGGLE_STATE_KEY, isToggleActive);
+    }
+    // The "&&" is a safeguard in case the button is not in the DOM
+    DOM.viewMoreLogsButton && DOM.viewMoreLogsButton.classList.toggle('active', isToggleActive);
 
-    // Add event listener for the "15개 보기" button
-    if (DOM.viewMoreLogsButton && !isEventListenerRegistered) { // Only add listener if not already registered
-        isEventListenerRegistered = true; // Set the flag to true
-
-        // Load initial state for the first time or when the screen is initialized
-        let isToggleActive = LocalStorageManager.get(ALARM_LOG_TOGGLE_STATE_KEY); 
-        if (isToggleActive === null) { // If no state is saved, set to default active for localStorage and button
-            isToggleActive = true; 
-            LocalStorageManager.set(ALARM_LOG_TOGGLE_STATE_KEY, isToggleActive); 
-        }
-
-        // Apply the loaded/default state to the button's class
-        DOM.viewMoreLogsButton.classList.toggle('active', isToggleActive);
-
+    // Register the event listener only once
+    if (DOM.viewMoreLogsButton && !isEventListenerRegistered) {
+        isEventListenerRegistered = true; // Set flag to prevent re-registration
         DOM.viewMoreLogsButton.addEventListener('click', () => {
-            DOM.viewMoreLogsButton.classList.toggle('active');
-            const newState = DOM.viewMoreLogsButton.classList.contains('active');
+            const newState = DOM.viewMoreLogsButton.classList.toggle('active');
             LocalStorageManager.set(ALARM_LOG_TOGGLE_STATE_KEY, newState); // Save new state
             renderAlarmLog(DOM); // Re-render logs based on new toggle state
         });
     }
 
-    // Load initial state for the first time or when the screen is initialized
-    let isToggleActive = LocalStorageManager.get(ALARM_LOG_TOGGLE_STATE_KEY); 
-    if (isToggleActive === null) { isToggleActive = true; } // Default to true if no state
-    DOM.viewMoreLogsButton && DOM.viewMoreLogsButton.classList.toggle('active', isToggleActive);
-
-    renderAlarmLog(DOM); // Initial render after button state is set
+    renderAlarmLog(DOM); // Initial render for the screen
 }
 
 export function getScreen() {
