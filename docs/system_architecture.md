@@ -59,6 +59,7 @@ UI는 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 �
     *   `src/light-calculator.js`: 광 계산기 로직
     *   `src/custom-list-manager.js`: 사용자 지정 보스 목록 관리 로직
     *   `src/screens/boss-scheduler.js`: 보스 스케줄러 화면의 핵심 로직 및 UI 상호작용
+    *   `src/data-managers.js` & `src/alarm-scheduler.js`: 보스 정렬 및 알림 체크 로직 (날짜 포함 정렬 검증)
 *   **프레임워크:** [Vitest](https://vitest.dev/) - Vite 프로젝트와 호환되는 최신의 빠르고 기능이 풍부한 테스트 프레임워크이지만, ES 모듈을 사용하는 바닐라 JavaScript 프로젝트에서도 훌륭하게 작동합니다.
 *   **환경:** [JSDOM](https://jsdom.github.io/) - 테스트 환경은 Node.js 환경 내에서 가상 DOM 구현을 제공하는 JSDOM을 사용하도록 구성되어 있습니다. 이를 통해 전체 브라우저 인스턴스를 실행할 필요 없이 DOM 조작 및 브라우저와 유사한 동작을 테스트할 수 있습니다.
 *   **주요 테스트 방법론:**
