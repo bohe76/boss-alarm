@@ -1195,6 +1195,7 @@ textarea:-ms-input-placeholder {
     display: flex;
     justify-content: center; /* Changed from flex-start to center */
     gap: 12px; /* Space between buttons */
+    margin-top: 20px; /* Space above the button group */
     margin-bottom: 20px; /* Space below the button group */
 }
 
