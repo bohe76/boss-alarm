@@ -173,6 +173,24 @@ export function initBossSchedulerScreen(DOM) {
             }
         });
 
+        // 남은 시간 입력 필드에서 Enter 키를 눌렀을 때 다음 필드로 포커스 이동
+        DOM.bossSchedulerScreen.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && event.target.classList.contains('remaining-time-input')) {
+                event.preventDefault(); // Enter 키의 기본 동작 방지
+
+                const currentInput = event.target;
+                const allInputs = Array.from(DOM.bossInputsContainer.querySelectorAll('.remaining-time-input'));
+                const currentIndex = allInputs.indexOf(currentInput);
+
+                if (currentIndex > -1 && currentIndex < allInputs.length - 1) {
+                    allInputs[currentIndex + 1].focus(); // 다음 입력 필드로 포커스 이동
+                } else if (currentIndex === allInputs.length - 1) {
+                    // 마지막 필드에서 Enter 시, 다음 동작은 필요에 따라 정의 (예: 버튼 활성화 또는 다른 UI 요소 포커스)
+                    // 현재는 특별한 동작 없이 포커스만 유지.
+                }
+            }
+        });
+
         DOM.bossSchedulerScreen.addEventListener('click', (event) => {
             if (event.target === DOM.clearAllRemainingTimesButton) {
                 if (confirm("모든 남은 시간을 삭제하시겠습니까?")) {
