@@ -35,27 +35,63 @@ export const BossDataManager = (() => {
             // Get fixed bosses from LocalStorageManager
             const fixedBosses = LocalStorageManager.getFixedAlarms()
                 .filter(alarm => alarm.enabled) // Only consider enabled fixed alarms
-                .map(alarm => ({ time: alarm.time, name: alarm.name, isFixed: true })); // Mark as fixed
+                .map(alarm => ({ ...alarm, isFixed: true })); // Copy all properties including id, and mark as fixed
 
-            // Combine bossSchedule and fixedBosses, filter out non-boss entries and past bosses, then sort
-            const allBosses = [...bossSchedule, ...fixedBosses]
-                .filter(boss => boss.time) // Filter out entries without a 'time' property (i.e., date entries)
-                .map(boss => {
-                    const [hours, minutes, seconds] = boss.time.split(':').map(Number);
-                    let bossDateTime;
-                    if (boss.scheduledDate) { // Dynamic boss: use its scheduledDate
-                        bossDateTime = new Date(boss.scheduledDate);
-                    } else { // Fixed boss: use current date
-                        bossDateTime = new Date();
-                    }
-                    bossDateTime.setHours(hours, minutes, seconds || 0, 0);
-                    // If the boss time has already passed today, set it for tomorrow
-                    if (bossDateTime.getTime() < now) {
-                        bossDateTime.setDate(bossDateTime.getDate() + 1);
-                    }
-                                    return { ...boss, timestamp: bossDateTime.getTime() };
-                                }).filter(boss => boss.timestamp > now)
-                                .sort((a, b) => a.timestamp - b.timestamp);
+                        // Combine bossSchedule and fixedBosses, filter out non-boss entries and past bosses, then sort
+
+                        const allBosses = [...bossSchedule, ...fixedBosses]
+
+                            .filter(boss => boss.time) // Filter out entries without a 'time' property (i.e., date entries)
+
+                            .map(boss => {
+
+                                let timestamp;
+
+                                if (boss.isFixed) {
+
+                                    const [hours, minutes, seconds] = boss.time.split(':').map(Number);
+
+                                    const bossDateTime = new Date();
+
+                                    bossDateTime.setHours(hours, minutes, seconds || 0, 0);
+
+                                    // If the boss time has already passed today, set it for tomorrow
+
+                                    if (bossDateTime.getTime() < now) {
+
+                                        bossDateTime.setDate(bossDateTime.getDate() + 1);
+
+                                    }
+
+                                    timestamp = bossDateTime.getTime();
+
+                                } else if (boss.scheduledDate) {
+
+                                    // Dynamic boss: Use the already calculated scheduledDate
+
+                                    timestamp = new Date(boss.scheduledDate).getTime();
+
+                                } else {
+
+                                     // Fallback (should rarely happen for valid bosses): treat as today
+
+                                    const [hours, minutes, seconds] = boss.time.split(':').map(Number);
+
+                                    const bossDateTime = new Date();
+
+                                    bossDateTime.setHours(hours, minutes, seconds || 0, 0);
+
+                                    timestamp = bossDateTime.getTime();
+
+                                }
+
+                                return { ...boss, timestamp };
+
+                            })
+
+                            .filter(boss => boss.timestamp > now)
+
+                            .sort((a, b) => a.timestamp - b.timestamp);
                     
 
                     

@@ -105,16 +105,22 @@ export function checkAlarms() {
     let minTimeDiff = Infinity;
 
     for (const alarm of allAlarms) {
-        const [hours, minutes, seconds] = alarm.time.split(':').map(Number);
-        const alarmTimeToday = new Date();
-        alarmTimeToday.setHours(hours, minutes, seconds || 0, 0);
+        let bossScheduledTime;
 
-        // If alarm time has already passed today, consider it for tomorrow
-        if (alarmTimeToday.getTime() <= now.getTime() - 1000) { // 1 second grace period
-            alarmTimeToday.setDate(alarmTimeToday.getDate() + 1);
+        if (alarm.isFixed) {
+            const [hours, minutes, seconds] = alarm.time.split(':').map(Number);
+            const alarmTimeToday = new Date();
+            alarmTimeToday.setHours(hours, minutes, seconds || 0, 0);
+
+            // If alarm time has already passed today, consider it for tomorrow
+            if (alarmTimeToday.getTime() <= now.getTime() - 1000) { // 1 second grace period
+                alarmTimeToday.setDate(alarmTimeToday.getDate() + 1);
+            }
+            bossScheduledTime = alarmTimeToday.getTime();
+        } else {
+             // Dynamic boss: use its specific scheduledDate
+             bossScheduledTime = new Date(alarm.scheduledDate).getTime();
         }
-
-        const bossScheduledTime = alarmTimeToday.getTime();
 
         // --- 5분 전 알림 체크 ---
         if (Math.abs(bossScheduledTime - fiveMinLater.getTime()) < 1000 && !alarm.alerted_5min) {
