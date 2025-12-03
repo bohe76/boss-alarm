@@ -281,7 +281,6 @@ body {
             border-radius: 8px;
             padding: 8px; /* Changed from 10px to 8px (spacing-xs) */
             font-size: 14px;
-            margin-bottom: 16px;
         }
         .next-boss-highlight {
             margin-bottom: 10px;
@@ -1073,6 +1072,7 @@ textarea:-ms-input-placeholder {
     display: flex; /* Make it a flex container */
     flex-direction: column; /* Stack children vertically */
     height: 400px; /* Fixed height for the entire card, adjust as needed */
+    margin-bottom: 20px; /* Added for spacing below the container */
 }
 
 .scheduler-card {
@@ -1196,7 +1196,7 @@ textarea:-ms-input-placeholder {
     display: flex;
     justify-content: center; /* Changed from flex-start to center */
     gap: 12px; /* Space between buttons */
-    margin-top: 20px; /* Space above the button group */
+    margin-top: 0; /* Space above the button group */
     margin-bottom: 20px; /* Space below the button group */
 }
 
@@ -1504,12 +1504,13 @@ textarea:-ms-input-placeholder {
 }
 
 .custom-list-tab-content.active {
-    display: block; /* Show active tab content */
+    display: flex; /* Changed from block */
+    flex-direction: column;
 }
 
 /* Modal specific styles adjustment */
 .modal-content .control-group {
-    margin-bottom: 15px;
+    margin-bottom: 13px;
 }
 
 .modal-content label {
@@ -1525,6 +1526,10 @@ textarea:-ms-input-placeholder {
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+
+#save-custom-list-button {
+    margin-left: auto;
 }
 
 .custom-list-manage-item {
