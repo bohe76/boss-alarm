@@ -2,12 +2,14 @@ import { LocalStorageManager } from '../data-managers.js';
 import { renderFixedAlarms, updateFixedAlarmVisuals } from '../ui-renderer.js';
 import { validateFixedAlarmTime, normalizeTimeFormat } from '../utils.js';
 import { log } from '../logger.js';
+import { syncScheduleToWorker, getIsAlarmRunning } from '../alarm-scheduler.js';
 
 export function initNotificationSettingsScreen(DOM) {
     // Event delegation for fixed alarm items (edit, delete, individual toggle)
     if (DOM.fixedAlarmListDiv) {
         DOM.fixedAlarmListDiv.addEventListener('click', (event) => {
             const target = event.target;
+            let shouldSync = false;
 
             // Handle individual toggle change
             if (target.matches('.switch input[type="checkbox"]')) {
@@ -18,6 +20,7 @@ export function initNotificationSettingsScreen(DOM) {
                     alarmToUpdate.enabled = target.checked;
                     LocalStorageManager.updateFixedAlarm(alarmId, alarmToUpdate);
                     updateFixedAlarmVisuals(DOM);
+                    shouldSync = true;
                 }
             }
 
@@ -45,6 +48,7 @@ export function initNotificationSettingsScreen(DOM) {
                     LocalStorageManager.updateFixedAlarm(alarmId, { time: normalizedTime, name: newName.trim() });
                     renderFixedAlarms(DOM); // Re-render to show changes
                     log(`고정 알림 "${alarmToEdit.name}"이(가) "${newName.trim()} ${normalizedTime}"으로 수정되었습니다.`, true);
+                    shouldSync = true;
                 }
             }
 
@@ -58,7 +62,12 @@ export function initNotificationSettingsScreen(DOM) {
                     LocalStorageManager.deleteFixedAlarm(alarmId);
                     renderFixedAlarms(DOM); // Re-render to show changes
                     log(`고정 알림 "${alarmToDelete.name}"이(가) 삭제되었습니다.`, true);
+                    shouldSync = true;
                 }
+            }
+
+            if (shouldSync && getIsAlarmRunning()) {
+                syncScheduleToWorker();
             }
         });
     }

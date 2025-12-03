@@ -1,5 +1,5 @@
 import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Import managers
-import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRunning
+import { getIsAlarmRunning, syncScheduleToWorker } from './alarm-scheduler.js'; // Import getIsAlarmRunning and syncScheduleToWorker
 import { log, getLogs } from './logger.js'; // Import log and getLogs
 // import { loadJsonContent } from './api-service.js'; // loadJsonContent is no longer needed here
 import { CustomListManager } from './custom-list-manager.js';
@@ -473,6 +473,10 @@ export function renderFixedAlarms(DOM) {
             showToast(DOM, "고정 알림이 추가 되었습니다."); // New toast message
             renderFixedAlarms(DOM); // Re-render to show new alarm
             log(`새 고정 알림 "${name} ${time}"이(가) 추가되었습니다.`, true);
+
+            if (getIsAlarmRunning()) {
+                syncScheduleToWorker();
+            }
 
             // Clear inputs
             newFixedAlarmTimeInput.value = '';
