@@ -30,13 +30,14 @@
         * **Error 페이지를 띄우지 않고**, 앱 내장 **'기본 보스 목록(Default Boss List)'**을 표시하여 앱 사용에 지장이 없도록 한다.
         * **피드백:** "스케줄이 만료되어 기본 설정으로 로드되었습니다." Toast 출력.
 * **자동 동기화 메커니즘 (Auto-Sync):**
-    * **주기적 체크 (Polling):** 60초마다 서버 확인.
-    * **포커스 감지:** 탭 복귀 시(`visibilitychange`) 즉시 확인.
-    * **데이터 절약:** `updated_at` 비교 후 다를 때만 전체 로드.
+    * **Realtime Subscription:** Supabase Realtime 기능을 사용하여 `schedules` 테이블의 변경 사항(`UPDATE`)을 실시간으로 구독한다.
+    * **이점:** 불필요한 폴링(Polling) 트래픽을 제거하고, 데이터 변경 즉시 클라이언트에 반영한다.
+    * **포커스 감지:** 탭 복귀 시(`visibilitychange`) 혹시 모를 연결 끊김에 대비해 한 번 더 상태를 확인한다.
 
 ### 2.2. Backend (Serverless)
 * **Platform:** Vercel Serverless Functions.
 * **Database:** Supabase (PostgreSQL).
+    * **Connection Pooling:** Vercel Serverless 환경의 연결 한계를 고려하여, Direct Connection(5432) 대신 **Transaction Pooler(6543, Supavisor)**를 사용한다.
 * **Push Service:** OneSignal REST API.
 * **Scheduler:** Vercel Cron (1분 주기 실행).
 * **환경 변수 관리 (Environment Variables) - [New]:**
@@ -235,19 +236,23 @@ Supabase 프로젝트에서 다음 SQL 스키마를 사용하여 데이터베이
 ### 5.1. 동기화 API (`POST /api/sync`)
 * **기능:** 클라이언트의 '최종 스케줄'을 받아 DB를 갱신하고 알림을 **재예약(Reschedule)**한다.
 * **로직:**
-    1.  `schedule_id`가 DB에 없어도 `adminKey`가 제공되었다면 **신규 생성(Recovery/Upsert)**으로 처리.
-    2.  해당 `schedule_id`의 기존 미래 알림 데이터 전체 삭제(`DELETE`).
-    3.  전송받은 데이터로 신규 알림 `INSERT`. 이때, `fire_time`에서 **15초를 뺀 시간**을 `target_notify_unix` 컬럼에 저장한다.
-    4.  `schedules` 테이블의 `expires_at`을 현재 시간 기준 24시간 뒤로 연장한다.
-    5.  **중요:** 이 시점에서 즉시 푸시를 발송하지 않는다. (예약만 변경)
+    1.  **트랜잭션 시작 (Transaction Start):** 데이터 무결성을 위해 아래 작업들을 하나의 DB 트랜잭션으로 묶는다.
+    2.  `schedule_id` 확인 및 **Upsert** (신규 생성 또는 갱신). `expires_at`을 24시간 연장한다.
+    3.  해당 `schedule_id`의 기존 미래 알림 데이터 전체 삭제(`DELETE`).
+    4.  전송받은 데이터로 신규 알림 `INSERT`. (`target_notify_unix` = `fire_time` - 15초).
+    5.  **트랜잭션 커밋 (Commit).**
+    6.  **OneSignal 예약 취소 (Cancel):** (Optional) 가능하다면 OneSignal API를 통해 기존에 해당 `schedule_id` 태그로 예약된 미래 알림들을 취소 요청한다. (중복 방지)
+    7.  **중요:** 이 시점에서 즉시 푸시를 발송하지 않는다. (예약 데이터만 변경)
 
 ### 5.2. 스케줄러 및 발송 로직 (`GET /api/cron`)
 * **서버 실행 주기:** 매분 0초 실행 (`* * * * *`).
     * *(주의: 서버는 1초마다 실행되지 않음. 1분 단위로 묶어서 처리함.)*
 * **로직 순서 (Batch & Schedule):**
-    1.  **미래 구간 조회 (Look-Ahead):**
-        * DB에서 `현재 시간` <= `target_notify_unix` < `현재 시간 + 60초` 사이의 모든 알람을 조회한다.
-    2.  **개별 발송 원칙 (No Grouping):**
+    1.  **미래 구간 조회 (Look-Ahead w/ Overlap):**
+        * Cron 실행 지연(Cold Start 등)을 고려하여 조회 범위를 중첩시킨다.
+        * `현재 시간 - 10초` <= `target_notify_unix` < `현재 시간 + 70초`.
+    2.  **중복 방지 (Idempotency):** OneSignal 전송 시 `external_id`를 `push_alarms.id`와 매핑하여, 조회 범위 중첩으로 인해 동일 알림이 두 번 전송되더라도 OneSignal 측에서 무시되도록 한다.
+    3.  **개별 발송 원칙 (No Grouping):**
         * 동일 시간대에 여러 보스가 있더라도 합치지 않고 **각각 별도의 알림**으로 발송한다.
     3.  **예약 발송 요청 (Send After):**
         * **환경 변수 분기:** Vercel 환경(Production/Preview/Development)에 따라 적절한 OneSignal REST API Key를 사용한다.
