@@ -853,7 +853,7 @@ textarea:-ms-input-placeholder {
 .boss-list-actions {
     display: flex;
     justify-content: flex-end;
-    margin-top: 10px;
+    margin-top: 0;
 }
 
 
@@ -1464,6 +1464,10 @@ textarea:-ms-input-placeholder {
             padding-left: 20px;
             margin: 0;
         }
+
+#boss-management-screen textarea {
+    margin-bottom: 20px;
+}
 
 /* Custom Boss List Modal Tabs */
 .modal-tabs {
