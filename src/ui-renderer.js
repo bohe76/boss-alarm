@@ -192,14 +192,14 @@ export function renderHelpScreen(DOM, helpData) {
             const isOpen = index === 0 ? 'open' : '';
             html += `
                 <details class="help-section" ${isOpen}>
-                    <summary class="help-summary">${section.title}</summary>
+                    <summary class="help-summary">${convertBoldMarkdownToHtml(section.title)}</summary>
                     <div class="help-content">
-                        ${section.content.map(p => `<p>${p}</p>`).join('')}
+                        ${section.content.map(p => `<p>${convertBoldMarkdownToHtml(p)}</p>`).join('')}
                         ${section.sub_sections ? section.sub_sections.map(sub => `
                             <details class="help-sub-section">
-                                <summary class="help-sub-summary">${sub.title}</summary>
+                                <summary class="help-sub-summary">${convertBoldMarkdownToHtml(sub.title)}</summary>
                                 <div class="help-sub-content">
-                                    ${sub.content.map(p => `<p>${p}</p>`).join('')}
+                                    ${sub.content.map(p => `<p>${convertBoldMarkdownToHtml(p)}</p>`).join('')}
                                 </div>
                             </details>
                         `).join('') : ''}
@@ -218,18 +218,17 @@ export function renderFaqScreen(DOM, faqData) {
     if (faqData && faqContentContainer) {
         let html = '';
         faqData.forEach((section, index) => {
-            // Expand the first accordion item by default for consistency.
             const isOpen = index === 0 ? 'open' : '';
             html += `
                 <details class="help-section" ${isOpen}>
-                    <summary class="help-summary">${section.title}</summary>
+                    <summary class="help-summary">${convertBoldMarkdownToHtml(section.title)}</summary>
                     <div class="help-content">
-                        ${section.content.map(p => `<p>${p}</p>`).join('')}
+                        ${section.content.map(p => `<p>${convertBoldMarkdownToHtml(p)}</p>`).join('')}
                         ${section.sub_sections ? section.sub_sections.map(sub => `
                             <details class="help-sub-section">
-                                <summary class="help-sub-summary">${sub.title}</summary>
+                                <summary class="help-sub-summary">${convertBoldMarkdownToHtml(sub.title)}</summary>
                                 <div class="help-sub-content">
-                                    ${sub.content.map(p => `<p>${p}</p>`).join('')}
+                                    ${sub.content.map(p => `<p>${convertBoldMarkdownToHtml(p)}</p>`).join('')}
                                 </div>
                             </details>
                         `).join('') : ''}
@@ -242,6 +241,14 @@ export function renderFaqScreen(DOM, faqData) {
         faqContentContainer.innerHTML = `<p>FAQ 콘텐츠를 불러오는 데 실패했습니다.</p>`;
     }
 }
+
+// 헬퍼: 마크다운 강조(**text**)를 HTML <strong> 태그로 변환
+function convertBoldMarkdownToHtml(text) {
+    // ** 다음에 공백이 없고, * 앞에 공백이 없는 경우 (단어 중간 강조 포함)
+    // ** 다음에 어떤 문자(공백 포함)가 오든 처리하도록 변경
+    return text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+}
+
 
 // --- Light Calculator Display Functions ---
 export function updateLightStopwatchDisplay(DOM, time) {
