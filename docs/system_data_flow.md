@@ -24,29 +24,20 @@
 ## 2. 알람 시작 및 주기적 갱신 흐름
 
 1.  **사용자 입력:** 사용자가 '알람 시작' 버튼(`DOM.alarmToggleButton`)을 클릭합니다.
-2.  **`app.js: initEventHandlers` 이벤트 처리:** `DOM.alarmToggleButton`에 등록된 클릭 리스너가 `alarm-scheduler.js`의 `startAlarm(DOM)` 함수를 호출합니다.
+2.  **`app.js: initEventHandlers` 이벤트 처리:** 리스너가 `alarm-scheduler.js`의 `startAlarm(DOM)` 함수를 호출합니다.
 3.  **`alarm-scheduler.js: startAlarm()` 실행:**
-    *   `LocalStorageManager.setAlarmRunningState(true)`를 호출하여 알람 실행 상태를 `localStorage`에 저장합니다.
-    *   `logger.js`와 `speech.js`를 통해 "알림 시스템 시작" 메시지를 로깅하고 음성으로 출력합니다.
-    *   `alertTimerId`에 1초 간격의 `setInterval`을 설정하여 `checkAlarms()` 함수를 주기적으로 호출합니다.
-    *   `checkAlarms()`를 즉시 한 번 호출하여 초기 알람 상태를 확인합니다.
-    *   `renderAlarmStatusSummary(DOM)`를 호출하여 대시보드의 알람 상태 UI를 갱신합니다.
-4.  **`alarm-scheduler.js: checkAlarms()` 실행 (매초):**
-    *   현재 시간 기준으로 5분 후, 1분 후, 현재 시간을 계산합니다.
-    *   자정(00:00)이 되면 모든 보스의 `alerted` 상태를 초기화하여 매일 알람이 반복되도록 준비합니다.
-    *   `BossDataManager.getBossSchedule()`의 동적 보스와 `LocalStorageManager.getFixedAlarms()`의 활성화된 고정 알람을 결합하여 `allAlarms` 목록을 생성합니다.
-    *   각 알람에 대해 동적 보스의 경우 기존 `scheduledDate`를 존중하고, 고정 알림의 경우 현재 날짜를 기반으로 `scheduledDate`를 결정합니다. 이후 오늘 이미 지난 알람은 다음 날로 자동 조정하여 `allAlarms` 목록의 정확한 순서를 보장합니다.
-    *   `allAlarms`를 `scheduledDate` 기준으로 정렬합니다.
-    *   정렬된 `allAlarms`를 순회하며 각 보스에 대해 5분 전, 1분 전, 정각 알림 조건이 충족되었는지 확인합니다.
-        *   조건 충족 시 해당 보스의 `alerted_Xmin` 플래그를 `true`로 설정하고, `logger.js`와 `speech.js`를 통해 알림 메시지를 로깅 및 음성 출력합니다.
-        *   고정 알람의 경우 `LocalStorageManager.updateFixedAlarm()`을 통해 `localStorage`에 변경 사항을 반영합니다.
-        *   동적 보스가 정각 알림되면 `BossDataManager.setBossSchedule()` 호출 시 목록에서 제거될 대상으로 표시합니다.
-    *   제거 대상 동적 보스를 `BossDataManager.getBossSchedule()`에서 제거한 후 `BossDataManager.setBossSchedule()`을 호출하여 스케줄을 업데이트합니다.
-    *   `allAlarms`에서 현재 시간 이후의 보스를 필터링하여 가장 가까운 `nextBoss`와 `minTimeDiff`를 결정합니다.
-    *   `BossDataManager.setNextBossInfo(nextBoss, minTimeDiff)`를 호출하여 다음 보스 정보를 업데이트합니다. **이 호출은 `BossDataManager.subscribe`에 등록된 콜백(`renderDashboard(DOM)`)을 트리거하여 대시보드 UI를 반응적으로 갱신합니다.**
-5.  **`app.js` 및 `global-event-listeners.js`의 반응형 갱신:**
-    *   **주기적 갱신:** `app.js`의 `showScreen` 함수에 의해 설정된 `setInterval`은 1초마다 `ui-renderer.js`의 `renderDashboard(DOM)`를 호출하여 '다음 보스', '다가오는 보스' 카운트다운 등을 주기적으로 갱신합니다.
-    *   **데이터 기반 반응형 갱신:** `checkAlarms()` 함수가 `BossDataManager`의 데이터를 변경하면, `global-event-listeners.js`에 등록된 구독(subscribe) 리스너가 이를 감지하고 `renderDashboard(DOM)`를 즉시 호출합니다. 이는 `setInterval`과 별개로 데이터 변경에 즉각 반응하여 UI를 최신 상태로 유지합니다.
+    *   `LocalStorageManager`에 알람 실행 상태를 저장합니다.
+    *   **시스템 알림(`Notification`) 권한을 요청합니다.**
+    *   `syncScheduleToWorker()`를 호출하여 현재의 모든 보스 및 고정 알림 데이터를 알림 예정 시간(`flatSchedule`)으로 계산하여 워커로 전송(`UPDATE_SCHEDULE`)합니다.
+    *   워커(`src/workers/timer-worker.js`)에 `START` 메시지를 보냅니다.
+4.  **`src/workers/timer-worker.js` (백그라운드 스레드):**
+    *   `START` 메시지를 받으면 1초 간격의 `setInterval`을 시작합니다.
+    *   매초(`tick`)마다 `flatSchedule`을 순회하며 현재 시간과 비교하여 알림 조건(5분 전, 1분 전, 정각)이 충족되었는지 확인합니다.
+    *   조건 충족 시 메인 스레드로 `ALARM` 메시지를 보냅니다.
+    *   매초 메인 스레드로 `TICK` 메시지를 보냅니다.
+5.  **`alarm-scheduler.js: worker.onmessage` (메인 스레드):**
+    *   **`ALARM` 수신 시:** `handleAlarm` 함수가 실행되어 소리(`speak`), 로그(`log`), 시스템 알림(`Notification`)을 출력하고, 데이터 상태(`alerted_*`)를 업데이트합니다. 데이터가 변경되었으므로 `syncScheduleToWorker`를 호출하여 워커의 데이터를 최신화합니다.
+    *   **`TICK` 수신 시:** `updateAppState` 함수가 실행되어 자정 초기화 로직을 수행하고, `BossDataManager.setNextBossInfo`를 호출하여 대시보드 UI를 갱신합니다.
 
 ## 3. 화면별 데이터 흐름 상세
 

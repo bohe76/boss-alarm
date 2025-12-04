@@ -152,32 +152,41 @@
 
 ---
 
-## 6. `src/alarm-scheduler.js` (알람 시스템 관리)
+## 6. `src/alarm-scheduler.js` (알람 시스템 관리 - Main Thread)
 
 ### 역할
-보스 알림 시스템의 핵심 로직을 담당합니다. 보스 출현 시간을 주기적으로 확인하고, 설정된 시간에 맞춰 음성 및 시각적 알림을 트리거하며, 알람 관련 애플리케이션 상태를 관리합니다.
+보스 알림 시스템의 메인 스레드 관리자입니다. **Web Worker (`src/workers/timer-worker.js`)**를 생성하고 통신하며, 워커로부터 알림 신호(`ALARM`)를 받으면 실제 사용자에게 소리(`speak`)와 시스템 알림(`Notification`)을 제공합니다. 또한 `BossDataManager`의 변경 사항을 워커에 동기화합니다.
 
 ### 주요 `export` 함수
 
 #### `startAlarm(DOM)`
-- **설명:** 알림 시스템을 시작합니다. `LocalStorageManager`에 알람 실행 상태를 저장하고, 로그 및 음성 메시지를 출력하며, `checkAlarms()` 함수를 1초마다 주기적으로 실행하는 `setInterval`을 설정합니다.
+- **설명:** 알림 시스템을 시작합니다. 워커에 `START` 메시지를 보내고, 최신 스케줄 데이터를 동기화합니다. 시스템 알림 권한을 요청합니다.
 - **인자:** `DOM` (`Object`)
 - **반환값:** `void`
 
 #### `stopAlarm(DOM)`
-- **설명:** 알림 시스템을 중지합니다. `LocalStorageManager`에 알람 실행 상태를 저장하고, 실행 중인 `setInterval`을 해제하며, 로그 및 음성 메시지를 출력합니다.
+- **설명:** 알림 시스템을 중지합니다. 워커에 `STOP` 메시지를 보냅니다.
 - **인자:** `DOM` (`Object`)
 - **반환값:** `void`
 
-#### `getIsAlarmRunning()`
-- **설명:** `LocalStorageManager`로부터 현재 알람 실행 상태를 반환합니다.
-- **인자:** 없음
-- **반환값:** `boolean`
+#### `syncScheduleToWorker()`
+- **설명:** `BossDataManager`와 `LocalStorageManager`의 데이터를 기반으로 알림 예정 시간을 미리 계산하여 단순화된 목록(`flatSchedule`)을 워커로 전송합니다. **Smart Main, Dumb Worker** 패턴을 따릅니다.
 
-#### `checkAlarms()`
-- **설명:** 매초마다 호출되어 현재 시간과 보스 스케줄을 비교하고, 5분 전, 1분 전, 정각 알림 조건이 충족되면 알림을 트리거합니다. 자정에는 모든 보스의 알림 상태를 초기화합니다. 동적 보스는 `BossDataManager`를 통해, 고정 알림은 `LocalStorageManager`를 통해 관리됩니다.
-- **인자:** 없음
-- **반환값:** `void`
+---
+
+## 6-1. `src/workers/timer-worker.js` (백그라운드 타이머 워커 - Worker Thread)
+
+### 역할
+메인 스레드의 간섭 없이 백그라운드에서 안정적으로 시간을 체크하는 Web Worker입니다. 메인 스레드로부터 수신한 알림 예정 시간(`flatSchedule`)과 현재 시간을 1초마다 비교하여, 알림 시점이 되면 메인 스레드로 `ALARM` 메시지를 보냅니다.
+
+### 주요 메시지 처리
+- **수신 (`onmessage`):**
+    - `START`: 타이머(`setInterval`) 시작.
+    - `STOP`: 타이머 정지.
+    - `UPDATE_SCHEDULE`: 알림 예정 목록 갱신.
+- **발신 (`postMessage`):**
+    - `TICK`: 매초 발생. 메인 스레드의 UI 갱신용.
+    - `ALARM`: 알림 조건 충족 시 발생. 메인 스레드의 알림 실행 트리거.
 
 ---
 
