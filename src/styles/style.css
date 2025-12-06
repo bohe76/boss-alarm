@@ -520,15 +520,6 @@ textarea:-ms-input-placeholder {
     display: flex;
     flex-direction: column;
     gap: 8px; /* 1, 2번째 줄 사이의 간격 */
-    padding: 16px 0;
-    border-bottom: 1px solid #eee; /* 항목 구분선 */
-}
-.fixed-alarm-item:first-of-type {
-    padding-top: 0;
-}
-.fixed-alarm-item:last-of-type {
-    border-bottom: none;
-    padding-bottom: 0;
 }
 .alarm-item-line1, .alarm-item-line2 {
     display: flex;
@@ -879,27 +870,21 @@ textarea:-ms-input-placeholder {
     margin-bottom: 10px;
 }
 
-/* Card 내의 List Item을 위한 새로운 스타일 */
+/* 최종 스타일: 항목 '사이'에만 구분선 (실선) */
 .list-item {
     padding: 12px 0;
-    border-bottom: 1px solid #ccc; /* 모든 항목에 하단 구분선 적용 */
+    /* border 속성은 여기서 제거 */
+}
+.list-item + .list-item { /* .list-item 바로 다음에 오는 .list-item에만 적용 */
+    border-top: 1px solid #ccc;
 }
 
-.list-item:first-of-type {
-    border-top: 1px solid #ccc; /* 첫 항목에만 상단 구분선 추가 */
-    padding-top: 12px; /* 일관된 여백을 위해 제거했던 상단 패딩 다시 추가 */
-}
-
-/* 좁은 여백을 위한 수식어 클래스 (점선 구분선) */
+/* Dense 수식어: 여백과 구분선 스타일만 변경 */
 .list-item--dense {
     padding: 6px 0;
-    border-bottom-style: dashed;
-    border-bottom-color: #ccc;
 }
-.list-item--dense:first-of-type {
-    padding-top: 6px;
+.list-item--dense + .list-item--dense {
     border-top-style: dashed;
-    border-top-color: #ccc;
 }
 
 /* ---- Card Sizing Classes ---- */
