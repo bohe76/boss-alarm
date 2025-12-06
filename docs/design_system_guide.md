@@ -24,8 +24,8 @@
 *   **Background Body:** `#f4f7f6` - `body` 배경
 *   **Background UI:** `#f8f8f8` - 헤더, 사이드바, 메인 콘텐츠, 카드 내부 배경, 입력 필드 배경
 *   **Background Dark:** `#333` - 푸터 배경, 토스트 메시지 배경
-*   **Border Light:** `#eee` - 구분선 (dashed), 사이드바 메뉴 호버/액티브 테두리
-*   **Border Default:** `#ccc` - 알람 아이콘 비활성, 입력 필드 테두리, 슬라이더 배경
+*   **Border Light:** `#eee` - 사이드바 메뉴 호버/액티브 테두리
+*   **Border Default:** `#ccc` - 실선/점선 구분선, 알람 아이콘 비활성, 입력 필드 테두리, 슬라이더 배경
 *   **Text Darkest:** `#111` - 헤더 제목, 카드 제목, 스톱워치, 비활성 버튼 텍스트
 *   **Text Default:** `#333` - 일반 텍스트, 활성 내비게이션 텍스트
 *   **Text Light:** `#666` - 보조 텍스트, 아이콘 (비활성), 음소거 버튼 (muted)
@@ -136,14 +136,31 @@ UI 요소의 둥근 정도를 통일하기 위한 시스템을 정의합니다.
     *   `box-shadow`: `Shadow Medium` (`0 4px 8px rgba(0,0,0,0.15)`)
     *   `margin-bottom`: `0` (Flex `gap` 시스템으로 대체)
     *   `box-sizing`: `border-box`
-*   **리스트 아이템 카드 (`.card-list-item`):**
+*   **단일 컨텐츠 카드 (`.card-list-item`):**
     *   `background-color`: `#fff`, `padding`: `16px`, `border-radius`: `8px`
     *   `box-shadow`: `Shadow Light` (`0 2px 4px rgba(0,0,0,0.1)`)
     *   `margin-bottom`: `10px`
+    *   **주 사용처:** '공유' 화면의 메시지 박스와 같이, 리스트 형태가 아닌 단일 컨텐츠를 감싸는 용도로 제한적으로 사용됩니다.
 *   **카드 크기 클래스:**
     *   `card-size-standard`: `max-width: 380px`, `width: 100%`, `margin-bottom: 0`
     *   `card-size-small`: `max-width: 182px`, `width: 100%` (알림 상태, 소리 설정 카드)
     *   `card-size-list`: `max-width: 800px`, `width: 100%`, `margin: 0 auto`
+
+### 7.2.2. 리스트 아이템 (.list-item)
+
+카드 내부에 목록을 표시할 때 사용하는 범용 클래스입니다.
+
+*   **기본 스타일 (`.list-item`):**
+    *   `padding`: `12px 0`
+    *   `border-bottom`: `1px solid #ccc`
+    *   첫 번째 항목에는 `border-top: 1px solid #ccc` 이 적용됩니다.
+    *   **주 사용처:** '고정 알림', '보스 스케줄러' 등 복합적인 UI 요소를 포함하는 리스트.
+
+*   **Dense 수식어 (`.list-item--dense`):**
+    *   `.list-item`과 함께 사용합니다 (예: `<li class="list-item list-item--dense">`).
+    *   `padding`을 `6px 0`으로 줄여 정보 밀도를 높입니다.
+    *   구분선을 `1px dashed #ccc` 스타일로 변경합니다.
+    *   **주 사용처:** '다가오는 보스', '로그' 등 단순 텍스트 위주의 리스트.
 
 ### 7.2.1. 카드 헤더 (`.card-header`)
 
@@ -220,8 +237,8 @@ UI 요소의 둥근 정도를 통일하기 위한 시스템을 정의합니다.
 
 ## 12. 알림 로그 (`.log-entry`)
 
-*   `padding`: `4px 0`
-*   `border-bottom`: `1px dashed #ccc`
-*   `font-size`: `1.0em`
-*   `font-family`: 시스템 폰트
-*   `important`: `color: Danger` (`#ea4335`)
+알림 로그 항목에 의미(semantic)를 부여하기 위한 클래스입니다. 항상 `.list-item` 및 `.list-item--dense`와 함께 사용됩니다.
+
+*   **기본 스타일:** `.list-item`의 스타일을 상속받아 사용합니다.
+*   **`.important` 수식어:** `.log-entry.important`와 같이 사용될 경우, 로그 텍스트 색상을 `Danger` (`#ea4335`) 색상으로 변경하여 강조합니다.
+*   **사용 예시:** `<li class="list-item list-item--dense log-entry important">...</li>`
