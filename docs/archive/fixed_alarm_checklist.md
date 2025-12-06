@@ -89,6 +89,7 @@
     *   '저장' 버튼 리스너가 '추가'/'편집' 모드를 구분하여 동작하도록 구현함.
     *   기존 유효성 검사, 데이터 정규화 로직을 재사용함.
     *   `LocalStorageManager`를 사용하여 데이터를 저장하고, UI 새로고침 및 워커 동기화 등 후속 처리를 구현함.
+    *   알람이 실행 중이면 `syncScheduleToWorker()`를 호출하여 워커에 변경사항을 동기화합니다.
 - [x] **검증:** 사용자가 직접 확인하고 다음 단계로 진행을 승인함.
 </details>
 
@@ -96,14 +97,14 @@
 
 ### **3단계: 스케줄링 로직 고도화**
 
-<details>
-<summary><strong>[ ] 3.1. 요일을 고려한 다음 알림 시간 계산</strong></summary>
+<details open>
+<summary><strong>✅ 3.1. 요일을 고려한 다음 알림 시간 계산</strong></summary>
 
-- [ ] **사전 분석:** `alarm-scheduler.js`에서 워커로 데이터를 보낼 때, 요일을 고려하여 미래 시간을 계산해야 합니다.
-- [ ] **실행 계획:**
-    *   `src/alarm-scheduler.js`: `calculateNextTargetTime(time, days)` 헬퍼 함수 구현.
-    *   오늘이 포함되면 오늘 시간(미래인 경우), 아니면 가장 가까운 미래 요일의 시간으로 계산.
-- [ ] **검증:** 요일별 알림이 정확한 날짜/시간으로 대시보드에 표시되는지, 워커가 제때 알림을 보내는지 확인.
+- [x] **사전 분석:** `alarm-scheduler.js`에서 워커로 데이터를 보낼 때, 요일을 고려하여 미래 시간을 계산해야 합니다.
+- [x] **실행 계획:**
+    *   `src/utils.js`: `calculateNextOccurrence(alarm, baseDate)` 헬퍼 함수를 구현하여, `alarm` 객체의 `days` 속성을 기반으로 다음 알림 발생 시간을 계산합니다.
+    *   `src/alarm-scheduler.js`: `addAlarmsToFlatSchedule` 및 `calculateNextBoss` 함수에서 `calculateNextOccurrence`를 호출하여 고정 알림의 다음 발생 시간을 결정합니다.
+- [x] **검증:** 요일별 알림이 정확한 날짜/시간으로 대시보드에 표시되는지, 워커가 제때 알림을 보내는지 확인.
 </details>
 
 ---
