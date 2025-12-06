@@ -3,21 +3,27 @@
 ## 1. 개요
 이 문서는 Boss Alarm 애플리케이션의 색상 테마 생성 및 관리 방법에 대해 설명합니다. 새로운 테마를 추가하거나 기존 테마를 수정할 때 이 가이드를 참고하세요.
 
-## 2. 테마 파일 구조
-* **파일 위치:** `src/styles/`
-* **파일명 규칙:** `style.theme{번호}.css` (예: `style.theme9.css`)
-    * `style.css`: 기본 테마 (iOS Pure / Theme 1)
-    * `style.dark.css`: 다크 모드 (Theme 2)
-    * `style.theme*.css`: 추가 커스텀 테마
+## 2. 테마 파일 관리
+
+### 2.1. 폴더 구조
+- **활성 테마:** `src/styles/style.css`
+  - 현재 애플리케이션에 적용된 기본 스타일시트입니다.
+- **비활성 테마 보관:** `src/styles/color-themes/`
+  - 현재 사용되지 않는 다크 모드 및 추가 커스텀 테마 파일들이 보관되는 폴더입니다.
+
+### 2.2. 파일명 규칙
+- `style.css`: 기본 테마 (iOS Pure / Theme 1)
+- `style.dark.css`: 다크 모드 (Theme 2)
+- `style.theme{번호}.css` (예: `style.theme9.css`): 추가 커스텀 테마
 
 ## 3. 새 테마 생성 절차
 
 ### 1단계: 파일 생성
-원하는 베이스가 되는 기존 스타일 파일(`style.css` 등)을 복사하여 새로운 테마 파일을 생성합니다.
+**가장 최신 버전의 `src/styles/style.css` 파일을 복사**하여 `src/styles/color-themes/` 폴더 안에 새로운 테마 파일을 생성합니다.
 
 ```powershell
 # 예시: style.css를 복사하여 Theme 9 생성
-Copy-Item src/styles/style.css -Destination src/styles/style.theme9.css
+Copy-Item src/styles/style.css -Destination src/styles/color-themes/style.theme9.css
 ```
 
 ### 2단계: CSS 수정 (핵심 포인트)
@@ -63,11 +69,18 @@ header, nav.sidebar {
 ```
 
 ## 4. 테마 적용 및 확인
-1. `index.html` 파일의 `<link>` 태그를 수정하여 새 경로를 연결합니다.
+
+> **⚠️ 중요:** 아래 절차는 테마 적용의 기본 원리를 설명하기 위한 예시입니다. `style.css`의 내용이 계속해서 변경되므로, `color-themes` 폴더에 보관된 과거의 테마 파일을 `index.html`에 바로 연결하여 적용할 경우 UI가 깨질 수 있습니다.
+>
+> 새로운 테마를 적용하거나 기존 테마를 다시 사용할 때는 **항상 가장 최신 `style.css` 파일을 기반으로** 다시 작업하는 것을 원칙으로 해야 합니다.
+
+1.  (필요시) `color-themes` 폴더의 테마 파일을 최신 `style.css` 기준으로 업데이트합니다.
+2.  `index.html` 파일에서 현재 `style.css`를 비활성화하고, 적용할 테마 파일의 경로를 연결합니다.
     ```html
-    <link rel="stylesheet" href="src/styles/style.theme9.css">
+    <!-- <link rel="stylesheet" href="src/styles/style.css"> -->
+    <link rel="stylesheet" href="src/styles/color-themes/style.theme9.css">
     ```
-2. 브라우저를 새로고침하여 디자인을 시각적으로 검증합니다.
+3.  브라우저를 새로고침하여 디자인을 시각적으로 검증합니다.
 
 ## 5. (참고) 기존 테마 레퍼런스
 * **Theme 7 (Glassy Aurora Dark):** 어두운 오로라 그라데이션 + 다크 글래스
