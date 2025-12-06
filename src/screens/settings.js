@@ -1,5 +1,6 @@
 import { LocalStorageManager } from '../data-managers.js';
 import { renderFixedAlarms, updateFixedAlarmVisuals } from '../ui-renderer.js';
+import { validateFixedAlarmTime, normalizeTimeFormat } from '../utils.js';
 import { log } from '../logger.js';
 import { syncScheduleToWorker, getIsAlarmRunning } from '../alarm-scheduler.js';
 
@@ -142,12 +143,54 @@ export function initSettingsScreen(DOM) {
         DOM.cancelFixedAlarmModalButton.addEventListener('click', () => closeFixedAlarmModal(DOM));
     }
 
-    // Save button logic (to be implemented)
+    // Save button logic
     if (DOM.saveFixedAlarmButton) {
         DOM.saveFixedAlarmButton.addEventListener('click', () => {
-            // TODO: Implement save logic here
-            alert('저장 로직 구현 필요');
+            const id = DOM.fixedAlarmModal.dataset.editingId;
+            const rawTime = DOM.fixedAlarmTimeInput.value.trim();
+            const name = DOM.fixedAlarmNameInput.value.trim();
+            const time = normalizeTimeFormat(rawTime);
+
+            // --- Validation ---
+            if (!time || !name) {
+                alert("시간과 이름을 모두 입력해주세요.");
+                log("시간과 이름을 모두 입력해주세요.", false);
+                return;
+            }
+            if (!validateFixedAlarmTime(time)) {
+                return; // validate function will show its own alert
+            }
+            const activeDayButtons = DOM.fixedAlarmModalDays.querySelectorAll('.day-button.active');
+            if (activeDayButtons.length === 0) {
+                alert("요일을 하루 이상 선택해주세요.");
+                log("요일을 하루 이상 선택해주세요.", false);
+                return;
+            }
+            const days = Array.from(activeDayButtons).map(btn => parseInt(btn.dataset.dayIndex, 10));
+
+            const alarmPayload = {
+                name,
+                time,
+                days,
+                enabled: true // Alarms are always enabled or re-enabled on save/edit
+            };
+
+            if (id) {
+                // --- Edit Mode ---
+                LocalStorageManager.updateFixedAlarm(id, alarmPayload);
+                log(`고정 알림 "${name}"이(가) 수정되었습니다.`, true);
+            } else {
+                // --- Add Mode ---
+                alarmPayload.id = `fixed-${Date.now()}`;
+                LocalStorageManager.addFixedAlarm(alarmPayload);
+                log(`새 고정 알림 "${name} ${time}"이(가) 추가되었습니다.`, true);
+            }
+            
             closeFixedAlarmModal(DOM);
+            renderFixedAlarms(DOM);
+            if (getIsAlarmRunning()) {
+                syncScheduleToWorker();
+            }
         });
     }
 

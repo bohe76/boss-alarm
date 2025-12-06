@@ -1,7 +1,7 @@
 ---
 id: issue-014
 title: "테스트 실패: BossDataManager 정렬 로직 및 시간 Mocking 일관성 문제 (시간대 처리 통합)"
-status: "미해결"
+status: "해결됨"
 priority: "High"
 assignee: ""
 labels:
@@ -10,7 +10,7 @@ labels:
   - timezone
   - refactoring
 created_date: "2025-12-06"
-resolved_date: ""
+resolved_date: "2025-12-06"
 ---
 
 # Issue-014: 테스트 실패: BossDataManager 정렬 로직 및 시간 Mocking 일관성 문제 (시간대 처리 통합)
@@ -39,3 +39,27 @@ resolved_date: ""
 3.  **테스트 환경 및 케이스 수정 (`test/boss-sorting-logic.test.js`, `test/utils.test.js`):**
     *   `vi.setSystemTime` 호출 시, Mocking하고자 하는 시간을 **로컬 시간대의 `Date` 객체**로 정확히 명시합니다 (예: `new Date(2023, 11, 3, 22, 0, 0)`).
     *   테스트 케이스 내의 모든 `Date` 객체 생성(`dynamicBossDate`, `todayBossDate`, `tomorrowBossDate` 등)과 `expect`의 비교 값도 **로컬 시간대를 기준으로 일관되게** 변경합니다. `toISOString()` 대신 `toLocaleISOString()`과 같은 로컬 시간대 기반의 문자열을 비교하거나, `Date` 객체 자체 비교를 활용합니다.
+
+## 4. 해결 과정 및 최종 결과
+
+### 4.1. 문제 진단 및 원인 분석
+`vi.setSystemTime`으로 Mocking된 UTC 시간(`2023-12-03T22:00:00Z`)이 애플리케이션 내 `new Date(currentTimestamp)` 호출 시 로컬 타임존의 영향을 받아 잘못된 로컬 시간으로 해석되는 문제점을 확인했습니다. 이는 `calculateNextOccurrence` 함수, `BossDataManager.getUpcomingBosses` 로직, 그리고 `test/boss-sorting-logic.test.js` 테스트 코드 간의 시간대 처리 불일치(UTC vs Local)가 근본적인 원인이었습니다. 이 불일치로 인해 테스트 실패가 발생했습니다.
+
+### 4.2. 해결 방안 적용 및 결과
+애플리케이션의 모든 시간 처리 로직과 테스트를 **'사용자의 로컬 시간대' 기준으로 일관되게 통합**하는 전략을 적용하여 문제를 해결했습니다.
+
+1.  **`calculateNextOccurrence` 함수 수정 (`src/utils.js`):**
+    *   UTC 기준으로 동작하던 로직을 로컬 시간대 기준으로 재수정했습니다. (`nextDate.setDate`, `nextDate.setHours`, `nextDate.getDay` 등 로컬 시간대 관련 메서드 사용)
+2.  **`BossDataManager.getUpcomingBosses` 함수 수정 (`src/data-managers.js`):**
+    *   `currentTimestamp`, `nowAsDate` 생성 및 모든 `Date` 객체 생성 및 비교가 로컬 시간대를 기준으로 일관되게 이루어지도록 수정했습니다. `new Date(Date.now())`는 `new Date()`와 동일하며 로컬 시간을 반환함을 활용했습니다.
+3.  **테스트 환경 및 케이스 수정 (`test/utils.test.js`, `test/boss-sorting-logic.test.js`):**
+    *   `vi.setSystemTime` 호출 시, Mocking하고자 하는 시간을 로컬 시간대의 `Date` 객체(`new Date(2023, 11, 3, 22, 0, 0)`)로 명시했습니다.
+    *   테스트 케이스 내의 모든 `Date` 객체 생성(`dynamicBossDate`, `todayBossDate`, `tomorrowBossDate` 등)과 `expect`의 비교 값도 로컬 시간대를 기준으로 일관되게 변경했습니다.
+
+### 4.3. 검증
+위 수정 사항 적용 후, 모든 유닛 테스트(`Vitest`)를 재실행했습니다.
+
+*   `test/utils.test.js`의 `calculateNextOccurrence` 관련 37개 테스트를 포함한 모든 유닛 테스트가 **성공적으로 통과**했습니다.
+*   `test/boss-sorting-logic.test.js`의 기존 실패 테스트 2개도 모두 **통과**했습니다.
+
+이를 통해 시간대 처리 불일치 문제가 해결되었고, 알람 계산 및 정렬 로직의 정확성과 테스트의 신뢰성이 확보되었음을 확인했습니다.

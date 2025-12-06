@@ -10,7 +10,8 @@ import {
     formatTime,
     formatTimeDifference,
     formatSpawnTime,
-    normalizeTimeFormat
+    normalizeTimeFormat,
+    calculateNextOccurrence
 } from '../src/utils.js';
 import * as Logger from '../src/logger.js';
 
@@ -175,5 +176,91 @@ describe('normalizeTimeFormat', () => {
 
     it('should return the original string if it is empty', () => {
         expect(normalizeTimeFormat('')).toBe('');
+    });
+});
+
+describe('calculateNextOccurrence', () => {
+    // Mock Date.now for consistent testing
+    const originalDateNow = Date.now;
+    beforeEach(() => {
+        // Mocking Date for a Monday at 10:00:00 LOCAL
+        vi.setSystemTime(new Date(2024, 0, 1, 10, 0, 0)); // Monday, January 1, 2024 10:00:00 LOCAL
+    });
+
+    afterEach(() => {
+        vi.useRealTimers(); // Restore real timers after each test
+    });
+
+    it('should return null for invalid alarm object (no time or days)', () => {
+        expect(calculateNextOccurrence({ time: '10:00', days: [] })).toBeNull();
+        expect(calculateNextOccurrence({ days: [1] })).toBeNull();
+        expect(calculateNextOccurrence(null)).toBeNull();
+    });
+
+    // Test Cases for Day-of-Week Logic
+    it('should calculate for today if time is in the future on active day (Monday 10:00 -> Monday 11:00)', () => {
+        const alarm = { time: '11:00', days: [1] }; // Monday
+        const nextOccurrence = calculateNextOccurrence(alarm);
+        expect(nextOccurrence.toISOString()).toBe(new Date(2024, 0, 1, 11, 0, 0).toISOString());
+    });
+
+    it('should calculate for next active day if time is in the past on active day (Monday 10:00 -> Monday 09:00 -> Next Monday)', () => {
+        const alarm = { time: '09:00', days: [1] }; // Monday
+        const nextOccurrence = calculateNextOccurrence(alarm);
+        expect(nextOccurrence.toISOString()).toBe(new Date(2024, 0, 8, 9, 0, 0).toISOString()); // Next Monday
+    });
+
+    it('should calculate for this week if active day is later in the week (Monday 10:00 -> Wednesday 10:00)', () => {
+        const alarm = { time: '10:00', days: [3] }; // Wednesday
+        const nextOccurrence = calculateNextOccurrence(alarm);
+        expect(nextOccurrence.toISOString()).toBe(new Date(2024, 0, 3, 10, 0, 0).toISOString()); // Wednesday
+    });
+
+    it('should calculate for next week if active day already passed this week (Friday 10:00 -> Tuesday 10:00)', () => {
+        vi.setSystemTime(new Date(2024, 0, 5, 10, 0, 0)); // Friday 10:00 LOCAL
+        const alarm = { time: '10:00', days: [2] }; // Tuesday
+        const nextOccurrence = calculateNextOccurrence(alarm);
+        expect(nextOccurrence.toISOString()).toBe(new Date(2024, 0, 9, 10, 0, 0).toISOString()); // Next Tuesday
+    });
+
+    it('should handle multiple active days and pick the soonest (Monday 10:00 -> [0,3,5] -> Wednesday)', () => {
+        const alarm = { time: '10:00', days: [0, 3, 5] }; // Sunday, Wednesday, Friday
+        const nextOccurrence = calculateNextOccurrence(alarm);
+        expect(nextOccurrence.toISOString()).toBe(new Date(2024, 0, 3, 10, 0, 0).toISOString()); // Wednesday
+    });
+
+    it('should handle multiple active days and pick the soonest for next week (Friday 10:00 -> [0,2,4] -> Sunday)', () => {
+        vi.setSystemTime(new Date(2024, 0, 5, 10, 0, 0)); // Friday 10:00 LOCAL
+        const alarm = { time: '10:00', days: [0, 2, 4] }; // Sunday, Tuesday, Thursday
+        const nextOccurrence = calculateNextOccurrence(alarm);
+        expect(nextOccurrence.toISOString()).toBe(new Date(2024, 0, 7, 10, 0, 0).toISOString()); // Sunday
+    });
+
+    it('should calculate correctly for all days (Monday 10:00 -> [0-6] -> Monday 10:00)', () => {
+        const alarm = { time: '10:00', days: [0, 1, 2, 3, 4, 5, 6] };
+        const nextOccurrence = calculateNextOccurrence(alarm);
+        expect(nextOccurrence.toISOString()).toBe(new Date(2024, 0, 2, 10, 0, 0).toISOString()); // Tuesday 10:00
+    });
+
+    it('should calculate correctly for all days if time passed today (Monday 10:00 -> [0-6] -> Tuesday 09:00)', () => {
+        const alarm = { time: '09:00', days: [0, 1, 2, 3, 4, 5, 6] };
+        const nextOccurrence = calculateNextOccurrence(alarm);
+        expect(nextOccurrence.toISOString()).toBe(new Date(2024, 0, 2, 9, 0, 0).toISOString()); // Tuesday 09:00
+    });
+
+    it('should handle alarm time being very close to current time (same minute, different second)', () => {
+        vi.setSystemTime(new Date(2024, 0, 1, 10, 0, 30)); // Monday 10:00:30 LOCAL
+        const alarm = { time: '10:00:45', days: [1] }; // Monday 10:00:45
+        const nextOccurrence = calculateNextOccurrence(alarm);
+        expect(nextOccurrence.toISOString()).toBe(new Date(2024, 0, 1, 10, 0, 45).toISOString());
+    });
+
+    it('should handle alarm time being exactly current time (same second)', () => {
+        vi.setSystemTime(new Date(2024, 0, 1, 10, 0, 0)); // Monday 10:00:00 LOCAL
+        const alarm = { time: '10:00:00', days: [1] }; // Monday 10:00:00
+        const nextOccurrence = calculateNextOccurrence(alarm);
+        // Should be next week if "today" means strictly in the future.
+        // My function considers "time > baseDate.getTime()" so exact same time means it's passed.
+        expect(nextOccurrence.toISOString()).toBe(new Date(2024, 0, 8, 10, 0, 0).toISOString()); // Next Monday
     });
 });

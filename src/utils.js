@@ -84,8 +84,41 @@ export function validateFixedAlarmTime(time) {
 
 // Helper function to generate a unique ID
 export function generateUniqueId() {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+    return `id-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
+
+/**
+ * Calculates the next occurrence of a fixed alarm based on selected days.
+ * @param {object} alarm - The alarm object with `time` and `days` properties.
+ * @param {Date} baseDate - The starting date for calculation, defaults to now.
+ * @returns {Date|null} - The Date object for the next occurrence, or null if invalid.
+ */
+export function calculateNextOccurrence(alarm, baseDate = new Date()) {
+    if (!alarm || !alarm.time || !alarm.days || alarm.days.length === 0) {
+        return null;
+    }
+
+    const [hours, minutes, seconds] = alarm.time.split(':').map(Number);
+
+    for (let i = 0; i < 8; i++) { // Check for the next 7 days + today (up to 8 iterations to cover a full week cycle)
+        const nextDate = new Date(baseDate); // Start with a local Date copy of baseDate
+        nextDate.setDate(baseDate.getDate() + i); // Set local day
+
+        const dayOfWeek = nextDate.getDay(); // Get local day of week
+
+        if (alarm.days.includes(dayOfWeek)) {
+            nextDate.setHours(hours, minutes, seconds || 0, 0); // Set local hours, minutes, seconds
+
+            // Compare with baseDate (which is also local now)
+            if (nextDate.getTime() > baseDate.getTime()) {
+                return nextDate;
+            }
+        }
+    }
+
+    return null; // Should not happen if days array is not empty
+}
+
 
 export const formatTime = (seconds) => { // Export formatTime
     const minutes = Math.floor(seconds / 60);

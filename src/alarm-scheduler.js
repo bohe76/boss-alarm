@@ -4,6 +4,7 @@ import { log } from './logger.js';
 import { speak } from './speech.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js';
 import { renderAlarmStatusSummary } from './ui-renderer.js';
+import { calculateNextOccurrence } from './utils.js';
 
 let worker = null;
 
@@ -53,14 +54,8 @@ function addAlarmsToFlatSchedule(list, boss, isFixed, nowTime) {
     let bossScheduledTime;
 
     if (isFixed) {
-        const [hours, minutes, seconds] = boss.time.split(':').map(Number);
-        const targetDate = new Date(nowTime);
-        targetDate.setHours(hours, minutes, seconds || 0, 0);
-
-        if (targetDate.getTime() <= nowTime - 1000) {
-            targetDate.setDate(targetDate.getDate() + 1);
-        }
-        bossScheduledTime = targetDate.getTime();
+        const nextOccurrence = calculateNextOccurrence(boss, new Date(nowTime));
+        bossScheduledTime = nextOccurrence ? nextOccurrence.getTime() : 0; // Use nextOccurrence
     } else {
         bossScheduledTime = new Date(boss.scheduledDate).getTime();
     }
@@ -197,11 +192,10 @@ function calculateNextBoss(now) {
     bossSchedule.forEach(boss => allAlarms.push({ ...boss, isFixed: false }));
 
     fixedAlarms.forEach(alarm => {
-        const [hours, minutes, seconds] = alarm.time.split(':').map(Number);
-        let d = new Date(now);
-        d.setHours(hours, minutes, seconds || 0, 0);
-        if (d.getTime() <= now.getTime() - 1000) d.setDate(d.getDate() + 1);
-        allAlarms.push({ ...alarm, scheduledDate: d, isFixed: true });
+        const nextOccurrence = calculateNextOccurrence(alarm, now);
+        if (nextOccurrence) {
+            allAlarms.push({ ...alarm, scheduledDate: nextOccurrence, isFixed: true });
+        }
     });
 
     allAlarms.sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime());

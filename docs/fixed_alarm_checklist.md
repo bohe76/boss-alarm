@@ -71,30 +71,25 @@
 
 ### **2단계: 핵심 로직 연결 (UI <-> Data)**
 
-<details>
-<summary><strong>[ ] 2.1. 모달 - 데이터 연동 (로드 및 상호작용)</strong></summary>
+<details open>
+<summary><strong>✅ 2.1. 모달 - 데이터 연동 (로드 및 상호작용)</strong></summary>
 
-- [ ] **사전 분석:** '편집' 시 기존 데이터를, '추가' 시 초기 데이터를 모달에 채워야 합니다. 또한, 모달 내 요일 버튼 클릭에 반응해야 합니다.
-- [ ] **실행 계획:**
-    *   `src/screens/settings.js`의 `openFixedAlarmModal` 함수 수정:
-        *   **편집 모드:** `alarm.days` 배열을 기반으로 모달 내 요일 버튼들의 `.active` 클래스를 동적으로 제어. 시간, 이름 필드 채우기.
-        *   **추가 모드:** 모든 필드를 비우고, 모든 요일 버튼에 `.active` 클래스를 부여.
-    *   모달 내 `.alarm-days` 컨테이너에 이벤트 리스너를 추가하여, `.day-button` 클릭 시 `.active` 클래스를 토글하는 상호작용 구현.
-- [ ] **검증:** 편집 클릭 시 기존 요일이 모달에 정확히 반영되는지, 추가 클릭 시 모든 요일이 선택되어 있는지, 요일 버튼 클릭이 잘 동작하는지 확인.
+- [x] **사전 분석:** '편집' 시 기존 데이터를, '추가' 시 초기 데이터를 모달에 채워야 합니다. 또한, 모달 내 요일 버튼 클릭에 반응해야 합니다.
+- [x] **실행 계획:**
+    *   `src/screens/settings.js`의 `openFixedAlarmModal` 함수가 '편집' 시 기존 데이터를, '추가' 시 초기 데이터를 모달에 채우도록 구현함.
+    *   모달 내 요일 버튼 클릭 시 `.active` 클래스를 토글하는 상호작용을 구현함.
+- [x] **검증:** 사용자가 직접 확인하고 다음 단계로 진행을 승인함.
 </details>
 
-<details>
-<summary><strong>[ ] 2.2. 모달 - '저장' 로직 구현</strong></summary>
+<details open>
+<summary><strong>✅ 2.2. 모달 - '저장' 로직 구현</strong></summary>
 
-- [ ] **사전 분석:** '추가'와 '편집'을 구분하여 `LocalStorageManager`의 함수를 호출해야 합니다. 기존의 유효성 검사 로직을 반드시 재사용해야 합니다.
-- [ ] **실행 계획:**
-    *   `src/screens/settings.js`의 `saveFixedAlarmButton` 클릭 이벤트 리스너 구현.
-    *   모달의 `dataset` 등을 확인하여 '추가'/'편집' 모드 구분.
-    *   모달의 입력값(시간, 이름)과 활성화된 요일 버튼(`days` 배열)을 가져옴.
-    *   기존 `prompt` 방식에서 사용하던 유효성 검사 및 데이터 정규화 로직 재사용.
-    *   `LocalStorageManager.addFixedAlarm` 또는 `updateFixedAlarm` 호출.
-    *   저장 후 목록 새로고침(`renderFixedAlarms`), 로그 기록, 워커 동기화(`syncScheduleToWorker`) 등 후속 처리 실행.
-- [ ] **검증:** 추가/수정 후 목록이 새로고침되고, Local Storage 데이터가 정확히 변경되는지 확인.
+- [x] **사전 분석:** '추가'와 '편집'을 구분하여 `LocalStorageManager`의 함수를 호출해야 합니다. 기존의 유효성 검사 로직을 반드시 재사용해야 합니다.
+- [x] **실행 계획:**
+    *   '저장' 버튼 리스너가 '추가'/'편집' 모드를 구분하여 동작하도록 구현함.
+    *   기존 유효성 검사, 데이터 정규화 로직을 재사용함.
+    *   `LocalStorageManager`를 사용하여 데이터를 저장하고, UI 새로고침 및 워커 동기화 등 후속 처리를 구현함.
+- [x] **검증:** 사용자가 직접 확인하고 다음 단계로 진행을 승인함.
 </details>
 
 ---
