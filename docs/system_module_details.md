@@ -21,10 +21,11 @@
     2.  `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자(LocalStorageManager, CustomListManager), 보스 데이터 로딩을 초기화합니다.
     3.  `registerAllRoutes()`를 호출하여 모든 화면 모듈을 `src/router.js`에 등록합니다.
     4.  `loadInitialData(DOM)`를 호출하여 URL 파라미터 또는 기본값으로부터 초기 보스 목록 및 고정 알림 데이터를 로드합니다.
-    5.  `initGlobalEventListeners(DOM)`를 호출하여, `BossDataManager` 데이터 변경 감지, 로그 업데이트 등 애플리케이션 전반의 핵심 이벤트 리스너를 중앙에서 등록하고 활성화합니다.
-    6.  `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
-    7.  `renderFixedAlarms(DOM)`, `renderAlarmStatusSummary(DOM)`를 호출하여 초기 UI 상태를 설정합니다.
-    8.  `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링합니다.
+    5.  **'설정' 화면의 고정 알림 목록을 초기 렌더링합니다 (`renderFixedAlarms(DOM)`).**
+    6.  `initGlobalEventListeners(DOM)`를 호출하여, `BossDataManager` 데이터 변경 감지, 로그 업데이트 등 애플리케이션 전반의 핵심 이벤트 리스너를 중앙에서 등록하고 활성화합니다.
+    7.  `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
+    8.  `renderAlarmStatusSummary(DOM)`를 호출하여 초기 UI 상태를 설정합니다.
+    9.  `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링합니다.
     10. `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여, 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.
     11. `ResizeObserver`를 사용하여 뷰포트 크기 변화에 따른 반응형 동작(모바일 뷰 클래스 토글)을 처리합니다.
 
@@ -140,11 +141,11 @@
     *   `subscribe(callback)`: `void`. `BossDataManager`의 데이터 변경을 감지할 콜백 함수를 등록합니다. **반응형 상태 관리 패턴(Observer Pattern)**을 구현합니다.
 
 #### `LocalStorageManager` (싱글톤 객체)
-- **설명:** 웹 브라우저의 `localStorage`를 통해 다양한 애플리케이션 설정(예: 음소거 상태, 알람 실행 상태, 사이드바 확장 상태) 및 사용자 데이터(고정 알림, 광 계산기 기록 등)를 영구적으로 저장하고 로드합니다.
+- **설명:** 웹 브라우저의 `localStorage`를 통해 다양한 애플리케이션 설정(예: 음소거 상태, 알람 실행 상태, 사이드바 확장 상태) 및 사용자 데이터(고정 알림, 광 계산기 기록 등)를 영구적으로 저장하고 로드합니다. 특히 고정 알림 데이터는 `days` 속성(요일 정보)을 포함하도록 확장되었으며, 기존 데이터 로드 시 마이그레이션 로직이 자동 적용됩니다.
 - **주요 메소드:**
     *   `init()`: `void`. 애플리케이션 시작 시 `localStorage`의 모든 관리 데이터를 로드합니다.
     *   `get(key)` / `set(key, value)`: `any` / `void`. 임의의 키-값 쌍을 `localStorage`에 저장하고 로드하는 일반적인 인터페이스입니다.
-    *   `getFixedAlarms()` / `addFixedAlarm()` / `updateFixedAlarm()` / `deleteFixedAlarm()`: 고정 알림 데이터에 대한 CRUD(생성, 읽기, 업데이트, 삭제) 작업을 제공합니다.
+    *   `getFixedAlarms()` / `getFixedAlarmById(id)` / `addFixedAlarm()` / `updateFixedAlarm()` / `deleteFixedAlarm()`: 고정 알림 데이터에 대한 CRUD(생성, 읽기, 업데이트, 삭제) 작업을 제공합니다.
     *   `exportFixedAlarms()` / `importFixedAlarms(encodedData)`: 고정 알림 데이터를 인코딩/디코딩하여 공유 가능하게 합니다.
     *   `getMuteState()` / `setMuteState(state)`: `boolean` / `void`. 음소거 상태를 관리합니다.
     *   그 외 `logVisibilityState`, `alarmRunningState`, `sidebarExpandedState`, `lightCalculatorRecords` 등에 대한 `get/set` 함수를 제공합니다.
@@ -170,7 +171,12 @@
 - **반환값:** `void`
 
 #### `syncScheduleToWorker()`
-- **설명:** `BossDataManager`와 `LocalStorageManager`의 데이터를 기반으로 알림 예정 시간을 미리 계산하여 단순화된 목록(`flatSchedule`)을 워커로 전송합니다. **Smart Main, Dumb Worker** 패턴을 따릅니다.
+- **설명:** `BossDataManager`와 `LocalStorageManager`의 데이터를 기반으로 알림 예정 시간을 미리 계산하여 단순화된 목록(`flatSchedule`)을 워커로 전송합니다. 고정 알림의 경우 `src/utils.js`의 `calculateNextOccurrence` 함수를 사용하여 요일별 다음 발생 시간을 계산합니다. **Smart Main, Dumb Worker** 패턴을 따릅니다.
+
+#### `calculateNextBoss(now)`
+- **설명:** 현재 시간을 기준으로 대시보드에 표시할 '다음 보스' 정보를 계산합니다. 고정 알림의 경우 `calculateNextOccurrence` 함수를 사용하여 요일을 고려한 다음 발생 시간을 결정합니다.
+- **인자:** `now` (`Date`): 현재 시간 `Date` 객체.
+- **반환값:** `{ nextBoss, minTimeDiff }`. 현재 가장 가까운 다음 보스 정보와 남은 시간을 반환합니다.
 
 ---
 
@@ -270,7 +276,7 @@
 ## 16. `src/utils.js`
 
 - **역할:** 숫자 패딩, 날짜 포맷팅, 시간 유효성 검사, 시간 차이 계산, 고유 ID 생성 등 애플리케이션 전반에 걸쳐 사용되는 범용 유틸리티 함수들을 모아놓은 모듈입니다.
-- **주요 `export` 함수:** `padNumber()`, `formatMonthDay()`, `validateStandardClockTime()`, `formatTimeDifference()`, `generateUniqueId()`, `normalizeTimeFormat()` 등.
+- **주요 `export` 함수:** `padNumber()`, `formatMonthDay()`, `validateStandardClockTime()`, `formatTimeDifference()`, `generateUniqueId()`, `normalizeTimeFormat()`, `calculateNextOccurrence()` 등. (`calculateNextOccurrence`는 고정 알림의 다음 발생 시간 계산 시 요일을 고려합니다.)
 
 ## 17. `src/calculator.js`
 
@@ -323,6 +329,6 @@
 | **`custom-list.js`** | `getScreen()` | `init` 시 `initCustomListScreen(DOM)`이 호출되어 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. `DOM.manageCustomListsButton` 클릭 시 모달이 열리며, 목록 변경 시 `EventBus.emit('rerender-boss-scheduler')`를 발행하여 보스 스케줄러의 드롭다운을 업데이트합니다. |
 | **`dashboard.js`** | `getScreen()` | `init` 시 `initDashboardScreen(DOM)`이 호출되어 `DOM.muteToggleButton`에 대한 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링합니다. `initDashboardScreen`은 `EventBus.on('log-updated', ...)` 리스너를 등록하여 새로운 로그 발생 시 `renderRecentAlarmLog(DOM)`를 호출하여 로그를 갱신합니다. |
 | **`help.js`** | `getScreen()` | `init` 시 `handleTabSwitching(DOM)`이 호출되어 '도움말'과 'FAQ' 탭 전환 이벤트 리스너를 등록합니다. `onTransition` 시 `onHelpScreenTransition(DOM)`이 호출되어 `data/feature_guide.json`과 `data/faq_guide.json`을 비동기적으로 로드하고, `ui-renderer.js`의 `renderHelpScreen()`과 `renderFaqScreen()`을 호출하여 각 탭의 콘텐츠를 렌더링합니다. |
-| **`notifications.js`** | `getScreen()` | `init` 시 `initNotificationSettingsScreen(DOM)`이 호출되어 `DOM.fixedAlarmListDiv`에 이벤트 위임 방식으로 고정 알림 목록의 개별 토글, 편집, 삭제 버튼에 대한 이벤트 리스너를 등록합니다. 편집 시에는 `validateFixedAlarmTime` 및 `normalizeTimeFormat` 유틸리티 함수를 사용하여 시간 유효성을 검사하고 형식을 정규화합니다. |
+| **`settings.js`** | `getScreen()` | `init` 시 `initSettingsScreen(DOM)`이 호출되어 고정 알림 모달의 '추가' 및 목록의 '편집/삭제/토글' 이벤트 리스너를 등록합니다. 모달은 고정 알림의 추가/편집을 담당하며, 요일 선택 기능과 데이터 저장 로직을 포함합니다. (`LocalStorageManager`의 `getFixedAlarmById`를 사용) |
 | **`share.js`** | `getScreen()` | `onTransition` 시 `initShareScreen(DOM)`이 호출되어 현재의 동적 보스 목록(`data`)을 인코딩하여 `api-service.js`의 `getShortUrl()`을 통해 짧은 URL을 생성합니다. 생성된 URL은 `navigator.clipboard.writeText()`를 사용하여 클립보드에 복사되며, `DOM.shareMessage`에 결과 메시지를 표시합니다. (고정 알림은 공유되지 않습니다.) |
 | **`version-info.js`** | `getScreen()` | `onTransition` 시 `initVersionInfoScreen(DOM)`이 호출되어 `api-service.js`의 `loadJsonContent()`를 통해 `data/version_history.json` 파일을 로드하고, `ui-renderer.js`의 `renderVersionInfo(DOM, versionData)`를 호출하여 릴리즈 노트 콘텐츠를 렌더링합니다. |

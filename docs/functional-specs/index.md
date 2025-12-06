@@ -45,7 +45,7 @@
 9.  [보탐 계산기 (Calculator)](calculator.md)
     *   젠 계산기 (Zen Calculator)
     *   광 계산기 (Light Calculator)
-10. [알림 설정 (Notifications)](notifications.md)
+*   **10. [설정 (Settings)](settings.md)**
     *   고정 알림 목록 표시 및 관리
     *   고정 알림 추가, 편집, 삭제 (CRUD)
     *   고정 알림 활성화/비활성화 토글

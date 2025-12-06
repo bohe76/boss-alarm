@@ -19,7 +19,7 @@
 | `alarm-scheduler.js` | `getIsAlarmRunning()`, `startAlarm()`: 알람 상태 확인 및 시작 |
 | `utils.js` | `formatMonthDay()`: 날짜 포맷팅 (loadInitialData 내부) |
 | `default-boss-list.js` | `bossPresets`: 기본 보스 목록 로딩 (loadInitialData 내부) |
-| `screens/*.js` | `getScreen()`: 각 화면의 메타 정보 가져오기 |
+| `screens/settings.js` | `getScreen()`: '설정' 화면의 메타 정보 가져오기 (이전 `notifications.js`) |
 
 ## 2. `src/global-event-listeners.js` (전역 EventBus 리스너 관리)
 
@@ -45,7 +45,7 @@
 | **`custom-list.js`** | `ui-renderer.js`, `custom-list-manager.js`, `event-bus.js` | `showCustomListTab()`, `renderCustomListManagementModalContent()`, `showToast()`, `CustomListManager.*`, `EventBus.emit('rerender-boss-scheduler')` |
 | **`dashboard.js`** | `ui-renderer.js`, `data-managers.js`, `logger.js`, `event-bus.js` | `updateMuteButtonVisuals()`, `renderRecentAlarmLog()`, `LocalStorageManager.get/setMuteState()`, `log()`, `EventBus.on('log-updated', ...)` (최근 로그 표시용) |
 | **`help.js`** | `api-service.js`, `ui-renderer.js` | `loadJsonContent()` (from `data/` folder), `renderHelpScreen()`, `renderFaqScreen()` |
-| **`notifications.js`** | `data-managers.js`, `ui-renderer.js`, `utils.js`, `logger.js` | `LocalStorageManager.*`, `renderFixedAlarms()`, `updateFixedAlarmVisuals()`, `validateFixedAlarmTime()`, `normalizeTimeFormat()`, `log()` |
+| **`settings.js`** | `data-managers.js`, `ui-renderer.js`, `utils.js`, `logger.js`, `alarm-scheduler.js` | `LocalStorageManager.getFixedAlarmById()`, `LocalStorageManager.addFixedAlarm()`, `LocalStorageManager.updateFixedAlarm()`, `LocalStorageManager.deleteFixedAlarm()`, `renderFixedAlarms()`, `updateFixedAlarmVisuals()`, `validateFixedAlarmTime()`, `normalizeTimeFormat()`, `log()`, `syncScheduleToWorker()`, `getIsAlarmRunning()` |
 | **`share.js`** | `api-service.js`, `logger.js` | `getShortUrl()`, `log()` |
 | **`version-info.js`**| `api-service.js`, `ui-renderer.js` | `loadJsonContent()`, `renderVersionInfo()` |
 
@@ -53,9 +53,9 @@
 
 | 모듈 | 주요 의존성 (간접적일 수 있음) | 목적 |
 | --- | --- | --- |
-| **`alarm-scheduler.js`** | `logger.js`, `speech.js`, `data-managers.js`, `ui-renderer.js`, `workers/timer-worker.js` | 알림 조건 확인, 알림 발생(`log`, `speak`), 데이터 관리자 상태 업데이트, UI 갱신, 워커 통신 |
-| **`ui-renderer.js`** | `data-managers.js`, `alarm-scheduler.js`, `logger.js`, `custom-list-manager.js`, `boss-scheduler-data.js`, `utils.js` | UI 렌더링에 필요한 각종 데이터 조회 및 효율적인 DOM 조작 |
-| **`BossDataManager`** | `LocalStorageManager.js` | `getUpcomingBosses` 함수 내에서 고정 알림 데이터를 가져오기 위해 사용됩니다. |
+| **`alarm-scheduler.js`** | `logger.js`, `speech.js`, `data-managers.js`, `ui-renderer.js`, `workers/timer-worker.js`, `utils.js` | 알림 조건 확인, 알림 발생(`log`, `speak`), 데이터 관리자 상태 업데이트, UI 갱신, 워커 통신. (`calculateNextOccurrence`를 사용하여 고정 알림의 다음 발생 시간 계산) |
+| **`ui-renderer.js`** | `data-managers.js`, `alarm-scheduler.js`, `logger.js`, `custom-list-manager.js`, `boss-scheduler-data.js`, `utils.js` | UI 렌더링에 필요한 각종 데이터 조회 및 효율적인 DOM 조작. (`renderFixedAlarms`에서 `LocalStorageManager.getFixedAlarms`를 통해 고정 알림 목록 조회) |
+| **`BossDataManager`** | `LocalStorageManager.js`, `utils.js` | `getUpcomingBosses` 함수 내에서 고정 알림 데이터를 가져오고, `calculateNextOccurrence`를 사용하여 다음 발생 시간을 계산합니다. |
 | **`custom-list-manager.js`** | `data-managers.js`, `logger.js`, `boss-scheduler-data.js` | 커스텀 목록 영구 저장, 유효성 검사, 미리 정의된 게임 이름 조회 |
 | **`boss-parser.js`** | `logger.js`, `data-managers.js`, `utils.js` | 보스 목록 텍스트 파싱, 기존 데이터 병합, `BossDataManager` 상태 변경, 로깅 |
 | **`global-event-listeners.js`** | `event-bus.js`, `data-managers.js`, `ui-renderer.js`, `screens/alarm-log.js` | 전역 EventBus 리스너를 정의하고, `BossDataManager`의 데이터 변경 및 `log-updated` 이벤트에 반응합니다. |
@@ -67,5 +67,5 @@
 | **`router.js`** | 없음 | 화면 라우팅 시스템 제공 |
 | **`event-bus.js`** | 없음 | 모듈 간 이벤트 통신 제공 |
 | **`services.js`** | `logger.js`, `boss-scheduler-data.js`, `data-managers.js`, `custom-list-manager.js` | 핵심 애플리케이션 서비스 초기화 및 외부 리소스 로드 |
-| **`utils.js`** | `logger.js` | 유효성 검사 시 로깅 |
+| **`utils.js`** | `logger.js` | 유효성 검사 시 로깅. (`calculateNextOccurrence` 함수를 통해 고정 알림의 다음 발생 시간을 계산) |
 | **`default-boss-list.js`** | 없음 | 기본 보스 데이터 제공 |

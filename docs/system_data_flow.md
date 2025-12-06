@@ -7,14 +7,15 @@
 1.  **`index.html` 로드:** 브라우저가 `app.js`를 로드하고, `app.js`의 `initApp()` 함수가 실행됩니다.
 2.  **`app.js: initApp()` 실행 (async):**
     *   `initDomElements()`를 호출하여 모든 DOM 요소 참조를 `DOM` 객체에 수집합니다.
-    *   `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자(LocalStorageManager, CustomListManager), 보스 데이터 로딩(data/boss_lists.json)과 같은 핵심 서비스를 초기화합니다.
+    *   `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자(LocalStorageManager, CustomListManager), 보스 데이터 로딩(data/boss_lists.json)과 같은 핵심 서비스를 초기화합니다. **이 과정에서 `LocalStorageManager`는 고정 알림 데이터에 `days` 속성이 없을 경우 마이그레이션 로직을 수행합니다.**
     *   `registerAllRoutes()`를 호출하여 `src/screens/*.js`의 모든 화면 모듈을 `src/router.js`에 등록합니다.
     *   `loadInitialData(DOM)`를 호출하여 URL 파라미터(`data`) 또는 `default-boss-list.js`의 기본 데이터를 파싱하여 `BossDataManager`의 `bossSchedule` 상태를 초기화합니다. (URL에 `fixedData`가 있더라도 무시합니다.)
+    *   **`renderFixedAlarms(DOM)`를 호출하여 '설정' 화면의 고정 알림 목록을 초기 렌더링합니다.**
     *   `initGlobalEventListeners(DOM)`를 호출하여, `BossDataManager` 데이터 변경 감지나 로그 업데이트 같은 전역 이벤트 리스너를 중앙에서 활성화합니다.
     *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
+    *   **`renderAlarmStatusSummary(DOM)`를 호출하여 알림 상태 요약을 초기 렌더링합니다.**
     *   `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링하며, 1초마다 주기적으로 갱신되도록 `setInterval`을 설정합니다.
-    *   `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.
-3.  **`app.js: showScreen(DOM, screenId)` 실행:**
+    *   `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.3.  **`app.js: showScreen(DOM, screenId)` 실행:**
     *   모든 화면 요소에서 `active` 클래스를 제거하고, 지정된 `screenId`에 해당하는 요소에 `active` 클래스를 추가하여 화면을 표시합니다.
     *   내비게이션 링크의 `active` 상태를 동기화합니다.
     *   `src/router.js`를 통해 해당 화면 모듈을 가져와 `screen.init(DOM)` (최초 방문 시) 또는 `screen.onTransition(DOM)` (화면 전환 시)을 호출하여 화면별 로직을 초기화/실행합니다.
@@ -28,7 +29,7 @@
 3.  **`alarm-scheduler.js: startAlarm()` 실행:**
     *   `LocalStorageManager`에 알람 실행 상태를 저장합니다.
     *   **시스템 알림(`Notification`) 권한을 요청합니다.**
-    *   `syncScheduleToWorker()`를 호출하여 현재의 모든 보스 및 고정 알림 데이터를 알림 예정 시간(`flatSchedule`)으로 계산하여 워커로 전송(`UPDATE_SCHEDULE`)합니다.
+    *   `syncScheduleToWorker()`를 호출하여 현재의 모든 보스 및 고정 알림 데이터를 알림 예정 시간(`flatSchedule`)으로 계산하여 워커로 전송(`UPDATE_SCHEDULE`)합니다. **이때 고정 알림은 `calculateNextOccurrence` 함수를 사용하여 요일 정보를 고려한 다음 발생 시간을 계산합니다.**
     *   워커(`src/workers/timer-worker.js`)에 `START` 메시지를 보냅니다.
 4.  **`src/workers/timer-worker.js` (백그라운드 스레드):**
     *   `START` 메시지를 받으면 1초 간격의 `setInterval`을 시작합니다.
@@ -37,7 +38,7 @@
     *   매초 메인 스레드로 `TICK` 메시지를 보냅니다.
 5.  **`alarm-scheduler.js: worker.onmessage` (메인 스레드):**
     *   **`ALARM` 수신 시:** `handleAlarm` 함수가 실행되어 소리(`speak`), 로그(`log`), 시스템 알림(`Notification`)을 출력하고, 데이터 상태(`alerted_*`)를 업데이트합니다. 데이터가 변경되었으므로 `syncScheduleToWorker`를 호출하여 워커의 데이터를 최신화합니다.
-    *   **`TICK` 수신 시:** `updateAppState` 함수가 실행되어 자정 초기화 로직을 수행하고, `BossDataManager.setNextBossInfo`를 호출하여 대시보드 UI를 갱신합니다.
+    *   **`TICK` 수신 시:** `updateAppState` 함수가 실행되어 자정 초기화 로직을 수행하고, `BossDataManager.setNextBossInfo`를 호출하여 대시보드 UI를 갱신합니다. 이때 `BossDataManager`는 `calculateNextBoss` 함수를 통해 고정 알림의 요일 정보를 고려한 '다음 보스'를 계산합니다.
 
 ## 3. 화면별 데이터 흐름 상세
 
@@ -46,7 +47,7 @@
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initDashboardScreen(DOM)`이 호출됩니다. `global-event-listeners.js`에 등록된 `BossDataManager.subscribe`와 `setInterval`에 의해 `ui-renderer.js`의 `renderDashboard(DOM)`가 주기적으로 호출되어 최신 상태를 반영합니다.
 *   **이벤트 리스너:**
     *   **음소거 토글 버튼 (`DOM.muteToggleButton`):** 클릭 시 `LocalStorageManager.setMuteState()`를 호출하여 음소거 상태를 토글하고, `ui-renderer.js`의 `updateMuteButtonVisuals()`로 UI를 갱신하며, `log()`를 기록합니다.
-*   **렌더링:** `ui-renderer.js`의 `renderDashboard(DOM)` 함수가 호출되면, `BossDataManager`에서 다음 보스 정보 및 예정된 보스 목록을 가져와 `updateNextBossDisplay()` 및 `renderUpcomingBossList()`를 통해 표시하고, `LocalStorageManager` 및 `alarm-scheduler.js`에서 알람 상태 및 음소거 상태를 가져와 `renderAlarmStatusSummary()` 및 `updateMuteButtonVisuals()`로 표시합니다. `renderRecentAlarmLog(DOM)`는 `logger.js`의 `log-updated` 이벤트에 반응하여 갱신됩니다.
+*   **렌더링:** `ui-renderer.js`의 `renderDashboard(DOM)` 함수가 호출되면, `BossDataManager`에서 다음 보스 정보 및 예정된 보스 목록을 가져와 `updateNextBossDisplay()` 및 `renderUpcomingBossList()`를 통해 표시하고, `LocalStorageManager` 및 `alarm-scheduler.js`에서 알람 상태 및 음소거 상태를 가져와 `renderAlarmStatusSummary()` 및 `updateMuteButtonVisuals()`로 표시합니다. **특히 '다가오는 보스 목록'을 렌더링할 때는 `BossDataManager` 내부에서 `calculateNextOccurrence` 함수를 사용하여 고정 알림의 다음 발생 시간을 계산합니다.** `renderRecentAlarmLog(DOM)`는 `logger.js`의 `log-updated` 이벤트에 반응하여 갱신됩니다.
 *   **데이터 흐름 요약:** 대시보드는 `BossDataManager`의 구독 및 1초 `setInterval`을 통해 보스 데이터 및 타이머를 갱신하고, `logger.js`의 `log-updated` 이벤트에 반응하여 최근 알림 로그를 갱신하는 복합적인 반응형/주기적 갱신 메커니즘을 가집니다.
 
 ### 3.2. 보스 관리 화면 (`src/screens/boss-management.js`)
@@ -112,8 +113,24 @@
 *   **처리 흐름 (광 계산기):** "시작", "광", "캡처" 버튼 클릭을 통해 `LightCalculator` 모듈이 스톱워치를 제어하고, `LocalStorageManager`를 통해 기록을 저장합니다.
 *   **데이터 흐름 요약:** "젠 계산기"는 사용자 입력 및 `BossDataManager`를 통해 보스 시간을 직접 업데이트하고 재구성하며, "광 계산기"는 `LightCalculator` 모듈을 통해 스톱워치 기반의 시간 측정을 수행하고 로컬 스토리지에 기록합니다.
 
-### 3.10. 알림 설정 화면 (`src/screens/notifications.js`)
+### 3.10. 설정 화면 (`src/screens/settings.js`)
 
-*   **초기화:** `app.js`의 `showScreen` 함수를 통해 'settings-screen'으로 내비게이션될 때 `initNotificationSettingsScreen(DOM)`이 호출되어 고정 알림 목록 관리 이벤트 리스너가 설정됩니다.
-*   **처리 흐름:** 고정 알림은 `LocalStorageManager`를 통해 추가, 편집, 삭제, 활성화/비활성화 상태 토글이 가능합니다. 모든 변경사항은 로컬 스토리지에 즉시 반영되며, `ui-renderer.js`의 헬퍼 함수들을 통해 UI가 갱신됩니다.
-*   **데이터 흐름 요약:** 고정 알림은 `LocalStorageManager`를 통해 CRUD 및 상태 토글이 가능하며, `ui-renderer.js`를 통해 UI가 갱신됩니다.
+*   **초기화:** `app.js`의 `showScreen` 함수를 통해 'settings-screen'으로 내비게이션될 때 `initSettingsScreen(DOM)`이 호출되어 '고정 알림' 관련 이벤트 리스너(모달 열기/닫기, 저장, 요일 버튼 상호작용 등)가 설정됩니다.
+*   **고정 알림 추가/편집 흐름:**
+    1.  **모달 열기:**
+        *   '고정 알림' 카드의 '추가' 버튼 클릭 또는 기존 알림 항목의 '편집' 버튼 클릭 시 `openFixedAlarmModal(DOM, alarmId)` 함수가 호출됩니다.
+        *   모달은 `fixed-alarm-modal` ID를 가지며, CSS `display` 속성을 통해 표시/숨김 처리됩니다.
+    2.  **데이터 바인딩:**
+        *   **'추가' 모드:** 모달 제목은 "고정 알림 추가"로 설정되고, 입력 필드(시간, 이름)는 비워지며, 요일 버튼은 모두 활성화 상태로 초기화됩니다.
+        *   **'편집' 모드:** `LocalStorageManager.getFixedAlarmById(alarmId)`를 통해 해당 알람 데이터를 가져옵니다. 모달 제목은 "고정 알림 편집"으로 설정되고, 시간/이름 입력 필드와 요일 버튼 상태(활성화/비활성화)가 해당 알람 데이터에 맞춰 채워집니다.
+    3.  **요일 버튼 상호작용:** 모달 내 요일 버튼 클릭 시 해당 버튼의 `.active` 클래스가 토글되어 사용자가 요일을 선택/해제할 수 있습니다.
+    4.  **저장 처리:**
+        *   모달의 '저장' 버튼 클릭 시, `settings.js` 내의 로직이 실행됩니다.
+        *   시간, 이름 입력값과 활성화된 요일 버튼 정보(`days` 배열)를 수집합니다.
+        *   `validateFixedAlarmTime` 및 `normalizeTimeFormat` 함수를 사용하여 입력값을 검증하고 정규화합니다.
+        *   모달의 `dataset.editingId` 속성을 통해 '추가' 모드(`id` 없음)와 '편집' 모드(`id` 있음)를 구분합니다.
+        *   **'추가' 모드:** `fixed-${Date.now()}` 형식의 새로운 ID를 생성하고, `LocalStorageManager.addFixedAlarm()`을 호출하여 새 알람을 추가합니다.
+        *   **'편집' 모드:** `LocalStorageManager.updateFixedAlarm(id, updatedAlarm)`을 호출하여 기존 알람을 업데이트합니다.
+        *   저장 완료 후 `closeFixedAlarmModal(DOM)`를 호출하여 모달을 닫고, `ui-renderer.js`의 `renderFixedAlarms(DOM)`를 호출하여 알림 목록 UI를 갱신합니다.
+        *   `log()` 함수로 기록을 남기고, 알람이 실행 중이면 `syncScheduleToWorker()`를 호출하여 워커에 변경사항을 동기화합니다.
+*   **데이터 흐름 요약:** '설정' 화면은 고정 알림 추가/편집을 위한 모달을 제공하며, 모달은 `LocalStorageManager`를 통해 데이터를 읽고 쓰고, `ui-renderer.js`를 통해 목록을 갱신하며, `alarm-scheduler.js`를 통해 알람 워커를 동기화합니다.
