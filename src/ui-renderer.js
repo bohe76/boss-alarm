@@ -135,7 +135,7 @@ export function renderUpcomingBossList(DOM) {
                 remainingTimeClass = 'default-grey';
             }
 
-            html += `<li><span class="spawn-time ${spawnTimeClass}">${formattedSpawnTime}</span> <span class="${bossNameClass}">${boss.name}</span> <span class="${remainingTimeClass}">${remaining}</span></li>`;
+            html += `<li class="list-item list-item--dense"><span class="spawn-time ${spawnTimeClass}">${formattedSpawnTime}</span> <span class="${bossNameClass}">${boss.name}</span> <span class="${remainingTimeClass}">${remaining}</span></li>`;
         });
     } else {
         html += '<li>예정된 보스가 없습니다.</li>';
@@ -166,7 +166,7 @@ export function renderRecentAlarmLog(DOM) {
     if (logs.length > 0) {
         const recentLogs = logs.slice(-3).reverse();
         recentLogs.forEach(logObj => {
-            html += `<li class="log-entry ${logObj.important ? 'important' : ''}">${logObj.html}</li>`;
+            html += `<li class="list-item list-item--dense log-entry ${logObj.important ? 'important' : ''}">${logObj.html}</li>`;
         });
     } else {
         html += '<li>최근 알림 기록 없음</li>';
@@ -383,115 +383,48 @@ export function updateBossListTextarea(DOM) { // Function signature remains unch
 
 // --- 5.2. 고정 알림 목록 렌더링 함수 ---
 export function renderFixedAlarms(DOM) {
-    DOM.fixedAlarmListDiv.innerHTML = ''; // 기존 목록 초기화
+    if (!DOM.fixedAlarmListDiv) return;
+    DOM.fixedAlarmListDiv.innerHTML = ''; // Clear existing list
 
     const fixedAlarms = LocalStorageManager.getFixedAlarms();
 
+    if (fixedAlarms.length === 0) {
+        DOM.fixedAlarmListDiv.innerHTML = '<p class="empty-list-message">등록된 고정 알림이 없습니다.</p>';
+        return;
+    }
+
     fixedAlarms.forEach((alarm) => {
         const itemDiv = document.createElement('div');
-        itemDiv.className = 'card-list-item fixed-alarm-item';
+        itemDiv.className = 'list-item fixed-alarm-item';
         itemDiv.id = `fixed-alarm-item-${alarm.id}`;
+        if (!alarm.enabled) {
+            itemDiv.classList.add('faded');
+        }
 
-        const infoAndToggleDiv = document.createElement('div');
-        infoAndToggleDiv.className = 'fixed-alarm-info-toggle';
-
-        const bossInfoSpan = document.createElement('span');
-        bossInfoSpan.innerHTML = `<span style="font-weight: bold; font-size: 2.0em;">${alarm.time}</span>&nbsp;&nbsp;${alarm.name}`; // 공백 2개를 &nbsp; 엔티티로 명시
-        infoAndToggleDiv.appendChild(bossInfoSpan);
-
-        // Toggle Switch
-        const switchLabel = document.createElement('label');
-        switchLabel.className = 'switch';
-        const switchInput = document.createElement('input');
-        switchInput.type = 'checkbox';
-        switchInput.id = `fixedAlarmToggle-${alarm.id}`;
-        switchInput.checked = alarm.enabled; // 로컬 스토리지 상태 반영
-        switchInput.dataset.id = alarm.id;
-        const sliderSpan = document.createElement('span');
-        sliderSpan.className = 'slider round';
-
-        switchLabel.appendChild(switchInput);
-        switchLabel.appendChild(sliderSpan);
-        infoAndToggleDiv.appendChild(switchLabel);
-
-        itemDiv.appendChild(infoAndToggleDiv);
-
-        const actionButtonsDiv = document.createElement('div');
-        actionButtonsDiv.className = 'fixed-alarm-action-buttons';
-
-        // Edit Button
-        const editButton = document.createElement('button');
-        editButton.textContent = '편집';
-        editButton.className = 'button edit-fixed-alarm-button';
-        editButton.dataset.id = alarm.id;
-        actionButtonsDiv.appendChild(editButton);
-
-        // Delete Button
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = '삭제';
-        deleteButton.className = 'button delete-fixed-alarm-button';
-        deleteButton.dataset.id = alarm.id;
-        actionButtonsDiv.appendChild(deleteButton);
-
-        itemDiv.appendChild(actionButtonsDiv);
+        // 2줄 구조의 HTML
+        itemDiv.innerHTML = `
+            <div class="alarm-item-line1">
+                <span class="alarm-info">
+                    <span class="alarm-time">${alarm.time}</span>
+                    <span class="alarm-name">${alarm.name}</span>
+                </span>
+                <label class="switch">
+                    <input type="checkbox" data-id="${alarm.id}" ${alarm.enabled ? 'checked' : ''}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="alarm-item-line2">
+                <span class="alarm-days">일 월 화 수 목 금 토</span> <!-- ※참고: 요일 표시는 현재는 임시값입니다. -->
+                <div class="button-group">
+                    <button class="button edit-fixed-alarm-button" data-id="${alarm.id}">편집</button>
+                    <button class="button delete-fixed-alarm-button" data-id="${alarm.id}">삭제</button>
+                </div>
+            </div>
+        `;
         DOM.fixedAlarmListDiv.appendChild(itemDiv);
     });
 
-    // Add New Fixed Alarm Section
-    const addAlarmSection = document.createElement('div');
-    addAlarmSection.className = 'add-fixed-alarm-section';
-                    addAlarmSection.innerHTML = `
-                        <h3>새 고정 알림 추가</h3>
-                        <div class="card-list-item add-alarm-card">
-                            <input type="text" id="newFixedAlarmTime" placeholder="HHMM">
-                            <input type="text" id="newFixedAlarmName" placeholder="이름">
-                            <button id="addFixedAlarmButton" class="button">추가</button>
-                        </div>
-                    `;    DOM.fixedAlarmListDiv.appendChild(addAlarmSection);
-
-    // Attach event listener for the add button
-    const addFixedAlarmButton = addAlarmSection.querySelector('#addFixedAlarmButton');
-    const newFixedAlarmTimeInput = addAlarmSection.querySelector('#newFixedAlarmTime');
-    const newFixedAlarmNameInput = addAlarmSection.querySelector('#newFixedAlarmName');
-
-    if (addFixedAlarmButton) {
-        addFixedAlarmButton.addEventListener('click', () => {
-            const rawTime = newFixedAlarmTimeInput.value.trim();
-            const time = normalizeTimeFormat(rawTime);
-            const name = newFixedAlarmNameInput.value.trim();
-
-            if (!time || !name) {
-                alert("시간과 이름을 모두 입력해주세요.");
-                log("시간과 이름을 모두 입력해주세요.", false);
-                return;
-            }
-            if (!validateFixedAlarmTime(time)) {
-                return;
-            }
-            
-            const newAlarm = {
-                id: `fixed-${Date.now()}`, // Simple unique ID
-                name: name,
-                time: time,
-                enabled: true // New alarms are enabled by default
-            };
-
-            LocalStorageManager.addFixedAlarm(newAlarm);
-            showToast(DOM, "고정 알림이 추가 되었습니다."); // New toast message
-            renderFixedAlarms(DOM); // Re-render to show new alarm
-            log(`새 고정 알림 "${name} ${time}"이(가) 추가되었습니다.`, true);
-
-            if (getIsAlarmRunning()) {
-                syncScheduleToWorker();
-            }
-
-            // Clear inputs
-            newFixedAlarmTimeInput.value = '';
-            newFixedAlarmNameInput.value = '';
-        });
-    }
-
-    updateFixedAlarmVisuals(DOM); // 초기 비주얼 업데이트
+    // 참고: 기존의 '새 고정 알림 추가' UI 생성 및 이벤트 리스너 로직은 모두 제거되었습니다.
 }
 
 // --- 5.3. 고정 알림 비주얼 업데이트 함수 (faded 효과) ---
@@ -701,7 +634,7 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}) {
         const initialValue = remainingTimes[bossName] || '';
         const bossId = bossMap.get(bossName) || ''; // Get existing ID or empty string
         return `
-            <div class="boss-input-item">
+            <div class="list-item boss-input-item">
                 <span class="boss-name">${bossName}</span>
                 <input type="text" class="remaining-time-input" data-boss-name="${bossName}" data-id="${bossId}" value="${initialValue}">
                 <span class="calculated-spawn-time">--:--:--</span>

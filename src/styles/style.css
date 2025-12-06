@@ -395,8 +395,6 @@ body {
           margin: 0;
         }
         .log-entry {
-            padding: 4px 0; /* Changed from 5px 0 to 4px 0 (spacing-xxs) */
-            border-bottom: 1px dashed #ccc;
             font-size: 1.0em;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
         }        
@@ -417,19 +415,10 @@ body {
         #recentAlarmLog .log-entry:first-child {
             padding-top: 0; /* 제목과의 간격을 맞추기 위해 첫 항목의 상단 패딩 제거 */
         }
-        #upcomingBossListContent ul li {
-            padding: 4px 0;
-            border-bottom: 1px dashed #ccc;
-            font-size: 1.0em;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-        }
 
 
-        #upcomingBossListContent ul li:first-child,
-        #recentAlarmLogContent ul li.log-entry:first-child,
-        #log-container ul li.log-entry:first-child { /* Added this line */
-            border-top: 1px dashed #ccc;
-        }
+
+
         /* Switch styles */
         .switch {
             position: relative;
@@ -498,22 +487,7 @@ body {
             margin-bottom: 20px;
         }
 
-        .add-alarm-card {
-            margin-top: 10px; /* Space between title and card */
-            display: flex; /* Use flexbox for alignment */
-            align-items: center; /* Vertically align items */
-            gap: 12px; /* Space between inputs and button */
-        }
-        .add-alarm-card #addFixedAlarmButton {
-            margin-left: auto; /* Push the button to the far right */
-        }
 
-        .add-alarm-card input[type="text"] {
-            width: 108px; /* Fixed width for inputs */
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
 
 /* Placeholder text color */
 input::placeholder,
@@ -541,26 +515,55 @@ textarea:-ms-input-placeholder {
             margin-bottom: 10px;
         }
 
-        .fixed-alarm-item {
-            display: flex;
-            flex-direction: column; /* Stack children vertically */
-        }
-        .fixed-alarm-item:last-child {
-            margin-bottom: 10px; /* Ensure last item also has margin */
-        }
-
-        .fixed-alarm-info-toggle {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px; /* Increased space between info/toggle and buttons */
-        }
-
-        .fixed-alarm-action-buttons {
-            display: flex;
-            gap: 12px; /* Space between edit and delete buttons */
-            margin-top: 5px; /* Space from the info/toggle line */
-        }
+/* New Fixed Alarm List Item Styles */
+.fixed-alarm-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* 1, 2번째 줄 사이의 간격 */
+    padding: 16px 0;
+    border-bottom: 1px solid #eee; /* 항목 구분선 */
+}
+.fixed-alarm-item:first-of-type {
+    padding-top: 0;
+}
+.fixed-alarm-item:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.alarm-item-line1, .alarm-item-line2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+.alarm-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.alarm-time {
+    font-weight: bold;
+    font-size: 1.8em;
+    color: #111;
+}
+.alarm-name {
+    font-size: 1.1em;
+    color: #333;
+}
+.alarm-days {
+    font-size: 0.9em;
+    color: #666;
+    letter-spacing: 1.5px;
+}
+.fixed-alarm-item .button-group {
+    display: flex;
+    gap: 8px;
+}
+.empty-list-message {
+    text-align: center;
+    color: #777;
+    padding: 20px 0;
+}
 
                 .fixed-alarm-item.faded {
             opacity: 0.5;
@@ -874,6 +877,29 @@ textarea:-ms-input-placeholder {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-bottom: 10px;
+}
+
+/* Card 내의 List Item을 위한 새로운 스타일 */
+.list-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #ccc; /* 모든 항목에 하단 구분선 적용 */
+}
+
+.list-item:first-of-type {
+    border-top: 1px solid #ccc; /* 첫 항목에만 상단 구분선 추가 */
+    padding-top: 12px; /* 일관된 여백을 위해 제거했던 상단 패딩 다시 추가 */
+}
+
+/* 좁은 여백을 위한 수식어 클래스 (점선 구분선) */
+.list-item--dense {
+    padding: 6px 0;
+    border-bottom-style: dashed;
+    border-bottom-color: #ccc;
+}
+.list-item--dense:first-of-type {
+    padding-top: 6px;
+    border-top-style: dashed;
+    border-top-color: #ccc;
 }
 
 /* ---- Card Sizing Classes ---- */
@@ -1210,7 +1236,6 @@ textarea:-ms-input-placeholder {
     margin-bottom: 10px; /* Space between header and scrollable list */
     font-weight: bold;
     color: #666;
-    border-bottom: 1px solid #eee; /* Visual separator */
     flex-shrink: 0; /* Prevent header from shrinking */
 }
 
@@ -1257,17 +1282,11 @@ textarea:-ms-input-placeholder {
 .boss-input-item {
     display: flex;
     align-items: center;
-    background-color: transparent; /* Remove background */
-    padding: 8px 0px; /* Adjusted padding for line items */
-    border-radius: 0; /* Remove border-radius */
-    box-shadow: none; /* Remove shadow */
-    border-bottom: 1px dashed #eee; /* Line separator */
+    background-color: transparent;
+    border-radius: 0;
+    box-shadow: none;
     gap: 12px;
-    width: 100%; /* Take full width of parent */
-}
-
-.boss-input-item:last-child {
-    border-bottom: none; /* No border for the last item */
+    width: 100%;
 }
 
 .boss-name {
