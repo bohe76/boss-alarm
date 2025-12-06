@@ -53,8 +53,19 @@ export function initDomElements() {
         muteToggleButton: document.getElementById('muteToggleButton'), // New
         recentAlarmLogContent: document.getElementById('recentAlarmLogContent'),
 
-        // Elements within Notification Settings Screen
+        // Elements within Settings Screen
         fixedAlarmListDiv: document.getElementById('fixedAlarmList'),
+        addFixedAlarmButton: document.getElementById('add-fixed-alarm-button'), // 메인 추가 버튼
+
+        // Fixed Alarm Modal Elements
+        fixedAlarmModal: document.getElementById('fixed-alarm-modal'),
+        fixedAlarmModalTitle: document.getElementById('fixed-alarm-modal-title'),
+        closeFixedAlarmModal: document.getElementById('close-fixed-alarm-modal'),
+        cancelFixedAlarmModalButton: document.getElementById('cancel-fixed-alarm-modal-button'),
+        saveFixedAlarmButton: document.getElementById('save-fixed-alarm-button'),
+        fixedAlarmTimeInput: document.getElementById('fixed-alarm-time-input'),
+        fixedAlarmNameInput: document.getElementById('fixed-alarm-name-input'),
+        fixedAlarmModalDays: document.getElementById('fixed-alarm-modal-days'),
 
         // Elements within Alarm Log Screen
         alarmLogCard: document.getElementById('alarmLogCard'), // New

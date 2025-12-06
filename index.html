@@ -564,7 +564,7 @@
                 <div class="card-standard card-size-list">
                     <div class="card-header">
                         <h3>고정 알림</h3>
-                        <button id="add-fixed-alarm-button" class="button">추가</button>
+                        <button id="add-fixed-alarm-button" class="button primary-button">추가</button>
                     </div>
                     <div id="fixedAlarmList" class="card-list-content">
                         <!-- Fixed alarms will be rendered here by JavaScript -->
@@ -652,6 +652,47 @@
             initApp();
         });
     </script>
+    <!-- Fixed Alarm Add/Edit Modal -->
+    <div id="fixed-alarm-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="fixed-alarm-modal-title">고정 알림 추가</h2>
+                <button id="close-fixed-alarm-modal" class="close-button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- 시간 입력폼 -->
+                <div class="control-group">
+                    <label for="fixed-alarm-time-input">시간</label>
+                    <input type="text" id="fixed-alarm-time-input" placeholder="HHMM (예: 1930)">
+                </div>
+                <!-- 이름 입력폼 -->
+                <div class="control-group">
+                    <label for="fixed-alarm-name-input">이름</label>
+                    <input type="text" id="fixed-alarm-name-input" placeholder="알림 이름">
+                </div>
+                <!-- 요일 선택 버튼 -->
+                <div class="control-group">
+                    <label>요일 반복</label>
+                    <div id="fixed-alarm-modal-days" class="alarm-days">
+                        <!-- 요일 버튼들이 여기에 들어갑니다 -->
+                        <button class="day-button" data-day-index="0">일</button>
+                        <button class="day-button" data-day-index="1">월</button>
+                        <button class="day-button" data-day-index="2">화</button>
+                        <button class="day-button" data-day-index="3">수</button>
+                        <button class="day-button" data-day-index="4">목</button>
+                        <button class="day-button" data-day-index="5">금</button>
+                        <button class="day-button" data-day-index="6">토</button>
+                    </div>
+                </div>
+            </div>
+            <!-- 저장/취소 버튼 -->
+            <div class="modal-footer">
+                <button id="cancel-fixed-alarm-modal-button" class="button">취소</button>
+                <button id="save-fixed-alarm-button" class="button primary-button">저장</button>
+            </div>
+        </div>
+    </div>
+
     <div id="global-tooltip"></div>
     <nav id="bottom-nav" class="bottom-nav">
         <a href="#" id="bottom-nav-dashboard" data-screen="dashboard-screen" class="bottom-nav-item active"

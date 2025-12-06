@@ -1,11 +1,11 @@
 import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Import managers
-import { getIsAlarmRunning, syncScheduleToWorker } from './alarm-scheduler.js'; // Import getIsAlarmRunning and syncScheduleToWorker
+import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRunning
 import { log, getLogs } from './logger.js'; // Import log and getLogs
 // import { loadJsonContent } from './api-service.js'; // loadJsonContent is no longer needed here
 import { CustomListManager } from './custom-list-manager.js';
 import { getGameNames, getBossNamesForGame } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
 
-import { validateFixedAlarmTime, formatTimeDifference, formatSpawnTime, normalizeTimeFormat, formatBossListTime } from './utils.js'; // New import
+import { formatTimeDifference, formatSpawnTime, formatBossListTime } from './utils.js'; // New import
 
 
 const MUTE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`;
@@ -402,6 +402,10 @@ export function renderFixedAlarms(DOM) {
         }
 
         // 2줄 구조의 HTML
+        const days = ['일', '월', '화', '수', '목', '금', '토'];
+        // 데이터 마이그레이션 전의 기존 알람은 days 속성이 없으므로, 기본값으로 모든 요일을 활성화
+        const activeDays = alarm.days ?? [0, 1, 2, 3, 4, 5, 6];
+
         itemDiv.innerHTML = `
             <div class="alarm-item-line1">
                 <span class="alarm-info">
@@ -414,7 +418,12 @@ export function renderFixedAlarms(DOM) {
                 </label>
             </div>
             <div class="alarm-item-line2">
-                <span class="alarm-days">일 월 화 수 목 금 토</span> <!-- ※참고: 요일 표시는 현재는 임시값입니다. -->
+                <div class="alarm-days">
+                    ${days.map((day, index) => {
+                        const isActive = activeDays.includes(index);
+                        return `<button class="day-button ${isActive ? 'active' : ''}" data-day-index="${index}">${day}</button>`;
+                    }).join('')}
+                </div>
                 <div class="button-group">
                     <button class="button edit-fixed-alarm-button" data-id="${alarm.id}">편집</button>
                     <button class="button delete-fixed-alarm-button" data-id="${alarm.id}">삭제</button>

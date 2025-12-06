@@ -541,6 +541,38 @@ textarea:-ms-input-placeholder {
     font-size: 1.1em;
     color: #333;
 }
+
+.alarm-days {
+    display: flex;
+    gap: 4px; /* 버튼 사이의 최소 간격 */
+}
+
+.day-button {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%; /* 원형으로 만들기 */
+    border: 1px solid #ccc;
+    background-color: #f0f0f0; /* 기본 배경색 */
+    color: #333; /* 기본 글자색 */
+    font-size: 0.85em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.day-button.active {
+    background-color: #FF8F00; /* 활성화 시 배경색 (토글 버튼과 유사) */
+    color: #fff; /* 활성화 시 글자색 */
+    border-color: transparent;
+}
+
+/* 목록에 표시되는 요일 버튼은 클릭 비활성화 */
+#fixedAlarmList .alarm-days .day-button {
+    pointer-events: none;
+}
 .alarm-days {
     font-size: 0.9em;
     color: #666;
@@ -619,10 +651,24 @@ textarea:-ms-input-placeholder {
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
 }
 
+/* 고정 알림 모달의 높이를 콘텐츠에 맞게 조절 */
+#fixed-alarm-modal .modal-content {
+    height: auto;
+}
+
         .modal-body {
             flex: 1; /* Allow modal-body to grow and shrink */
             overflow-y: auto; /* Enable scrolling for content if it overflows */
             padding: 20px; /* Add padding here for modal-body content */
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: flex-end; /* 버튼들을 오른쪽으로 정렬 */
+            gap: 10px;
+            background-color: #f0f0f0;
         }
 
 

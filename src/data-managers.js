@@ -123,7 +123,19 @@ export const LocalStorageManager = (() => {
     function loadFixedAlarms() {
         const savedAlarms = localStorage.getItem('fixedAlarms');
         if (savedAlarms) {
-            fixedAlarms = JSON.parse(savedAlarms);
+            let loadedAlarms = JSON.parse(savedAlarms);
+            let needsSave = false;
+            // Data migration for 'days' property
+            loadedAlarms.forEach(alarm => {
+                if (!Object.prototype.hasOwnProperty.call(alarm, 'days')) {
+                    alarm.days = [0, 1, 2, 3, 4, 5, 6];
+                    needsSave = true;
+                }
+            });
+            fixedAlarms = loadedAlarms;
+            if (needsSave) {
+                saveFixedAlarms();
+            }
         } else {
             // Migration from old fixedAlarmStates format or initial default
             const oldFixedAlarmStates = localStorage.getItem('fixedAlarmStates');
@@ -141,17 +153,18 @@ export const LocalStorageManager = (() => {
                     id: `fixed-${index}`,
                     name: boss.name,
                     time: boss.time,
-                    enabled: parsedOldStates.individual[index] || false // Use old individual state if available
+                    enabled: parsedOldStates.individual[index] || false, // Use old individual state if available
+                    days: [0, 1, 2, 3, 4, 5, 6] // Add days property
                 }));
                 localStorage.removeItem('fixedAlarmStates'); // Clean up old key
             } else {
                 // Initial default fixed alarms if nothing saved
                 fixedAlarms = [
-                    { id: 'fixed-1', name: '대륙 침략자', time: '12:00', enabled: false },
-                    { id: 'fixed-2', name: '대륙 침략자', time: '20:00', enabled: false },
-                    { id: 'fixed-3', name: '발할라', time: '13:00', enabled: false },
-                    { id: 'fixed-4', name: '발할라', time: '18:00', enabled: false },
-                    { id: 'fixed-5', name: '발할라', time: '21:00', enabled: false },
+                    { id: 'fixed-1', name: '대륙 침략자', time: '12:00', enabled: false, days: [0, 1, 2, 3, 4, 5, 6] },
+                    { id: 'fixed-2', name: '대륙 침략자', time: '20:00', enabled: false, days: [0, 1, 2, 3, 4, 5, 6] },
+                    { id: 'fixed-3', name: '발할라', time: '13:00', enabled: false, days: [0, 1, 2, 3, 4, 5, 6] },
+                    { id: 'fixed-4', name: '발할라', time: '18:00', enabled: false, days: [0, 1, 2, 3, 4, 5, 6] },
+                    { id: 'fixed-5', name: '발할라', time: '21:00', enabled: false, days: [0, 1, 2, 3, 4, 5, 6] },
                 ];
             }
             saveFixedAlarms(); // Save the new format immediately
@@ -230,6 +243,7 @@ export const LocalStorageManager = (() => {
         set: (key, value) => localStorage.setItem(key, JSON.stringify(value)),
 
         getFixedAlarms: () => fixedAlarms,
+        getFixedAlarmById: (id) => fixedAlarms.find(alarm => alarm.id === id),
         addFixedAlarm: (alarm) => {
             fixedAlarms.push(alarm);
             saveFixedAlarms();

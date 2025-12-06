@@ -1,11 +1,81 @@
 import { LocalStorageManager } from '../data-managers.js';
 import { renderFixedAlarms, updateFixedAlarmVisuals } from '../ui-renderer.js';
-import { validateFixedAlarmTime, normalizeTimeFormat } from '../utils.js';
 import { log } from '../logger.js';
 import { syncScheduleToWorker, getIsAlarmRunning } from '../alarm-scheduler.js';
 
+// --- Modal Helper Functions ---
+
+/**
+ * Opens the modal for adding or editing a fixed alarm.
+ * @param {object} DOM - The DOM elements.
+ * @param {string|null} alarmId - The ID of the alarm to edit, or null to add a new one.
+ */
+function openFixedAlarmModal(DOM, alarmId = null) {
+    if (!DOM.fixedAlarmModal) return;
+
+    // Reset day buttons
+    const dayButtons = DOM.fixedAlarmModalDays.querySelectorAll('.day-button');
+
+    if (alarmId) {
+        // --- EDIT MODE ---
+        DOM.fixedAlarmModalTitle.textContent = '고정 알림 편집';
+        const alarm = LocalStorageManager.getFixedAlarmById(alarmId);
+        if (!alarm) {
+            console.error(`Alarm with ID ${alarmId} not found.`);
+            return;
+        }
+        DOM.fixedAlarmTimeInput.value = alarm.time;
+        DOM.fixedAlarmNameInput.value = alarm.name;
+        DOM.fixedAlarmModal.dataset.editingId = alarmId;
+
+        dayButtons.forEach(button => {
+            const dayIndex = parseInt(button.dataset.dayIndex, 10);
+            if (alarm.days.includes(dayIndex)) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+
+    } else {
+        // --- ADD MODE ---
+        DOM.fixedAlarmModalTitle.textContent = '고정 알림 추가';
+        DOM.fixedAlarmTimeInput.value = '';
+        DOM.fixedAlarmNameInput.value = '';
+        delete DOM.fixedAlarmModal.dataset.editingId;
+
+        dayButtons.forEach(button => {
+            button.classList.add('active'); // Default to all active
+        });
+    }
+
+    DOM.fixedAlarmModal.style.display = 'flex';
+}
+
+/**
+ * Closes the fixed alarm modal.
+ * @param {object} DOM - The DOM elements.
+ */
+function closeFixedAlarmModal(DOM) {
+    if (DOM.fixedAlarmModal) {
+        DOM.fixedAlarmModal.style.display = 'none';
+    }
+}
+
+
+// --- Main Screen Initialization ---
+
 export function initSettingsScreen(DOM) {
-    // Event delegation for fixed alarm items (edit, delete, individual toggle)
+    // --- Main event listeners for the screen ---
+
+    // Listener for the main "Add" button
+    if (DOM.addFixedAlarmButton) {
+        DOM.addFixedAlarmButton.addEventListener('click', () => {
+            openFixedAlarmModal(DOM, null); // Open in "Add" mode
+        });
+    }
+
+    // Event delegation for fixed alarm list items
     if (DOM.fixedAlarmListDiv) {
         DOM.fixedAlarmListDiv.addEventListener('click', (event) => {
             const target = event.target;
@@ -24,35 +94,13 @@ export function initSettingsScreen(DOM) {
                 }
             }
 
-            // Handle edit button click
+            // Handle EDIT button click -> NOW OPENS MODAL
             if (target.matches('.edit-fixed-alarm-button')) {
                 const alarmId = target.dataset.id;
-                const fixedAlarms = LocalStorageManager.getFixedAlarms();
-                const alarmToEdit = fixedAlarms.find(alarm => alarm.id === alarmId);
-
-                if (alarmToEdit) {
-                    const newTime = prompt(`"${alarmToEdit.name}"의 새 시간을 입력하세요 (HH:MM):`, alarmToEdit.time);
-                    if (newTime === null) return; // User cancelled
-                    if (!validateFixedAlarmTime(newTime)) {
-                        return;
-                    }
-                    const normalizedTime = normalizeTimeFormat(newTime);
-
-                    const newName = prompt(`"${alarmToEdit.name}"의 새 이름을 입력하세요:`, alarmToEdit.name);
-                    if (newName === null) return; // User cancelled
-                    if (!newName.trim()) {
-                        log("이름은 비워둘 수 없습니다.", false);
-                        return;
-                    }
-
-                    LocalStorageManager.updateFixedAlarm(alarmId, { time: normalizedTime, name: newName.trim() });
-                    renderFixedAlarms(DOM); // Re-render to show changes
-                    log(`고정 알림 "${alarmToEdit.name}"이(가) "${newName.trim()} ${normalizedTime}"으로 수정되었습니다.`, true);
-                    shouldSync = true;
-                }
+                openFixedAlarmModal(DOM, alarmId); // Open in "Edit" mode
             }
 
-            // Handle delete button click
+            // Handle DELETE button click
             if (target.matches('.delete-fixed-alarm-button')) {
                 const alarmId = target.dataset.id;
                 const fixedAlarms = LocalStorageManager.getFixedAlarms();
@@ -60,7 +108,7 @@ export function initSettingsScreen(DOM) {
 
                 if (alarmToDelete && confirm(`고정 알림 "${alarmToDelete.name} ${alarmToDelete.time}"을(를) 삭제하시겠습니까?`)) {
                     LocalStorageManager.deleteFixedAlarm(alarmId);
-                    renderFixedAlarms(DOM); // Re-render to show changes
+                    renderFixedAlarms(DOM);
                     log(`고정 알림 "${alarmToDelete.name}"이(가) 삭제되었습니다.`, true);
                     shouldSync = true;
                 }
@@ -68,6 +116,46 @@ export function initSettingsScreen(DOM) {
 
             if (shouldSync && getIsAlarmRunning()) {
                 syncScheduleToWorker();
+            }
+        });
+    }
+
+    // --- Modal-specific event listeners ---
+
+    // Day button interaction in modal
+    if (DOM.fixedAlarmModalDays) {
+        DOM.fixedAlarmModalDays.addEventListener('click', (event) => {
+            const target = event.target;
+            if (target.classList.contains('day-button')) {
+                target.classList.toggle('active');
+            }
+        });
+    }
+
+    // Close button in modal header
+    if (DOM.closeFixedAlarmModal) {
+        DOM.closeFixedAlarmModal.addEventListener('click', () => closeFixedAlarmModal(DOM));
+    }
+
+    // "Cancel" button in modal footer
+    if (DOM.cancelFixedAlarmModalButton) {
+        DOM.cancelFixedAlarmModalButton.addEventListener('click', () => closeFixedAlarmModal(DOM));
+    }
+
+    // Save button logic (to be implemented)
+    if (DOM.saveFixedAlarmButton) {
+        DOM.saveFixedAlarmButton.addEventListener('click', () => {
+            // TODO: Implement save logic here
+            alert('저장 로직 구현 필요');
+            closeFixedAlarmModal(DOM);
+        });
+    }
+
+    // Clicking on the modal backdrop also closes it
+    if (DOM.fixedAlarmModal) {
+        DOM.fixedAlarmModal.addEventListener('click', (event) => {
+            if (event.target === DOM.fixedAlarmModal) {
+                closeFixedAlarmModal(DOM);
             }
         });
     }
@@ -79,3 +167,4 @@ export function getScreen() {
         init: initSettingsScreen
     };
 }
+
