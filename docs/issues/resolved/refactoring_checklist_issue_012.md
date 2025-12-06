@@ -22,24 +22,24 @@
 **목표:** `src/global-event-listeners.js`를 전역 `EventBus` 리스너의 단일 진실 공급원(Single Source of Truth)으로 활성화하여, 분산된 리스너들을 중앙에서 관리합니다.
 
 <details>
-<summary><strong>1.1. `app.js`에서 `initGlobalEventListeners` 호출 준비</strong></summary>
+<summary><strong>✅ 1.1. `app.js`에서 `initGlobalEventListeners` 호출 준비</strong></summary>
 
-- [ ] **사전 분석:** `app.js`의 `initApp` 함수 내에 `BossDataManager.subscribe(...)` 라인이 실제로 존재하는지, 그리고 `global-event-listeners.js` 파일이 `import` 가능한 상태인지 확인합니다.
-- [ ] **실행 계획 1 (Import):** `app.js` 파일 상단에 `import { initGlobalEventListeners } from './global-event-listeners.js';` 코드를 추가합니다.
-- [ ] **실행 계획 2 (리스너 코드 제거):** `app.js`의 `initApp` 함수 내에 있는 `BossDataManager.subscribe(() => renderDashboard(DOM));` 라인과 관련 주석을 삭제합니다.
-- [ ] **검증:** 앱을 실행하고 보스 목록을 수정했을 때, 대시보드의 '다음 보스' 정보가 **더 이상 자동으로 갱신되지 않아야 합니다.** (이는 중앙화된 리스너가 아직 활성화되지 않았기 때문에 발생하는 의도된 중간 단계의 '실패' 상태입니다.)
-- [ ] **커밋:** `git commit -m "refactor(app): 전역 리스너 중앙화를 위해 기존 구독 로직 제거"`
+- [x] **사전 분석:** `app.js`의 `initApp` 함수 내에 `BossDataManager.subscribe(...)` 라인이 실제로 존재하는지, 그리고 `global-event-listeners.js` 파일이 `import` 가능한 상태인지 확인합니다.
+- [x] **실행 계획 1 (Import):** `app.js` 파일 상단에 `import { initGlobalEventListeners } from './global-event-listeners.js';` 코드를 추가합니다.
+- [x] **실행 계획 2 (리스너 코드 제거):** `app.js`의 `initApp` 함수 내에 있는 `BossDataManager.subscribe(() => renderDashboard(DOM));` 라인과 관련 주석을 삭제합니다.
+- [x] **검증:** 앱을 실행하고 보스 목록을 수정했을 때, 대시보드의 '다음 보스' 정보가 **더 이상 자동으로 갱신되지 않아야 합니다.** (이는 중앙화된 리스너가 아직 활성화되지 않았기 때문에 발생하는 의도된 중간 단계의 '실패' 상태입니다.)
+- [x] **커밋:** `git commit -m "refactor(app): 전역 리스너 중앙화를 위해 기존 구독 로직 제거"`
 </details>
 
 <details>
-<summary><strong>1.2. `app.js`에서 `initGlobalEventListeners` 최종 활성화</strong></summary>
+<summary><strong>✅ 1.2. `app.js`에서 `initGlobalEventListeners` 최종 활성화</strong></summary>
 
-- [ ] **사전 분석:** `app.js`의 `initApp` 함수 내에서, 다른 이벤트 핸들러 등록 직전(`initEventHandlers` 호출 전)이 `initGlobalEventListeners`를 호출하기에 가장 적절한 위치인지 최종 검토합니다.
-- [ ] **실행 계획:** `initApp` 함수 내 `initEventHandlers(DOM, globalTooltip);` 라인 바로 앞에 `initGlobalEventListeners(DOM);` 코드를 추가합니다.
-- [ ] **검증:**
+- [x] **사전 분석:** `app.js`의 `initApp` 함수 내에서, 다른 이벤트 핸들러 등록 직전(`initEventHandlers` 호출 전)이 `initGlobalEventListeners`를 호출하기에 가장 적절한 위치인지 최종 검토합니다.
+- [x] **실행 계획:** `initApp` 함수 내 `initEventHandlers(DOM, globalTooltip);` 라인 바로 앞에 `initGlobalEventListeners(DOM);` 코드를 추가합니다.
+- [x] **검증:**
     1.  알람을 시작하고 보스 목록을 수정/저장했을 때, 대시보드가 즉시 반응하여 '다음 보스' 정보를 갱신하는지 확인 (`BossDataManager.subscribe` 기능 검증).
     2.  '알림 로그' 화면으로 이동한 상태에서, 보스 알람이 울렸을 때(또는 다른 로그가 발생했을 때) 로그 목록이 실시간으로 갱신되는지 확인 (`EventBus.on('log-updated')` 기능 검증).
-- [ ] **커밋:** `git commit -m "feat(core): 전역 이벤트 리스너 중앙 집중화 및 활성화"`
+- [x] **커밋:** `git commit -m "feat(core): 전역 이벤트 리스너 중앙 집중화 및 활성화"`
 </details>
 
 ---
@@ -49,10 +49,10 @@
 **목표:** `initAlarmLogScreen` 함수의 중복 로직을 제거하고, 코드 구조를 명확하게 개선하여 가독성과 유지보수성을 높입니다.
 
 <details>
-<summary><strong>2.1. `initAlarmLogScreen` 함수 리팩토링</strong></summary>
+<summary><strong>✅ 2.1. `initAlarmLogScreen` 함수 리팩토링</strong></summary>
 
-- [ ] **사전 분석:** 현재 `initAlarmLogScreen` 함수 내부에 토글 버튼의 상태를 불러와 적용하는 로직이 두 번 존재하며, 이벤트 리스너 등록 로직과 뒤섞여 있어 비효율적임을 재확인합니다.
-- [ ] **실행 계획:** `initAlarmLogScreen` 함수 전체를 아래의 개선된 구조의 코드로 교체합니다. 이 구조는 상태 로딩/적용 로직을 항상 실행하도록 보장하고, 이벤트 리스너는 단 한 번만 등록되도록 합니다.
+- [x] **사전 분석:** 현재 `initAlarmLogScreen` 함수 내부에 토글 버튼의 상태를 불러와 적용하는 로직이 두 번 존재하며, 이벤트 리스너 등록 로직과 뒤섞여 있어 비효율적임을 재확인합니다.
+- [x] **실행 계획:** `initAlarmLogScreen` 함수 전체를 아래의 개선된 구조의 코드로 교체합니다. 이 구조는 상태 로딩/적용 로직을 항상 실행하도록 보장하고, 이벤트 리스너는 단 한 번만 등록되도록 합니다.
     ```javascript
     export function initAlarmLogScreen(DOM) {
         // Ensure the toggle button state is loaded and applied on every transition
@@ -77,11 +77,11 @@
         renderAlarmLog(DOM); // Initial render for the screen
     }
     ```
-- [ ] **검증:**
+- [x] **검증:**
     1.  '알림 로그' 화면에 처음 진입 시 '15개 보기' 버튼 상태가 올바르게 로드되고 로그가 정상 출력되는지 확인합니다.
     2.  다른 화면으로 이동했다가 다시 '알림 로그' 화면으로 돌아왔을 때도 버튼 상태가 유지되며, 로그가 정상 출력되는지 확인합니다.
     3.  '15개 보기' 버튼을 클릭했을 때 기능이 정상적으로 동작하고 상태가 LocalStorage에 저장되는지 확인합니다.
-- [ ] **커밋:** `git commit -m "refactor(alarm-log): initAlarmLogScreen 함수의 중복 로직 제거 및 구조 개선"`
+- [x] **커밋:** `git commit -m "refactor(alarm-log): initAlarmLogScreen 함수의 중복 로직 제거 및 구조 개선"`
 </details>
 
 ---
@@ -91,21 +91,21 @@
 **목표:** `event-handlers.js`에서 역할 범위를 벗어나는 중복되거나 사용되지 않는 코드를 제거하여, 순수한 DOM 이벤트 핸들러 등록 모듈로 만듭니다.
 
 <details>
-<summary><strong>3.1. 중복/데드 코드(`showScreen`, `initApp`) 제거</strong></summary>
+<summary><strong>✅ 3.1. 중복/데드 코드(`showScreen`, `initApp`) 제거</strong></summary>
 
-- [ ] **사전 분석:** `event-handlers.js` 파일 내에 `showScreen`과 `initApp` 함수의 전체 정의가 포함되어 있으며, 이 함수들은 `app.js`의 핵심 로직과 중복되고 현재 호출되지 않는 '죽은 코드(Dead Code)'임을 최종 확인합니다.
-- [ ] **실행 계획:** `event-handlers.js`에서 `function showScreen(DOM, screenId) { ... }`와 `export async function initApp() { ... }` 함수의 전체 정의를 삭제합니다.
-- [ ] **검증:** 코드 제거 후, 앱의 모든 화면 전환 기능과 새로고침 시 초기화 과정이 이전과 동일하게 완벽히 정상 동작하는지 확인합니다.
-- [ ] **커밋:** `git commit -m "refactor(event-handlers): 사용되지 않는 showScreen 및 initApp 중복 함수 제거"`
+- [x] **사전 분석:** `event-handlers.js` 파일 내에 `showScreen`과 `initApp` 함수의 전체 정의가 포함되어 있으며, 이 함수들은 `app.js`의 핵심 로직과 중복되고 현재 호출되지 않는 '죽은 코드(Dead Code)'임을 최종 확인합니다.
+- [x] **실행 계획:** `event-handlers.js`에서 `function showScreen(DOM, screenId) { ... }`와 `export async function initApp() { ... }` 함수의 전체 정의를 삭제합니다.
+- [x] **검증:** 코드 제거 후, 앱의 모든 화면 전환 기능과 새로고침 시 초기화 과정이 이전과 동일하게 완벽히 정상 동작하는지 확인합니다.
+- [x] **커밋:** `git commit -m "refactor(event-handlers): 사용되지 않는 showScreen 및 initApp 중복 함수 제거"`
 </details>
 
 <details>
-<summary><strong>3.2. 불필요한 `import` 문 정리</strong></summary>
+<summary><strong>✅ 3.2. 불필요한 `import` 문 정리</strong></summary>
 
-- [ ] **사전 분석:** `showScreen` 및 `initApp` 함수가 제거됨에 따라 더 이상 필요 없어진 `import` 문들이 있는지(예: `parseBossList`, `startAlarm`, `DefaultBossList` 등) 목록을 확인합니다.
-- [ ] **실행 계획:** `event-handlers.js` 파일 상단에서 더 이상 사용되지 않는 `import` 문을 모두 삭제합니다.
-- [ ] **검증:**
+- [x] **사전 분석:** `showScreen` 및 `initApp` 함수가 제거됨에 따라 더 이상 필요 없어진 `import` 문들이 있는지(예: `parseBossList`, `startAlarm`, `DefaultBossList` 등) 목록을 확인합니다.
+- [x] **실행 계획:** `event-handlers.js` 파일 상단에서 더 이상 사용되지 않는 `import` 문을 모두 삭제합니다.
+- [x] **검증:**
     1.  `npm run lint` 명령어를 실행하여 "no-unused-vars"와 같은 린트 오류가 없는지 확인합니다.
     2.  애플리케이션의 모든 기능이 정상 동작하는지 최종적으로 확인합니다.
-- [ ] **커밋:** `git commit -m "chore(event-handlers): 모듈 리팩토링 후 불필요한 import 문 정리"`
+- [x] **커밋:** `git commit -m "chore(event-handlers): 모듈 리팩토링 후 불필요한 import 문 정리"`
 </details>
