@@ -1,0 +1,2163 @@
+:root {
+    --header-height: 64px;
+    /* Approximate height of the header */
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    line-height: 1.6;
+    background-color: #0f172a;
+    /* Midnight Pro Background */
+    color: #f1f5f9;
+    /* Midnight Pro Text */
+    margin: 0;
+    /* Remove default body margin */
+    display: flex;
+    /* Use flexbox for overall layout */
+    flex-direction: column;
+    /* Stack header, main, footer vertically */
+    min-height: 100vh;
+    /* Ensure body takes full viewport height */
+    padding-top: var(--header-height);
+    /* Add padding to prevent content from being hidden by fixed header */
+}
+
+header {
+    background-color: #1e293b;
+    /* Midnight Pro Header */
+    color: #f1f5f9;
+    padding: 0px 20px;
+    /* Set top/bottom padding to 0 */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    /* Stronger shadow for dark mode */
+    flex-shrink: 0;
+    /* Prevent header from shrinking */
+    position: fixed;
+    /* Fix header at the top */
+    top: 0;
+    width: 100%;
+    z-index: 100;
+    /* Ensure header is on top */
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    max-width: 1200px;
+    /* Max width for content */
+    margin: 0 auto;
+    /* Center content */
+}
+
+.header-container h1 {
+    margin: 0 auto;
+    /* Center h1 between other flex items */
+    font-size: 1.8em;
+    white-space: nowrap;
+}
+
+.alarm-toggle-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    margin-bottom: 00px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    margin-right: 30px;
+}
+
+.alarm-icon {
+    width: 40px;
+    height: 40px;
+    transition: all 0.3s ease;
+    /* Transition for all properties */
+    transform: translateZ(0);
+    /* Force hardware acceleration */
+}
+
+.alarm-icon path {
+    stroke: #ccc;
+    /* Directly set stroke color for off state */
+    fill: none;
+    /* Added */
+    stroke-width: 2.5;
+    /* Added for thicker lines */
+}
+
+.alarm-toggle-button.alarm-on .alarm-icon path {
+    stroke: #ea4335;
+    /* Direct red stroke for on state */
+}
+
+.alarm-toggle-button.alarm-on .alarm-icon {
+    animation: hue-rotate-animation 2s linear infinite;
+}
+
+@keyframes hue-rotate-animation {
+    0% {
+        filter: hue-rotate(0deg);
+    }
+
+    100% {
+        filter: hue-rotate(360deg);
+    }
+}
+
+.alarm-toggle-button.alarm-off .alarm-icon {
+    color: #333;
+    /* Darker gray for off state */
+}
+
+
+
+#full-height-content {
+    /* New container for sidebar and main content */
+    display: flex;
+    flex: 1;
+    /* Take remaining vertical space */
+    max-width: 1200px;
+    /* Max width for content */
+    margin: 0 auto;
+    /* Center content */
+    width: 100%;
+}
+
+nav.sidebar {
+    width: 54px;
+    /* Collapsed width */
+    background-color: #1e293b;
+    /* Midnight Pro Sidebar */
+    color: #f1f5f9;
+    padding-top: 16px;
+    /* Changed from 15px to 16px (spacing-md) */
+    transition: width 0.3s ease;
+    flex-shrink: 0;
+    /* Prevent sidebar from shrinking */
+    overflow-x: hidden;
+    /* Hide overflow when collapsed */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+nav.sidebar.expanded {
+    width: 200px;
+    /* Expanded width */
+    align-items: flex-start;
+}
+
+.sidebar-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    /* Changed from 5px to 8px (spacing-xs) */
+    padding-left: 0;
+    /* Ensure no left padding */
+    text-align: left;
+    /* Ensure content is left-aligned */
+    color: #f1f5f9;
+    /* Midnight Pro Text */
+    margin-left: -16px;
+    /* Space between toggle and h1 */
+}
+
+
+
+.sidebar-toggle-icon {
+    width: 48px;
+    height: 48px;
+    fill: currentColor;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.sidebar-menu li {
+    margin-bottom: 10px;
+}
+
+.sidebar-menu a {
+    display: flex;
+    align-items: center;
+    color: #94a3b8;
+    /* Muted text for inactive state */
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.2s, color 0.2s;
+    padding: 8px 0px 8px 12px;
+    /* Changed from 10px 0px 10px 13px to 8px 0px 8px 12px (spacing-xs top/bottom, spacing-sm left) */
+    white-space: nowrap;
+}
+
+
+
+.sidebar-menu a:hover {
+    background-color: #334155;
+    /* Darker hover */
+    color: #f1f5f9;
+}
+
+.sidebar-menu a.active {
+    background-color: #38bdf8;
+    /* Sky Blue active background */
+    color: #0f172a;
+    /* Dark text on bright background for contrast */
+}
+
+.menu-icon {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+    margin-right: 15px;
+    fill: none !important;
+    /* !important 추가 */
+    stroke: currentColor;
+    /* Added */
+    flex-shrink: 0;
+    /* Prevent icon from shrinking */
+}
+
+nav.sidebar:not(.expanded) .menu-text {
+    opacity: 0;
+    visibility: hidden;
+    max-width: 0;
+    overflow: hidden;
+    transition: opacity 0.3s ease, max-width 0.3s ease, visibility 0.3s ease;
+}
+
+nav.sidebar.expanded .sidebar-menu a .menu-text {
+    opacity: 1;
+    visibility: visible;
+    max-width: 100px;
+    /* Adjust as needed */
+    transition: opacity 0.3s ease, max-width 0.3s ease, visibility 0.3s ease;
+}
+
+
+
+
+
+main {
+    flex: 1;
+    /* Take remaining horizontal space */
+    padding: 20px;
+    background-color: #0f172a;
+    /* Midnight Pro Background */
+    overflow-y: auto;
+    /* Enable scrolling for main content */
+}
+
+.screen {
+    display: none;
+    /* Hide all screens by default */
+}
+
+.screen.active {
+    display: block;
+    /* Show active screen */
+}
+
+footer {
+    background-color: #333;
+    color: white;
+    padding: 20px 20px;
+    text-align: center;
+    font-size: 0.9em;
+    flex-shrink: 0;
+    /* Prevent footer from shrinking */
+}
+
+/* Base Button Styles */
+.button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 16px;
+    /* Consistent padding */
+    border: none;
+    /* No border for a clean look */
+    border-radius: 4px;
+    /* Slightly rounded corners */
+    cursor: pointer;
+    font-size: 1em;
+    line-height: 1.2em;
+    /* Explicit line height for text alignment */
+    transition: background-color 0.2s ease, color 0.2s ease;
+    background-color: #334155;
+    /* Dark button bg */
+    color: #f1f5f9;
+    /* White text */
+    text-decoration: none;
+    /* Ensure no underline for a/button elements */
+    white-space: nowrap;
+    /* Prevent text wrapping */
+}
+
+.button:hover:not(:disabled) {
+    background-color: #475569;
+    /* Lighter on hover */
+}
+
+.button:disabled {
+    background-color: #CFD8DC;
+    color: #111;
+    cursor: default;
+    /* Changed from not-allowed to default to hide the circle with diagonal line */
+    opacity: 0.6;
+}
+
+/* Specific width for action buttons */
+#manage-custom-lists-button,
+#clearAllRemainingTimesButton,
+#moveToBossSettingsButton,
+#gameSelect {
+    width: 184px;
+    box-sizing: border-box;
+    /* Ensure padding doesn't increase width */
+}
+
+/* Primary Button Styles */
+.primary-button {
+    background-color: #38bdf8;
+    /* Sky Blue */
+    color: #0f172a;
+    /* Dark text */
+    font-weight: bold;
+}
+
+.primary-button:hover:not(:disabled) {
+    background-color: #0ea5e9;
+    /* Slightly darker Sky Blue */
+}
+
+
+h1,
+h2 {
+    color: #f1f5f9;
+    margin-top: 0px;
+}
+
+h3 {
+    color: #e2e8f0;
+    /* Slightly dimmed white */
+}
+
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+    height: 400px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 8px;
+    /* Changed from 10px to 8px (spacing-xs) */
+    font-size: 14px;
+    background-color: #334155;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+.next-boss-highlight {
+    margin-bottom: 10px;
+}
+
+main h3,
+.next-boss-label {
+    font-size: 1.1em;
+    color: #f1f5f9;
+    /* White color */
+    font-weight: bold;
+}
+
+.boss-details-highlight {
+    color: #38bdf8;
+    /* Sky Blue */
+    font-weight: bold;
+    font-size: 1.4em;
+}
+
+.alarm-status-running {
+    color: #34d399;
+    /* Emerald Green */
+}
+
+#alarmStatusText {
+    font-weight: bold;
+    /* 알림 상태 텍스트 항상 굵게 */
+    font-size: 1.4em;
+    /* 폰트 크기 1.4em으로 변경 */
+}
+
+/* Removed #alarmStatusSummary style as it is now part of a card */
+/* Removed #muteControlSection style as it is now part of a card */
+.status-content,
+.mute-control-content {
+    display: flex;
+    flex-direction: column;
+    /* 추가 */
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+}
+
+
+.mute-button {
+    background: none;
+    border: 2px solid;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    color: #34d399;
+    /* Emerald Green */
+    transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.mute-button.muted {
+    color: #64748b;
+    /* Slate 500 */
+}
+
+.remaining-time {
+    color: #f87171;
+    /* Soft Red */
+    font-size: 2.0em;
+    /* 남은 시간 폰트 크기 증가 */
+}
+
+.imminent-boss-info {
+    color: #38bdf8;
+    /* Sky Blue */
+    font-weight: bold;
+}
+
+.imminent-remaining-time {
+    color: #f87171;
+    /* Soft Red */
+    font-weight: bold;
+}
+
+/* 다가오는 보스 목록: 1시간 미만일 때 남은 시간 색상을 빨간색으로 오버라이드 */
+#upcomingBossListContent span.remaining-time.medium-priority {
+    color: #f87171;
+}
+
+/* 다가오는 보스 목록: 기본(1시간 이상)일 때 남은 시간 색상을 빨간색으로 오버라이드 */
+#upcomingBossListContent span.remaining-time.default-grey {
+    color: #f87171;
+}
+
+/* State: < 1 hour */
+#upcomingBossListContent .medium-priority {
+    color: #e2e8f0;
+    font-weight: bold;
+}
+
+/* State: Default (>= 1 hour) */
+.default-grey {
+    color: #777;
+}
+
+/* 기본 상태(1시간 이상)의 출현 시간 색상도 회색으로 지정 */
+#upcomingBossListContent .spawn-time.default-grey {
+    color: #94a3b8 !important;
+}
+
+/* 알림 시작/중지 버튼 */
+#startButton {
+    background-color: #38bdf8;
+    color: #0f172a;
+    font-weight: bold;
+}
+
+#startButton:hover {
+    background-color: #0ea5e9;
+}
+
+#startButton.running {
+    background-color: #ef4444;
+    color: white;
+}
+
+#startButton.running:hover {
+    background-color: #dc2626;
+}
+
+
+
+
+
+/* 알림 로그 창 */
+#log-container {
+    /* height: 400px; */
+    /* Removed fixed height */
+    /* overflow-y: auto; */
+    /* Removed scroll */
+}
+
+#log-container ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.log-entry {
+    padding: 4px 0;
+    /* Changed from 5px 0 to 4px 0 (spacing-xxs) */
+    border-bottom: 1px dashed #ccc;
+    font-size: 1.0em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+.log-entry.important {
+    color: #f87171;
+}
+
+/* 대시보드 최근 알림 로그에서만 중요한 로그의 빨간색 제거 */
+#recentAlarmLogContent .log-entry.important {
+    color: #f1f5f9;
+    /* 기본 텍스트 색상으로 되돌림 */
+}
+
+/* 대시보드 최근 알림 로그에서 가장 최근 로그(가장 상위)만 굵게 표시 */
+#recentAlarmLogContent ul li:first-child {
+    font-weight: bold;
+    color: #34d399 !important;
+    /* 가장 최근 로그 텍스트 색상을 청록색으로 변경 (우선순위 강제) */
+}
+
+#log-container .log-entry strong {
+    color: #f1f5f9;
+}
+
+#recentAlarmLog .log-entry:first-child {
+    padding-top: 0;
+    /* 제목과의 간격을 맞추기 위해 첫 항목의 상단 패딩 제거 */
+}
+
+#upcomingBossListContent ul li {
+    padding: 4px 0;
+    border-bottom: 1px dashed #ccc;
+    font-size: 1.0em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+
+#upcomingBossListContent ul li:first-child,
+#recentAlarmLogContent ul li.log-entry:first-child,
+#log-container ul li.log-entry:first-child {
+    /* Added this line */
+    border-top: 1px dashed #ccc;
+}
+
+/* Switch styles */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 23px;
+    margin-left: 10px;
+    vertical-align: middle;
+    border-radius: 999px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .1s;
+    transition: .1s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 15px;
+    width: 15px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: #38bdf8;
+}
+
+input:focus+.slider {
+    box-shadow: 0 0 1px #38bdf8;
+}
+
+input:checked+.slider:before {
+    -webkit-transform: translateX(17px);
+    -ms-transform: translateX(17px);
+    transform: translateX(17px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 23px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+.fixed-alarm-section {
+    margin-bottom: 20px;
+}
+
+.add-alarm-card {
+    margin-top: 10px;
+    /* Space between title and card */
+    display: flex;
+    /* Use flexbox for alignment */
+    align-items: center;
+    /* Vertically align items */
+    gap: 12px;
+    /* Space between inputs and button */
+}
+
+.add-alarm-card #addFixedAlarmButton {
+    margin-left: auto;
+    /* Push the button to the far right */
+}
+
+.add-alarm-card input[type="text"] {
+    width: 108px;
+    /* Fixed width for inputs */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Placeholder text color */
+input::placeholder,
+textarea::placeholder {
+    color: #64748b;
+    opacity: 1;
+    /* Firefox default opacity can make it lighter */
+}
+
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+    color: #64748b;
+}
+
+input::-moz-placeholder,
+textarea::-moz-placeholder {
+    color: #64748b;
+    opacity: 1;
+}
+
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+    color: #64748b;
+}
+
+.fixed-alarm-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.fixed-alarm-item {
+    display: flex;
+    flex-direction: column;
+    /* Stack children vertically */
+}
+
+.fixed-alarm-item:last-child {
+    margin-bottom: 10px;
+    /* Ensure last item also has margin */
+}
+
+.fixed-alarm-info-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    /* Increased space between info/toggle and buttons */
+}
+
+.fixed-alarm-action-buttons {
+    display: flex;
+    gap: 12px;
+    /* Space between edit and delete buttons */
+    margin-top: 5px;
+    /* Space from the info/toggle line */
+}
+
+.fixed-alarm-item.faded {
+    opacity: 0.5;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.add-fixed-alarm-section {
+    margin-top: 20px;
+}
+
+.log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hidden {
+    display: none !important;
+    /* Use !important to ensure it overrides other display properties */
+}
+
+.modal {
+    display: flex;
+    /* 이미 flex지만 명시 */
+    align-items: center;
+    /* 세로 중앙 정렬 */
+    justify-content: center;
+    /* 가로 중앙 정렬 */
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+}
+
+.modal-header {
+    background-color: #f0f0f0;
+    /* Light background for header */
+    padding: 15px 20px;
+    /* Padding for header content */
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    /* Remove default h2 margin */
+    color: #0f172a;
+    /* Keep modal header dark text as bg is light-ish in some modals? Or update modal bg too */
+}
+
+/* Update modal to be dark too */
+.modal-header {
+    background-color: #1e293b;
+    border-bottom: 1px solid #334155;
+}
+
+.modal-header h2 {
+    color: #f1f5f9;
+}
+
+.close-button {
+    color: #94a3b8;
+}
+
+.modal-content {
+    background-color: #0f172a;
+    border: 1px solid #334155;
+}
+
+.modal-content {
+    background-color: #f8f8f8;
+    margin: 0 auto;
+    padding: 0;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 800px;
+    height: 740px;
+    /* 고정 높이 추가 */
+    border-radius: 12px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.modal-body {
+    flex: 1;
+    /* Allow modal-body to grow and shrink */
+    overflow-y: auto;
+    /* Enable scrolling for content if it overflows */
+    padding: 20px;
+    /* Add padding here for modal-body content */
+}
+
+
+.close-button {
+    display: inline-block;
+    color: #333;
+    /* Changed to dark grey/black */
+    font-size: 32px;
+    /* Slightly larger */
+    font-weight: normal;
+    /* Less bold */
+    position: absolute;
+    right: 15px;
+    cursor: pointer;
+    border: none;
+    /* Removed border */
+    background: none;
+    /* Ensure no background color */
+}
+
+
+
+
+
+
+
+
+
+
+
+.tab-content pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border: none;
+    /* Remove border */
+    padding: 8px;
+    /* Changed from 10px to 8px (spacing-xs) */
+    border-radius: 8px;
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+/* Common styles for documentation content to ensure text wrapping and consistent font */
+.doc-content-pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border: none;
+    padding: 8px;
+    /* Changed from 10px to 8px (spacing-xs) */
+    border-radius: 8px;
+    font-size: 0.9em;
+    line-height: 1.5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+#upcomingBossListContent ul,
+#recentAlarmLogContent ul {
+    list-style-type: none;
+    /* 제목과의 일관된 간격을 위해 브라우저 기본 여백 모두 제거 */
+    padding: 0;
+    margin: 0;
+}
+
+#upcomingBossListContent .spawn-time,
+/* 다가오는 보스 시간 */
+.boss-details-highlight .spawn-time,
+/* 다음 보스 시간 */
+#recentAlarmLogContent .log-entry strong {
+    /* 알림 로그 시간 */
+    font-weight: 700;
+    color: #f1f5f9;
+    /* Changed to #111 */
+}
+
+.calculator-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+/* Zen Calculator Screen Styles */
+:root {
+    --zen-input-width: 164px;
+    /* Adjusted fixed width, should accommodate HH:MM:SS */
+    --zen-input-height: 40px;
+    /* Standard height for inputs/displays */
+}
+
+.zen-grid-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    /* Center align the content */
+    gap: 12px;
+    /* Consistent gap between columns */
+    margin-bottom: 34px;
+}
+
+.zen-grid-row:last-of-type {
+    /* Adjust margin for the last row to avoid excessive spacing */
+    margin-bottom: 0;
+}
+
+.zen-grid-row .input-group,
+/* Targets 남은 시간 and 업데이트할 보스 columns */
+.zen-grid-row .result-display,
+/* Targets 보스 출현 시간 column */
+.zen-grid-row .button-group,
+/* Targets 업데이트 버튼 column */
+.zen-grid-row .light-stopwatch-display-group,
+.zen-grid-row .light-expected-time-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Center align items within the column */
+    /* align-items: flex-start; */
+}
+
+.zen-grid-row .input-group,
+.zen-grid-row .button-group {
+    /* Apply width to the main column containers */
+    width: var(--zen-input-width);
+}
+
+.zen-grid-row label {
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: #94a3b8;
+    line-height: 1;
+    /* Adjust line-height to potentially improve vertical alignment */
+}
+
+/* New: Style for hidden labels to maintain vertical alignment */
+.hidden-label {
+    visibility: hidden;
+    /* Hide the label but keep its space */
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #111;
+    display: block;
+}
+
+/* Specific styling for elements within zen-grid-row */
+.zen-grid-row #remainingTimeInput {
+    /* Removed #bossAppearanceTimeDisplay, #bossSelectionDropdown and #updateBossTimeButton from this group */
+    width: var(--zen-input-width);
+    height: 46px;
+    padding: 33px 16px 33px 16px;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    font-size: 2em;
+    font-weight: 700;
+    background-color: #1e293b;
+    color: #f1f5f9;
+    box-sizing: border-box;
+    text-align: center;
+    line-height: 1;
+}
+
+.zen-grid-row #bossSelectionDropdown {
+    /* Specific styling for dropdown */
+    width: var(--zen-input-width);
+    height: var(--zen-input-height);
+    padding: 8px 30px 8px 8px;
+    /* Increased right padding to make space for custom arrow */
+    border: 1px solid #334155;
+    border-radius: 8px;
+    font-size: 1em;
+    background-color: #1e293b;
+    color: #f1f5f9;
+    box-sizing: border-box;
+    appearance: none;
+    /* Remove default arrow */
+    -webkit-appearance: none;
+    /* For Chrome, Safari */
+    -moz-appearance: none;
+    /* For Firefox */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23f1f5f9' %3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    /* Custom arrow SVG - White */
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    /* Position custom arrow 10px from right */
+    background-size: 24px;
+    /* Increased size of the custom arrow */
+    cursor: pointer;
+    /* Indicate it's clickable */
+}
+
+.zen-grid-row #bossAppearanceTimeDisplay {
+    width: var(--zen-input-width);
+    /* Re-add width */
+    border: 1px solid #334155;
+    /* Re-add border */
+    border-radius: 8px;
+    /* Re-add border-radius */
+    background-color: #1e293b;
+    /* Re-add background-color */
+    box-sizing: border-box;
+    /* Re-add box-sizing */
+    font-size: 2em;
+    font-weight: 700;
+    color: #f87171;
+    text-align: center;
+    /* Fallback for older browsers */
+    padding: 6px 16px 8px 16px;
+}
+
+.zen-grid-row #updateBossTimeButton {
+    width: var(--zen-input-width);
+    height: var(--zen-input-height);
+    padding: 8px;
+    /* Override base padding to 8px all around */
+    box-sizing: border-box;
+}
+
+#remainingTimeInput,
+#bossSelectionDropdown {
+    width: var(--zen-input-width);
+    /* Apply consistent width */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+    /* This font-size will be overridden by the more specific rule for #remainingTimeInput */
+    background-color: #f8f8f8;
+    box-sizing: border-box;
+    /* Include padding and border in the element's total width and height */
+}
+
+/* Toast Container Styles */
+.toast-container {
+    position: fixed;
+    /* Fixed position relative to the viewport */
+    top: 50%;
+    /* Center vertically */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* Center horizontally and vertically */
+    z-index: 1002;
+    /* Ensure it's on top of other content, higher than modal's 1001 */
+    display: flex;
+    /* Use flex to manage multiple toasts */
+    flex-direction: column;
+    /* Stack toasts vertically */
+    gap: 10px;
+    /* Space between multiple toasts */
+    max-width: 90%;
+    /* Limit width to prevent overflow on small screens */
+    pointer-events: none;
+    /* Allow clicks to pass through to elements below */
+}
+
+.toast-message {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    /* Hidden by default */
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    transform: scale(0.9);
+    /* Start slightly smaller for animation */
+    pointer-events: auto;
+    /* Re-enable pointer events for the toast itself */
+    text-align: center;
+}
+
+.toast-message.show {
+    opacity: 1;
+    transform: scale(1);
+    /* Scale to normal size */
+}
+
+.result-display {
+    color: #38bdf8;
+    /* Blue color for remaining time */
+}
+
+.boss-list-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0;
+}
+
+
+/* ---- Unified Card Styles ---- */
+.card-standard {
+    background-color: #1e293b;
+    /* Midnight Pro Card */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    margin-bottom: 0;
+    /* Changed from 20px to 0 */
+    box-sizing: border-box;
+}
+
+.card-list-item {
+    background-color: #1e293b;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    margin-bottom: 10px;
+    color: #f1f5f9;
+}
+
+/* ---- Card Sizing Classes ---- */
+.card-size-standard {
+    max-width: 380px;
+    width: 100%;
+    margin-bottom: 0;
+    /* Changed from 20px to 0 */
+}
+
+.card-size-small {
+    max-width: 182px;
+    /* Changed from 180px to 182px */
+    width: 100%;
+}
+
+.card-size-list {
+    max-width: 800px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* --------------------------- */
+
+
+/* Light Calculator Specific Styles */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /*border-bottom: 1px solid #ccc;  Apply border to the header */
+    padding-bottom: 16px;
+    /* Apply padding to the header */
+    /*margin-bottom: 20px;           Apply margin to the header */
+}
+
+.card-header h3 {
+    margin: 0;
+    color: #38bdf8;
+}
+
+.card-header h4 {
+    margin: 0;
+    font-size: 1.0em;
+    color: #38bdf8;
+}
+
+.light-calculator-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 0;
+    /* Remove bottom margin */
+}
+
+.light-stopwatch-display-group,
+.light-expected-time-group,
+.light-over-time-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.light-stopwatch-display-group label,
+.light-expected-time-group label,
+.light-over-time-group label {
+    font-weight: bold;
+    margin-bottom: 12px;
+    /* Matched to Zen Calculator's 10px */
+    color: #94a3b8;
+}
+
+.light-expected-time-group label .expected-text {
+    color: #94a3b8;
+    /* Default black for "잡힘" */
+}
+
+.light-expected-time-group label .expected-label {
+    color: #f87171;
+    /* Red for "예상 시간" */
+}
+
+.light-expected-time-group label.over-time-label .expected-label {
+    color: #38bdf8;
+    /* Blue for "오버 시간" */
+}
+
+#lightStopwatchDisplay {
+    width: var(--zen-input-width);
+    /* height: 46px; Removed fixed height to match bossAppearanceTimeDisplay behavior */
+    font-size: 2em;
+    font-weight: 700;
+    color: #f1f5f9;
+    /* Black for stopwatch */
+    background-color: #1e293b;
+    padding: 6px 16px 8px 16px;
+    /* Matched to bossAppearanceTimeDisplay */
+    border-radius: 8px;
+    border: 1px solid #334155;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+#lightExpectedTimeDisplay {
+    width: var(--zen-input-width);
+    /* height: 46px; Removed fixed height */
+    font-size: 2em;
+    font-weight: 700;
+    color: #f87171;
+    /* Red for expected time */
+    background-color: #1e293b;
+    padding: 6px 16px 8px 16px;
+    /* Matched to bossAppearanceTimeDisplay */
+    border-radius: 8px;
+    border: 1px solid #334155;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+#lightExpectedTimeDisplay.over-time {
+    color: #34d399;
+    /* Blue when it's over time */
+}
+
+.light-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: -16px;
+    /* Remove top margin as gap is handled by container */
+}
+
+.light-buttons button {
+    width: 104px;
+    /* Fixed width for uniformity */
+}
+
+.light-list-action {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0px;
+    width: 100%;
+}
+
+
+
+
+
+.light-calculation-results {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 0;
+    gap: 10px;
+}
+
+.light-temp-results {
+    margin-top: 20px;
+    padding: 0;
+    /* Remove padding */
+    background-color: transparent;
+    /* Remove background */
+    border: none;
+    /* Remove border */
+    border-radius: 0;
+}
+
+.light-temp-results.compact-top {
+    margin-top: 0;
+}
+
+/* Removed .light-temp-results-card h4 styling as we will use h3 without border */
+
+/* Unified Table Styles */
+.light-temp-table,
+.light-saved-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.light-temp-table th,
+.light-temp-table td,
+.light-saved-table th,
+.light-saved-table td {
+    border: 1px solid #334155;
+    padding: 8px;
+    text-align: center;
+    min-width: 50px;
+    /* Ensure enough space for MM:SS */
+    white-space: nowrap;
+    /* Prevent text wrapping */
+}
+
+.light-temp-table th,
+.light-saved-table th {
+    background-color: #334155;
+    font-weight: bold;
+    color: #f1f5f9;
+}
+
+.light-saved-table tbody tr:nth-child(even),
+.light-temp-table tbody tr:nth-child(even) {
+    /* Apply to temp table too if needed, though usually 1 row */
+    background-color: #1e293b;
+    /* keep same as card bg or slightly different? */
+}
+
+.light-saved-table tbody tr:hover,
+.light-temp-table tbody tr:hover {
+    background-color: #334155;
+}
+
+.light-saved-table {
+    margin-top: 12px;
+}
+
+.light-saved-list {
+    margin-top: 24px;
+    /* Adjusted to 24px */
+}
+
+/* Boss Scheduler Screen Styles */
+.boss-list-display-container {
+    display: flex;
+    /* Make it a flex container */
+    flex-direction: column;
+    /* Stack children vertically */
+    height: 500px;
+    /* Fixed height for the entire card, adjust as needed */
+    margin-bottom: 20px;
+    /* Added for spacing below the container */
+}
+
+.scheduler-card {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+    flex-grow: 1;
+    /* Allow it to take remaining vertical space */
+    overflow-y: auto;
+    /* Enable vertical scrolling */
+}
+
+.boss-scheduler-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.share-content-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+}
+
+.next-boss-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    /* min-height: 100px; Optional: ensure some height if empty */
+}
+
+.dashboard-layout {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+}
+
+.dashboard-layout {
+    display: flex;
+    flex-direction: column;
+    /* Mobile: all columns/cards stack vertically */
+    align-items: center;
+    /* Center align all cards */
+    gap: 16px;
+    /* Changed from 20px to 16px */
+    width: 100%;
+    max-width: 800px;
+    /* Limit overall dashboard max width */
+    margin: 0 auto;
+    /* Center align the entire dashboard */
+}
+
+/* Each column (behaves as a block on mobile) */
+.dashboard-column-left,
+.dashboard-column-right {
+    display: flex;
+    flex-direction: column;
+    /* Cards within each column stack vertically */
+    gap: 16px;
+    /* Changed from 20px to 16px */
+    align-items: center;
+    /* Center align cards within column */
+    width: 100%;
+    /* Occupy full parent width on mobile */
+    max-width: 380px;
+    /* Match max width of individual cards */
+}
+
+
+/* --- PC (wide screen) layout --- */
+@media (min-width: 769px) {
+
+    /* Tablet/Desktop breakpoint */
+    .dashboard-layout {
+        flex-direction: row;
+        /* PC: arrange two columns horizontally */
+        justify-content: center;
+        /* Center align the two columns themselves */
+        align-items: flex-start;
+        /* Align columns from the top */
+        gap: 16px;
+        /* Changed from 40px to 16px */
+    }
+
+    .dashboard-column-left,
+    .dashboard-column-right {
+        width: 380px;
+        /* Fix column width to match card max width */
+        min-width: 380px;
+        /* Prevent shrinking */
+        max-width: 380px;
+    }
+}
+
+/* 알림 상태 & 소리 설정 카드 묶음 (항상 가로 배치) */
+.dashboard-small-cards-row {
+    display: flex;
+    flex-direction: row;
+    /* Always horizontal */
+    flex-wrap: wrap;
+    /* Wrap if space is insufficient */
+    justify-content: center;
+    /* Center align items */
+    gap: 16px;
+    /* Changed from 20px to 16px */
+    width: 100%;
+    /* Occupy full parent width */
+    max-width: 380px;
+    /* Max-width for two small cards combination */
+}
+
+.boss-scheduler-controls {
+    margin-bottom: 20px;
+    /* Keep spacing after dropdown */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.boss-scheduler-actions {
+    display: flex;
+    justify-content: center;
+    /* Changed from flex-start to center */
+    gap: 10px;
+    margin-top: 0px;
+    /* Adjusted to be closer to dropdown */
+    margin-bottom: 20px;
+    /* Space before boss input header */
+}
+
+/* Horizontal alignment for control groups */
+.control-group-horizontal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Added center alignment */
+    gap: 12px;
+    /* Space between items */
+    margin-bottom: 15px;
+    /* Add some margin below the group */
+}
+
+/* Horizontal alignment for action buttons */
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    /* Changed from flex-start to center */
+    gap: 12px;
+    /* Space between buttons */
+    margin-top: 0;
+    /* Space above the button group */
+    margin-bottom: 20px;
+    /* Space below the button group */
+}
+
+.boss-input-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 0 10px 0;
+    /* Adjusted padding to be only at bottom */
+    margin-bottom: 10px;
+    /* Space between header and scrollable list */
+    font-weight: bold;
+    color: #94a3b8;
+    border-bottom: 1px solid #334155;
+    /* Visual separator */
+    flex-shrink: 0;
+    /* Prevent header from shrinking */
+}
+
+.boss-name-header {
+    flex-basis: 130px;
+    /* Match boss-name flex-basis */
+    flex-shrink: 0;
+}
+
+.remaining-time-header {
+    flex-grow: 1;
+    max-width: 70px;
+    text-align: right;
+    padding-left: 4px;
+}
+
+.spawn-time-header {
+    flex-basis: 80px;
+    /* Match calculated-spawn-time flex-basis */
+    text-align: center;
+    flex-shrink: 0;
+    padding-left: 10px;
+}
+
+#gameSelect {
+    padding: 8px 12px;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    font-size: 1em;
+    background-color: #1e293b;
+    color: #f1f5f9;
+    cursor: pointer;
+}
+
+.boss-inputs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    margin-bottom: 0px;
+    /* max-height: 500px;  Removed as parent .scheduler-card now handles scrolling */
+    /* overflow-y: auto; Removed as parent .scheduler-card now handles scrolling */
+    padding-right: 10px;
+    border-top: 1px solid #334155;
+    padding-top: 10px;
+}
+
+.boss-input-item {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    /* Remove background */
+    padding: 8px 0px;
+    /* Adjusted padding for line items */
+    border-radius: 0;
+    /* Remove border-radius */
+    box-shadow: none;
+    /* Remove shadow */
+    border-bottom: 1px dashed #334155;
+    /* Line separator */
+    gap: 12px;
+    width: 100%;
+    /* Take full width of parent */
+}
+
+.boss-input-item:last-child {
+    border-bottom: none;
+    /* No border for the last item */
+}
+
+.boss-name {
+    font-weight: bold;
+    color: #f1f5f9;
+    flex-basis: 130px;
+    /* Fixed width for boss name */
+    flex-shrink: 0;
+}
+
+.remaining-time-input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    font-size: 0.9em;
+    background-color: #1e293b;
+    color: #f1f5f9;
+    max-width: 70px;
+    /* Limit input width */
+    text-align: center;
+}
+
+.calculated-spawn-time {
+    font-weight: 700;
+    color: #f1f5f9;
+    /* Black color for emphasis */
+    flex-basis: 80px;
+    /* Fixed width for calculated time */
+    text-align: center;
+    flex-shrink: 0;
+}
+
+
+
+
+
+#global-tooltip {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Position relative to the viewport */
+    background-color: #555;
+    color: white;
+    padding: 4px 12px;
+    /* Changed from 5px 10px to 4px 8px (spacing-xxs top/bottom, spacing-xs left/right) */
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 1000;
+    /* Ensure it's on top */
+    pointer-events: none;
+    /* Allow clicks through */
+    transition: opacity 0.2s, visibility 0.2s;
+    /* Smooth transition */
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Version History Accordion Styles */
+.version-accordion {
+    margin-bottom: 10px;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    background-color: #1e293b;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.version-summary {
+    display: flex;
+    padding: 12px 16px;
+    cursor: pointer;
+    background-color: #334155;
+    border-bottom: 1px solid #1e293b;
+    position: relative;
+    list-style: none;
+    /* Remove default marker */
+    font-weight: bold;
+}
+
+.version-summary::-webkit-details-marker {
+    display: none;
+    /* Hide default marker for Webkit browsers */
+}
+
+.version-summary::before {
+    content: '▶';
+    /* Custom arrow */
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.2s ease;
+    font-size: 0.8em;
+    color: #666;
+}
+
+.version-accordion[open] .version-summary::before {
+    transform: translateY(-50%) rotate(90deg);
+}
+
+.version-summary .version-number {
+    margin-left: 20px;
+    /* Space for the custom arrow */
+    color: #f1f5f9;
+}
+
+.version-details {
+    padding: 12px 16px;
+    /* Changed from 10px 15px to 12px 16px (spacing-sm top/bottom, spacing-md left/right) */
+    border-top: 1px solid #1e293b;
+    background-color: #0f172a;
+}
+
+.version-details ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.version-details li {
+    margin-bottom: 5px;
+    line-height: 1.5;
+    color: #cbd5e1;
+}
+
+.version-details li strong {
+    color: #f1f5f9;
+}
+
+.version-details ul ul {
+    /* Nested lists for details */
+    padding-left: 20px;
+    margin-top: 5px;
+    list-style: disc;
+}
+
+.version-details ul ul li {
+    margin-bottom: 2px;
+    font-size: 0.95em;
+    color: #666;
+}
+
+/* Help Accordion Styles (similar to version-accordion) */
+.help-section,
+.help-sub-section {
+    margin-bottom: 10px;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    background-color: #1e293b;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.help-summary,
+.help-sub-summary {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px 12px 40px;
+    /* Changed from 10px 15px 10px 40px to 12px 16px 12px 40px (spacing-sm top/bottom, spacing-md right, maintain left padding) */
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #334155;
+    border-bottom: 1px solid #1e293b;
+    position: relative;
+    list-style: none;
+}
+
+.help-summary::-webkit-details-marker,
+.help-sub-summary::-webkit-details-marker {
+    display: none;
+}
+
+.help-summary::before,
+.help-sub-summary::before {
+    content: '▶';
+    position: absolute;
+    left: 15px;
+    /* Adjusted left position */
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.2s ease;
+    font-size: 0.8em;
+    color: #666;
+}
+
+.help-section[open] .help-summary::before,
+.help-sub-section[open] .help-sub-summary::before {
+    transform: translateY(-50%) rotate(90deg);
+}
+
+.help-summary {
+    color: #f1f5f9;
+}
+
+.help-sub-summary {
+    background-color: #334155;
+    color: #cbd5e1;
+    font-weight: normal;
+    padding: 12px 16px 12px 50px;
+    /* Changed from 10px 15px 10px 50px to 12px 16px 12px 50px (spacing-sm top/bottom, spacing-md right, maintain left padding) */
+}
+
+.help-sub-summary::before {
+    left: 25px;
+    /* Adjusted arrow position for sub-summary */
+}
+
+.help-content,
+.help-sub-content {
+    padding: 12px 16px;
+    /* Changed from 10px 15px to 12px 16px (spacing-sm top/bottom, spacing-md left/right) */
+    border-top: 1px solid #334155;
+    background-color: #0f172a;
+}
+
+.help-content p,
+.help-sub-content p {
+    margin-bottom: 5px;
+    line-height: 1.5;
+    color: #cbd5e1;
+}
+
+.help-content ul,
+.help-sub-content ul {
+    list-style: disc;
+    padding-left: 20px;
+    margin: 0;
+}
+
+#boss-management-screen textarea {
+    margin-bottom: 20px;
+    height: 400px;
+    /* 크기 400px로 변경 */
+}
+
+/* Custom Boss List Modal Tabs */
+.modal-tabs {
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 1px solid #334155;
+    margin-bottom: 0;
+    /* 간격 제거 */
+}
+
+.tab-button {
+    background-color: transparent;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 1em;
+    color: #94a3b8;
+    transition: color 0.2s, border-bottom 0.2s;
+    flex-grow: 1;
+    /* Distribute space evenly */
+}
+
+.tab-button:hover {
+    color: #f1f5f9;
+}
+
+.tab-button.active {
+    color: #38bdf8;
+    /* Active tab color */
+    border-bottom: 2px solid #38bdf8;
+    /* Active tab indicator */
+    font-weight: bold;
+}
+
+/* Custom List Tab Content */
+.custom-list-tab-content {
+    display: none;
+    /* Hidden by default */
+}
+
+.custom-list-tab-content.active {
+    display: flex;
+    /* Changed from block */
+    flex-direction: column;
+}
+
+/* Modal specific styles adjustment */
+.modal-content .control-group {
+    margin-bottom: 13px;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.modal-content input[type="text"],
+.modal-content textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    background-color: #0f172a;
+    color: #f1f5f9;
+    box-sizing: border-box;
+    /* Include padding and border in element's total width and height */
+}
+
+#save-custom-list-button {
+    margin-left: auto;
+}
+
+.custom-list-manage-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    background-color: #1e293b;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.custom-list-manage-item .list-name {
+    font-weight: bold;
+    color: #f1f5f9;
+}
+
+.custom-list-manage-item .button-group {
+    display: flex;
+    gap: 8px;
+    /* Space between buttons */
+}
+
+
+
+/* Reduce margin-top for h3 within the notification settings screen */
+section#notification-settings-screen h3 {
+    margin-top: 0;
+}
+
+h3 {
+    margin-bottom: 0.5em;
+}
+
+/* Explicitly hide mobile-only elements on desktop */
+@media (min-width: 769px) {
+    .more-menu-close-button {
+        display: none;
+    }
+}
+
+/* Mobile Navigation Styles */
+:root {
+    --bottom-nav-height: 60px;
+    /* Define height for the bottom nav bar */
+}
+
+/* Hide bottom nav on desktop by default */
+.bottom-nav,
+.sidebar-backdrop {
+    display: none;
+}
+
+@media (max-width: 768px) {
+
+    /* --- Hide desktop sidebar and toggle --- */
+    body.is-mobile-view nav.sidebar,
+    body.is-mobile-view #sidebarToggle {
+        display: none;
+    }
+
+    #sidebarToggle {
+        display: none;
+        /* 모바일에서 기본적으로 숨김 */
+    }
+
+    nav.sidebar {
+        display: none;
+        /* 모바일에서 기본적으로 숨김 */
+    }
+
+    /* --- Show and style the bottom navigation bar --- */
+    .bottom-nav {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        /* Align items to the center as labels are removed */
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: var(--bottom-nav-height);
+        background-color: #1e293b;
+        /* Bottom Nav Midnight Pro */
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        padding-bottom: env(safe-area-inset-bottom);
+        /* For iPhone safe area */
+    }
+
+    /* --- Adjust main content padding --- */
+    body {
+        padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+    }
+
+    main {
+        min-height: calc(100vh - var(--header-height) - var(--bottom-nav-height) - 55px - 40px);
+        /* Ensures main pushes footer below fixed bottom nav */
+        /* padding-bottom is now on the body to lift the footer as well */
+    }
+
+
+    .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        /* Center icon vertically within the item */
+        flex-grow: 1;
+        text-decoration: none;
+        color: #94a3b8;
+        background: none;
+        border: none;
+        font-family: inherit;
+        /* font-size: 10px; REMOVED as labels are gone */
+        padding: 0 4px;
+        cursor: pointer;
+    }
+
+    .bottom-nav-item .menu-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 0;
+        /* margin-bottom: 2px; REMOVED as labels are gone */
+        fill: currentColor;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .bottom-nav-item .bottom-nav-text {
+        white-space: nowrap;
+    }
+
+    .bottom-nav-item.active {
+        color: #f1f5f9;
+        /* Active color - Dark grey (matching footer background) */
+    }
+
+    .bottom-nav-item.active .menu-icon {
+        transform: scale(1.3);
+    }
+
+    /* --- 'More' menu overlay using the old sidebar --- */
+    #sidebar.more-menu-open {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1010;
+        /* Above bottom nav */
+        background-color: #0f172a;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 20px;
+        box-sizing: border-box;
+        /* Include padding in width/height */
+        transform: translateX(0);
+        /* Ensure it's visible */
+        transition: transform 0.3s ease-in-out;
+        overflow-y: auto;
+    }
+
+    /* Make the links in the overlay look better */
+    .more-menu-open .sidebar-menu {
+        margin-top: 50px;
+        width: 100%;
+    }
+
+    .more-menu-open .sidebar-menu a {
+        padding: 16px;
+        font-size: 1.2em;
+    }
+
+    .more-menu-open .sidebar-menu a .menu-text {
+        opacity: 1;
+        visibility: visible;
+        max-width: none;
+    }
+
+    .more-menu-close-button {
+        display: none;
+        /* 모바일에서 기본적으로 숨김 */
+        /* Hide by default on desktop - handled by media query below */
+    }
+
+    /* Style for the close button inside the 'more' menu */
+    #sidebar.more-menu-open .more-menu-close-button {
+        display: block;
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #f1f5f9;
+        padding: 5px;
+    }
+
+    #sidebar.more-menu-open .more-menu-close-button svg {
+        width: 30px;
+        height: 30px;
+        fill: currentColor;
+    }
+
+
+    /* --- Backdrop for the 'More' menu --- */
+    .sidebar-backdrop {
+        display: none;
+        /* Hidden by default */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1005;
+        /* Below the menu, above everything else */
+    }
+
+    .sidebar-backdrop.active {
+        display: block;
+    }
+}
+
+footer p {
+    margin: 0;
+}
+
+/* Toggle Button Styles */
+.toggle-button {
+    /* 기본 .button 스타일을 따르거나 필요한 경우 일부 재정의 */
+    background-color: #1e293b;
+    /* 비활성화 상태일 때의 배경색 */
+    color: #94a3b8;
+    /* 비활성화 상태일 때의 글자색 */
+    border-radius: 48px;
+}
+
+.toggle-button:hover:not(:disabled) {
+    background-color: #334155;
+    /* 호버 시 배경색 */
+}
+
+.toggle-button.active {
+    background-color: #eab308;
+    /* 활성화 상태일 때의 배경색 - Yellow Amber */
+    color: #0f172a;
+    /* 활성화 상태일 때의 글자색 */
+    border-radius: 48px;
+}
+
+.toggle-button.active:hover:not(:disabled) {
+    background-color: #ca8a04;
+    /* 활성화 상태에서 호버 시 배경색 */
+}
