@@ -4,7 +4,7 @@ import { validateFixedAlarmTime, normalizeTimeFormat } from '../utils.js';
 import { log } from '../logger.js';
 import { syncScheduleToWorker, getIsAlarmRunning } from '../alarm-scheduler.js';
 
-export function initNotificationSettingsScreen(DOM) {
+export function initSettingsScreen(DOM) {
     // Event delegation for fixed alarm items (edit, delete, individual toggle)
     if (DOM.fixedAlarmListDiv) {
         DOM.fixedAlarmListDiv.addEventListener('click', (event) => {
@@ -75,7 +75,7 @@ export function initNotificationSettingsScreen(DOM) {
 
 export function getScreen() {
     return {
-        id: 'notification-settings-screen',
-        init: initNotificationSettingsScreen
+        id: 'settings-screen',
+        init: initSettingsScreen
     };
 }

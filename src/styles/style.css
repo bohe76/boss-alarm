@@ -1560,7 +1560,7 @@ textarea:-ms-input-placeholder {
 
 
 /* Reduce margin-top for h3 within the notification settings screen */
-section#notification-settings-screen h3 {
+section#settings-screen h3 {
     margin-top: 0;
 }
 

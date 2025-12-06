@@ -19,7 +19,7 @@ export function initDomElements() {
         navBossManagement: document.getElementById('nav-boss-management'), // New
         navCalculator: document.getElementById('nav-calculator'), // New
         navBossScheduler: document.getElementById('nav-boss-scheduler'), // New
-        navNotificationSettings: document.getElementById('nav-notification-settings'), // New
+        navSettings: document.getElementById('nav-settings'), // New
         navAlarmLog: document.getElementById('nav-alarm-log'), // New
         navVersionInfo: document.getElementById('nav-version-info'), // New
         navShare: document.getElementById('nav-share'), // New
@@ -36,7 +36,7 @@ export function initDomElements() {
         bossManagementScreen: document.getElementById('boss-management-screen'),
         calculatorScreen: document.getElementById('calculator-screen'), // New
         bossSchedulerScreen: document.getElementById('boss-scheduler-screen'), // New
-        notificationSettingsScreen: document.getElementById('notification-settings-screen'),
+        settingsScreen: document.getElementById('settings-screen'),
         alarmLogScreen: document.getElementById('alarm-log-screen'),
         versionInfoScreen: document.getElementById('version-info-screen'),
         shareScreen: document.getElementById('share-screen'),

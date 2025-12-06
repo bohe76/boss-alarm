@@ -21,7 +21,7 @@ import { getScreen as getCalculatorScreen } from './screens/calculator.js';
 import { getScreen as getCustomListScreen } from './screens/custom-list.js';
 import { getScreen as getDashboardScreen } from './screens/dashboard.js';
 import { getScreen as getHelpScreen } from './screens/help.js';
-import { getScreen as getNotificationSettingsScreen } from './screens/notifications.js';
+import { getScreen as getSettingsScreen } from './screens/settings.js';
 import { getScreen as getShareScreen } from './screens/share.js';
 import { getScreen as getVersionInfoScreen } from './screens/version-info.js';
 
@@ -37,7 +37,7 @@ function registerAllRoutes() {
         getCustomListScreen(),
         getDashboardScreen(),
         getHelpScreen(),
-        getNotificationSettingsScreen(),
+        getSettingsScreen(),
         getShareScreen(),
         getVersionInfoScreen(),
     ];
@@ -94,7 +94,7 @@ function showScreen(DOM, screenId) {
     const screens = [
         DOM.dashboardScreen,
         DOM.bossManagementScreen,
-        DOM.notificationSettingsScreen,
+        DOM.settingsScreen,
         DOM.alarmLogScreen,
         DOM.versionInfoScreen,
         DOM.shareScreen,
@@ -120,7 +120,7 @@ function showScreen(DOM, screenId) {
 
     const allNavLinks = [
         DOM.navDashboard, DOM.navBossManagement, DOM.navCalculator, DOM.navBossScheduler,
-        DOM.navNotificationSettings, DOM.navAlarmLog, DOM.navVersionInfo, DOM.navShare, DOM.navHelp,
+        DOM.navSettings, DOM.navAlarmLog, DOM.navVersionInfo, DOM.navShare, DOM.navHelp,
         DOM.bottomNavDashboard, DOM.bottomNavBossManagement, DOM.bottomNavCalculator, DOM.bottomNavShare
     ];
 
@@ -248,7 +248,7 @@ function initEventHandlers(DOM, globalTooltip) {
 
     const navLinks = [
         DOM.navDashboard, DOM.navBossManagement, DOM.navCalculator, DOM.navBossScheduler,
-        DOM.navNotificationSettings, DOM.navAlarmLog, DOM.navVersionInfo, DOM.navShare, DOM.navHelp
+        DOM.navSettings, DOM.navAlarmLog, DOM.navVersionInfo, DOM.navShare, DOM.navHelp
     ];
 
     navLinks.forEach(link => {

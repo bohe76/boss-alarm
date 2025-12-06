@@ -114,6 +114,6 @@
 
 ### 3.10. 알림 설정 화면 (`src/screens/notifications.js`)
 
-*   **초기화:** `app.js`의 `showScreen` 함수를 통해 'notification-settings-screen'으로 내비게이션될 때 `initNotificationSettingsScreen(DOM)`이 호출되어 고정 알림 목록 관리 이벤트 리스너가 설정됩니다.
+*   **초기화:** `app.js`의 `showScreen` 함수를 통해 'settings-screen'으로 내비게이션될 때 `initNotificationSettingsScreen(DOM)`이 호출되어 고정 알림 목록 관리 이벤트 리스너가 설정됩니다.
 *   **처리 흐름:** 고정 알림은 `LocalStorageManager`를 통해 추가, 편집, 삭제, 활성화/비활성화 상태 토글이 가능합니다. 모든 변경사항은 로컬 스토리지에 즉시 반영되며, `ui-renderer.js`의 헬퍼 함수들을 통해 UI가 갱신됩니다.
 *   **데이터 흐름 요약:** 고정 알림은 `LocalStorageManager`를 통해 CRUD 및 상태 토글이 가능하며, `ui-renderer.js`를 통해 UI가 갱신됩니다.

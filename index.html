@@ -281,7 +281,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" id="nav-notification-settings" data-screen="notification-settings-screen">
+                    <a href="#" id="nav-settings" data-screen="settings-screen">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="menu-icon">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -559,13 +559,14 @@
                 </div>
             </section>
 
-            <section id="notification-settings-screen" class="screen">
+            <section id="settings-screen" class="screen">
                 <h2>설정</h2>
-                <div class="fixed-alarm-section card-size-list">
-                    <div class="fixed-alarm-header">
+                <div class="card-standard card-size-list">
+                    <div class="card-header">
                         <h3>고정 알림</h3>
+                        <button id="add-fixed-alarm-button" class="button">추가</button>
                     </div>
-                    <div id="fixedAlarmList">
+                    <div id="fixedAlarmList" class="card-list-content">
                         <!-- Fixed alarms will be rendered here by JavaScript -->
                     </div>
                 </div>
