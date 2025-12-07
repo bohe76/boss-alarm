@@ -95,13 +95,13 @@
 모든 화면과 컴포넌트의 UI를 렌더링하고 업데이트하는 로직을 담당하는 중앙 집중식 모듈입니다. DOM 조작 및 HTML 문자열 생성을 캡슐화하여, 다른 모듈들이 UI 표현 방식에 대해 알 필요 없이 데이터를 기반으로 UI를 업데이트할 수 있도록 합니다.
 
 ### 주요 `export` 함수 (예시)
-다양한 화면 및 컴포넌트별 렌더링/업데이트 함수들을 `export`합니다. 모든 함수는 `DOM` 객체를 인자로 받아 해당 객체 내의 요소들을 조작합니다.
+다양한 화면 및 컴포언트별 렌더링/업데이트 함수들을 `export`합니다. 모든 함수는 `DOM` 객체를 인자로 받아 해당 객체 내의 요소들을 조작합니다.
 
 *   `showToast(DOM, message)`: 사용자에게 피드백을 제공하는 토스트 메시지를 표시합니다.
 *   `populateBossSelectionDropdown(DOM)`: '젠 계산기'의 보스 선택 드롭다운 메뉴를 동적으로 생성합니다.
 *   `updateMuteButtonVisuals(DOM)`: 음소거 상태에 따라 음소거 버튼의 시각적 상태(아이콘)를 업데이트합니다.
-*   `updateNextBossDisplay(DOM)`: 대시보드의 '다음 보스' 정보를 갱신하고, PiP 창이 열려 있는 경우 `pip-manager.js`의 `updatePipContent()`를 호출하여 PiP 창의 내용을 동기화합니다.
-*   `renderUpcomingBossList(DOM)`: 대시보드의 '다가오는 보스 목록'을 렌더링합니다.
+*   `updateNextBossDisplay(DOM)`: 대시보드의 '다음 보스' 정보를 갱신합니다. 남은 시간에 따라 시간 표시의 색상을 동적으로 변경(5분 미만: 빨강, 10분 미만: 주황, 1시간 미만: 검정, 1시간 이상: 회색)하여 직관성을 높입니다. PiP 창이 열려 있는 경우 `pip-manager.js`의 `updatePipContent()`를 호출하여 PiP 창의 내용을 동기화합니다.
+*   `renderUpcomingBossList(DOM)`: 대시보드의 '다가오는 보스 목록'을 렌더링합니다. 각 보스의 남은 시간에 따라 목록의 색상을 동적으로 변경하여(5분, 10분, 1시간 기준) 가독성을 높입니다.
 *   `renderAlarmStatusSummary(DOM)`: 대시보드의 '알림 실행 상태' 텍스트를 갱신합니다.
 *   `renderRecentAlarmLog(DOM)`: 대시보드의 '최근 알림 로그'를 렌더링합니다. (이벤트 기반 갱신)
 *   `renderDashboard(DOM)`: '다음 보스', '다가오는 보스', '알림 실행 상태', '음소거 버튼' 등 대시보드 전체 UI를 업데이트하는 오케스트레이터 함수입니다.
@@ -316,7 +316,7 @@
 
 - **주요 `export` 함수:**
     - `togglePipWindow()`: PiP 창을 열거나 닫습니다. 호출 시 PiP API 지원 여부를 확인하고, 지원 시 `requestWindow()`를 통해 새 창을 생성합니다. `pip-content.html`의 HTML과 CSS를 로드하여 삽입하며, 사용자가 PiP 창을 닫을 경우 내부 상태를 재설정하기 위한 `pagehide` 이벤트 리스너를 등록합니다. 창의 초기 크기는 너비 240px, 높이 100px로 설정됩니다.
-    - `updatePipContent(nextBoss, minTimeDiff)`: 열려 있는 PiP 창의 내용을 '다음 보스' 정보로 업데이트합니다. `nextBoss` 객체와 남은 시간(밀리초)을 받아 PiP 창 내의 `#pip-boss-name`, `#pip-remaining-time` 요소의 텍스트를 갱신합니다. 남은 시간은 HH:MM:SS 또는 MM:SS 형식으로 포맷팅됩니다.
+    - `updatePipContent(nextBoss, minTimeDiff)`: 열려 있는 PiP 창의 내용을 '다음 보스' 정보로 업데이트합니다. 남은 시간에 따라 시간 표시의 색상을 동적으로 변경(5분 미만: 빨강, 10분 미만: 주황, 1시간 미만: 검정, 1시간 이상: 회색)합니다.
     - `isPipWindowOpen()`: PiP 창이 현재 열려 있는지 여부를 반환합니다.
 
 ---
