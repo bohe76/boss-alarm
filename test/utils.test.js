@@ -180,8 +180,6 @@ describe('normalizeTimeFormat', () => {
 });
 
 describe('calculateNextOccurrence', () => {
-    // Mock Date.now for consistent testing
-    const originalDateNow = Date.now;
     beforeEach(() => {
         // Mocking Date for a Monday at 10:00:00 LOCAL
         vi.setSystemTime(new Date(2024, 0, 1, 10, 0, 0)); // Monday, January 1, 2024 10:00:00 LOCAL

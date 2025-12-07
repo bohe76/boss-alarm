@@ -1,5 +1,5 @@
 // src/data-managers.js
-import { formatMonthDay, calculateNextOccurrence } from './utils.js';
+import { calculateNextOccurrence } from './utils.js';
 
 export const BossDataManager = (() => {
     let bossSchedule = []; // 파싱된 보스 정보를 저장할 배열
