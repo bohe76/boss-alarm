@@ -19,8 +19,8 @@ export async function togglePipWindow() {
     try {
         // 창 크기 옵션을 포함하여 PiP 창을 요청합니다.
         pipWindow = await documentPictureInPicture.requestWindow({
-            width: 250,
-            height: 150,
+            width: 200,
+            height: 100,
         });
         isPipOpen = true;
 
