@@ -14,7 +14,8 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: calc(100vh - 20px); /* Adjust height for padding */
+            /* height: calc(100vh - 20px); This was based on 10px padding, might need adjustment*/
+            height: 100vh; /* Use full viewport height and rely on flexbox to center content */
             overflow: hidden;
             box-sizing: border-box; /* Include padding in height calculation */
         }
@@ -33,11 +34,7 @@
             font-size: 1.4em;
             line-height: 1.2; /* Adjust line height for better spacing */
         }
-        .boss-details-highlight .spawn-time {
-            font-weight: 700; /* Bold for spawn time */
-            color: #111; /* Black for spawn time */
-            display: block; /* Ensure it takes its own line */
-        }
+        /* .boss-details-highlight .spawn-time { Removed this rule as the element is gone } */
         .remaining-time {
             color: #ea4335; /* Red-ish for remaining time */
             font-size: 2.0em; /* Larger font size for remaining time */
@@ -55,8 +52,7 @@
 <body>
     <div class="next-boss-content">
         <span class="boss-details-highlight">
-            <span class="spawn-time" id="pip-spawn-time">--:--:--</span>
-            <span id="pip-boss-name">다음 보스 없음</span><br>
+            <span id="pip-boss-name">다음 보스 없음</span>
             <span class="remaining-time" id="pip-remaining-time">--:--:--</span>
         </span>
     </div>

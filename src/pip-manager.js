@@ -1,5 +1,5 @@
 // src/pip-manager.js
-import { formatSpawnTime } from './utils.js'; // Import formatSpawnTime
+// Removed: import { formatSpawnTime } from './utils.js'; 
 
 let pipWindow = null;
 let isPipOpen = false;
@@ -52,11 +52,11 @@ export async function togglePipWindow() {
 export function updatePipContent(nextBoss, minTimeDiff) {
     if (!isPipOpen || !pipWindow || !pipWindow.document) return;
     
-    const spawnTimeElement = pipWindow.document.getElementById('pip-spawn-time');
+    // Removed: const spawnTimeElement = pipWindow.document.getElementById('pip-spawn-time');
     const nameElement = pipWindow.document.getElementById('pip-boss-name');
     const remainingTimeElement = pipWindow.document.getElementById('pip-remaining-time');
 
-    if (spawnTimeElement && nameElement && remainingTimeElement) {
+    if (nameElement && remainingTimeElement) { // Adjusted condition
         if (nextBoss && minTimeDiff > 0) {
             const totalSeconds = Math.max(0, Math.floor(minTimeDiff / 1000));
             const hours = Math.floor(totalSeconds / 3600);
@@ -72,7 +72,7 @@ export function updatePipContent(nextBoss, minTimeDiff) {
                 formattedRemainingTime = `${pad(minutes)}:${pad(seconds)}`;
             }
 
-            spawnTimeElement.textContent = formatSpawnTime(nextBoss.time); // Remove brackets
+            // Removed: spawnTimeElement.textContent = formatSpawnTime(nextBoss.time);
             nameElement.textContent = nextBoss.name;
             remainingTimeElement.textContent = formattedRemainingTime;
             
@@ -81,7 +81,7 @@ export function updatePipContent(nextBoss, minTimeDiff) {
             if (pipContainer) pipContainer.classList.remove('no-boss-state');
 
         } else {
-            spawnTimeElement.textContent = '--:--:--';
+            // Removed: spawnTimeElement.textContent = '--:--:--';
             nameElement.textContent = '다음 보스 없음';
             remainingTimeElement.textContent = '--:--';
             
