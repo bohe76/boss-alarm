@@ -83,11 +83,14 @@ export function updateNextBossDisplay(DOM) {
 
     if (nextBoss) {
         const isImminent = minTimeDiff < 5 * 60 * 1000;
+        const isWarning = minTimeDiff < 10 * 60 * 1000;
         const isMedium = minTimeDiff < 60 * 60 * 1000;
 
         let remainingTimeClass = '';
         if (isImminent) {
             remainingTimeClass = 'imminent-remaining-time'; // Red
+        } else if (isWarning) {
+            remainingTimeClass = 'warning-priority'; // Orange
         } else if (isMedium) {
             remainingTimeClass = 'medium-priority'; // Black
         } else {
@@ -118,7 +121,8 @@ export function renderUpcomingBossList(DOM) {
         upcomingBosses.slice(1).forEach(boss => {
             const timeDiff = boss.timestamp - Date.now();
             const isImminent = timeDiff < 5 * 60 * 1000;
-            const isMedium = timeDiff < 60 * 60 * 1000; // Less than 1 hour
+            const isWarning = timeDiff < 10 * 60 * 1000; // New
+            const isMedium = timeDiff < 60 * 60 * 1000;
 
             const remaining = formatTimeDifference(timeDiff, isImminent);
             const formattedSpawnTime = formatSpawnTime(boss.time);
@@ -131,6 +135,10 @@ export function renderUpcomingBossList(DOM) {
                 spawnTimeClass = 'imminent-boss-info';
                 bossNameClass = 'imminent-boss-info';
                 remainingTimeClass = 'imminent-remaining-time';
+            } else if (isWarning) { // < 10 minutes
+                spawnTimeClass = 'imminent-boss-info';
+                bossNameClass = 'imminent-boss-info';
+                remainingTimeClass = 'warning-priority';
             } else if (isMedium) { // < 1 hour
                 spawnTimeClass = 'medium-priority';
                 bossNameClass = 'medium-priority';

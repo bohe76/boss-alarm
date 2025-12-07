@@ -72,11 +72,14 @@ export function updatePipContent(nextBoss, minTimeDiff) {
             }
 
             const isImminent = minTimeDiff < 5 * 60 * 1000;
+            const isWarning = minTimeDiff < 10 * 60 * 1000;
             const isMedium = minTimeDiff < 60 * 60 * 1000;
 
             let remainingTimeClass = '';
             if (isImminent) {
                 remainingTimeClass = 'imminent-remaining-time';
+            } else if (isWarning) {
+                remainingTimeClass = 'warning-priority';
             } else if (isMedium) {
                 remainingTimeClass = 'medium-priority';
             } else {
