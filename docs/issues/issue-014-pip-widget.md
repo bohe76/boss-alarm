@@ -26,70 +26,70 @@
 
 ### **0단계: UI/UX 구현 (UI-First)**
 
-<details>
-<summary><strong>[ ] 0.1. PiP 토글 버튼 UI 구현</strong></summary>
+<details open>
+<summary><strong>✅ 0.1. PiP 토글 버튼 UI 구현</strong></summary>
 
-- [ ] **사전 분석:** `index.html`의 대시보드 섹션 내 '다음 보스' 카드 헤더에 PiP 기능을 켜고 끌 수 있는 버튼이 필요합니다.
-- [ ] **실행 계획:**
+- [x] **사전 분석:** `index.html`의 대시보드 섹션 내 '다음 보스' 카드 헤더에 PiP 기능을 켜고 끌 수 있는 버튼이 필요합니다.
+- [x] **실행 계획:**
     *   `index.html`의 `#nextBossCard > .card-header` 내부에 PiP 아이콘을 포함한 `<button id="pip-toggle-button">`을 추가합니다.
     *   `src/styles/style.css`에 버튼에 대한 스타일(크기, 위치, 아이콘 모양)을 정의합니다.
     *   API를 지원하지 않는 브라우저를 위해 버튼은 기본적으로 숨김 처리(`display: none`)합니다.
-- [ ] **검증:** 대시보드 '다음 보스' 카드 우측 상단에 PiP 버튼이 디자인에 맞게 표시되는지 확인.
+- [x] **검증:** 대시보드 '다음 보스' 카드 우측 상단에 PiP 버튼이 디자인에 맞게 표시되는지 확인.
 </details>
 
-<details>
-<summary><strong>[ ] 0.2. PiP 창을 위한 콘텐츠 HTML 파일 생성</strong></summary>
+<details open>
+<summary><strong>✅ 0.2. PiP 창을 위한 콘텐츠 HTML 파일 생성</strong></summary>
 
-- [ ] **사전 분석:** PiP 창에 표시될 내용은 메인 페이지와 별도로 관리되는 것이 효율적입니다.
-- [ ] **실행 계획:**
+- [x] **사전 분석:** PiP 창에 표시될 내용은 메인 페이지와 별도로 관리되는 것이 효율적입니다.
+- [x] **실행 계획:**
     *   `src/pip-content.html` 파일을 생성합니다.
     *   해당 파일에 '다음 보스' 이름과 남은 시간을 표시할 최소한의 HTML 구조(`id="pip-boss-name"`, `id="pip-remaining-time"` 등)와 CSS 스타일을 작성합니다.
-- [ ] **검증:** `pip-content.html` 파일이 생성되고, PiP 위젯에 필요한 최소한의 구조와 스타일이 포함되었는지 확인.
+- [x] **검증:** `pip-content.html` 파일이 생성되고, PiP 위젯에 필요한 최소한의 구조와 스타일이 포함되었는지 확인.
 </details>
 
 ---
 
 ### **1단계: 핵심 PiP 기능 구현**
 
-<details>
-<summary><strong>[ ] 1.1. PiP 기능 관리자(`pip-manager.js`) 생성</strong></summary>
+<details open>
+<summary><strong>✅ 1.1. PiP 기능 관리자(`pip-manager.js`) 생성</strong></summary>
 
-- [ ] **사전 분석:** PiP 창의 상태(열림/닫힘), 창 참조, 콘텐츠 업데이트 로직을 중앙에서 관리할 모듈이 필요합니다.
-- [ ] **실행 계획:**
+- [x] **사전 분석:** PiP 창의 상태(열림/닫힘), 창 참조, 콘텐츠 업데이트 로직을 중앙에서 관리할 모듈이 필요합니다.
+- [x] **실행 계획:**
     *   `src/pip-manager.js` 파일을 새로 생성합니다.
     *   PiP 창의 상태와 참조를 관리할 변수(`pipWindow`, `isPipOpen`)를 선언합니다.
     *   PiP 창을 열고 닫는 `togglePipWindow()`, PiP 창의 콘텐츠를 업데이트하는 `updatePipContent()` 등의 함수를 정의합니다.
-- [ ] **검증:** `src/pip-manager.js` 파일 및 기본 함수 구조가 생성되었는지 확인.
+- [x] **검증:** `src/pip-manager.js` 파일 및 기본 함수 구조가 생성되었는지 확인.
 </details>
 
-<details>
-<summary><strong>[ ] 1.2. PiP 창 열기/닫기 로직 구현</strong></summary>
+<details open>
+<summary><strong>✅ 1.2. PiP 창 열기/닫기 로직 구현</strong></summary>
 
-- [ ] **사전 분석:** `pip-manager.js`의 `togglePipWindow` 함수는 Document PiP API를 직접 호출하여 창을 열고, 이미 열려있을 경우 닫는 역할을 해야 합니다.
-- [ ] **실행 계획:**
+- [x] **사전 분석:** `pip-manager.js`의 `togglePipWindow` 함수는 Document PiP API를 직접 호출하여 창을 열고, 이미 열려있을 경우 닫는 역할을 해야 합니다.
+- [x] **실행 계획:**
     *   `togglePipWindow` 함수 내에서 `documentPictureInPicture.requestWindow()`를 호출하여 PiP 창을 요청합니다.
     *   창이 열리면 `pipWindow` 변수에 참조를 저장하고, `isPipOpen` 상태를 `true`로 설정합니다.
     *   창이 이미 열려있으면 `pipWindow.close()`를 호출하여 닫습니다.
     *   `fetch`를 사용하여 `src/pip-content.html`의 내용을 읽어와 새로 열린 PiP 창의 `document.body`에 삽입합니다.
-- [ ] **검증:** PiP 토글 버튼 클릭 시 비어있는 PiP 창이 정상적으로 열리고 닫히는지 확인.
+- [x] **검증:** PiP 토글 버튼 클릭 시 비어있는 PiP 창이 정상적으로 열리고 닫히는지 확인.
 </details>
 
-<details>
-<summary><strong>[ ] 1.3. 이벤트 리스너 연결 및 API 지원 확인</strong></summary>
+<details open>
+<summary><strong>✅ 1.3. 이벤트 리스너 연결 및 API 지원 확인</strong></summary>
 
-- [ ] **사전 분석:** `app.js`에서 PiP 기능을 초기화하고 버튼에 이벤트 리스너를 연결해야 합니다. 또한, API 지원 여부에 따라 버튼의 표시 여부를 결정해야 합니다.
-- [ ] **실행 계획:**
+- [x] **사전 분석:** `app.js`에서 PiP 기능을 초기화하고 버튼에 이벤트 리스너를 연결해야 합니다. 또한, API 지원 여부에 따라 버튼의 표시 여부를 결정해야 합니다.
+- [x] **실행 계획:**
     *   `src/app.js`의 `initApp` 함수에서 `documentPictureInPicture` API 지원 여부를 확인합니다.
     *   API가 지원되는 경우에만 `#pip-toggle-button`을 화면에 표시합니다.
     *   `initEventHandlers` 또는 `initDashboardScreen`에서 `#pip-toggle-button`에 `click` 이벤트 리스너를 추가하고, `pip-manager.js`의 `togglePipWindow()` 함수를 호출하도록 연결합니다.
-- [ ] **검증:** Chrome, Edge 등 지원 브라우저에서는 버튼이 보이고, Firefox 등 미지원 브라우저에서는 버튼이 보이지 않는지 확인.
+- [x] **검증:** Chrome, Edge 등 지원 브라우저에서는 버튼이 보이고, Firefox 등 미지원 브라우저에서는 버튼이 보이지 않는지 확인.
 </details>
 
 ---
 
 ### **2단계: 데이터 및 콘텐츠 동기화**
 
-<details>
+<details open>
 <summary><strong>[ ] 2.1. PiP 콘텐츠 업데이트 로직 구현</strong></summary>
 
 - [ ] **사전 분석:** `ui-renderer.js`의 `updateNextBossDisplay` 함수가 실행될 때, PiP 창이 열려 있다면 그 내용도 함께 갱신되어야 합니다.

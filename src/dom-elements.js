@@ -47,6 +47,7 @@ export function initDomElements() {
         sortBossListButton: document.getElementById('sortBossListButton'), // New
 
         // Elements within Dashboard Screen
+        pipToggleButton: document.getElementById('pip-toggle-button'),
         nextBossContent: document.getElementById('nextBossContent'),
         upcomingBossListContent: document.getElementById('upcomingBossListContent'), // New
         alarmStatusText: document.getElementById('alarmStatusText'),
