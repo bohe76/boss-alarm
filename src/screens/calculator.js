@@ -13,6 +13,7 @@ import {
 } from '../ui-renderer.js';
 import { formatTime, padNumber } from '../utils.js';
 import { log } from '../logger.js';
+import { trackEvent } from '../analytics.js';
 
 // Helper to check if Zen Calculator update button should be enabled
 function checkZenCalculatorUpdateButtonState(DOM) {
@@ -61,6 +62,7 @@ export function initCalculatorScreen(DOM) {
 
             if (!selectedBossValue || newBossTime === '--:--:--') {
                 showToast(DOM, "보스 선택 또는 시간 계산이 유효하지 않습니다.");
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 시간 업데이트 실패', reason: 'Invalid Selection or Time' });
                 return;
             }
 
@@ -146,6 +148,7 @@ export function initCalculatorScreen(DOM) {
                 updateBossListTextarea(DOM); // This will use the new formatted output logic
                 
                 showToast(DOM, `${bossName} 보스 시간이 ${newBossTime}으로 업데이트 되었습니다.`);
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 시간 업데이트', bossName: bossName, newTime: newBossTime });
 
                 DOM.remainingTimeInput.value = '';
                 DOM.bossAppearanceTimeDisplay.textContent = '--:--:--';
@@ -154,6 +157,7 @@ export function initCalculatorScreen(DOM) {
                 populateBossSelectionDropdown(DOM);
             } else {
                 showToast(DOM, "선택된 보스를 목록에서 찾거나 업데이트할 수 없습니다.");
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 시간 업데이트 실패', reason: 'Boss Not Found' });
             }
         });
     }
@@ -168,6 +172,7 @@ export function initCalculatorScreen(DOM) {
             DOM.lightGwangButton.disabled = false;
             DOM.lightCaptureButton.disabled = false;
             DOM.lightListButton.disabled = true;
+            trackEvent('Click Button', { event_category: 'Interaction', event_label: '스톱워치 시작' });
         });
     }
 
@@ -177,18 +182,21 @@ export function initCalculatorScreen(DOM) {
                 updateLightExpectedTimeDisplay(DOM, time, isOverTime);
             });
             DOM.lightGwangButton.disabled = true;
+            trackEvent('Click Button', { event_category: 'Interaction', event_label: '광 시간 기록' });
         });
     }
 
     if (DOM.lightCaptureButton) {
         DOM.lightCaptureButton.addEventListener('click', async () => {
             LightCalculator.stopStopwatch();
+            trackEvent('Click Button', { event_category: 'Interaction', event_label: '잡힘 시간 기록' });
             const confirmSave = confirm("광 계산을 저장 하시겠습니까?");
             if (confirmSave) {
                 const bossName = prompt("보스 이름을 입력하세요:");
                 if (bossName) {
                     await LightCalculator.saveLightCalculation(bossName);
                     renderLightSavedList(DOM, LightCalculator.getLightCalculatorRecords());
+                    trackEvent('Click Button', { event_category: 'Interaction', event_label: '기록 저장' });
                 }
             }
             renderLightTempResults(DOM,
@@ -214,9 +222,11 @@ export function initCalculatorScreen(DOM) {
                 renderLightSavedList(DOM, LightCalculator.getLightCalculatorRecords()); // Render content when showing
                 DOM.lightSavedList.style.display = 'block'; // Show the list
                 DOM.lightTempResults.classList.remove('compact-top'); // List is visible, keep original margin
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '광 계산기 목록 보기' });
             } else {
                 DOM.lightSavedList.style.display = 'none'; // Hide the list
                 DOM.lightTempResults.classList.add('compact-top'); // List is hidden, set margin-top to 0
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '광 계산기 목록 숨기기' });
             }
         });
     }
@@ -228,6 +238,7 @@ export function initCalculatorScreen(DOM) {
                     LocalStorageManager.clearLightCalculatorRecords();
                     renderLightSavedList(DOM, LightCalculator.getLightCalculatorRecords());
                     log("광 계산 기록이 초기화되었습니다.", true);
+                    trackEvent('Click Button', { event_category: 'Interaction', event_label: '기록 초기화 (광 계산기)' });
                 }
             }
         });

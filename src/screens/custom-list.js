@@ -1,6 +1,7 @@
 import { showCustomListTab, renderCustomListManagementModalContent, showToast } from '../ui-renderer.js';
 import { CustomListManager } from '../custom-list-manager.js';
 import { EventBus } from '../event-bus.js';
+import { trackEvent } from '../analytics.js';
 
 
 export function initCustomListScreen(DOM) {
@@ -10,6 +11,7 @@ export function initCustomListScreen(DOM) {
             showCustomListTab(DOM, 'add'); // Show '목록 추가' tab by default
             DOM.customBossListModal.style.display = 'flex';
             DOM.customListNameInput.focus();
+            trackEvent('Open Modal', { event_category: 'Interaction', event_label: '커스텀 목록 관리 모달' });
         });
     }
 
@@ -17,6 +19,7 @@ export function initCustomListScreen(DOM) {
     const closeModal = () => {
         if (DOM.customBossListModal) {
             DOM.customBossListModal.style.display = 'none';
+            trackEvent('Close Modal', { event_category: 'Interaction', event_label: '커스텀 목록 관리 모달' });
         }
     };
     if (DOM.closeCustomListModal) {
@@ -32,10 +35,16 @@ export function initCustomListScreen(DOM) {
 
     // Tab switching
     if (DOM.tabAddCustomList) {
-        DOM.tabAddCustomList.addEventListener('click', () => showCustomListTab(DOM, 'add'));
+        DOM.tabAddCustomList.addEventListener('click', () => {
+            showCustomListTab(DOM, 'add');
+            trackEvent('Click Button', { event_category: 'Interaction', event_label: '커스텀 목록 추가 탭' });
+        });
     }
     if (DOM.tabManageCustomLists) {
-        DOM.tabManageCustomLists.addEventListener('click', () => showCustomListTab(DOM, 'manage'));
+        DOM.tabManageCustomLists.addEventListener('click', () => {
+            showCustomListTab(DOM, 'manage');
+            trackEvent('Click Button', { event_category: 'Interaction', event_label: '커스텀 목록 관리 탭' });
+        });
     }
 
     // Save/Update Button in Modal
@@ -67,8 +76,10 @@ export function initCustomListScreen(DOM) {
                     const confirmOverwrite = confirm(`'${listName}'은(는) 이미 존재하는 목록 또는 게임 이름입니다. 덮어쓰시겠습니까?`);
                     if (!confirmOverwrite) {
                         showToast(DOM, '목록 추가를 취소했습니다.');
+                        trackEvent('Click Button', { event_category: 'Interaction', event_label: '커스텀 목록 덮어쓰기 취소' });
                         return;
                     }
+                    trackEvent('Click Button', { event_category: 'Interaction', event_label: '커스텀 목록 덮어쓰기 확인' });
                     // If confirmed to overwrite, treat as an update
                     result = CustomListManager.updateCustomList(listName, listContent);
                     if (!result.success && result.message === '수정할 목록을 찾을 수 없습니다.') {
@@ -94,11 +105,14 @@ export function initCustomListScreen(DOM) {
                     DOM.customListContentTextarea.value = '';
                     DOM.saveCustomListButton.textContent = '추가'; // '추가' 모드 기본 텍스트
                     delete DOM.saveCustomListButton.dataset.editTarget;
+                    trackEvent('Click Button', { event_category: 'Interaction', event_label: '커스텀 목록 업데이트' });
                 } else { // 추가 작업이었을 경우
                     closeModal(); // 모달 닫기
+                    trackEvent('Click Button', { event_category: 'Interaction', event_label: '커스텀 목록 저장' });
                 }
             } else {
                 alert(`${result.message}`);
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '커스텀 목록 저장 실패', reason: result.message });
             }
         });
     }
@@ -121,7 +135,12 @@ export function initCustomListScreen(DOM) {
                     if (result.success) {
                         renderCustomListManagementModalContent(DOM); // Re-render management list
                         EventBus.emit('rerender-boss-scheduler'); // To update dropdown
+                        trackEvent('Click Button', { event_category: 'Interaction', event_label: '커스텀 목록 삭제', listName: listName });
+                    } else {
+                        trackEvent('Click Button', { event_category: 'Interaction', event_label: '커스텀 목록 삭제 실패', listName: listName, reason: result.message });
                     }
+                } else {
+                    trackEvent('Click Button', { event_category: 'Interaction', event_label: '커스텀 목록 삭제 취소', listName: listName });
                 }
             } else if (button.classList.contains('edit-custom-list-button')) {
                 // Switch to the "목록 추가" tab for editing
@@ -133,6 +152,7 @@ export function initCustomListScreen(DOM) {
                 DOM.saveCustomListButton.textContent = '수정';
                 DOM.saveCustomListButton.dataset.editTarget = listName;
                 DOM.customListNameInput.focus(); // Focus on the name input for editing
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '커스텀 목록 편집', listName: listName });
             }
         });
     }

@@ -3,6 +3,7 @@ import { parseBossList } from '../boss-parser.js';
 import { updateBossListTextarea } from '../ui-renderer.js';
 import { BossDataManager } from '../data-managers.js'; // Import BossDataManager
 import { log } from '../logger.js';
+import { trackEvent } from '../analytics.js'; // Added GA import
 
 export function initBossManagementScreen(DOM) {
     // "시간순 정렬" 버튼 -> "보스 설정 저장" 버튼으로 기능 변경
@@ -15,6 +16,7 @@ export function initBossManagementScreen(DOM) {
             
             if (!result.success) {
                 alert("보스 설정 값에 오류가 있어 저장할 수 없습니다.\n\n" + result.errors.join('\n'));
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 설정 저장 실패' }); // Track failure
                 return; // Stop saving
             }
 
@@ -27,6 +29,7 @@ export function initBossManagementScreen(DOM) {
             window.isBossListDirty = false; // Reset dirty flag
             alert("저장되었습니다.");
             log("보스 설정이 저장되었습니다.", true);
+            trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 설정 저장' }); // Track success
         });
     }
 

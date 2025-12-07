@@ -3,6 +3,7 @@ import { renderFixedAlarms, updateFixedAlarmVisuals } from '../ui-renderer.js';
 import { validateFixedAlarmTime, normalizeTimeFormat } from '../utils.js';
 import { log } from '../logger.js';
 import { syncScheduleToWorker, getIsAlarmRunning } from '../alarm-scheduler.js';
+import { trackEvent } from '../analytics.js';
 
 // --- Modal Helper Functions ---
 
@@ -37,6 +38,7 @@ function openFixedAlarmModal(DOM, alarmId = null) {
                 button.classList.remove('active');
             }
         });
+        trackEvent('Open Modal', { event_category: 'Interaction', event_label: '고정 알림 추가/편집 모달', mode: 'edit', alarmId: alarmId });
 
     } else {
         // --- ADD MODE ---
@@ -48,6 +50,7 @@ function openFixedAlarmModal(DOM, alarmId = null) {
         dayButtons.forEach(button => {
             button.classList.add('active'); // Default to all active
         });
+        trackEvent('Open Modal', { event_category: 'Interaction', event_label: '고정 알림 추가/편집 모달', mode: 'add' });
     }
 
     DOM.fixedAlarmModal.style.display = 'flex';
@@ -60,6 +63,7 @@ function openFixedAlarmModal(DOM, alarmId = null) {
 function closeFixedAlarmModal(DOM) {
     if (DOM.fixedAlarmModal) {
         DOM.fixedAlarmModal.style.display = 'none';
+        trackEvent('Close Modal', { event_category: 'Interaction', event_label: '고정 알림 추가/편집 모달' });
     }
 }
 
@@ -73,6 +77,7 @@ export function initSettingsScreen(DOM) {
     if (DOM.addFixedAlarmButton) {
         DOM.addFixedAlarmButton.addEventListener('click', () => {
             openFixedAlarmModal(DOM, null); // Open in "Add" mode
+            // Tracking for open modal is handled in openFixedAlarmModal function
         });
     }
 
@@ -92,6 +97,7 @@ export function initSettingsScreen(DOM) {
                     LocalStorageManager.updateFixedAlarm(alarmId, alarmToUpdate);
                     updateFixedAlarmVisuals(DOM);
                     shouldSync = true;
+                    trackEvent('Toggle Switch', { event_category: 'Feature Usage', event_label: '고정 알림 활성화/비활성화', alarmName: alarmToUpdate.name, enabled: target.checked });
                 }
             }
 
@@ -112,6 +118,9 @@ export function initSettingsScreen(DOM) {
                     renderFixedAlarms(DOM);
                     log(`고정 알림 "${alarmToDelete.name}"이(가) 삭제되었습니다.`, true);
                     shouldSync = true;
+                    trackEvent('Click Button', { event_category: 'Interaction', event_label: '고정 알림 삭제', alarmName: alarmToDelete.name });
+                } else if (alarmToDelete) {
+                    trackEvent('Click Button', { event_category: 'Interaction', event_label: '고정 알림 삭제 취소', alarmName: alarmToDelete.name });
                 }
             }
 
@@ -129,6 +138,9 @@ export function initSettingsScreen(DOM) {
             const target = event.target;
             if (target.classList.contains('day-button')) {
                 target.classList.toggle('active');
+                const dayName = target.textContent;
+                const actionType = target.classList.contains('active') ? 'activate' : 'deactivate';
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: `고정 알림 요일 선택: ${dayName}`, action: actionType });
             }
         });
     }
@@ -155,15 +167,18 @@ export function initSettingsScreen(DOM) {
             if (!time || !name) {
                 alert("시간과 이름을 모두 입력해주세요.");
                 log("시간과 이름을 모두 입력해주세요.", false);
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '고정 알림 저장 실패', mode: id ? 'edit' : 'add', reason: 'Missing time or name' });
                 return;
             }
             if (!validateFixedAlarmTime(time)) {
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '고정 알림 저장 실패', mode: id ? 'edit' : 'add', reason: 'Invalid time format' });
                 return; // validate function will show its own alert
             }
             const activeDayButtons = DOM.fixedAlarmModalDays.querySelectorAll('.day-button.active');
             if (activeDayButtons.length === 0) {
                 alert("요일을 하루 이상 선택해주세요.");
                 log("요일을 하루 이상 선택해주세요.", false);
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '고정 알림 저장 실패', mode: id ? 'edit' : 'add', reason: 'No day selected' });
                 return;
             }
             const days = Array.from(activeDayButtons).map(btn => parseInt(btn.dataset.dayIndex, 10));
@@ -179,11 +194,13 @@ export function initSettingsScreen(DOM) {
                 // --- Edit Mode ---
                 LocalStorageManager.updateFixedAlarm(id, alarmPayload);
                 log(`고정 알림 "${name}"이(가) 수정되었습니다.`, true);
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '고정 알림 편집', name: name });
             } else {
                 // --- Add Mode ---
                 alarmPayload.id = `fixed-${Date.now()}`;
                 LocalStorageManager.addFixedAlarm(alarmPayload);
                 log(`새 고정 알림 "${name} ${time}"이(가) 추가되었습니다.`, true);
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '고정 알림 추가', name: name });
             }
             
             closeFixedAlarmModal(DOM);

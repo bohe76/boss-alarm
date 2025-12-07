@@ -5,6 +5,7 @@ import { EventBus } from '../event-bus.js';
 import { BossDataManager } from '../data-managers.js';
 import { updateBossListTextarea } from '../ui-renderer.js';
 import { generateUniqueId, padNumber } from '../utils.js';
+import { trackEvent } from '../analytics.js';
 
 let _remainingTimes = {}; // Encapsulated state
 
@@ -20,6 +21,7 @@ export function handleApplyBossSettings(DOM) {
 
     if (!hasValidInput) {
         alert("보스 설정에 내용이 전혀 없습니다.\n남은 시간을 1개 이상 입력 후 보스 설정 적용 버튼을 눌러 주세요.");
+        trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 설정 적용 실패', reason: 'No valid input' });
         return;
     }
 
@@ -123,6 +125,7 @@ export function handleApplyBossSettings(DOM) {
 
     EventBus.emit('navigate', 'boss-management-screen');
     log("보스 스케줄러에서 보스 설정으로 목록이 전송되었습니다.", true);
+    trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 설정 적용' });
 }
 
 export function initBossSchedulerScreen(DOM) {
@@ -137,6 +140,7 @@ export function initBossSchedulerScreen(DOM) {
             if (event.target === DOM.gameSelect) {
                 renderBossInputs(DOM, DOM.gameSelect.value);
                 updateCalculatedTimes(DOM);
+                trackEvent('Change Select', { event_category: 'Interaction', event_label: '보스 목록 선택', value: DOM.gameSelect.value });
             }
         });
 
@@ -200,6 +204,9 @@ export function initBossSchedulerScreen(DOM) {
                         input.nextElementSibling.textContent = '--:--:--';
                     });
                     log("모든 남은 시간이 삭제되었습니다.", true);
+                    trackEvent('Click Button', { event_category: 'Interaction', event_label: '남은 시간 초기화' });
+                } else {
+                    trackEvent('Click Button', { event_category: 'Interaction', event_label: '남은 시간 초기화 취소' });
                 }
             }
         });

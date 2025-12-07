@@ -13,6 +13,7 @@ import { getRoute, registerRoute } from './router.js';
 import { initializeCoreServices } from './services.js';
 import { initGlobalEventListeners } from './global-event-listeners.js';
 import { togglePipWindow } from './pip-manager.js';
+import { trackPageView, trackEvent } from './analytics.js'; // Added GA imports
 
 // Screen Modules
 import { getScreen as getAlarmLogScreen } from './screens/alarm-log.js';
@@ -83,11 +84,11 @@ function showScreen(DOM, screenId) {
             return; // Cancel navigation
         }
         window.isBossListDirty = false; // Reset flag on confirm
-        // Optional: Revert textarea to last saved state? 
+        // Optional: Revert textarea to last saved state?
         // For now, we just allow navigation. If user comes back, they might see dirty text or reset text depending on implementation.
         // To be safe, let's force a reset of the textarea from DATA when leaving or entering?
-        // Actually, 'boss-management-screen' doesn't have 'onTransition' to reset. 
-        // But since we didn't save, DATA is pristine. 
+        // Actually, 'boss-management-screen' doesn't have 'onTransition' to reset.
+        // But since we didn't save, DATA is pristine.
         // If we want to clear the dirty text, we should do it here.
         updateBossListTextarea(DOM); // Revert UI to match saved DATA
     }
@@ -110,6 +111,20 @@ function showScreen(DOM, screenId) {
 
     const activeScreenElement = document.getElementById(screenId);
     if (activeScreenElement) activeScreenElement.classList.add('active');
+
+    // Track virtual page view
+    const screenNames = {
+        'dashboard-screen': '대시보드',
+        'boss-management-screen': '보스 관리',
+        'boss-scheduler-screen': '보스 스케줄러',
+        'calculator-screen': '계산기',
+        'alarm-log-screen': '알림 로그',
+        'share-screen': '공유',
+        'settings-screen': '설정',
+        'help-screen': '도움말',
+        'version-info-screen': '릴리즈 노트'
+    };
+    trackPageView(screenId, screenNames[screenId] || screenId);
 
     if (DOM.mainContentArea) {
         requestAnimationFrame(() => {
@@ -160,8 +175,7 @@ function showScreen(DOM, screenId) {
     if (screenId === 'boss-scheduler-screen') EventBus.emit('show-boss-scheduler-screen');
 }
 
-function loadInitialData(DOM) {
-    const params = new URLSearchParams(window.location.search);
+function loadInitialData(DOM) {    const params = new URLSearchParams(window.location.search);
     let loadSuccess = false;
 
     if (params.has('data')) {
@@ -233,17 +247,20 @@ function initEventHandlers(DOM, globalTooltip) {
             DOM.alarmToggleButton.classList.remove('alarm-off');
             DOM.alarmToggleButton.classList.add('alarm-on');
             log("알림이 시작되었습니다.", true);
+            trackEvent('Toggle Switch', { event_category: 'Feature Usage', event_label: '알림 시작/중지', value: 1 });
         } else {
             stopAlarm(DOM);
             DOM.alarmToggleButton.classList.remove('alarm-on');
             DOM.alarmToggleButton.classList.add('alarm-off');
             log("알림이 중지되었습니다.", true);
+            trackEvent('Toggle Switch', { event_category: 'Feature Usage', event_label: '알림 시작/중지', value: 0 });
         }
     });
 
     if (DOM.pipToggleButton) {
         DOM.pipToggleButton.addEventListener('click', () => {
             togglePipWindow();
+            trackEvent('Click Button', { event_category: 'Feature Usage', event_label: 'PiP 토글' });
         });
     }
 
@@ -263,6 +280,8 @@ function initEventHandlers(DOM, globalTooltip) {
             link.addEventListener('click', (event) => {
                 event.preventDefault();
                 const screenId = event.currentTarget.dataset.screen;
+                const menuLabel = event.currentTarget.querySelector('.menu-text').textContent;
+                trackEvent('Click Menu Tab', { event_category: 'Navigation', event_label: menuLabel });
                 showScreen(DOM, screenId);
             });
 
@@ -291,6 +310,8 @@ function initEventHandlers(DOM, globalTooltip) {
             link.addEventListener('click', (event) => {
                 event.preventDefault();
                 const screenId = event.currentTarget.dataset.screen;
+                const menuLabel = event.currentTarget.ariaLabel + ' (모바일)'; // Use ariaLabel for menu name
+                trackEvent('Click Bottom Nav', { event_category: 'Navigation', event_label: menuLabel });
                 showScreen(DOM, screenId);
             });
         }
@@ -340,6 +361,7 @@ function initEventHandlers(DOM, globalTooltip) {
         DOM.sidebar.addEventListener('transitionend', () => {
              DOM.sidebar.removeEventListener('keydown', handleFocusTrap);
         }, { once: true });
+        trackEvent('Click Button', { event_category: 'Navigation', event_label: '더보기 (모바일) 열기' });
     };
 
     const handleMenuKeydown = (e) => {
@@ -353,7 +375,10 @@ function initEventHandlers(DOM, globalTooltip) {
         });
     }
 
-    if (DOM.moreMenuCloseButton) DOM.moreMenuCloseButton.addEventListener('click', closeMoreMenu);
+    if (DOM.moreMenuCloseButton) DOM.moreMenuCloseButton.addEventListener('click', () => {
+        closeMoreMenu();
+        trackEvent('Click Button', { event_category: 'Navigation', event_label: '더보기 (모바일) 닫기' });
+    });
     if (DOM.sidebarBackdrop) DOM.sidebarBackdrop.addEventListener('click', closeMoreMenu);
     
     DOM.sidebar.querySelectorAll('a').forEach(link => {
