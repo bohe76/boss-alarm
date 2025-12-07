@@ -90,31 +90,31 @@
 ### **2단계: 데이터 및 콘텐츠 동기화**
 
 <details open>
-<summary><strong>[ ] 2.1. PiP 콘텐츠 업데이트 로직 구현</strong></summary>
+<summary><strong>✅ 2.1. PiP 콘텐츠 업데이트 로직 구현</strong></summary>
 
-- [ ] **사전 분석:** `ui-renderer.js`의 `updateNextBossDisplay` 함수가 실행될 때, PiP 창이 열려 있다면 그 내용도 함께 갱신되어야 합니다.
-- [ ] **실행 계획:**
+- [x] **사전 분석:** `ui-renderer.js`의 `updateNextBossDisplay` 함수가 실행될 때, PiP 창이 열려 있다면 그 내용도 함께 갱신되어야 합니다.
+- [x] **실행 계획:**
     *   `src/pip-manager.js`에 `updatePipContent(nextBoss, minTimeDiff)` 함수를 구현합니다. 이 함수는 PiP 창 내부의 DOM 요소를 직접 찾아 `textContent`를 업데이트합니다.
     *   `src/ui-renderer.js`의 `updateNextBossDisplay` 함수 마지막 부분에, `pip-manager.js`를 `import`하고 `isPipOpen()`을 확인하여 PiP 창이 열려있으면 `updatePipContent()`를 호출하는 로직을 추가합니다.
-- [ ] **검증:** PiP 창이 열린 상태에서 대시보드의 '다음 보스' 정보가 변경될 때 PiP 창의 내용도 1초마다 함께 변경되는지 확인.
+- [x] **검증:** PiP 창이 열린 상태에서 대시보드의 '다음 보스' 정보가 변경될 때 PiP 창의 내용도 1초마다 함께 변경되는지 확인.
 </details>
 
-<details>
-<summary><strong>[ ] 2.2. PiP 창 닫힘 이벤트 처리</strong></summary>
+<details open>
+<summary><strong>✅ 2.2. PiP 창 닫힘 이벤트 처리</strong></summary>
 
-- [ ] **사전 분석:** 사용자가 PiP 창의 자체 닫기 버튼(X)을 눌렀을 때, 애플리케이션은 이 상태를 인지하고 내부 상태(`isPipOpen`)를 갱신해야 합니다.
-- [ ] **실행 계획:**
+- [x] **사전 분석:** 사용자가 PiP 창의 자체 닫기 버튼(X)을 눌렀을 때, 애플리케이션은 이 상태를 인지하고 내부 상태(`isPipOpen`)를 갱신해야 합니다.
+- [x] **실행 계획:**
     *   `src/pip-manager.js`에서 PiP 창이 열릴 때, `pipWindow` 객체에 `pagehide` 이벤트 리스너를 등록합니다.
     *   `pagehide` 이벤트가 발생하면, `isPipOpen` 상태를 `false`로 변경하고 `pipWindow` 참조를 `null`로 설정합니다.
     *   (선택) 메인 페이지의 PiP 토글 버튼 상태도 비활성화 상태로 변경합니다.
-- [ ] **검증:** PiP 창의 닫기 버튼으로 창을 닫은 후, 다시 메인 페이지의 토글 버튼을 눌렀을 때 새 PiP 창이 정상적으로 열리는지 확인.
+- [x] **검증:** PiP 창의 닫기 버튼으로 창을 닫은 후, 다시 메인 페이지의 토글 버튼을 눌렀을 때 새 PiP 창이 정상적으로 열리는지 확인.
 </details>
 
 ---
 
 ### **3단계: 통합 테스트**
 
-<details>
+<details open>
 <summary><strong>[ ] 3.1. 시나리오 테스트</strong></summary>
 
 - [ ] **검증:**

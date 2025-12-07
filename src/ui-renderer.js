@@ -71,6 +71,10 @@ export function updateMuteButtonVisuals(DOM) {
     }
 }
 
+import { isPipWindowOpen, updatePipContent } from './pip-manager.js';
+
+// ... (rest of the imports)
+
 // --- Dashboard Rendering Functions ---
 export function updateNextBossDisplay(DOM) {
     if (!DOM.nextBossContent) return;
@@ -100,6 +104,11 @@ export function updateNextBossDisplay(DOM) {
         }
     } else {
         DOM.nextBossContent.textContent = '다음 보스 없음';
+    }
+
+    // Synchronize PiP window if it's open
+    if (isPipWindowOpen()) {
+        updatePipContent(nextBoss, minTimeDiff);
     }
 }
 

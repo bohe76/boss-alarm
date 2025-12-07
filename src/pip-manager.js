@@ -49,14 +49,35 @@ export async function togglePipWindow() {
  * @param {number} minTimeDiff - 남은 시간 (밀리초)
  */
 export function updatePipContent(nextBoss, minTimeDiff) {
-    // 이 함수는 2.1 단계에서 구현됩니다.
-    if (!isPipOpen || !pipWindow) return;
+    if (!isPipOpen || !pipWindow || !pipWindow.document) return;
     
     const nameElement = pipWindow.document.getElementById('pip-boss-name');
     const timeElement = pipWindow.document.getElementById('pip-remaining-time');
 
     if (nameElement && timeElement) {
-        // 콘텐츠 업데이트 로직 (2.1단계에서 구체화)
+        if (nextBoss && minTimeDiff > 0) {
+            const totalSeconds = Math.max(0, Math.floor(minTimeDiff / 1000));
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            const pad = (num) => String(num).padStart(2, '0');
+            
+            let formattedTime;
+            if (hours > 0) {
+                formattedTime = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+            } else {
+                formattedTime = `${pad(minutes)}:${pad(seconds)}`;
+            }
+
+            nameElement.textContent = nextBoss.name;
+            timeElement.textContent = formattedTime;
+            nameElement.classList.remove('no-boss');
+        } else {
+            nameElement.textContent = '다음 보스 없음';
+            timeElement.textContent = '';
+            nameElement.classList.add('no-boss');
+        }
     }
 }
 
