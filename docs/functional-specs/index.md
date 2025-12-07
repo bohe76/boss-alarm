@@ -13,6 +13,7 @@
     *   EventBus를 통한 모듈 간 통신
 2.  [대시보드 (Dashboard)](dashboard.md)
     *   다음 보스 정보 표시
+    *   PiP 위젯 (Picture-in-Picture Widget)
     *   다가오는 보스 목록 표시
     *   알림 실행 상태 및 음소거 버튼
     *   최근 알림 로그 표시
@@ -46,7 +47,7 @@
 9.  [보탐 계산기 (Calculator)](calculator.md)
     *   젠 계산기 (Zen Calculator)
     *   광 계산기 (Light Calculator)
-*   **10. [설정 (Settings)](settings.md)**
+10. [설정 (Settings)](settings.md)**
     *   고정 알림 목록 표시 및 관리
     *   고정 알림 추가, 편집, 삭제 (CRUD)
     *   고정 알림 활성화/비활성화 토글
