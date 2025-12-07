@@ -52,11 +52,10 @@ export async function togglePipWindow() {
 export function updatePipContent(nextBoss, minTimeDiff) {
     if (!isPipOpen || !pipWindow || !pipWindow.document) return;
     
-    // Removed: const spawnTimeElement = pipWindow.document.getElementById('pip-spawn-time');
     const nameElement = pipWindow.document.getElementById('pip-boss-name');
     const remainingTimeElement = pipWindow.document.getElementById('pip-remaining-time');
 
-    if (nameElement && remainingTimeElement) { // Adjusted condition
+    if (nameElement && remainingTimeElement) {
         if (nextBoss && minTimeDiff > 0) {
             const totalSeconds = Math.max(0, Math.floor(minTimeDiff / 1000));
             const hours = Math.floor(totalSeconds / 3600);
@@ -72,21 +71,26 @@ export function updatePipContent(nextBoss, minTimeDiff) {
                 formattedRemainingTime = `${pad(minutes)}:${pad(seconds)}`;
             }
 
-            // Removed: spawnTimeElement.textContent = formatSpawnTime(nextBoss.time);
+            const isImminent = minTimeDiff < 5 * 60 * 1000;
+            const isMedium = minTimeDiff < 60 * 60 * 1000;
+
+            let remainingTimeClass = '';
+            if (isImminent) {
+                remainingTimeClass = 'imminent-remaining-time';
+            } else if (isMedium) {
+                remainingTimeClass = 'medium-priority';
+            } else {
+                remainingTimeClass = 'default-grey';
+            }
+
             nameElement.textContent = nextBoss.name;
             remainingTimeElement.textContent = formattedRemainingTime;
-            
-            // Remove 'no-boss' class from container if it exists
-            const pipContainer = pipWindow.document.getElementById('pip-container');
-            if (pipContainer) pipContainer.classList.remove('no-boss-state');
+            remainingTimeElement.className = `remaining-time ${remainingTimeClass}`;
 
         } else {
-            // Removed: spawnTimeElement.textContent = '--:--:--';
             nameElement.textContent = '다음 보스 없음';
-            remainingTimeElement.textContent = '--:--';
-            
-            const pipContainer = pipWindow.document.getElementById('pip-container');
-            if (pipContainer) pipContainer.classList.add('no-boss-state');
+            remainingTimeElement.textContent = '--:--:--';
+            remainingTimeElement.className = 'remaining-time'; // Reset to default
         }
     }
 }

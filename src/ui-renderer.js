@@ -82,26 +82,23 @@ export function updateNextBossDisplay(DOM) {
     const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
 
     if (nextBoss) {
+        const isImminent = minTimeDiff < 5 * 60 * 1000;
+        const isMedium = minTimeDiff < 60 * 60 * 1000;
+
+        let remainingTimeClass = '';
+        if (isImminent) {
+            remainingTimeClass = 'imminent-remaining-time'; // Red
+        } else if (isMedium) {
+            remainingTimeClass = 'medium-priority'; // Black
+        } else {
+            remainingTimeClass = 'default-grey'; // Grey
+        }
+
         const remainingTimeStringRaw = formatTimeDifference(minTimeDiff);
         const remainingTimeString = remainingTimeStringRaw.replace(/[()]/g, ''); // Remove parentheses
         const formattedSpawnTime = formatSpawnTime(nextBoss.time);
 
-        const remainingTimeSpan = DOM.nextBossContent.querySelector('.remaining-time');
-        const spawnTimeSpan = DOM.nextBossContent.querySelector('.spawn-time');
-        const bossDetailsHighlight = DOM.nextBossContent.querySelector('.boss-details-highlight');
-
-        if (remainingTimeSpan && spawnTimeSpan && bossDetailsHighlight) {
-            // Update only the text content of spans
-            remainingTimeSpan.textContent = remainingTimeString;
-            spawnTimeSpan.textContent = formattedSpawnTime;
-            // Only update boss name part if it has actually changed
-            const currentText = bossDetailsHighlight.textContent;
-            if (!currentText.includes(nextBoss.name) || !currentText.includes(formattedSpawnTime)) {
-                 bossDetailsHighlight.innerHTML = `<span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name}<br><span class="remaining-time">${remainingTimeString}</span>`;
-            }
-        } else {
-            DOM.nextBossContent.innerHTML = `<span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name}<br><span class="remaining-time">${remainingTimeString}</span></span>`;
-        }
+        DOM.nextBossContent.innerHTML = `<span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name}<br><span class="remaining-time ${remainingTimeClass}">${remainingTimeString}</span></span>`;
     } else {
         DOM.nextBossContent.textContent = '다음 보스 없음';
     }
