@@ -1,4 +1,5 @@
 // src/pip-manager.js
+import { formatSpawnTime } from './utils.js'; // Import formatSpawnTime
 
 let pipWindow = null;
 let isPipOpen = false;
@@ -51,10 +52,11 @@ export async function togglePipWindow() {
 export function updatePipContent(nextBoss, minTimeDiff) {
     if (!isPipOpen || !pipWindow || !pipWindow.document) return;
     
+    const spawnTimeElement = pipWindow.document.getElementById('pip-spawn-time');
     const nameElement = pipWindow.document.getElementById('pip-boss-name');
-    const timeElement = pipWindow.document.getElementById('pip-remaining-time');
+    const remainingTimeElement = pipWindow.document.getElementById('pip-remaining-time');
 
-    if (nameElement && timeElement) {
+    if (spawnTimeElement && nameElement && remainingTimeElement) {
         if (nextBoss && minTimeDiff > 0) {
             const totalSeconds = Math.max(0, Math.floor(minTimeDiff / 1000));
             const hours = Math.floor(totalSeconds / 3600);
@@ -63,20 +65,28 @@ export function updatePipContent(nextBoss, minTimeDiff) {
 
             const pad = (num) => String(num).padStart(2, '0');
             
-            let formattedTime;
+            let formattedRemainingTime;
             if (hours > 0) {
-                formattedTime = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+                formattedRemainingTime = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
             } else {
-                formattedTime = `${pad(minutes)}:${pad(seconds)}`;
+                formattedRemainingTime = `${pad(minutes)}:${pad(seconds)}`;
             }
 
+            spawnTimeElement.textContent = formatSpawnTime(nextBoss.time); // Remove brackets
             nameElement.textContent = nextBoss.name;
-            timeElement.textContent = formattedTime;
-            nameElement.classList.remove('no-boss');
+            remainingTimeElement.textContent = formattedRemainingTime;
+            
+            // Remove 'no-boss' class from container if it exists
+            const pipContainer = pipWindow.document.getElementById('pip-container');
+            if (pipContainer) pipContainer.classList.remove('no-boss-state');
+
         } else {
+            spawnTimeElement.textContent = '--:--:--';
             nameElement.textContent = '다음 보스 없음';
-            timeElement.textContent = '';
-            nameElement.classList.add('no-boss');
+            remainingTimeElement.textContent = '--:--';
+            
+            const pipContainer = pipWindow.document.getElementById('pip-container');
+            if (pipContainer) pipContainer.classList.add('no-boss-state');
         }
     }
 }
