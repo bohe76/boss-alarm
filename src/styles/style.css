@@ -1,5 +1,6 @@
 :root {
     --header-height: 64px; /* Approximate height of the header */
+    --app-max-width: 1200px; /* Define a consistent max-width for the app content */
 }
 
 body {
@@ -13,6 +14,7 @@ body {
             flex-direction: column; /* Stack header, main, footer vertically */
             min-height: 100vh; /* Ensure body takes full viewport height */
             padding-top: var(--header-height); /* Add padding to prevent content from being hidden by fixed header */
+            text-align: left; /* Ensure body text is left-aligned by default */
         }
 
         header {
@@ -215,10 +217,25 @@ body {
             background-color: #333;
             color: white;
             padding: 20px 20px;
-            text-align: center;
+            text-align: center; /* Added */
             font-size: 0.9em;
             flex-shrink: 0; /* Prevent footer from shrinking */
+            display: flex; /* Added */
+            flex-direction: column; /* Added */
+            align-items: center; /* Added */
         }
+
+/* Styling for the footer content wrapper */
+.footer-content-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 10px;    /* Original row gap */
+    column-gap: 100px; /* New column gap */
+    max-width: var(--app-max-width);
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: left;
+}
 
         /* Base Button Styles */
         .button {
@@ -1469,7 +1486,7 @@ textarea:-ms-input-placeholder {
             display: none;
         }
 
-        .help-summary::before, .help-sub-summary::before {
+        .help-summary::before {
             content: '▶';
             position: absolute;
             left: 15px; /* Adjusted left position */
@@ -1785,6 +1802,16 @@ h3 {
     }
 }
 
+/* Styling for the footer contact link */
+.footer-link {
+    color: #76b9ed; /* New color */
+    text-decoration: none; /* Remove underline */
+}
+
+.footer-link:hover {
+    color: #a0d4fd; /* Lighter shade on hover */
+}
+
 footer p {
     margin: 0;
 }
@@ -1830,4 +1857,10 @@ footer p {
 
 .pip-toggle-button:hover {
     color: #333; /* Using existing color for primary text */
+}
+
+@media (max-width: 768px) {
+    .footer-content-wrapper {
+        column-gap: 60px;
+    }
 }

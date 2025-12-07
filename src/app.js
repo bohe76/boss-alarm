@@ -395,6 +395,12 @@ export async function initApp() {
     const globalTooltip = document.getElementById('global-tooltip');
 
     if (DOM.footerVersion) DOM.footerVersion.textContent = window.APP_VERSION;
+    if (DOM.footerContactButton && window.APP_VERSION) {
+        DOM.footerContactButton.href = `https://tally.so/r/vGMYND?appVersion=${window.APP_VERSION}`;
+        DOM.footerContactButton.addEventListener('click', () => {
+            trackEvent('Click Button', { event_category: 'Interaction', event_label: '푸터 문의하기' });
+        });
+    }
     
     // Check for Document PiP API support
     if ('documentPictureInPicture' in window) {

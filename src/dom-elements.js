@@ -13,6 +13,7 @@ export function initDomElements() {
         moreMenuCloseButton: document.getElementById('more-menu-close-button'), // New for mobile
         mainContentArea: document.getElementById('main-content-area'),
         footerVersion: document.getElementById('footer-version'), // New
+        footerContactButton: document.getElementById('footer-contact-button'), // New
 
         // Sidebar Navigation Links
         navDashboard: document.getElementById('nav-dashboard'), // New
