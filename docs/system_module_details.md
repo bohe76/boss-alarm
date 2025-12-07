@@ -18,16 +18,17 @@
 - **반환값:** `Promise<void>`
 - **핵심 내부 로직:**
     1.  `initDomElements()`를 호출하여 모든 DOM 요소 참조를 `DOM` 객체에 수집합니다.
-    2.  `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자(LocalStorageManager, CustomListManager), 보스 데이터 로딩을 초기화합니다.
-    3.  `registerAllRoutes()`를 호출하여 모든 화면 모듈을 `src/router.js`에 등록합니다.
-    4.  `loadInitialData(DOM)`를 호출하여 URL 파라미터 또는 기본값으로부터 초기 보스 목록 및 고정 알림 데이터를 로드합니다.
-    5.  **'설정' 화면의 고정 알림 목록을 초기 렌더링합니다 (`renderFixedAlarms(DOM)`).**
-    6.  `initGlobalEventListeners(DOM)`를 호출하여, `BossDataManager` 데이터 변경 감지, 로그 업데이트 등 애플리케이션 전반의 핵심 이벤트 리스너를 중앙에서 등록하고 활성화합니다.
-    7.  `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
-    8.  `renderAlarmStatusSummary(DOM)`를 호출하여 초기 UI 상태를 설정합니다.
-    9.  `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링합니다.
-    10. `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여, 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.
-    11. `ResizeObserver`를 사용하여 뷰포트 크기 변화에 따른 반응형 동작(모바일 뷰 클래스 토글)을 처리합니다.
+    2.  Document PiP API 지원 여부를 확인하고, 지원하는 경우에만 PiP 토글 버튼을 표시합니다.
+    3.  `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자(LocalStorageManager, CustomListManager), 보스 데이터 로딩을 초기화합니다.
+    4.  `registerAllRoutes()`를 호출하여 모든 화면 모듈을 `src/router.js`에 등록합니다.
+    5.  `loadInitialData(DOM)`를 호출하여 URL 파라미터 또는 기본값으로부터 초기 보스 목록 및 고정 알림 데이터를 로드합니다.
+    6.  **'설정' 화면의 고정 알림 목록을 초기 렌더링합니다 (`renderFixedAlarms(DOM)`).**
+    7.  `initGlobalEventListeners(DOM)`를 호출하여, `BossDataManager` 데이터 변경 감지, 로그 업데이트 등 애플리케이션 전반의 핵심 이벤트 리스너를 중앙에서 등록하고 활성화합니다.
+    8.  `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크, **PiP 토글 버튼** 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
+    9.  `renderAlarmStatusSummary(DOM)`를 호출하여 초기 UI 상태를 설정합니다.
+    10. `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링합니다.
+    11. `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여, 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.
+    12. `ResizeObserver`를 사용하여 뷰포트 크기 변화에 따른 반응형 동작(모바일 뷰 클래스 토글)을 처리합니다.
 
 #### `showScreen(DOM, screenId)`
 - **설명:** `screenId`에 해당하는 화면만 표시하고, 다른 모든 화면은 숨깁니다. `src/router.js`를 활용하여 화면별 초기화/전환 로직을 호출하고, 대시보드의 주기적인 갱신 (`setInterval`)을 관리합니다.
@@ -99,7 +100,7 @@
 *   `showToast(DOM, message)`: 사용자에게 피드백을 제공하는 토스트 메시지를 표시합니다.
 *   `populateBossSelectionDropdown(DOM)`: '젠 계산기'의 보스 선택 드롭다운 메뉴를 동적으로 생성합니다.
 *   `updateMuteButtonVisuals(DOM)`: 음소거 상태에 따라 음소거 버튼의 시각적 상태(아이콘)를 업데이트합니다.
-*   `updateNextBossDisplay(DOM)`: 대시보드의 '다음 보스' 정보를 갱신합니다.
+*   `updateNextBossDisplay(DOM)`: 대시보드의 '다음 보스' 정보를 갱신하고, PiP 창이 열려 있는 경우 `pip-manager.js`의 `updatePipContent()`를 호출하여 PiP 창의 내용을 동기화합니다.
 *   `renderUpcomingBossList(DOM)`: 대시보드의 '다가오는 보스 목록'을 렌더링합니다.
 *   `renderAlarmStatusSummary(DOM)`: 대시보드의 '알림 실행 상태' 텍스트를 갱신합니다.
 *   `renderRecentAlarmLog(DOM)`: 대시보드의 '최근 알림 로그'를 렌더링합니다. (이벤트 기반 갱신)
@@ -309,10 +310,14 @@
 - **설명:** 주어진 초(seconds) 값을 'MM:SS' 형식의 문자열로 변환합니다.
 - **인자:** `seconds` (`number`): 포맷팅할 시간(초 단위).
 - **반환값:** `string`
-## 20. `src/default-boss-list.js`
+## 20. `src/pip-manager.js` (Document PiP 위젯 관리)
 
-- **역할:** 애플리케이션에 미리 정의된 기본 보스 목록 데이터(`bossPresets`)를 제공합니다.
-- **주요 `export` 상수:** `bossPresets`.
+- **역할:** 최신 브라우저의 Document Picture-in-Picture API를 활용하여 대시보드의 '다음 보스' 정보를 항상 위에 떠 있는 작은 창(PiP 위젯)으로 관리합니다. PiP 창의 열기/닫기, 콘텐츠 업데이트 및 상태 관리 로직을 담당합니다.
+
+- **주요 `export` 함수:**
+    - `togglePipWindow()`: PiP 창을 열거나 닫습니다. 호출 시 PiP API 지원 여부를 확인하고, 지원 시 `requestWindow()`를 통해 새 창을 생성합니다. `pip-content.html`의 HTML과 CSS를 로드하여 삽입하며, 사용자가 PiP 창을 닫을 경우 내부 상태를 재설정하기 위한 `pagehide` 이벤트 리스너를 등록합니다. 창의 초기 크기는 너비 240px, 높이 100px로 설정됩니다.
+    - `updatePipContent(nextBoss, minTimeDiff)`: 열려 있는 PiP 창의 내용을 '다음 보스' 정보로 업데이트합니다. `nextBoss` 객체와 남은 시간(밀리초)을 받아 PiP 창 내의 `#pip-boss-name`, `#pip-remaining-time` 요소의 텍스트를 갱신합니다. 남은 시간은 HH:MM:SS 또는 MM:SS 형식으로 포맷팅됩니다.
+    - `isPipWindowOpen()`: PiP 창이 현재 열려 있는지 여부를 반환합니다.
 
 ---
 

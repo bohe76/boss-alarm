@@ -134,3 +134,18 @@
         *   저장 완료 후 `closeFixedAlarmModal(DOM)`를 호출하여 모달을 닫고, `ui-renderer.js`의 `renderFixedAlarms(DOM)`를 호출하여 알림 목록 UI를 갱신합니다.
         *   `log()` 함수로 기록을 남기고, 알람이 실행 중이면 `syncScheduleToWorker()`를 호출하여 워커에 변경사항을 동기화합니다.
 *   **데이터 흐름 요약:** '설정' 화면은 고정 알림 추가/편집을 위한 모달을 제공하며, 모달은 `LocalStorageManager`를 통해 데이터를 읽고 쓰고, `ui-renderer.js`를 통해 목록을 갱신하며, `alarm-scheduler.js`를 통해 알람 워커를 동기화합니다.
+
+### 3.11. PiP 위젯 데이터 흐름 (Document PiP Widget Data Flow)
+
+*   **초기화:** `app.js`의 `initApp()` 함수에서 Document PiP API 지원 여부를 확인하고, 지원하는 경우 PiP 토글 버튼(`DOM.pipToggleButton`)을 표시합니다.
+*   **PiP 창 열기/닫기:**
+    1.  사용자가 PiP 토글 버튼을 클릭하면 `app.js`의 `initEventHandlers`에 등록된 리스너가 `pip-manager.js`의 `togglePipWindow()` 함수를 호출합니다.
+    2.  `togglePipWindow()`는 현재 PiP 창이 열려 있는지 확인합니다. 열려 있으면 닫고, 닫혀 있으면 `documentPictureInPicture.requestWindow()`를 호출하여 가로 240px, 세로 100px 크기의 새 PiP 창을 엽니다.
+    3.  PiP 창이 성공적으로 열리면 `src/pip-content.html`의 HTML 콘텐츠를 가져와 삽입합니다.
+    4.  PiP 창에 `pagehide` 이벤트 리스너를 등록하여, 사용자가 직접 창을 닫을 경우 `pip-manager.js`의 내부 상태(`pipWindow`, `isPipOpen`)를 재설정합니다.
+*   **콘텐츠 동기화:**
+    1.  `app.js`의 `showScreen` 함수에 의해 대시보드 화면(`dashboard-screen`)이 활성화되면, 1초마다 `ui-renderer.js`의 `renderDashboard(DOM)` 함수가 호출되어 대시보드 UI가 갱신됩니다.
+    2.  `renderDashboard(DOM)`는 `updateNextBossDisplay(DOM)`를 호출하여 '다음 보스' 정보를 메인 화면에 표시합니다.
+    3.  `updateNextBossDisplay(DOM)` 함수는 `pip-manager.js`의 `isPipWindowOpen()`을 통해 PiP 창이 열려 있는지 확인하고, 열려 있다면 `updatePipContent(nextBoss, minTimeDiff)`를 호출합니다.
+    4.  `updatePipContent()`는 `BossDataManager`에서 현재 '다음 보스' 정보(`nextBoss`, `minTimeDiff`)를 가져와 PiP 창 내의 `#pip-boss-name` (보스 이름)과 `#pip-remaining-time` (남은 시간) 요소의 텍스트를 최신 정보로 업데이트합니다.
+*   **데이터 흐름 요약:** PiP 위젯은 `app.js`에서 초기화되고 `pip-manager.js`에서 창 생명주기를 관리하며, `ui-renderer.js`를 통해 `BossDataManager`의 데이터를 기반으로 콘텐츠가 실시간으로 동기화됩니다.

@@ -6,7 +6,7 @@
 
 ## 2. 아키텍처 개요
 
-애플리케이션은 `src/app.js`를 최초 진입점으로 하는 클라이언트 측 단일 페이지 애플리케이션(SPA)입니다. HTML5, CSS3, 바닐라 JavaScript (ES Modules), 웹 음성 API (`window.speechSynthesis`), TinyURL API, **Web Worker API** 등의 기술 스택으로 구성됩니다.
+애플리케이션은 `src/app.js`를 최초 진입점으로 하는 클라이언트 측 단일 페이지 애플리케이션(SPA)입니다. HTML5, CSS3, 바닐라 JavaScript (ES Modules), 웹 음성 API (`window.speechSynthesis`), TinyURL API, **Web Worker API**, **Document Picture-in-Picture API** 등의 기술 스택으로 구성됩니다.
 
 UI는 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 콘텐츠 영역, 푸터, 그리고 모바일 뷰를 위한 하단 탭 바**의 5가지 주요 영역으로 나뉘며, JavaScript 코드는 기능별로 `src/` 폴더 내의 여러 ES Modules로 분리되어 각 모듈은 명확한 책임을 가집니다. `src/app.js`는 애플리케이션의 전반적인 초기화, 상태 관리 및 라우팅을 담당하는 최상위 오케스트레이터 역할을 수행합니다.
 
@@ -17,6 +17,7 @@ UI는 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 �
 
 ## 3. 주요 기능
 
+*   **PiP 위젯 (Picture-in-Picture Widget):** 최신 크롬/엣지 브라우저의 Document Picture-in-Picture API를 활용하여, 대시보드의 '다음 보스' 정보(보스 이름, 남은 시간)를 브라우저 밖으로 꺼내어 게임 화면 위에 항상 떠 있는 미니 창으로 제공합니다. (초기 크기: 240x100px)
 *   **보스 목록 관리:** 사용자는 텍스트 영역에 `HH:MM 보스이름` 형식으로 보스 출현 시간과 이름을 입력할 수 있습니다. 입력 후 "보스 설정 저장" 버튼을 클릭하여 명시적으로 저장해야 하며, 이때 데이터 파싱, 유효성 검사, 정렬이 수행되어 데이터 무결성을 보장합니다.
 *   **시간 기반 알림:** 보스 출현 5분 전, 1분 전, 0분 전에 오디오 및 시각적(로그) 알림이 트리거됩니다.
 *   **오디오 알림:** 웹 음성 API (`window.speechSynthesis`)를 활용하여 음성 알림을 제공합니다. 음소거 설정이 가능합니다.

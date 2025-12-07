@@ -5,6 +5,7 @@
 ## 목차
 
 1.  [애플리케이션 공통 기능](application-common-features.md)
+    *   **PiP 위젯 (Document Picture-in-Picture Widget):** 대시보드의 '다음 보스' 정보를 브라우저 밖 미니 창으로 제공.
     *   초기 로딩 및 화면 전환
     *   전역 알림 시스템 (음성 및 시각적 알림)
     *   Local Storage를 통한 설정 및 데이터 저장
