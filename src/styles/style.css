@@ -102,7 +102,6 @@ body {
             width: 54px; /* Collapsed width */
             background-color: #f8f8f8; /* Changed to body's background color */
             color: white;
-            padding-top: 16px; /* Changed from 15px to 16px (spacing-md) */
             transition: width 0.3s ease;
             flex-shrink: 0; /* Prevent sidebar from shrinking */
             overflow-x: hidden; /* Hide overflow when collapsed */
@@ -138,7 +137,6 @@ body {
         .sidebar-menu {
             list-style: none;
             padding: 0;
-            margin-top: 20px;
             width: 100%;
         }
 
@@ -287,6 +285,10 @@ body {
         h1, h2 {
             color: #111;
             margin-top: 0px;
+        }
+        h2 {
+            max-width: 800px; /* Align with .card-size-list */
+            margin: 0 auto 20px auto; /* 20px margin-bottom */
         }
         h3 {
             color: #1D3557;
