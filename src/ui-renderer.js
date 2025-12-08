@@ -504,7 +504,7 @@ export function renderVersionInfo(DOM, versionData) {
                                     <strong>${change.type}:</strong> ${change.description}
                                     ${change.details && change.details.length > 0 ? `
                                         <ul>
-                                            ${change.details.map(detail => `<li>${detail}</li>`).join('')}
+                                            ${change.details.map(detail => `<li>${convertBoldMarkdownToHtml(detail)}</li>`).join('')}
                                         </ul>
                                     ` : ''}
                                 </li>
