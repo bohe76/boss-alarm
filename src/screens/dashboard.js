@@ -1,4 +1,4 @@
-import { updateMuteButtonVisuals, renderRecentAlarmLog } from '../ui-renderer.js';
+import { updateSoundControls, renderRecentAlarmLog } from '../ui-renderer.js';
 import { LocalStorageManager } from '../data-managers.js';
 import { log } from '../logger.js';
 import { EventBus } from '../event-bus.js'; // Import EventBus
@@ -15,11 +15,29 @@ export function initDashboardScreen(DOM) {
         DOM.muteToggleButton.addEventListener('click', () => {
             const currentMuteState = LocalStorageManager.getMuteState();
             LocalStorageManager.setMuteState(!currentMuteState);
-            updateMuteButtonVisuals(DOM); // This should still be called to update visuals after a click
             log(`음소거가 ${!currentMuteState ? '설정' : '해제'}되었습니다.`, true);
+            updateSoundControls(DOM); // Update both button and slider visuals
         });
     }
 
+    // Volume Slider Listener
+    if (DOM.volumeSlider) {
+        // Set initial value from storage
+        DOM.volumeSlider.value = LocalStorageManager.getVolume();
+
+        DOM.volumeSlider.addEventListener('input', () => {
+            const newVolume = parseFloat(DOM.volumeSlider.value);
+            LocalStorageManager.setVolume(newVolume);
+
+            // If user adjusts volume, unmute if it was muted
+            if (LocalStorageManager.getMuteState()) {
+                LocalStorageManager.setMuteState(false);
+                log(`음소거가 해제되었습니다.`, true);
+            }
+            
+            updateSoundControls(DOM); // Update visuals to reflect potential unmute
+        });
+    }
 }
 
 export function getScreen() {

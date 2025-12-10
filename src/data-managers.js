@@ -105,6 +105,8 @@ export const LocalStorageManager = (() => {
     let sidebarExpandedState = false; // 사이드바 확장 상태 (기본값: 접힘)
     let crazyCalculatorRecords = []; // 광 계산기 기록 (사용자 정의 가능)
     let muteState = false; // 음소거 상태 (기본값: OFF)
+    let volume = 0.5; // 볼륨 상태 (기본값: 0.5)
+    let preMuteVolume = 0.5; // 음소거 전 볼륨 상태 (기본값: 0.5)
 
     function saveFixedAlarms() {
         localStorage.setItem('fixedAlarms', JSON.stringify(fixedAlarms));
@@ -227,6 +229,34 @@ export const LocalStorageManager = (() => {
         }
     }
 
+    function saveVolume() {
+        localStorage.setItem('volume', JSON.stringify(volume));
+    }
+
+    function loadVolume() {
+        const savedVolume = localStorage.getItem('volume');
+        if (savedVolume !== null) {
+            volume = JSON.parse(savedVolume);
+        } else {
+            volume = 0.5; // 기본값: 0.5
+        }
+    }
+
+    function savePreMuteVolume() {
+        localStorage.setItem('preMuteVolume', JSON.stringify(preMuteVolume));
+    }
+
+
+
+    function loadPreMuteVolume() {
+        const savedPreMuteVolume = localStorage.getItem('preMuteVolume');
+        if (savedPreMuteVolume !== null) {
+            preMuteVolume = JSON.parse(savedPreMuteVolume);
+        } else {
+            preMuteVolume = 0.5; // 기본값: 0.5
+        }
+    }
+
     return {
         // Generic getter/setter
         get: (key) => JSON.parse(localStorage.getItem(key)),
@@ -275,6 +305,10 @@ export const LocalStorageManager = (() => {
         setSidebarExpandedState: (state) => { sidebarExpandedState = state; saveSidebarExpandedState(); },
         getMuteState: () => muteState,
         setMuteState: (state) => { muteState = state; saveMuteState(); },
+        getVolume: () => volume,
+        setVolume: (newVolume) => { volume = newVolume; saveVolume(); },
+        getPreMuteVolume: () => preMuteVolume,
+        setPreMuteVolume: (newPreMuteVolume) => { preMuteVolume = newPreMuteVolume; savePreMuteVolume(); },
         getCrazyCalculatorRecords: () => crazyCalculatorRecords,
         setCrazyCalculatorRecords: (records) => { crazyCalculatorRecords = records; saveCrazyCalculatorRecords(); },
         clearCrazyCalculatorRecords: () => { crazyCalculatorRecords = []; saveCrazyCalculatorRecords(); },
@@ -285,6 +319,8 @@ export const LocalStorageManager = (() => {
             loadSidebarExpandedState(); // Load sidebar expanded state
             loadCrazyCalculatorRecords(); // Load crazy calculator records
             loadMuteState(); // Load mute state
+            loadVolume(); // Load volume state
+            loadPreMuteVolume(); // Load pre-mute volume state
         }
     };
 })();

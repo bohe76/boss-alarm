@@ -53,6 +53,7 @@ export function initDomElements() {
         upcomingBossListContent: document.getElementById('upcomingBossListContent'), // New
         alarmStatusText: document.getElementById('alarmStatusText'),
         muteToggleButton: document.getElementById('muteToggleButton'), // New
+        volumeSlider: document.getElementById('volumeSlider'), // New
         recentAlarmLogContent: document.getElementById('recentAlarmLogContent'),
 
         // Elements within Settings Screen

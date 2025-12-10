@@ -60,15 +60,18 @@ export function populateBossSelectionDropdown(DOM) {
     });
 }
 
-export function updateMuteButtonVisuals(DOM) {
-    if (!DOM.muteToggleButton) return;
+export function updateSoundControls(DOM) {
+    if (!DOM.muteToggleButton || !DOM.volumeSlider) return;
+
     const isMuted = LocalStorageManager.getMuteState();
+    const volume = LocalStorageManager.getVolume();
+
+    // Update mute button icon and class
     DOM.muteToggleButton.innerHTML = isMuted ? UNMUTE_ICON : MUTE_ICON;
-    if (isMuted) {
-        DOM.muteToggleButton.classList.add('muted');
-    } else {
-        DOM.muteToggleButton.classList.remove('muted');
-    }
+    DOM.muteToggleButton.classList.toggle('muted', isMuted);
+
+    // Update volume slider value
+    DOM.volumeSlider.value = volume;
 }
 
 import { isPipWindowOpen, updatePipContent } from './pip-manager.js';
@@ -193,7 +196,7 @@ export function renderDashboard(DOM) {
     updateNextBossDisplay(DOM);
     renderUpcomingBossList(DOM);
     renderAlarmStatusSummary(DOM);
-    updateMuteButtonVisuals(DOM);
+    updateSoundControls(DOM);
 }
 
 // --- Help Screen Rendering Functions ---

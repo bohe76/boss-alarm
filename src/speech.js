@@ -38,6 +38,7 @@ export function speak(text) {
     
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'ko-KR';
+    utterance.volume = LocalStorageManager.getVolume(); // Set the volume
     
     speechQueue.push(utterance); // Add to queue
     processQueue(); // Try to process

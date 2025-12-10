@@ -317,7 +317,7 @@ body {
             font-size: 1.4em;
         }
         .alarm-status-running {
-            color: #43AA8B; /* 변경: 남은 시간의 청록색과 동일하게 변경 */
+            color: #AD1457; /* Primary color */
         }
         #alarmStatusText {
             font-weight: bold; /* 알림 상태 텍스트 항상 굵게 */
@@ -326,8 +326,7 @@ body {
         
         /* Removed #alarmStatusSummary style as it is now part of a card */
         /* Removed #muteControlSection style as it is now part of a card */
-        .status-content,
-        .mute-control-content {
+        .status-content {
             display: flex;
             flex-direction: column; /* 추가 */
             justify-content: center;
@@ -335,6 +334,16 @@ body {
             text-align: center;
             width: 100%;
         }
+
+.mute-control-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px; /* Spacing between button and slider */
+    width: 100%;
+    padding: 0; /* Remove horizontal padding */
+    box-sizing: border-box;
+}
 
 
         .mute-button {
@@ -348,8 +357,10 @@ body {
             justify-content: center;
             cursor: pointer;
             padding: 0;
-            color: #43AA8B; /* 변경: 남은 시간의 청록색과 동일하게 변경 */
+            color: #AD1457; /* Primary color */
             transition: color 0.3s ease, background-color 0.3s ease;
+            box-sizing: border-box;
+            flex-shrink: 0; /* Prevent shrinking in flex container */
         }
         .mute-button.muted {
             color: #666; /* Grey for sound OFF (muted) */
@@ -437,7 +448,7 @@ body {
          /* 대시보드 최근 알림 로그에서 가장 최근 로그(가장 상위)만 굵게 표시 */
          #recentAlarmLogContent ul li:first-child {
              font-weight: bold;
-             color: #43AA8B !important; /* 가장 최근 로그 텍스트 색상을 청록색으로 변경 (우선순위 강제) */
+             color: #AD1457 !important; /* Primary color */
          }        #log-container .log-entry strong {
             color: #111;
         }
@@ -1875,4 +1886,45 @@ footer p {
     .footer-content-wrapper {
         column-gap: 60px;
     }
+}
+
+/* Volume Slider Styles */
+.volume-slider {
+    -webkit-appearance: none; /* Override default CSS */
+    appearance: none;
+    width: 100%; /* Full width of the container */
+    height: 8px; /* Slider track height */
+    background: #ddd; /* Slider track color */
+    border-radius: 5px;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
+    flex-grow: 1; /* Allow slider to take up space */
+}
+
+.volume-slider:hover {
+    opacity: 1; /* Fully visible on hover */
+}
+
+/* Slider Thumb Styles */
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px; /* Thumb width */
+    height: 20px; /* Thumb height */
+    background: #AD1457; /* Primary color */
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 2px rgba(0,0,0,0.2);
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #AD1457;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 2px rgba(0,0,0,0.2);
 }
