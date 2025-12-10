@@ -99,7 +99,7 @@
 
 *   `showToast(DOM, message)`: 사용자에게 피드백을 제공하는 토스트 메시지를 표시합니다.
 *   `populateBossSelectionDropdown(DOM)`: '젠 계산기'의 보스 선택 드롭다운 메뉴를 동적으로 생성합니다.
-*   `updateMuteButtonVisuals(DOM)`: 음소거 상태에 따라 음소거 버튼의 시각적 상태(아이콘)를 업데이트합니다.
+*   `updateSoundControls(DOM)`: 음소거 버튼 아이콘 및 볼륨 슬라이더의 시각적 상태를 업데이트합니다. `LocalStorageManager`의 `muteState` 및 `volume` 값을 기반으로 음소거 버튼의 아이콘(음소거/음소거 해제)과 클래스, 볼륨 슬라이더의 값 및 트랙 색상(CSS 변수 `--volume-progress` 활용)을 동기화합니다.
 *   `updateNextBossDisplay(DOM)`: 대시보드의 '다음 보스' 정보를 갱신합니다. 남은 시간에 따라 시간 표시의 색상을 동적으로 변경(5분 미만: 빨강, 10분 미만: 주황, 1시간 미만: 검정, 1시간 이상: 회색)하여 직관성을 높입니다. PiP 창이 열려 있는 경우 `pip-manager.js`의 `updatePipContent()`를 호출하여 PiP 창의 내용을 동기화합니다.
 *   `renderUpcomingBossList(DOM)`: 대시보드의 '다가오는 보스 목록'을 렌더링합니다. 각 보스의 남은 시간에 따라 목록의 색상을 동적으로 변경하여(5분, 10분, 1시간 기준) 가독성을 높입니다.
 *   `renderAlarmStatusSummary(DOM)`: 대시보드의 '알림 실행 상태' 텍스트를 갱신합니다.
@@ -149,6 +149,8 @@
     *   `getFixedAlarms()` / `getFixedAlarmById(id)` / `addFixedAlarm()` / `updateFixedAlarm()` / `deleteFixedAlarm()`: 고정 알림 데이터에 대한 CRUD(생성, 읽기, 업데이트, 삭제) 작업을 제공합니다.
     *   `exportFixedAlarms()` / `importFixedAlarms(encodedData)`: 고정 알림 데이터를 인코딩/디코딩하여 공유 가능하게 합니다.
     *   `getMuteState()` / `setMuteState(state)`: `boolean` / `void`. 음소거 상태를 관리합니다.
+    *   `getVolume()` / `setVolume(newVolume)`: `number` / `void`. 음성 알림 볼륨 레벨(0.0 ~ 1.0)을 관리하며, 기본값은 1입니다.
+    *   `getPreMuteVolume()` / `setPreMuteVolume(newPreMuteVolume)`: `number` / `void`. 음소거 직전의 볼륨 레벨을 저장하고 복원하는 데 사용됩니다.
     *   그 외 `logVisibilityState`, `alarmRunningState`, `sidebarExpandedState`, `crazyCalculatorRecords` 등에 대한 `get/set` 함수를 제공합니다.
     *   `getLogVisibilityState()` / `setLogVisibilityState(state)`: `boolean` / `void`. 로그 화면의 "15개 보기" 토글 상태를 관리합니다.
 
@@ -245,7 +247,7 @@
 
 - **역할:** 웹 음성 API (`window.speechSynthesis`)를 활용하여 텍스트를 음성으로 변환하여 출력합니다. 음성 요청 큐를 관리하며 음소거 상태를 고려합니다.
 - **주요 `export` 함수:**
-    - `speak(text)`: 주어진 텍스트를 음성으로 출력 요청 큐에 추가합니다.
+    - `speak(text)`: 주어진 텍스트를 음성으로 출력 요청 큐에 추가합니다. `LocalStorageManager`에서 현재 설정된 볼륨을 가져와 음성 출력에 적용하며, 음소거 상태일 경우 음성을 출력하지 않습니다.
 
 ## 12. `src/api-service.js`
 
@@ -332,7 +334,7 @@
 | **`boss-scheduler.js`** | `getScreen()` | `init` 시 `EventBus.on('show-boss-scheduler-screen')` 및 `EventBus.on('rerender-boss-scheduler')` 리스너를 등록하고, `renderBossSchedulerScreen(DOM, _remainingTimes)`를 통해 UI를 렌더링합니다. `handleApplyBossSettings(DOM)` 함수는 "보스 설정 적용" 버튼 클릭 시 호출되며, 입력된 `data-id`와 계산된 시간을 기반으로 보스 데이터를 업데이트하고, 특수 보스(+12h) 및 '침공' 보스 필터링 로직을 적용한 후, 전체 리스트를 재구성(Reconstruction)하여 `BossDataManager`에 저장합니다. `remaining-time-input` 필드에서는 `calculateBossAppearanceTime`을 통해 젠 시간을 계산하고, `focusout` 시 유효성 검사를 수행합니다. 화면 전환 전 입력된 `remaining-time-input` 값은 `_remainingTimes` 내부에 임시로 저장됩니다. `updateCalculatedTimes(DOM)`는 계산된 시간을 갱신합니다. |
 | **`calculator.js`** | `getScreen()` | `init` 시 `initCalculatorScreen(DOM)`이 호출되어 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 `handleCalculatorScreenTransition(DOM)`이 호출되어 `CrazyCalculator`의 상태를 초기화하고 `ui-renderer.js`의 `renderCalculatorScreen(DOM)`을 호출하여 화면을 렌더링합니다. `checkZenCalculatorUpdateButtonState(DOM)` 헬퍼 함수를 통해 '보스 시간 업데이트' 버튼의 활성화/비활성화 상태를 관리합니다. |
 | **`custom-list.js`** | `getScreen()` | `init` 시 `initCustomListScreen(DOM)`이 호출되어 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. `DOM.manageCustomListsButton` 클릭 시 모달이 열리며, 목록 변경 시 `EventBus.emit('rerender-boss-scheduler')`를 발행하여 보스 스케줄러의 드롭다운을 업데이트합니다. |
-| **`dashboard.js`** | `getScreen()` | `init` 시 `initDashboardScreen(DOM)`이 호출되어 `DOM.muteToggleButton`에 대한 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링합니다. `initDashboardScreen`은 `EventBus.on('log-updated', ...)` 리스너를 등록하여 새로운 로그 발생 시 `renderRecentAlarmLog(DOM)`를 호출하여 로그를 갱신합니다. |
+| **`dashboard.js`** | `getScreen()` | `init` 시 `initDashboardScreen(DOM)`이 호출되어 `DOM.muteToggleButton` (음소거 버튼)과 `DOM.volumeSlider` (볼륨 슬라이더)에 대한 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링합니다. 음소거 버튼 클릭 시 `LocalStorageManager.setMuteState()`를 호출하여 음소거 상태를 토글하며, 볼륨 슬라이더 조작 시 `LocalStorageManager.setVolume()`을 통해 볼륨 값을 저장합니다. 두 UI 요소 모두 변경 시 `ui-renderer.js`의 `updateSoundControls(DOM)`를 호출하여 시각적 상태를 갱신합니다. `initDashboardScreen`은 `EventBus.on('log-updated', ...)` 리스너를 등록하여 새로운 로그 발생 시 `renderRecentAlarmLog(DOM)`를 호출하여 로그를 갱신합니다. |
 | **`help.js`** | `getScreen()` | `init` 시 `handleTabSwitching(DOM)`이 호출되어 '도움말'과 'FAQ' 탭 전환 이벤트 리스너를 등록합니다. `onTransition` 시 `onHelpScreenTransition(DOM)`이 호출되어 `data/feature_guide.json`과 `data/faq_guide.json`을 비동기적으로 로드하고, `ui-renderer.js`의 `renderHelpScreen()`과 `renderFaqScreen()`을 호출하여 각 탭의 콘텐츠를 렌더링합니다. |
 | **`settings.js`** | `getScreen()` | `init` 시 `initSettingsScreen(DOM)`이 호출되어 고정 알림 모달의 '추가' 및 목록의 '편집/삭제/토글' 이벤트 리스너를 등록합니다. 모달은 고정 알림의 추가/편집을 담당하며, 요일 선택 기능과 데이터 저장 로직을 포함합니다. (`LocalStorageManager`의 `getFixedAlarmById`를 사용) |
 | **`share.js`** | `getScreen()` | `onTransition` 시 `initShareScreen(DOM)`이 호출되어 현재의 동적 보스 목록(`data`)을 인코딩하여 `api-service.js`의 `getShortUrl()`을 통해 짧은 URL을 생성합니다. 생성된 URL은 `navigator.clipboard.writeText()`를 사용하여 클립보드에 복사되며, `DOM.shareMessage`에 결과 메시지를 표시합니다. (고정 알림은 공유되지 않습니다.) |

@@ -7,7 +7,7 @@
 1.  [애플리케이션 공통 기능](application-common-features.md)
     *   **PiP 위젯 (Document Picture-in-Picture Widget):** 대시보드의 '다음 보스' 정보 중 **보스 이름과 남은 시간만**을 브라우저 밖 미니 창으로 제공. (간결함을 위해 출현 시간은 표시하지 않음)
     *   초기 로딩 및 화면 전환
-    *   전역 알림 시스템 (음성 및 시각적 알림)
+    *   전역 알림 시스템 (음성 및 시각적 알림, **볼륨 조절 기능 포함**)
     *   Local Storage를 통한 설정 및 데이터 저장
     *   TinyURL을 통한 URL 단축 및 공유
     *   EventBus를 통한 모듈 간 통신
@@ -15,7 +15,7 @@
     *   다음 보스 정보 표시
     *   PiP 위젯 (Picture-in-Picture Widget)
     *   다가오는 보스 목록 표시
-    *   알림 실행 상태 및 음소거 버튼
+    알림 실행 상태, 음소거 버튼 **및 볼륨 슬라이더**
     *   최근 알림 로그 표시
 3.  [보스 관리 (Boss Management)](boss-management.md)
     *   보스 목록 텍스트 영역 입력 및 파싱
