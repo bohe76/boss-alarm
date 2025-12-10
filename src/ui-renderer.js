@@ -475,8 +475,7 @@ export function updateFixedAlarmVisuals(DOM) {
 
 
 export function renderVersionInfo(DOM, versionData) {
-    console.log('ui-renderer.js: renderVersionInfo received versionData:', versionData); // Debug log
-    console.log('ui-renderer.js: Array.isArray(versionData):', Array.isArray(versionData)); // Debug log
+
     let versionEntries = [];
 
     // Check if versionData is an array and process accordingly
