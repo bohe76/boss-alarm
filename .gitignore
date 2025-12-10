@@ -2,3 +2,4 @@ node_modules/
 .gemini/
 sample_color/
 commit_message.txt
+modify_release_notes.py
