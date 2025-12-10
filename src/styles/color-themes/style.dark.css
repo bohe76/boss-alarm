@@ -1148,7 +1148,7 @@ textarea:-ms-input-placeholder {
 /* --------------------------- */
 
 
-/* Light Calculator Specific Styles */
+/* light Calculator Specific Styles */
 .card-header {
     display: flex;
     justify-content: space-between;
@@ -1228,7 +1228,7 @@ textarea:-ms-input-placeholder {
 
 #lightExpectedTimeDisplay {
     width: var(--zen-input-width);
-    /* height: 46px; Removed fixed height */
+    /* height: 46px; Removed fixed height to match bossAppearanceTimeDisplay behavior */
     font-size: 2em;
     font-weight: 700;
     color: #f87171;
@@ -2161,3 +2161,11 @@ footer p {
     background-color: #ca8a04;
     /* 활성화 상태에서 호버 시 배경색 */
 }
+
+
+
+
+
+
+
+

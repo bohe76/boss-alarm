@@ -46,7 +46,7 @@
     *   아코디언 형태의 콘텐츠 표시
 9.  [보탐 계산기 (Calculator)](calculator.md)
     *   젠 계산기 (Zen Calculator)
-    *   광 계산기 (Light Calculator)
+    *   광 계산기 (Crazy Calculator)
 10. [설정 (Settings)](settings.md)**
     *   고정 알림 목록 표시 및 관리
     *   고정 알림 추가, 편집, 삭제 (CRUD)

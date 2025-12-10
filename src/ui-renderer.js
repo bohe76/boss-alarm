@@ -264,44 +264,44 @@ function convertBoldMarkdownToHtml(text) {
 }
 
 
-// --- Light Calculator Display Functions ---
-export function updateLightStopwatchDisplay(DOM, time) {
-    if (DOM.lightStopwatchDisplay) {
-        DOM.lightStopwatchDisplay.textContent = time;
+// --- Crazy Calculator Display Functions ---
+export function updateCrazyStopwatchDisplay(DOM, time) {
+    if (DOM.crazyStopwatchDisplay) {
+        DOM.crazyStopwatchDisplay.textContent = time;
     }
 }
 
-export function updateLightExpectedTimeDisplay(DOM, time, isOverTime) {
-    if (DOM.lightExpectedTimeDisplay) {
-        DOM.lightExpectedTimeDisplay.textContent = time;
-        const labelSpan = DOM.lightExpectedTimeDisplay.previousElementSibling.querySelector('.expected-label');
-        const labelGroup = DOM.lightExpectedTimeDisplay.previousElementSibling;
+export function updateCrazyExpectedTimeDisplay(DOM, time, isOverTime) {
+    if (DOM.crazyExpectedTimeDisplay) {
+        DOM.crazyExpectedTimeDisplay.textContent = time;
+        const labelSpan = DOM.crazyExpectedTimeDisplay.previousElementSibling.querySelector('.expected-label');
+        const labelGroup = DOM.crazyExpectedTimeDisplay.previousElementSibling;
 
         if (isOverTime) {
-            DOM.lightExpectedTimeDisplay.classList.add('over-time');
+            DOM.crazyExpectedTimeDisplay.classList.add('over-time');
             if (labelSpan) labelSpan.textContent = '오버 시간';
             if (labelGroup) labelGroup.classList.add('over-time-label');
         } else {
-            DOM.lightExpectedTimeDisplay.classList.remove('over-time');
+            DOM.crazyExpectedTimeDisplay.classList.remove('over-time');
             if (labelSpan) labelSpan.textContent = '예상 시간';
             if (labelGroup) labelGroup.classList.remove('over-time-label');
         }
     }
 }
 
-export function renderLightTempResults(DOM, gwangTime, afterGwangTime, totalTime) {
-    if (DOM.lightTempResults) {
+export function renderCrazyTempResults(DOM, gwangTime, afterGwangTime, totalTime) {
+    if (DOM.crazyTempResults) {
         if (!gwangTime && !afterGwangTime && !totalTime) {
-            DOM.lightTempResults.innerHTML = '';
-            DOM.lightTempResults.style.display = 'none';
+            DOM.crazyTempResults.innerHTML = '';
+            DOM.crazyTempResults.style.display = 'none';
             return;
         }
-        DOM.lightTempResults.style.display = 'block';
-        DOM.lightTempResults.innerHTML = `
+        DOM.crazyTempResults.style.display = 'block';
+        DOM.crazyTempResults.innerHTML = `
             <div class="card-header">
                 <h4>최근 계산 결과</h4>
             </div>
-            <table class="light-temp-table">
+            <table class="crazy-temp-table">
                 <thead>
                     <tr>
                         <th>광</th>
@@ -321,28 +321,28 @@ export function renderLightTempResults(DOM, gwangTime, afterGwangTime, totalTime
     }
 }
 
-export function renderLightSavedList(DOM, records) {
-    if (DOM.lightSavedList && DOM.lightTempResults) { // Ensure both elements exist
+export function renderCrazySavedList(DOM, records) {
+    if (DOM.crazySavedList && DOM.crazyTempResults) { // Ensure both elements exist
         if (records.length === 0) {
-            DOM.lightSavedList.innerHTML = `
+            DOM.crazySavedList.innerHTML = `
                 <div class="card-header">
                     <h4>광 계산 목록</h4>
                 </div>
-                <div class="light-list-action">
-                    <button id="clearLightRecordsButton" class="button" disabled>목록 초기화</button>
+                <div class="crazy-list-action">
+                    <button id="clearCrazyRecordsButton" class="button" disabled>목록 초기화</button>
                 </div>
                 <p>저장된 기록이 없습니다.</p>
             `;
-            DOM.lightTempResults.classList.add('compact-top'); // Add class when no records
+            DOM.crazyTempResults.classList.add('compact-top'); // Add class when no records
         } else {
             let html = `
                 <div class="card-header">
                     <h4>광 계산 목록</h4>
                 </div>
-                <div class="light-list-action">
-                    <button id="clearLightRecordsButton" class="button">목록 초기화</button>
+                <div class="crazy-list-action">
+                    <button id="clearCrazyRecordsButton" class="button">목록 초기화</button>
                 </div>
-                <table class="light-saved-table">
+                <table class="crazy-saved-table">
                     <thead>
                         <tr>
                             <th>이름</th>
@@ -367,8 +367,8 @@ export function renderLightSavedList(DOM, records) {
                     </tbody>
                 </table>
             `;
-            DOM.lightSavedList.innerHTML = html;
-            DOM.lightTempResults.classList.remove('compact-top'); // Remove class when records exist
+            DOM.crazySavedList.innerHTML = html;
+            DOM.crazyTempResults.classList.remove('compact-top'); // Remove class when records exist
         }
     }
 }
@@ -545,23 +545,23 @@ export function renderCalculatorScreen(DOM) {
         DOM.toastContainer.innerHTML = '';
     }
 
-    // Light Calculator initialization
-    if (DOM.lightStopwatchDisplay) {
-        DOM.lightStopwatchDisplay.textContent = '00:00';
+    // Crazy Calculator initialization
+    if (DOM.crazyStopwatchDisplay) {
+        DOM.crazyStopwatchDisplay.textContent = '00:00';
     }
-    if (DOM.lightExpectedTimeDisplay) {
-        DOM.lightExpectedTimeDisplay.textContent = '--:--';
-        const labelSpan = DOM.lightExpectedTimeDisplay.previousElementSibling.querySelector('.expected-label');
-        const labelGroup = DOM.lightExpectedTimeDisplay.previousElementSibling;
+    if (DOM.crazyExpectedTimeDisplay) {
+        DOM.crazyExpectedTimeDisplay.textContent = '--:--';
+        const labelSpan = DOM.crazyExpectedTimeDisplay.previousElementSibling.querySelector('.expected-label');
+        const labelGroup = DOM.crazyExpectedTimeDisplay.previousElementSibling;
         if (labelSpan) labelSpan.textContent = '예상 시간';
         if (labelGroup) labelGroup.classList.remove('over-time-label');
     }
-    if (DOM.lightTempResults) {
-        DOM.lightTempResults.innerHTML = '';
-        DOM.lightTempResults.style.display = 'none'; // Hide on initial load
+    if (DOM.crazyTempResults) {
+        DOM.crazyTempResults.innerHTML = '';
+        DOM.crazyTempResults.style.display = 'none'; // Hide on initial load
     }
-    if (DOM.lightSavedList) {
-        DOM.lightSavedList.innerHTML = '';
+    if (DOM.crazySavedList) {
+        DOM.crazySavedList.innerHTML = '';
     }
 }
 

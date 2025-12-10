@@ -7,7 +7,7 @@ export const formatTime = (seconds) => { // Export formatTime
     return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
 };
 
-const LightCalculator = (() => {
+const CrazyCalculator = (() => {
     let stopwatchInterval = null;
     let countdownInterval = null;
     let stopwatchStartTime = 0;
@@ -45,7 +45,7 @@ const LightCalculator = (() => {
     };
 
     const triggerGwang = (updateExpectedTimeCallback) => {
-        if (gwangTime > 0) return; // Gwang already triggered
+        clearInterval(countdownInterval); // Clear previous countdown
 
         gwangTime = currentStopwatchTime;
         // Calculate 30% of the time based on 70% elapsed
@@ -83,7 +83,7 @@ const LightCalculator = (() => {
         // afterGwangTime will be calculated based on gwangTime
     };
 
-    const saveLightCalculation = async (bossName) => {
+    const saveCrazyCalculation = async (bossName) => {
         if (!bossName) {
             log('보스 이름이 입력되지 않았습니다.', true);
             return false;
@@ -105,15 +105,15 @@ const LightCalculator = (() => {
             timestamp: new Date().toISOString()
         };
 
-        const savedRecords = LocalStorageManager.getLightCalculatorRecords();
+        const savedRecords = LocalStorageManager.getCrazyCalculatorRecords();
         savedRecords.unshift(newRecord); // Add to the beginning for "latest on top"
-        LocalStorageManager.setLightCalculatorRecords(savedRecords);
+        LocalStorageManager.setCrazyCalculatorRecords(savedRecords);
         log(`광 계산 기록 저장됨: ${bossName} - 총 시간: ${totalTimeFormatted}`, false);
         return true;
     };
 
-    const getLightCalculatorRecords = () => {
-        return LocalStorageManager.getLightCalculatorRecords();
+    const getCrazyCalculatorRecords = () => {
+        return LocalStorageManager.getCrazyCalculatorRecords();
     };
 
     return {
@@ -121,8 +121,8 @@ const LightCalculator = (() => {
         stopStopwatch,
         resetCalculator,
         triggerGwang,
-        saveLightCalculation,
-        getLightCalculatorRecords,
+        saveCrazyCalculation,
+        getCrazyCalculatorRecords,
         getGwangTime: () => { calculateGwangTimesIfMissing(); return gwangTime; },
         getAfterGwangTime: () => { calculateGwangTimesIfMissing(); return currentStopwatchTime - gwangTime; },
         getTotalTime: () => currentStopwatchTime,
@@ -131,4 +131,4 @@ const LightCalculator = (() => {
     };
 })();
 
-export { LightCalculator };
+export { CrazyCalculator };

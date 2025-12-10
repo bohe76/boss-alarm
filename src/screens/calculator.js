@@ -1,14 +1,14 @@
 import { calculateAppearanceTimeFromMinutes } from '../calculator.js';
-import { LightCalculator } from '../light-calculator.js';
+import { CrazyCalculator } from '../crazy-calculator.js';
 import { LocalStorageManager, BossDataManager } from '../data-managers.js';
 import { 
     showToast, 
     populateBossSelectionDropdown, 
     updateBossListTextarea, 
-    updateLightStopwatchDisplay, 
-    updateLightExpectedTimeDisplay, 
-    renderLightTempResults, 
-    renderLightSavedList, 
+    updateCrazyStopwatchDisplay, 
+    updateCrazyExpectedTimeDisplay, 
+    renderCrazyTempResults, 
+    renderCrazySavedList, 
     renderCalculatorScreen 
 } from '../ui-renderer.js';
 import { formatTime, padNumber } from '../utils.js';
@@ -25,9 +25,9 @@ function checkZenCalculatorUpdateButtonState(DOM) {
 }
 
 export function initCalculatorScreen(DOM) {
-    // Ensure lightSavedList is hidden by default
-    if (DOM.lightSavedList) {
-        DOM.lightSavedList.style.display = 'none';
+    // Ensure crazySavedList is hidden by default
+    if (DOM.crazySavedList) {
+        DOM.crazySavedList.style.display = 'none';
     }
     
     // --- Zen Calculator Screen Event Handlers ---
@@ -162,81 +162,80 @@ export function initCalculatorScreen(DOM) {
         });
     }
 
-    // --- Light Calculator Screen Event Handlers ---
-    if (DOM.lightStartButton) {
-        DOM.lightStartButton.addEventListener('click', () => {
-            LightCalculator.startStopwatch((time) => {
-                updateLightStopwatchDisplay(DOM, time);
+    // --- Crazy Calculator Screen Event Handlers ---
+    if (DOM.crazyStartButton) {
+        DOM.crazyStartButton.addEventListener('click', () => {
+            CrazyCalculator.startStopwatch((time) => {
+                updateCrazyStopwatchDisplay(DOM, time);
             });
-            DOM.lightStartButton.disabled = true;
-            DOM.lightGwangButton.disabled = false;
-            DOM.lightCaptureButton.disabled = false;
-            DOM.lightListButton.disabled = true;
+            DOM.crazyStartButton.disabled = true;
+            DOM.crazyGwangButton.disabled = false;
+            DOM.crazyCaptureButton.disabled = false;
+            DOM.crazyListButton.disabled = true;
             trackEvent('Click Button', { event_category: 'Interaction', event_label: '스톱워치 시작' });
         });
     }
 
-    if (DOM.lightGwangButton) {
-        DOM.lightGwangButton.addEventListener('click', () => {
-            LightCalculator.triggerGwang((time, isOverTime) => {
-                updateLightExpectedTimeDisplay(DOM, time, isOverTime);
+    if (DOM.crazyGwangButton) {
+        DOM.crazyGwangButton.addEventListener('click', () => {
+            CrazyCalculator.triggerGwang((time, isOverTime) => {
+                updateCrazyExpectedTimeDisplay(DOM, time, isOverTime);
             });
-            DOM.lightGwangButton.disabled = true;
             trackEvent('Click Button', { event_category: 'Interaction', event_label: '광 시간 기록' });
         });
     }
 
-    if (DOM.lightCaptureButton) {
-        DOM.lightCaptureButton.addEventListener('click', async () => {
-            LightCalculator.stopStopwatch();
+    if (DOM.crazyCaptureButton) {
+        DOM.crazyCaptureButton.addEventListener('click', async () => {
+            CrazyCalculator.stopStopwatch();
             trackEvent('Click Button', { event_category: 'Interaction', event_label: '잡힘 시간 기록' });
             const confirmSave = confirm("광 계산을 저장 하시겠습니까?");
             if (confirmSave) {
                 const bossName = prompt("보스 이름을 입력하세요:");
                 if (bossName) {
-                    await LightCalculator.saveLightCalculation(bossName);
-                    renderLightSavedList(DOM, LightCalculator.getLightCalculatorRecords());
+                    await CrazyCalculator.saveCrazyCalculation(bossName);
+                    renderCrazySavedList(DOM, CrazyCalculator.getCrazyCalculatorRecords());
                     trackEvent('Click Button', { event_category: 'Interaction', event_label: '기록 저장' });
                 }
             }
-            renderLightTempResults(DOM,
-                formatTime(LightCalculator.getGwangTime()),
-                formatTime(LightCalculator.getAfterGwangTime()),
-                formatTime(LightCalculator.getTotalTime())
+            renderCrazyTempResults(DOM,
+                formatTime(CrazyCalculator.getGwangTime()),
+                formatTime(CrazyCalculator.getAfterGwangTime()),
+                formatTime(CrazyCalculator.getTotalTime())
             );
-            LightCalculator.resetCalculator();
-            DOM.lightStartButton.disabled = false;
-            DOM.lightGwangButton.disabled = true;
-            DOM.lightCaptureButton.disabled = true;
-            DOM.lightListButton.disabled = false;
-            updateLightStopwatchDisplay(DOM, '00:00');
-            updateLightExpectedTimeDisplay(DOM, '--:--', false);
+            CrazyCalculator.resetCalculator();
+            DOM.crazyStartButton.disabled = false;
+            DOM.crazyGwangButton.disabled = true;
+            DOM.crazyCaptureButton.disabled = true;
+            DOM.crazyListButton.disabled = false;
+            updateCrazyStopwatchDisplay(DOM, '00:00');
+            updateCrazyExpectedTimeDisplay(DOM, '--:--', false);
         });
     }
 
-    if (DOM.lightListButton && DOM.lightSavedList && DOM.lightTempResults) {
-        DOM.lightListButton.addEventListener('click', () => {
-            const isListCurrentlyHidden = DOM.lightSavedList.style.display === 'none';
+    if (DOM.crazyListButton && DOM.crazySavedList && DOM.crazyTempResults) {
+        DOM.crazyListButton.addEventListener('click', () => {
+            const isListCurrentlyHidden = DOM.crazySavedList.style.display === 'none';
 
             if (isListCurrentlyHidden) {
-                renderLightSavedList(DOM, LightCalculator.getLightCalculatorRecords()); // Render content when showing
-                DOM.lightSavedList.style.display = 'block'; // Show the list
-                DOM.lightTempResults.classList.remove('compact-top'); // List is visible, keep original margin
+                renderCrazySavedList(DOM, CrazyCalculator.getCrazyCalculatorRecords()); // Render content when showing
+                DOM.crazySavedList.style.display = 'block'; // Show the list
+                DOM.crazyTempResults.classList.remove('compact-top'); // List is visible, keep original margin
                 trackEvent('Click Button', { event_category: 'Interaction', event_label: '광 계산기 목록 보기' });
             } else {
-                DOM.lightSavedList.style.display = 'none'; // Hide the list
-                DOM.lightTempResults.classList.add('compact-top'); // List is hidden, set margin-top to 0
+                DOM.crazySavedList.style.display = 'none'; // Hide the list
+                DOM.crazyTempResults.classList.add('compact-top'); // List is hidden, set margin-top to 0
                 trackEvent('Click Button', { event_category: 'Interaction', event_label: '광 계산기 목록 숨기기' });
             }
         });
     }
 
-    if (DOM.lightSavedList) {
-        DOM.lightSavedList.addEventListener('click', (event) => {
-            if (event.target && event.target.id === 'clearLightRecordsButton') {
+    if (DOM.crazySavedList) {
+        DOM.crazySavedList.addEventListener('click', (event) => {
+            if (event.target && event.target.id === 'clearCrazyRecordsButton') {
                 if (confirm("광 계산 기록을 초기화 하시겠습니까?")) {
-                    LocalStorageManager.clearLightCalculatorRecords();
-                    renderLightSavedList(DOM, LightCalculator.getLightCalculatorRecords());
+                    LocalStorageManager.clearCrazyCalculatorRecords();
+                    renderCrazySavedList(DOM, CrazyCalculator.getCrazyCalculatorRecords());
                     log("광 계산 기록이 초기화되었습니다.", true);
                     trackEvent('Click Button', { event_category: 'Interaction', event_label: '기록 초기화 (광 계산기)' });
                 }
@@ -246,21 +245,21 @@ export function initCalculatorScreen(DOM) {
 }
 
 export function handleCalculatorScreenTransition(DOM) {
-    LightCalculator.resetCalculator(); // Reset the internal state
+    CrazyCalculator.resetCalculator(); // Reset the internal state
     renderCalculatorScreen(DOM);
-    // Enable lightStartButton when the calculator screen is displayed
-    if (DOM.lightStartButton) {
-        DOM.lightStartButton.disabled = false;
-        DOM.lightGwangButton.disabled = true;
-        DOM.lightCaptureButton.disabled = true;
-        DOM.lightListButton.disabled = false;
-        updateLightStopwatchDisplay(DOM, '00:00'); // Ensure display is 00:00
-        updateLightExpectedTimeDisplay(DOM, '--:--', false); // Ensure expected time is reset
-        renderLightTempResults(DOM, '', '', ''); // Clear temporary results
+    // Enable crazyStartButton when the calculator screen is displayed
+    if (DOM.crazyStartButton) {
+        DOM.crazyStartButton.disabled = false;
+        DOM.crazyGwangButton.disabled = true;
+        DOM.crazyCaptureButton.disabled = true;
+        DOM.crazyListButton.disabled = false;
+        updateCrazyStopwatchDisplay(DOM, '00:00'); // Ensure display is 00:00
+        updateCrazyExpectedTimeDisplay(DOM, '--:--', false); // Ensure expected time is reset
+        renderCrazyTempResults(DOM, '', '', ''); // Clear temporary results
         // Ensure initial state of compact-top and savedList visibility
-        if (DOM.lightSavedList && DOM.lightTempResults) {
-            DOM.lightSavedList.style.display = 'none'; // Initially hide the list
-            DOM.lightTempResults.classList.add('compact-top'); // Set compact margin initially
+        if (DOM.crazySavedList && DOM.crazyTempResults) {
+            DOM.crazySavedList.style.display = 'none'; // Initially hide the list
+            DOM.crazyTempResults.classList.add('compact-top'); // Set compact margin initially
         }
     }
 }

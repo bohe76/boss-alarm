@@ -103,7 +103,7 @@ export const LocalStorageManager = (() => {
     let logVisibilityState = true; // 기본값: ON
     let alarmRunningState = false; // 알람 실행 상태 (기본값: OFF)
     let sidebarExpandedState = false; // 사이드바 확장 상태 (기본값: 접힘)
-    let lightCalculatorRecords = []; // 광 계산기 기록 (사용자 정의 가능)
+    let crazyCalculatorRecords = []; // 광 계산기 기록 (사용자 정의 가능)
     let muteState = false; // 음소거 상태 (기본값: OFF)
 
     function saveFixedAlarms() {
@@ -201,16 +201,16 @@ export const LocalStorageManager = (() => {
         }
     }
 
-    function saveLightCalculatorRecords() {
-        localStorage.setItem('lightCalculatorRecords', JSON.stringify(lightCalculatorRecords));
+    function saveCrazyCalculatorRecords() {
+        localStorage.setItem('crazyCalculatorRecords', JSON.stringify(crazyCalculatorRecords));
     }
 
-    function loadLightCalculatorRecords() {
-        const savedRecords = localStorage.getItem('lightCalculatorRecords');
+    function loadCrazyCalculatorRecords() {
+        const savedRecords = localStorage.getItem('crazyCalculatorRecords');
         if (savedRecords) {
-            lightCalculatorRecords = JSON.parse(savedRecords);
+            crazyCalculatorRecords = JSON.parse(savedRecords);
         } else {
-            lightCalculatorRecords = [];
+            crazyCalculatorRecords = [];
         }
     }
 
@@ -275,15 +275,15 @@ export const LocalStorageManager = (() => {
         setSidebarExpandedState: (state) => { sidebarExpandedState = state; saveSidebarExpandedState(); },
         getMuteState: () => muteState,
         setMuteState: (state) => { muteState = state; saveMuteState(); },
-        getLightCalculatorRecords: () => lightCalculatorRecords,
-        setLightCalculatorRecords: (records) => { lightCalculatorRecords = records; saveLightCalculatorRecords(); },
-        clearLightCalculatorRecords: () => { lightCalculatorRecords = []; saveLightCalculatorRecords(); },
+        getCrazyCalculatorRecords: () => crazyCalculatorRecords,
+        setCrazyCalculatorRecords: (records) => { crazyCalculatorRecords = records; saveCrazyCalculatorRecords(); },
+        clearCrazyCalculatorRecords: () => { crazyCalculatorRecords = []; saveCrazyCalculatorRecords(); },
         init: () => {
             loadFixedAlarms();
             loadLogVisibilityState();
             loadAlarmRunningState(); // Load alarm running state
             loadSidebarExpandedState(); // Load sidebar expanded state
-            loadLightCalculatorRecords(); // Load light calculator records
+            loadCrazyCalculatorRecords(); // Load crazy calculator records
             loadMuteState(); // Load mute state
         }
     };

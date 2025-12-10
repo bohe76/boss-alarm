@@ -91,18 +91,18 @@ export function initDomElements() {
         updateBossTimeButton: document.getElementById('updateBossTimeButton'), // New
         toastContainer: document.getElementById('toastContainer'), // New
 
-        // Elements within Light Calculator Screen
+        // Elements within Crazy Calculator Screen
         zenCalculatorCard: document.getElementById('zenCalculatorCard'),
-        lightCalculatorCard: document.getElementById('lightCalculatorCard'),
-        lightStopwatchDisplay: document.getElementById('lightStopwatchDisplay'),
-        lightStartButton: document.getElementById('lightStartButton'),
-        lightGwangButton: document.getElementById('lightGwangButton'),
-        lightCaptureButton: document.getElementById('lightCaptureButton'),
-        lightListButton: document.getElementById('lightListButton'),
-        lightExpectedTimeDisplay: document.getElementById('lightExpectedTimeDisplay'),
-        lightTempResults: document.getElementById('lightTempResults'),
-        lightSavedList: document.getElementById('lightSavedList'),
-        clearLightRecordsButton: document.getElementById('clearLightRecordsButton'),
+        crazyCalculatorCard: document.getElementById('crazyCalculatorCard'),
+        crazyStopwatchDisplay: document.getElementById('crazyStopwatchDisplay'),
+        crazyStartButton: document.getElementById('crazyStartButton'),
+        crazyGwangButton: document.getElementById('crazyGwangButton'),
+        crazyCaptureButton: document.getElementById('crazyCaptureButton'),
+        crazyListButton: document.getElementById('crazyListButton'),
+        crazyExpectedTimeDisplay: document.getElementById('crazyExpectedTimeDisplay'),
+        crazyTempResults: document.getElementById('crazyTempResults'),
+        crazySavedList: document.getElementById('crazySavedList'),
+        clearCrazyRecordsButton: document.getElementById('clearCrazyRecordsButton'),
 
         // Elements within Boss Scheduler Screen
         gameSelect: document.getElementById('gameSelect'), // New

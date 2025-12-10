@@ -61,7 +61,7 @@ UI는 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 �
     *   `src/utils.js`: 범용 유틸리티 함수
     *   `src/calculator.js`: 젠 계산기 로직
     *   `src/boss-parser.js`: 보스 목록 파싱 및 정렬 로직
-    *   `src/light-calculator.js`: 광 계산기 로직
+    *   `src/crazy-calculator.js`: 광 계산기 로직
     *   `src/custom-list-manager.js`: 사용자 지정 보스 목록 관리 로직
     *   `src/screens/boss-scheduler.js`: 보스 스케줄러 화면의 핵심 로직 및 UI 상호작용
     *   `src/data-managers.js` & `src/alarm-scheduler.js`: 보스 정렬 및 알림 체크 로직 (날짜 포함 정렬 검증)

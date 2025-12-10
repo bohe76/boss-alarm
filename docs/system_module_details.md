@@ -116,10 +116,10 @@
 *   `renderBossInputs(DOM, gameName, remainingTimes)`: 선택된 게임에 따라 보스 입력 필드를 동적으로 렌더링합니다.
 *   `renderCustomListManagementModalContent(DOM)`: 커스텀 보스 관리 모달의 내용을 렌더링합니다.
 *   `showCustomListTab(DOM, tabId)`: 커스텀 보스 관리 모달 내에서 탭을 전환합니다.
-*   `updateLightStopwatchDisplay(DOM, time)`: 광 계산기 스톱워치 디스플레이를 업데이트합니다.
-*   `updateLightExpectedTimeDisplay(DOM, time, isOverTime)`: 광 계산기 예상 시간 디스플레이를 업데이트하고 초과 시간을 시각적으로 표시합니다.
-*   `renderLightTempResults(DOM, gwangTime, afterGwangTime, totalTime)`: 광 계산기의 최근 계산 결과를 임시로 렌더링합니다.
-*   `renderLightSavedList(DOM, records)`: 광 계산기의 저장된 기록 목록을 렌더링합니다.
+*   `updateCrazyStopwatchDisplay(DOM, time)`: 광 계산기 스톱워치 디스플레이를 업데이트합니다.
+*   `updateCrazyExpectedTimeDisplay(DOM, time, isOverTime)`: 광 계산기 예상 시간 디스플레이를 업데이트하고 초과 시간을 시각적으로 표시합니다.
+*   `renderCrazyTempResults(DOM, gwangTime, afterGwangTime, totalTime)`: 광 계산기의 최근 계산 결과를 임시로 렌더링합니다.
+*   `renderCrazySavedList(DOM, records)`: 광 계산기의 저장된 기록 목록을 렌더링합니다.
 *   그 외 상세 렌더링 함수들.
 
 ---
@@ -149,7 +149,7 @@
     *   `getFixedAlarms()` / `getFixedAlarmById(id)` / `addFixedAlarm()` / `updateFixedAlarm()` / `deleteFixedAlarm()`: 고정 알림 데이터에 대한 CRUD(생성, 읽기, 업데이트, 삭제) 작업을 제공합니다.
     *   `exportFixedAlarms()` / `importFixedAlarms(encodedData)`: 고정 알림 데이터를 인코딩/디코딩하여 공유 가능하게 합니다.
     *   `getMuteState()` / `setMuteState(state)`: `boolean` / `void`. 음소거 상태를 관리합니다.
-    *   그 외 `logVisibilityState`, `alarmRunningState`, `sidebarExpandedState`, `lightCalculatorRecords` 등에 대한 `get/set` 함수를 제공합니다.
+    *   그 외 `logVisibilityState`, `alarmRunningState`, `sidebarExpandedState`, `crazyCalculatorRecords` 등에 대한 `get/set` 함수를 제공합니다.
     *   `getLogVisibilityState()` / `setLogVisibilityState(state)`: `boolean` / `void`. 로그 화면의 "15개 보기" 토글 상태를 관리합니다.
 
 ---
@@ -300,11 +300,11 @@
         - `emit(event, data)`: 특정 이벤트를 발생시키고 등록된 모든 리스너에게 데이터를 전달합니다.
 
 
-## 19. `src/light-calculator.js`
+## 19. `src/crazy-calculator.js`
 
-- **역할:** 광 계산기(`Light Calculator`)의 복잡한 로직과 상태를 관리하는 싱글톤 객체입니다. 스톱워치, 광/잡힘 시간 기록, 예상 시간 계산, 그리고 기록 저장 및 관리를 담당합니다.
+- **역할:** 광 계산기(`Crazy Calculator`)의 복잡한 로직과 상태를 관리하는 싱글톤 객체입니다. 스톱워치, 광/잡힘 시간 기록, 예상 시간 계산, 그리고 기록 저장 및 관리를 담당합니다.
     - **주요 `export` 객체:**
-        - `LightCalculator`: `startStopwatch()`, `stopStopwatch()`, `triggerGwang()`, `saveLightCalculation()`, `resetCalculator()`, `getLightCalculatorRecords()` 등의 메소드를 제공합니다.
+        - `CrazyCalculator`: `startStopwatch()`, `stopStopwatch()`, `triggerGwang()`, `saveCrazyCalculation()`, `resetCalculator()`, `getCrazyCalculatorRecords()` 등의 메소드를 제공합니다.
 
 #### `formatTime(seconds)`
 - **설명:** 주어진 초(seconds) 값을 'MM:SS' 형식의 문자열로 변환합니다.
@@ -330,7 +330,7 @@
 | **`alarm-log.js`** | `getScreen()` | `onTransition` 시 `initAlarmLogScreen(DOM)`을 호출하여 로그 화면을 초기화합니다. `initAlarmLogScreen`은 `LocalStorageManager`를 통해 "15개 보기" 토글 버튼의 상태를 로드/저장하고 관련 이벤트 리스너를 등록합니다. 로그의 실시간 갱신은 `global-event-listeners.js`에 중앙화된 `log-updated` 이벤트 리스너를 통해 자동으로 처리됩니다. `renderAlarmLog`는 토글 상태에 따라 최근 15개 또는 전체 로그를 렌더링합니다. |
 | **`boss-management.js`** | `getScreen()` | `init` 시 "보스 설정 저장" 버튼의 이벤트 리스너를 등록합니다. 버튼 클릭 시 `parseBossList`를 호출하여 유효성을 검사하고, 성공 시에만 `BossDataManager`에 저장합니다. 텍스트 수정 시 `isDirty` 플래그를 관리하여 저장되지 않은 변경 사항을 추적합니다. |
 | **`boss-scheduler.js`** | `getScreen()` | `init` 시 `EventBus.on('show-boss-scheduler-screen')` 및 `EventBus.on('rerender-boss-scheduler')` 리스너를 등록하고, `renderBossSchedulerScreen(DOM, _remainingTimes)`를 통해 UI를 렌더링합니다. `handleApplyBossSettings(DOM)` 함수는 "보스 설정 적용" 버튼 클릭 시 호출되며, 입력된 `data-id`와 계산된 시간을 기반으로 보스 데이터를 업데이트하고, 특수 보스(+12h) 및 '침공' 보스 필터링 로직을 적용한 후, 전체 리스트를 재구성(Reconstruction)하여 `BossDataManager`에 저장합니다. `remaining-time-input` 필드에서는 `calculateBossAppearanceTime`을 통해 젠 시간을 계산하고, `focusout` 시 유효성 검사를 수행합니다. 화면 전환 전 입력된 `remaining-time-input` 값은 `_remainingTimes` 내부에 임시로 저장됩니다. `updateCalculatedTimes(DOM)`는 계산된 시간을 갱신합니다. |
-| **`calculator.js`** | `getScreen()` | `init` 시 `initCalculatorScreen(DOM)`이 호출되어 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 `handleCalculatorScreenTransition(DOM)`이 호출되어 `LightCalculator`의 상태를 초기화하고 `ui-renderer.js`의 `renderCalculatorScreen(DOM)`을 호출하여 화면을 렌더링합니다. `checkZenCalculatorUpdateButtonState(DOM)` 헬퍼 함수를 통해 '보스 시간 업데이트' 버튼의 활성화/비활성화 상태를 관리합니다. |
+| **`calculator.js`** | `getScreen()` | `init` 시 `initCalculatorScreen(DOM)`이 호출되어 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 `handleCalculatorScreenTransition(DOM)`이 호출되어 `CrazyCalculator`의 상태를 초기화하고 `ui-renderer.js`의 `renderCalculatorScreen(DOM)`을 호출하여 화면을 렌더링합니다. `checkZenCalculatorUpdateButtonState(DOM)` 헬퍼 함수를 통해 '보스 시간 업데이트' 버튼의 활성화/비활성화 상태를 관리합니다. |
 | **`custom-list.js`** | `getScreen()` | `init` 시 `initCustomListScreen(DOM)`이 호출되어 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. `DOM.manageCustomListsButton` 클릭 시 모달이 열리며, 목록 변경 시 `EventBus.emit('rerender-boss-scheduler')`를 발행하여 보스 스케줄러의 드롭다운을 업데이트합니다. |
 | **`dashboard.js`** | `getScreen()` | `init` 시 `initDashboardScreen(DOM)`이 호출되어 `DOM.muteToggleButton`에 대한 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링합니다. `initDashboardScreen`은 `EventBus.on('log-updated', ...)` 리스너를 등록하여 새로운 로그 발생 시 `renderRecentAlarmLog(DOM)`를 호출하여 로그를 갱신합니다. |
 | **`help.js`** | `getScreen()` | `init` 시 `handleTabSwitching(DOM)`이 호출되어 '도움말'과 'FAQ' 탭 전환 이벤트 리스너를 등록합니다. `onTransition` 시 `onHelpScreenTransition(DOM)`이 호출되어 `data/feature_guide.json`과 `data/faq_guide.json`을 비동기적으로 로드하고, `ui-renderer.js`의 `renderHelpScreen()`과 `renderFaqScreen()`을 호출하여 각 탭의 콘텐츠를 렌더링합니다. |

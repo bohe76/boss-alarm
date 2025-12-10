@@ -108,10 +108,10 @@
 
 ### 3.9. 보탐 계산기 화면 (`src/screens/calculator.js`)
 
-*   **초기화:** `app.js`의 `showScreen` 함수를 통해 'calculator-screen'으로 내비게이션될 때 `handleCalculatorScreenTransition(DOM)`이 호출되어 계산기 UI 및 `LightCalculator` 상태를 초기화하고 렌더링합니다.
+*   **초기화:** `app.js`의 `showScreen` 함수를 통해 'calculator-screen'으로 내비게이션될 때 `handleCalculatorScreenTransition(DOM)`이 호출되어 계산기 UI 및 `CrazyCalculator` 상태를 초기화하고 렌더링합니다.
 *   **처리 흐름 (젠 계산기):** 남은 시간 입력 시 `calculator.js`를 통해 보스 출현 시간을 계산합니다. "업데이트" 버튼 클릭 시 `BossDataManager`에서 해당 보스(ID 기준)를 찾아 시간을 업데이트하고, 전체 리스트를 재구성(Reconstruction)하여 저장합니다. 이후 `updateBossListTextarea`를 호출하여 UI를 갱신합니다.
-*   **처리 흐름 (광 계산기):** "시작", "광", "캡처" 버튼 클릭을 통해 `LightCalculator` 모듈이 스톱워치를 제어하고, `LocalStorageManager`를 통해 기록을 저장합니다.
-*   **데이터 흐름 요약:** "젠 계산기"는 사용자 입력 및 `BossDataManager`를 통해 보스 시간을 직접 업데이트하고 재구성하며, "광 계산기"는 `LightCalculator` 모듈을 통해 스톱워치 기반의 시간 측정을 수행하고 로컬 스토리지에 기록합니다.
+*   **처리 흐름 (광 계산기):** "시작", "광", "캡처" 버튼 클릭을 통해 `CrazyCalculator` 모듈이 스톱워치를 제어하고, `LocalStorageManager`를 통해 기록을 저장합니다.
+*   **데이터 흐름 요약:** "젠 계산기"는 사용자 입력 및 `BossDataManager`를 통해 보스 시간을 직접 업데이트하고 재구성하며, "광 계산기"는 `CrazyCalculator` 모듈을 통해 스톱워치 기반의 시간 측정을 수행하고 로컬 스토리지에 기록합니다.
 
 ### 3.10. 설정 화면 (`src/screens/settings.js`)
 

@@ -40,7 +40,7 @@
 |---|---|---|
 | **`alarm-log.js`** | `logger.js`, `data-managers.js`, `ui-renderer.js` | `getLogs()`, `renderAlarmLog()` (조건부 렌더링), `LocalStorageManager.get/set()` |
 | **`boss-management.js`**| `boss-parser.js`, `ui-renderer.js`, `data-managers.js`, `logger.js` | `parseBossList()`(결과 반환), `updateBossListTextarea()`, `BossDataManager.setBossSchedule()`, `log()` |
-| **`calculator.js`** | `calculator.js`, `light-calculator.js`, `data-managers.js`, `ui-renderer.js`, `utils.js`, `logger.js` | `initCalculatorScreen()`, `handleCalculatorScreenTransition()`, `calculateAppearanceTimeFromMinutes()`, `LightCalculator.*`, `LocalStorageManager.*`, `BossDataManager.*`, `showToast()`, `log()` |
+| **`calculator.js`** | `calculator.js`, `crazy-calculator.js`, `data-managers.js`, `ui-renderer.js`, `utils.js`, `logger.js` | `initCalculatorScreen()`, `handleCalculatorScreenTransition()`, `calculateAppearanceTimeFromMinutes()`, `CrazyCalculator.*`, `LocalStorageManager.*`, `BossDataManager.*`, `showToast()`, `log()` |
 | **`boss-scheduler.js`**| `ui-renderer.js`, `calculator.js`, `logger.js`, `event-bus.js`, `data-managers.js`, `utils.js` | `renderBossSchedulerScreen()`, `handleApplyBossSettings()`, `calculateBossAppearanceTime()`, `log()`, `EventBus.emit()`, `BossDataManager.setBossSchedule()`, `generateUniqueId()`, `padNumber()` |
 | **`custom-list.js`** | `ui-renderer.js`, `custom-list-manager.js`, `event-bus.js` | `showCustomListTab()`, `renderCustomListManagementModalContent()`, `showToast()`, `CustomListManager.*`, `EventBus.emit('rerender-boss-scheduler')` |
 | **`dashboard.js`** | `ui-renderer.js`, `data-managers.js`, `logger.js`, `event-bus.js` | `updateMuteButtonVisuals()`, `renderRecentAlarmLog()`, `LocalStorageManager.get/setMuteState()`, `log()`, `EventBus.on('log-updated', ...)` (최근 로그 표시용) |
@@ -61,7 +61,7 @@
 | **`global-event-listeners.js`** | `event-bus.js`, `data-managers.js`, `ui-renderer.js`, `screens/alarm-log.js` | 전역 EventBus 리스너를 정의하고, `BossDataManager`의 데이터 변경 및 `log-updated` 이벤트에 반응합니다. |
 | **`boss-scheduler-data.js`** | `logger.js`, `custom-list-manager.js` | 기본 보스 목록 로딩, 커스텀 목록과 조합하여 게임/목록 제공 |
 | **`speech.js`** | `data-managers.js` | 음소거 상태(`getMuteState`) 확인 |
-| **`light-calculator.js`**| `data-managers.js`, `logger.js` | 광 계산 기록 저장 및 로드 |
+| **`crazy-calculator.js`**| `data-managers.js`, `logger.js` | 광 계산 기록 저장 및 로드 |
 | **`calculator.js`** | 없음 | 시간 계산 로직 제공 |
 | **`logger.js`** | `event-bus.js` | `EventBus.emit()`을 통해 로그 업데이트 이벤트 발행 |
 | **`router.js`** | 없음 | 화면 라우팅 시스템 제공 |

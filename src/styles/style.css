@@ -791,8 +791,8 @@ textarea:-ms-input-placeholder {
 .zen-grid-row .input-group, /* Targets 남은 시간 and 업데이트할 보스 columns */
 .zen-grid-row .result-display, /* Targets 보스 출현 시간 column */
 .zen-grid-row .button-group, /* Targets 업데이트 버튼 column */
-.zen-grid-row .light-stopwatch-display-group,
-.zen-grid-row .light-expected-time-group {
+.zen-grid-row .crazy-stopwatch-display-group,
+.zen-grid-row .crazy-expected-time-group {
     display: flex;
     flex-direction: column;
     align-items: center; /* Center align items within the column */
@@ -981,7 +981,7 @@ textarea:-ms-input-placeholder {
 /* --------------------------- */
 
 
-/* Light Calculator Specific Styles */
+/* Crazy Calculator Specific Styles */
 .card-header {
     display: flex;
     justify-content: space-between;
@@ -1002,42 +1002,42 @@ textarea:-ms-input-placeholder {
     color: #1D3557;
 }
 
-.light-calculator-controls {
+.crazy-calculator-controls {
     display: flex;
     flex-direction: column;
     gap: 15px;
     margin-bottom: 0; /* Remove bottom margin */
 }
 
-.light-stopwatch-display-group,
-.light-expected-time-group,
-.light-over-time-group {
+.crazy-stopwatch-display-group,
+.crazy-expected-time-group,
+.crazy-over-time-group {
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-.light-stopwatch-display-group label,
-.light-expected-time-group label,
-.light-over-time-group label {
+.crazy-stopwatch-display-group label,
+.crazy-expected-time-group label,
+.crazy-over-time-group label {
     font-weight: bold;
     margin-bottom: 12px; /* Matched to Zen Calculator's 10px */
     color: #777;
 }
 
-.light-expected-time-group label .expected-text {
+.crazy-expected-time-group label .expected-text {
     color: #777; /* Default black for "잡힘" */
 }
 
-.light-expected-time-group label .expected-label {
+.crazy-expected-time-group label .expected-label {
     color: #ea4335; /* Red for "예상 시간" */
 }
 
-.light-expected-time-group label.over-time-label .expected-label {
+.crazy-expected-time-group label.over-time-label .expected-label {
     color: #1D3557; /* Blue for "오버 시간" */
 }
 
-#lightStopwatchDisplay {
+#crazyStopwatchDisplay {
     width: var(--zen-input-width);
     /* height: 46px; Removed fixed height to match bossAppearanceTimeDisplay behavior */
     font-size: 2em;
@@ -1051,7 +1051,7 @@ textarea:-ms-input-placeholder {
     text-align: center;
 }
 
-#lightExpectedTimeDisplay {
+#crazyExpectedTimeDisplay {
     width: var(--zen-input-width);
     /* height: 46px; Removed fixed height */
     font-size: 2em;
@@ -1065,22 +1065,22 @@ textarea:-ms-input-placeholder {
     text-align: center;
 }
 
-#lightExpectedTimeDisplay.over-time {
+#crazyExpectedTimeDisplay.over-time {
     color: #43AA8B; /* Blue when it's over time */
 }
 
-.light-buttons {
+.crazy-buttons {
     display: flex;
     justify-content: center;
     gap: 12px;
     margin-top: -16px; /* Remove top margin as gap is handled by container */
 }
 
-.light-buttons button {
+.crazy-buttons button {
     width: 104px; /* Fixed width for uniformity */
 }
 
-.light-list-action {
+.crazy-list-action {
     display: flex;
     justify-content: flex-end;
     margin-top: 0px;
@@ -1091,14 +1091,14 @@ textarea:-ms-input-placeholder {
 
 
 
-.light-calculation-results {
+.crazy-calculation-results {
     display: flex;
     justify-content: space-around;
     margin-bottom: 0;
     gap: 10px;
 }
 
-.light-temp-results {
+.crazy-temp-results {
     margin-top: 20px;
     padding: 0; /* Remove padding */
     background-color: transparent; /* Remove background */
@@ -1106,23 +1106,23 @@ textarea:-ms-input-placeholder {
     border-radius: 0;
 }
 
-.light-temp-results.compact-top {
+.crazy-temp-results.compact-top {
     margin-top: 0;
 }
 
-/* Removed .light-temp-results-card h4 styling as we will use h3 without border */
+/* Removed .crazy-temp-results-card h4 styling as we will use h3 without border */
 
 /* Unified Table Styles */
-.light-temp-table,
-.light-saved-table {
+.crazy-temp-table,
+.crazy-saved-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.light-temp-table th,
-.light-temp-table td,
-.light-saved-table th,
-.light-saved-table td {
+.crazy-temp-table th,
+.crazy-temp-table td,
+.crazy-saved-table th,
+.crazy-saved-table td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: center;
@@ -1130,28 +1130,28 @@ textarea:-ms-input-placeholder {
     white-space: nowrap; /* Prevent text wrapping */
 }
 
-.light-temp-table th,
-.light-saved-table th {
+.crazy-temp-table th,
+.crazy-saved-table th {
     background-color: #f2f2f2;
     font-weight: bold;
     color: #333;
 }
 
-.light-saved-table tbody tr:nth-child(even),
-.light-temp-table tbody tr:nth-child(even) { /* Apply to temp table too if needed, though usually 1 row */
+.crazy-saved-table tbody tr:nth-child(even),
+.crazy-temp-table tbody tr:nth-child(even) { /* Apply to temp table too if needed, though usually 1 row */
     background-color: #f9f9f9;
 }
 
-.light-saved-table tbody tr:hover,
-.light-temp-table tbody tr:hover {
+.crazy-saved-table tbody tr:hover,
+.crazy-temp-table tbody tr:hover {
     background-color: #f0f0f0;
 }
 
-.light-saved-table {
+.crazy-saved-table {
     margin-top: 12px;
 }
 
-.light-saved-list {
+.crazy-saved-list {
     margin-top: 24px; /* Adjusted to 24px */
 }
 
