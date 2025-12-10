@@ -5,6 +5,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- KakaoTalk In-App Browser Redirection Script -->
+    <script>
+      (function() {
+        // 1. 현재 접속한 환경이 '카카오톡 인앱 브라우저'인지 확인
+        if (navigator.userAgent.match(/KAKAOTALK/i)) {
+
+          // 2. 안드로이드인 경우: 크롬(Chrome)으로 강제 전환 (Intent 스킴 사용)
+          if (navigator.userAgent.match(/Android/i)) {
+            // 현재 페이지 주소에서 프로토콜(http://, https://)을 떼어냄
+            const urlWithoutProtocol = location.href.replace(/https?:\/\//i, '');
+
+            // package 설정을 제거하여, 사용자의 기본 브라우저나 선택창이 뜨도록 함
+            // scheme=https; 로 설정하면 기본 브라우저가 https를 처리
+            const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;end`;
+
+            // 이동 실행
+            location.href = intentUrl;
+          }
+
+          // 3. 아이폰(iOS)인 경우: 자동 탈출 불가능 (애플 보안 정책) -> 안내 메시지 노출
+          else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+            const guideHTML = `
+                <div style="
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.9); z-index: 99999;
+                    display: flex; flex-direction: column; align-items: center; justify-content: center;
+                    color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    text-align: center;
+                ">
+                    <div style="position: absolute; bottom: 30px; right: 20px; text-align: right;">
+                        <p style="margin-bottom: 10px; font-size: 16px; font-weight: bold;">
+                            이 버튼을 눌러주세요 👉
+                        </p>
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation: bounce 2s infinite;">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <polyline points="19 12 12 19 5 12"></polyline>
+                        </svg>
+                    </div>
+                    
+                    <div style="margin-bottom: 100px;">
+                        <h2 style="margin: 0 0 10px;">Safari로 열어주세요</h2>
+                        <p style="font-size: 14px; line-height: 1.5; color: #ddd;">
+                            카카오톡 인앱 브라우저에서는<br>기능이 제한될 수 있습니다.<br>
+                            <br>
+                            우측 하단 <b>점 세 개(...)</b>를 누르고<br>
+                            <b>[다른 브라우저로 열기]</b>를 선택해주세요.
+                        </p>
+                    </div>
+                </div>
+                <style>
+                    @keyframes bounce {
+                        0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+                        40% {transform: translateY(-10px);}
+                        60% {transform: translateY(-5px);}
+                    }
+                </style>
+            `;
+            document.body.innerHTML += guideHTML;
+          }
+        }
+      })();
+    </script>
+
     <!-- SEO Meta Tags -->
     <title>보스 알리미 - 보탐 매니저, 젠 타임 계산기 및 스케줄러</title>
     <meta name="description" content="보스 젠 시간을 관리하고 알림을 받을 수 있는 보스 알리미, 보탐 매니저입니다. PIP 기능, 커스텀 보스 목록, 젠 타임 계산, 알림 기능을 제공합니다.">
