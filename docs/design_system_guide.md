@@ -16,6 +16,7 @@
 *   **Secondary Action Hover:** `#880E4F`
 *   **Danger (알림/경고):** `#ea4335` (빨간색) - 알람 ON, 중요 로그, 임박 보스 남은 시간, 광 계산기 예상 시간
 *   **Success (긍정):** `#43AA8B` (초록색) - 남은 시간, 광 계산기 오버 시간
+*   **Volume Fill:** `#880E4F` (진한 핑크색) - 볼륨 슬라이더 채워진 부분
 *   **Info (정보 강조):** `#1D3557` (짙은 파란색) - 광 계산기 오버 시간 라벨, 스위치 ON 배경
 *   **Boss Highlight:** `#1E88E5` (밝은 파란색) - 다음 보스 이름, 임박 보스 이름
 
@@ -115,7 +116,12 @@ UI 요소의 둥근 정도를 통일하기 위한 시스템을 정의합니다.
 *   **아이콘 버튼 (원형 - 대시보드 음소거 버튼):**
     *   `width`: `36px`, `height`: `36px`
     *   `border`: `2px solid` (`color` 상속), `border-radius`: `50%`
-    *   `color (default)`: `Danger` (`#ea4335`) (ON), `color (muted)`: `Text Light` (`#666`) (OFF)
+    *   `color (default)`: `Secondary Action` (`#AD1457`) (ON), `color (muted)`: `Text Light` (`#666`) (OFF)
+*   **볼륨 슬라이더:**
+    *   `height`: `8px`, `border-radius`: `5px`
+    *   `background-color`: `Border Default` (`#ccc`)
+    *   `background-image`: `linear-gradient(to right, Volume Fill, Volume Fill)`
+    *   `thumb (핸들)`: `width`: `20px`, `height`: `20px`, `background`: `Secondary Action` (`#AD1457`), `border`: `2px solid #fff`
 *   **특정 버튼 너비:**
     *   보스 스케줄러 컨트롤 버튼 (`#manage-custom-lists-button`, `#clearAllRemainingTimesButton`, `#moveToBossSettingsButton`): `184px`
     *   광 계산기 버튼 (`.light-buttons button`): `104px`
