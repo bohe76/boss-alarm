@@ -509,7 +509,7 @@ export function renderVersionInfo(DOM, versionData) {
                         <ul>
                             ${versionEntry.changes.map(change => `
                                 <li>
-                                    <strong>${change.type}:</strong> ${change.description}
+                                    <strong>${change.type}:</strong> ${convertBoldMarkdownToHtml(change.description)}
                                     ${change.details && change.details.length > 0 ? `
                                         <ul>
                                             ${change.details.map(detail => `<li>${convertBoldMarkdownToHtml(detail)}</li>`).join('')}
