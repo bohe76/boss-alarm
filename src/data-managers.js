@@ -105,8 +105,8 @@ export const LocalStorageManager = (() => {
     let sidebarExpandedState = false; // 사이드바 확장 상태 (기본값: 접힘)
     let crazyCalculatorRecords = []; // 광 계산기 기록 (사용자 정의 가능)
     let muteState = false; // 음소거 상태 (기본값: OFF)
-    let volume = 0.5; // 볼륨 상태 (기본값: 0.5)
-    let preMuteVolume = 0.5; // 음소거 전 볼륨 상태 (기본값: 0.5)
+    let volume = 1; // 볼륨 상태 (기본값: 1)
+    let preMuteVolume = 1; // 음소거 전 볼륨 상태 (기본값: 1)
 
     function saveFixedAlarms() {
         localStorage.setItem('fixedAlarms', JSON.stringify(fixedAlarms));
@@ -238,7 +238,7 @@ export const LocalStorageManager = (() => {
         if (savedVolume !== null) {
             volume = JSON.parse(savedVolume);
         } else {
-            volume = 0.5; // 기본값: 0.5
+            volume = 1; // 기본값: 1
         }
     }
 
@@ -253,7 +253,7 @@ export const LocalStorageManager = (() => {
         if (savedPreMuteVolume !== null) {
             preMuteVolume = JSON.parse(savedPreMuteVolume);
         } else {
-            preMuteVolume = 0.5; // 기본값: 0.5
+            preMuteVolume = 1; // 기본값: 1
         }
     }
 

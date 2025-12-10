@@ -1894,7 +1894,7 @@ footer p {
     appearance: none;
     width: 100%; /* Full width of the container */
     height: 8px; /* Slider track height */
-    background: #ddd; /* Slider track color */
+    background: linear-gradient(to right, #880E4F 0%, #880E4F var(--volume-progress, 50%), #ddd var(--volume-progress, 50%), #ddd 100%);
     border-radius: 5px;
     outline: none;
     opacity: 0.7;

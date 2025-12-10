@@ -70,8 +70,13 @@ export function updateSoundControls(DOM) {
     DOM.muteToggleButton.innerHTML = isMuted ? UNMUTE_ICON : MUTE_ICON;
     DOM.muteToggleButton.classList.toggle('muted', isMuted);
 
-    // Update volume slider value
-    DOM.volumeSlider.value = volume;
+    // Determine the volume to display on the slider
+    const displayVolume = isMuted ? 0 : volume;
+    DOM.volumeSlider.value = displayVolume;
+
+    // Update the CSS custom property for the track background
+    const percentage = (displayVolume / DOM.volumeSlider.max) * 100;
+    DOM.volumeSlider.style.setProperty('--volume-progress', `${percentage}%`);
 }
 
 import { isPipWindowOpen, updatePipContent } from './pip-manager.js';
