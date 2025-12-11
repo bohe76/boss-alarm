@@ -660,15 +660,92 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}) {
         }
     });
 
-    DOM.bossInputsContainer.innerHTML = bossNames.map(bossName => {
-        const initialValue = remainingTimes[bossName] || '';
-        const bossId = bossMap.get(bossName) || ''; // Get existing ID or empty string
-        return `
-            <div class="list-item boss-input-item">
-                <span class="boss-name">${bossName}</span>
-                <input type="text" class="remaining-time-input" data-boss-name="${bossName}" data-id="${bossId}" value="${initialValue}">
-                <span class="calculated-spawn-time">--:--:--</span>
-            </div>
-        `;
-    }).join('');
-}
+        DOM.bossInputsContainer.innerHTML = bossNames.map(bossName => {
+
+            const initialValue = remainingTimes[bossName] || '';
+
+            const bossId = bossMap.get(bossName) || ''; // Get existing ID or empty string
+
+            return `
+
+                <div class="list-item boss-input-item">
+
+                    <span class="boss-name">${bossName}</span>
+
+                    <input type="text" class="remaining-time-input" data-boss-name="${bossName}" data-id="${bossId}" value="${initialValue}">
+
+                    <span class="calculated-spawn-time">--:--:--</span>
+
+                </div>
+
+            `;
+
+        }).join('');
+
+    }
+
+    
+
+    // --- Boss Management Screen Rendering Functions ---
+
+    export function updateBossManagementUI(DOM, mode) {
+
+        const isViewMode = mode === 'view';
+
+        
+
+        // Toggle button active state
+
+        DOM.viewEditModeToggleButton.classList.toggle('active', isViewMode);
+
+    
+
+        // Show/hide elements based on mode
+
+        DOM.bossManagementInstruction.style.display = isViewMode ? 'none' : 'block';
+
+        DOM.bossListInput.style.display = isViewMode ? 'none' : 'block';
+
+        DOM.sortBossListButton.style.display = isViewMode ? 'none' : 'block';
+
+        DOM.nextBossToggleButton.style.display = isViewMode ? 'block' : 'none';
+
+        DOM.bossListTableContainer.style.display = isViewMode ? 'block' : 'none';
+
+    
+
+        if (isViewMode) {
+
+            let filterNextBoss = LocalStorageManager.get('bossManagementNextBossFilter');
+
+            renderBossListTableView(DOM, filterNextBoss);
+
+        }
+
+    }
+
+    
+
+    export function renderBossListTableView(DOM, /* filterNextBoss */) {
+
+    
+
+        // Placeholder for table rendering logic
+
+    
+
+        if (DOM.bossListTableContainer) {
+
+    
+
+            DOM.bossListTableContainer.innerHTML = '<p>Table view will be implemented here.</p>';
+
+    
+
+        }
+
+    
+
+    }
+
+    

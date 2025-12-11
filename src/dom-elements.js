@@ -46,6 +46,10 @@ export function initDomElements() {
         // Elements within Boss Management Screen
         bossListInput: document.getElementById('bossListInput'),
         sortBossListButton: document.getElementById('sortBossListButton'), // New
+        viewEditModeToggleButton: document.getElementById('viewEditModeToggleButton'), // New
+        nextBossToggleButton: document.getElementById('nextBossToggleButton'), // New
+        bossManagementInstruction: document.getElementById('boss-management-instruction'), // New
+        bossListTableContainer: document.getElementById('bossListTableContainer'), // New
 
         // Elements within Dashboard Screen
         pipToggleButton: document.getElementById('pip-toggle-button'),

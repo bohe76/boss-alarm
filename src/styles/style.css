@@ -938,6 +938,23 @@ textarea:-ms-input-placeholder {
 }
 
 
+/* New styles for boss management screen controls */
+.boss-management-controls {
+    display: flex;
+    justify-content: flex-end; /* Right align content */
+    align-items: center;
+    margin-bottom: 20px; /* Space below the controls */
+    max-width: 800px; /* Match with h2 and card-size-list */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.toggle-buttons-wrapper {
+    display: flex;
+    gap: 10px; /* Space between the two toggle buttons */
+}
+
+
 /* ---- Unified Card Styles ---- */
 .card-standard {
     background-color: #fff;
