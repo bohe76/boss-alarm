@@ -49,8 +49,9 @@ export function initDomElements() {
         viewEditModeToggleButton: document.getElementById('viewEditModeToggleButton'), // New
         nextBossToggleButton: document.getElementById('nextBossToggleButton'), // New
         bossManagementInstruction: document.getElementById('boss-management-instruction'), // New
-        bossListTableContainer: document.getElementById('bossListTableContainer'), // New
-
+        bossListTableContainer: document.getElementById('bossListCardsContainer'), // New
+        // Debug log to confirm if the element is found
+        _debugBossManagementInstruction: document.getElementById('boss-management-instruction'),
         // Elements within Dashboard Screen
         pipToggleButton: document.getElementById('pip-toggle-button'),
         nextBossContent: document.getElementById('nextBossContent'),

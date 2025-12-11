@@ -954,38 +954,56 @@ textarea:-ms-input-placeholder {
     gap: 10px; /* Space between the two toggle buttons */
 }
 
-/* Boss List Table Styles */
-.boss-list-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+/* Boss List Card Styles (for viewEditModeToggleButton) */
+.boss-list-card {
+    margin-bottom: 20px; /* Space between cards */
 }
 
-.boss-list-table tr:not(:first-child) {
-    border-top: 1px solid #eee;
+.boss-list-card .card-header {
+    padding-bottom: 0; /* Remove padding from default card-header as date will be h3 */
+    margin-bottom: 10px; /* Space between header and list */
 }
 
-.boss-list-table .date-header {
+.boss-list-card h3.date-header {
     font-weight: bold;
     color: #1D3557;
-    background-color: #f0f0f0;
-    padding: 10px;
-    text-align: center;
+    background-color: transparent; /* No background for date header */
+    padding: 0;
+    text-align: left;
     font-size: 1.1em;
+    margin: 0; /* Remove default h3 margin */
 }
 
-.boss-list-table .time-cell {
-    padding: 10px;
+.boss-list-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.boss-list-card ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-top: 1px solid #eee; /* Separator for list items */
+}
+
+.boss-list-card ul li:first-child {
+    border-top: none; /* No top border for the first item in the list */
+}
+
+.boss-list-card .time-info {
     font-weight: bold;
-    width: 100px;
-    text-align: center;
+    color: #333;
+    flex-shrink: 0; /* Prevent shrinking */
+    margin-right: 10px;
 }
 
-.boss-list-table .name-cell {
-    padding: 10px;
+.boss-list-card .name-info {
+    flex-grow: 1; /* Take remaining space */
 }
 
-.boss-list-table .no-boss-message {
+.boss-list-card .no-boss-message {
     padding: 20px;
     text-align: center;
     color: #777;
@@ -1918,8 +1936,8 @@ footer p {
 /* Action Chip Styles (for viewEditModeToggleButton) */
 .action-chip {
     border-radius: 48px; /* Rounded corners */
-    padding-left: 20px; /* Add 20px left padding */
-    padding-right: 20px; /* Add 20px right padding */
+    padding-left: 12px; /* Add 20px left padding */
+    padding-right: 16px; /* Add 20px right padding */
     /* Inherits background-color and color from .primary-button */
 }
 
@@ -1930,14 +1948,14 @@ footer p {
     width: 24px; /* Adjust size as needed */
     height: 24px; /* Adjust size as needed */
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.2); /* Slightly transparent white circle */
+    background-color: #ffffff; /* Solid white background for the circle */
     margin-right: 8px; /* Space between icon and text */
 }
 
 .action-chip-icon-wrapper svg {
     width: 16px; /* Adjust icon size to fit in circle */
     height: 16px; /* Adjust icon size to fit in circle */
-    stroke: #ffffff; /* Force stroke color to white */
+    stroke: #AD1457; /* Icon color changed to primary color */
     stroke-width: 2; /* Heroicons default is 1.5, make it slightly bolder */
 }/* PiP Toggle Button */
 .pip-toggle-button {

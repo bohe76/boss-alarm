@@ -633,15 +633,14 @@ export function updateBossManagementUI(DOM, mode) {
 
     // console.log("viewEditModeToggleButton innerHTML after set:", DOM.viewEditModeToggleButton.innerHTML); // Debug log
 
-    // Show/hide elements based on mode
-    DOM.bossManagementInstruction.style.display = isViewMode ? 'none' : 'block';
-    DOM.bossListInput.style.display = isViewMode ? 'none' : 'block';
-    DOM.sortBossListButton.style.display = isViewMode ? 'none' : 'block';
-    DOM.nextBossToggleButton.style.display = isViewMode ? 'block' : 'none';
-    DOM.bossListTableContainer.style.display = isViewMode ? 'block' : 'none';
-
-    if (isViewMode) {
-        let filterNextBoss = LocalStorageManager.get('bossManagementNextBossFilter');
+            // Show/hide elements based on mode
+            if (DOM.bossManagementInstruction) DOM.bossManagementInstruction.style.display = isViewMode ? 'none' : 'block';
+            if (DOM.bossListInput) DOM.bossListInput.style.display = isViewMode ? 'none' : 'block';
+            if (DOM.sortBossListButton) DOM.sortBossListButton.style.display = isViewMode ? 'none' : 'block';
+            if (DOM.nextBossToggleButton) DOM.nextBossToggleButton.style.display = isViewMode ? 'block' : 'none';
+            if (DOM.bossListTableContainer) DOM.bossListTableContainer.style.display = isViewMode ? 'block' : 'none';
+    
+            if (isViewMode) {        let filterNextBoss = LocalStorageManager.get('bossManagementNextBossFilter');
         renderBossListTableView(DOM, filterNextBoss);
     }
 }
@@ -651,34 +650,71 @@ export function renderBossListTableView(DOM, filterNextBoss) {
     let schedule = BossDataManager.getBossSchedule();
     const now = new Date();
     if (filterNextBoss) {
+        // 날짜 필터링 로직: 
+        // 1. 현재 시간 이후의 보스만 남김
+        // 2. 단, 'date' 타입(날짜 마커)은 일단 모두 유지했다가, 
+        //    렌더링 단계에서 해당 날짜에 보스가 하나도 없으면 카드를 아예 안 그리는 방식으로 처리하는 것이 깔끔함.
+        //    하지만 여기서는 리스트 순회하며 동적으로 카드를 여닫는 구조이므로,
+        //    일단 보스만 필터링하고 날짜 마커는 살려둠.
         schedule = schedule.filter(item => {
-            if (item.type === 'date') return true; // Always keep date markers for grouping
+            if (item.type === 'date') return true; 
             return item.scheduledDate && item.scheduledDate > now;
         });
     }
-    let html = '<table class="boss-list-table">';
-    let currentDate = null;
-    schedule.forEach(item => {
-        if (item.type === 'date') {
-            currentDate = item.value;
-            // Assuming currentDate is "MM.DD"
-            const currentYear = new Date().getFullYear(); // Use current year for date parsing
-            const dateObj = new Date(`${currentYear}-${currentDate.replace('.', '-')}`);
-            const dayOfWeek = getKoreanDayOfWeek(dateObj);
-            html += `<tr><td colspan="2" class="date-header">${currentDate} (${dayOfWeek})</td></tr>`;
-        } else if (item.type === 'boss') {
-            const time = formatBossListTime(item.time);
+
+    let html = '';
+    let currentCardHtml = ''; // 현재 처리 중인 날짜 카드의 내용
+    let hasBossInCurrentDate = false; // 현재 날짜에 보스가 하나라도 있는지 확인
+
+    // 헬퍼: 현재 열려 있는 카드를 닫고 html에 추가하는 함수
+    const closeCurrentCard = () => {
+        if (currentCardHtml && hasBossInCurrentDate) {
             html += `
-                <tr>
-                    <td class="time-cell">${time}</td>
-                    <td class="name-cell">${item.name}</td>
-                </tr>
+                <div class="card-standard card-size-list" style="margin-bottom: 16px;">
+                    ${currentCardHtml}
+                    </div>
+                </div>
             `;
         }
+        currentCardHtml = '';
+        hasBossInCurrentDate = false;
+    };
+
+    schedule.forEach(item => {
+        if (item.type === 'date') {
+            // 이전 날짜 카드 닫기
+            closeCurrentCard();
+
+            // 새 날짜 카드 헤더 시작
+            const currentDate = item.value;
+            const currentYear = new Date().getFullYear();
+            const dateObj = new Date(`${currentYear}-${currentDate.replace('.', '-')}`);
+            const dayOfWeek = getKoreanDayOfWeek(dateObj);
+            
+            currentCardHtml = `
+                <div class="card-header">
+                    <h3>${currentDate} (${dayOfWeek})</h3>
+                </div>
+                <div class="card-list-content">
+            `;
+        } else if (item.type === 'boss') {
+            const time = formatBossListTime(item.time);
+            currentCardHtml += `
+                <div class="list-item">
+                    <span style="font-weight: 600; min-width: 60px;">${time}</span>
+                    <span>${item.name}</span>
+                </div>
+            `;
+            hasBossInCurrentDate = true;
+        }
     });
-    if (schedule.filter(item => item.type === 'boss').length === 0) {
-        html += '<tr><td colspan="2" class="no-boss-message">표시할 보스가 없습니다.</td></tr>';
+
+    // 마지막 날짜 카드 닫기
+    closeCurrentCard();
+
+    if (!html) {
+        html = '<p class="no-boss-message" style="text-align: center; color: #888; padding: 20px;">표시할 보스가 없습니다.</p>';
     }
-    html += '</table>';
+
     DOM.bossListTableContainer.innerHTML = html;
 }
