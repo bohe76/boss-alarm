@@ -68,15 +68,14 @@
 
 ### 3.2. 보스 관리 화면 (`src/screens/boss-management.js`)
 
-*   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initBossManagementScreen(DOM)`이 호출됩니다. 이 함수는 `LocalStorageManager`에서 저장된 '뷰/편집' 모드 및 '다음 보스' 필터 상태를 로드하고, `ui-renderer.js`의 `updateBossManagementUI(DOM, mode)`를 호출하여 해당 모드에 맞는 UI를 초기 렌더링합니다.
+*   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initBossManagementScreen(DOM)`이 호출됩니다. 이 함수는 `LocalStorageManager`에서 저장된 '뷰/편집' 모드(`bossManagementMode`) 및 '다음 보스' 필터(`bossManagementNextBossFilter`) 상태를 로드하고, `ui-renderer.js`의 `updateBossManagementUI(DOM, mode)`를 호출하여 해당 모드에 맞는 UI를 초기 렌더링합니다.
 *   **이벤트 리스너:**
-    *   **'뷰/편집' 토글 버튼 (`DOM.viewEditModeToggleButton`):** 클릭 시 '뷰 모드'와 '편집 모드'를 전환하고, `LocalStorageManager`에 상태를 저장합니다. 변경된 모드를 기반으로 `updateBossManagementUI`를 호출하여 UI를 갱신합니다.
-    *   **'다음 보스' 토글 버튼 (`DOM.nextBossToggleButton`):** '뷰 모드'일 때만 활성화되며, 클릭 시 '다음 보스만 보기' 필터 상태를 토글하고 `LocalStorageManager`에 저장합니다. 이후 `updateBossManagementUI`를 호출하여 필터링된 보스 목록을 다시 렌더링합니다.
-    *   **"보스 설정 저장" 버튼 (`DOM.sortBossListButton`):** '편집 모드'일 때만 활성화되며, 클릭 시 `boss-parser.js`의 `parseBossList()`를 호출하여 텍스트 영역의 내용을 파싱하고 유효성을 검사합니다.
+    *   **'뷰/편집' 토글 버튼 (`DOM.viewEditModeToggleButton`):** 클릭 시 모드를 전환하고 `LocalStorageManager`에 저장합니다. `updateBossManagementUI`를 호출하여 UI를 갱신합니다.
+    *   **'다음 보스' 토글 버튼 (`DOM.nextBossToggleButton`):** 뷰 모드에서만 활성화되며, 클릭 시 필터 상태를 토글하고 저장합니다. 이후 `updateBossManagementUI` -> `renderBossListTableView`를 호출하여 **카드 리스트 형태**로 필터링된 목록을 다시 렌더링합니다.
+    *   **"보스 설정 저장" 버튼 (`DOM.sortBossListButton`):** 편집 모드에서만 활성화되며, 클릭 시 `boss-parser.js`의 `parseBossList()`를 호출하여 텍스트 영역의 내용을 파싱하고 유효성을 검사합니다.
         *   **유효성 실패:** 에러 메시지를 담은 경고창(`alert`)을 띄우고 저장을 중단합니다.
         *   **유효성 성공:** 파싱된 결과를 `BossDataManager.setBossSchedule()`로 저장하고, `ui-renderer.js`의 `updateBossListTextarea(DOM)`를 호출하여 정렬 및 포맷팅된 텍스트로 갱신합니다. `window.isBossListDirty`를 `false`로 초기화합니다.
-    *   **보스 목록 텍스트 영역 (`DOM.bossListInput`) `input` 이벤트:** 사용자가 텍스트 영역을 수정하면 `window.isBossListDirty = true`로 설정하여 저장되지 않은 변경 사항이 있음을 표시합니다. (실시간 저장은 하지 않습니다.)
-*   **데이터 흐름 요약:** '보스 관리' 화면은 `LocalStorageManager`를 통해 모드 및 필터 상태를 관리하고, `ui-renderer.js`를 통해 모드에 따른 동적인 UI를 제공합니다. '편집 모드'에서는 텍스트 영역 수정을 통해 `BossDataManager`에 데이터를 반영하며, '뷰 모드'에서는 테이블 형태로 보스 목록을 표시하고 '다음 보스' 필터를 적용합니다.
+*   **데이터 흐름 요약:** `LocalStorageManager`를 통해 모드 및 필터 상태를 관리합니다. **뷰 모드**에서는 `BossDataManager` 데이터를 기반으로 `ui-renderer.js`가 날짜별 카드 리스트를 생성하여 표시하고, **편집 모드**에서는 사용자 입력을 파싱하여 `BossDataManager`에 저장하는 양방향 흐름을 가집니다.
 
 ### 3.3. 보스 스케줄러 화면 (`src/screens/boss-scheduler.js`)
 
@@ -126,7 +125,7 @@
 ### 3.9. 보탐 계산기 화면 (`src/screens/calculator.js`)
 
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 'calculator-screen'으로 내비게이션될 때 `handleCalculatorScreenTransition(DOM)`이 호출되어 계산기 UI 및 `CrazyCalculator` 상태를 초기화하고 렌더링합니다.
-*   **처리 흐름 (젠 계산기):** 남은 시간 입력 시 `calculator.js`를 통해 보스 출현 시간을 계산합니다. "업데이트" 버튼 클릭 시 `BossDataManager`에서 해당 보스(ID 기준)를 찾아 시간을 업데이트하고, 전체 리스트를 재구성(Reconstruction)하여 저장합니다. 이후 `updateBossListTextarea`를 호출하여 UI를 갱신합니다.
+*   **처리 흐름 (젠 계산기):** 남은 시간 입력 시 `calculator.js`를 통해 보스 출현 시간을 계산합니다. "업데이트" 버튼 클릭 시 `BossDataManager`에서 해당 보스(ID 기준)를 찾아 시간을 업데이트하고, 전체 리스트를 재구성(Reconstruction)하여 저장합니다. 이후 `updateBossListTextarea` 및 `updateBossManagementUI`를 호출하여 텍스트 영역 및 뷰 모드 UI를 즉시 갱신합니다.
 *   **처리 흐름 (광 계산기):** "시작", "광", "캡처" 버튼 클릭을 통해 `CrazyCalculator` 모듈이 스톱워치를 제어하고, `LocalStorageManager`를 통해 기록을 저장합니다.
 *   **데이터 흐름 요약:** "젠 계산기"는 사용자 입력 및 `BossDataManager`를 통해 보스 시간을 직접 업데이트하고 재구성하며, "광 계산기"는 `CrazyCalculator` 모듈을 통해 스톱워치 기반의 시간 측정을 수행하고 로컬 스토리지에 기록합니다.
 
