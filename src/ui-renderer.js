@@ -726,19 +726,47 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}) {
 
     
 
-    export function renderBossListTableView(DOM, /* filterNextBoss */) {
+    export function renderBossListTableView(DOM, filterNextBoss) {
 
     
 
-        // Placeholder for table rendering logic
+        if (!DOM.bossListTableContainer) return;
 
     
 
-        if (DOM.bossListTableContainer) {
+    
 
     
 
-            DOM.bossListTableContainer.innerHTML = '<p>Table view will be implemented here.</p>';
+        let schedule = BossDataManager.getBossSchedule();
+
+    
+
+        const now = new Date();
+
+    
+
+    
+
+    
+
+        if (filterNextBoss) {
+
+    
+
+            schedule = schedule.filter(item => {
+
+    
+
+                if (item.type === 'date') return true; // Always keep date markers for grouping
+
+    
+
+                return item.scheduledDate && item.scheduledDate > now;
+
+    
+
+            });
 
     
 
@@ -746,6 +774,110 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}) {
 
     
 
+    
+
+    
+
+        let html = '<table class="boss-list-table">';
+
+    
+
+        let currentDate = null;
+
+    
+
+    
+
+    
+
+        schedule.forEach(item => {
+
+    
+
+            if (item.type === 'date') {
+
+    
+
+                currentDate = item.value;
+
+    
+
+                html += `<tr><td colspan="2" class="date-header">${currentDate}</td></tr>`;
+
+    
+
+            } else if (item.type === 'boss') {
+
+    
+
+                const time = formatBossListTime(item.time);
+
+    
+
+                html += `
+
+    
+
+                    <tr>
+
+    
+
+                        <td class="time-cell">${time}</td>
+
+    
+
+                        <td class="name-cell">${item.name}</td>
+
+    
+
+                    </tr>
+
+    
+
+                `;
+
+    
+
+            }
+
+    
+
+        });
+
+    
+
+    
+
+    
+
+        if (schedule.filter(item => item.type === 'boss').length === 0) {
+
+    
+
+            html += '<tr><td colspan="2" class="no-boss-message">표시할 보스가 없습니다.</td></tr>';
+
+    
+
+        }
+
+    
+
+    
+
+    
+
+        html += '</table>';
+
+    
+
+        DOM.bossListTableContainer.innerHTML = html;
+
+    
+
     }
+
+    
+
+    
 
     

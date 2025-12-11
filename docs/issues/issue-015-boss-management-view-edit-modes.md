@@ -106,10 +106,10 @@ resolved_date: ""
 <details>
 <summary>2.2. '뷰 모드'에서 보스 목록 표(Table) 형식 렌더링 함수 구현</summary>
 
-- [ ] **사전 분석:** `BossDataManager`에서 보스 스케줄 데이터를 가져와 날짜별로 그룹화하여 표 형태로 HTML 문자열을 생성해야 합니다. '다음 보스' 필터가 적용될 경우, 현재 시간 이후의 보스만 포함해야 합니다.
-- [ ] **실행 계획:** `src/ui-renderer.js`에 `renderBossListTableView(DOM, filterNextBoss)` 함수를 추가합니다. 이 함수는 `BossDataManager.getBossSchedule()`를 통해 데이터를 가져오고, `filterNextBoss` 값에 따라 필터링한 후, 날짜별로 그룹화하여 `<table>` 요소를 포함한 HTML 문자열을 생성하고 `DOM.bossListTableContainer`에 삽입합니다.
-- [ ] **검증:** '뷰 모드'에서 보스 목록이 표 형태로 정상적으로 표시되고, '다음 보스' 토글 버튼 작동 시 필터링이 올바르게 적용되는지 확인합니다.
-- [ ] **커밋:** `git commit -m "feat(ui-renderer): 뷰 모드용 보스 목록 표 렌더링 함수 구현"`
+- [x] **사전 분석:** `BossDataManager`에서 보스 스케줄 데이터를 가져와 날짜별로 그룹화하여 표 형태로 HTML 문자열을 생성해야 합니다. '다음 보스' 필터가 적용될 경우, 현재 시간 이후의 보스만 포함해야 합니다.
+- [x] **실행 계획:** `src/ui-renderer.js`에 `renderBossListTableView(DOM, filterNextBoss)` 함수를 추가합니다. 이 함수는 `BossDataManager.getBossSchedule()`를 통해 데이터를 가져오고, `filterNextBoss` 값에 따라 필터링한 후, 날짜별로 그룹화하여 `<table>` 요소를 포함한 HTML 문자열을 생성하고 `DOM.bossListTableContainer`에 삽입합니다.
+- [x] **검증:** '뷰 모드'에서 보스 목록이 표 형태로 정상적으로 표시되고, '다음 보스' 토글 버튼 작동 시 필터링이 올바르게 적용되는지 확인합니다.
+- [x] **커밋:** `git commit -m "feat(ui-renderer): 뷰 모드용 보스 목록 표 렌더링 함수 구현"`
 </details>
 
 ### **3단계: 기존 로직 수정 및 통합**

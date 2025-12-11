@@ -954,6 +954,43 @@ textarea:-ms-input-placeholder {
     gap: 10px; /* Space between the two toggle buttons */
 }
 
+/* Boss List Table Styles */
+.boss-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.boss-list-table tr:not(:first-child) {
+    border-top: 1px solid #eee;
+}
+
+.boss-list-table .date-header {
+    font-weight: bold;
+    color: #1D3557;
+    background-color: #f0f0f0;
+    padding: 10px;
+    text-align: center;
+    font-size: 1.1em;
+}
+
+.boss-list-table .time-cell {
+    padding: 10px;
+    font-weight: bold;
+    width: 100px;
+    text-align: center;
+}
+
+.boss-list-table .name-cell {
+    padding: 10px;
+}
+
+.boss-list-table .no-boss-message {
+    padding: 20px;
+    text-align: center;
+    color: #777;
+}
+
 
 /* ---- Unified Card Styles ---- */
 .card-standard {
