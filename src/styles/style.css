@@ -1920,7 +1920,24 @@ footer p {
     border-radius: 48px; /* Rounded corners */
     /* Inherits background-color and color from .primary-button */
 }
-/* PiP Toggle Button */
+
+.action-chip-icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px; /* Adjust size as needed */
+    height: 24px; /* Adjust size as needed */
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2); /* Slightly transparent white circle */
+    margin-right: 8px; /* Space between icon and text */
+}
+
+.action-chip-icon-wrapper svg {
+    width: 16px; /* Adjust icon size to fit in circle */
+    height: 16px; /* Adjust icon size to fit in circle */
+    stroke: currentColor; /* Inherit color from parent button */
+    stroke-width: 2; /* Heroicons default is 1.5, make it slightly bolder */
+}/* PiP Toggle Button */
 .pip-toggle-button {
     display: none; /* Hidden by default, enabled via JS if API is supported */
     background: none;
