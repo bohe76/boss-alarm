@@ -701,8 +701,8 @@ export function renderBossListTableView(DOM, filterNextBoss) {
             const time = formatBossListTime(item.time);
             currentCardHtml += `
                 <div class="list-item">
-                    <span style="font-weight: 600; min-width: 60px;">${time}</span>
-                    <span>${item.name}</span>
+                    <span style="font-weight: bold; min-width: 60px;">${time}</span>
+                    <span style="margin-left: 16px;">${item.name}</span>
                 </div>
             `;
             hasBossInCurrentDate = true;
