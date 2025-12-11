@@ -622,8 +622,8 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}) {
 export function updateBossManagementUI(DOM, mode) {
     const isViewMode = mode === 'view';
     
-    // Toggle button active state
-    DOM.viewEditModeToggleButton.classList.toggle('active', isViewMode);
+    // Toggle button active state (removed as it's always primary color)
+    // DOM.viewEditModeToggleButton.classList.toggle('active', isViewMode);
     
     // Change button label based on the mode it will switch TO
     DOM.viewEditModeToggleButton.textContent = isViewMode ? '편집' : '뷰';

@@ -1914,6 +1914,12 @@ footer p {
 .toggle-button.active:hover:not(:disabled) {
     background-color: #FF6F00; /* 활성화 상태에서 호버 시 배경색 */
 }
+
+/* Action Chip Styles (for viewEditModeToggleButton) */
+.action-chip {
+    border-radius: 48px; /* Rounded corners */
+    /* Inherits background-color and color from .primary-button */
+}
 /* PiP Toggle Button */
 .pip-toggle-button {
     display: none; /* Hidden by default, enabled via JS if API is supported */
