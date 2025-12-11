@@ -700,7 +700,7 @@ export function renderBossListTableView(DOM, filterNextBoss) {
         } else if (item.type === 'boss') {
             const time = formatBossListTime(item.time);
             currentCardHtml += `
-                <div class="list-item">
+                <div class="list-item list-item--dense">
                     <span style="font-weight: bold; min-width: 60px;">${time}</span>
                     <span style="margin-left: 16px;">${item.name}</span>
                 </div>
