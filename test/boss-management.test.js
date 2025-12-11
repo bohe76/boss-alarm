@@ -194,6 +194,7 @@ describe('Boss Management Screen', () => {
         DOM.sortBossListButton.click();
         expect(parseBossList).toHaveBeenCalledWith(DOM.bossListInput);
         expect(BossDataManager.setBossSchedule).toHaveBeenCalled();
+        expect(updateBossListTextarea).toHaveBeenCalledWith(DOM); // Added assertion
         expect(log).toHaveBeenCalledWith("보스 설정이 저장되었습니다.", true);
         expect(window.alert).toHaveBeenCalledWith("저장되었습니다.");
         expect(trackEvent).toHaveBeenCalledWith('Click Button', { event_category: 'Interaction', event_label: '보스 설정 저장' });
