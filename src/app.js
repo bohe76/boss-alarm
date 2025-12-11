@@ -434,6 +434,12 @@ export async function initApp() {
     }
     renderAlarmStatusSummary(DOM);
 
+    // First-time user notification for alarm policy
+    if (!LocalStorageManager.get('hasVisitedAlarmPolicy')) {
+        alert("알림 기능은 브라우저 정책에 따라 최초 접속 시 자동으로 비활성화됩니다.\n알림을 사용하시려면 상단의 전원 버튼을 눌러 활성화해주세요.");
+        LocalStorageManager.set('hasVisitedAlarmPolicy', 'true');
+    }
+
     if (LocalStorageManager.getSidebarExpandedState()) {
         DOM.sidebar.classList.add('expanded');
     } else {
