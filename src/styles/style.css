@@ -1918,6 +1918,8 @@ footer p {
 /* Action Chip Styles (for viewEditModeToggleButton) */
 .action-chip {
     border-radius: 48px; /* Rounded corners */
+    padding-left: 20px; /* Add 20px left padding */
+    padding-right: 20px; /* Add 20px right padding */
     /* Inherits background-color and color from .primary-button */
 }
 
