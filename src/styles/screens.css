@@ -797,6 +797,12 @@ section#settings-screen h3 {
 }
 
 /* Dashboard log overrides */
+#recentAlarmLogContent ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
 #recentAlarmLogContent .log-entry.important {
     color: #333;
 }
