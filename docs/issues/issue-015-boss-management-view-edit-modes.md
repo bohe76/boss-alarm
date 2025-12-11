@@ -66,15 +66,15 @@ resolved_date: ""
 <details>
 <summary>1.1. '뷰/편집' 모드 토글 기능 구현 및 `localStorage` 연동</summary>
 
-- [ ] **사전 분석:** `src/screens/boss-management.js`에서 '뷰/편집' 토글 버튼 클릭 이벤트 리스너를 추가할 위치를 확인합니다. `LocalStorageManager`를 사용하여 모드 상태를 저장하고 로드하는 방식을 결정합니다. `ui-renderer.js`에서 모드에 따른 UI 업데이트 함수를 호출할 수 있도록 준비합니다.
-- [ ] **실행 계획 1 (토글 함수):** `src/screens/boss-management.js`에 `toggleBossManagementMode` 함수를 생성하고, 클릭 이벤트에 바인딩합니다. 이 함수는 `LocalStorageManager.set('bossManagementMode', currentMode)`를 사용하여 현재 모드를 저장합니다.
-- [ ] **실행 계획 2 (초기 모드 설정):** `initBossManagementScreen` 함수 내에서 `LocalStorageManager.get('bossManagementMode')`를 통해 저장된 모드를 로드하고, 없으면 '뷰 모드'로 초기화합니다.
-- [ ] **실행 계획 3 (UI 업데이트):** 모드 변경 시 `ui-renderer.js`의 새로운 함수(`updateBossManagementUI(DOM, mode)`)를 호출하여 해당 모드에 맞는 UI를 표시/숨김 처리합니다.
-- [ ] **검증:**
+- [x] **사전 분석:** `src/screens/boss-management.js`에서 '뷰/편집' 토글 버튼 클릭 이벤트 리스너를 추가할 위치를 확인합니다. `LocalStorageManager`를 사용하여 모드 상태를 저장하고 로드하는 방식을 결정합니다. `ui-renderer.js`에서 모드에 따른 UI 업데이트 함수를 호출할 수 있도록 준비합니다.
+- [x] **실행 계획 1 (토글 함수):** `src/screens/boss-management.js`에 `toggleBossManagementMode` 함수를 생성하고, 클릭 이벤트에 바인딩합니다. 이 함수는 `LocalStorageManager.set('bossManagementMode', currentMode)`를 사용하여 현재 모드를 저장합니다.
+- [x] **실행 계획 2 (초기 모드 설정):** `initBossManagementScreen` 함수 내에서 `LocalStorageManager.get('bossManagementMode')`를 통해 저장된 모드를 로드하고, 없으면 '뷰 모드'로 초기화합니다.
+- [x] **실행 계획 3 (UI 업데이트):** 모드 변경 시 `ui-renderer.js`의 새로운 함수(`updateBossManagementUI(DOM, mode)`)를 호출하여 해당 모드에 맞는 UI를 표시/숨김 처리합니다.
+- [x] **검증:**
     1.  '보스 관리' 화면에서 '뷰/편집' 토글 버튼 클릭 시 모드가 정상적으로 전환되는지 확인합니다.
     2.  새로고침 후에도 마지막으로 선택한 모드가 유지되는지 확인합니다.
     3.  개발자 도구의 `localStorage`에서 `bossManagementMode` 값이 정상적으로 저장되는지 확인합니다.
-- [ ] **커밋:** `git commit -m "feat(boss-management): 뷰/편집 모드 토글 기능 및 localStorage 연동 구현"`
+- [x] **커밋:** `git commit -m "feat(boss-management): 뷰/편집 모드 토글 기능 및 localStorage 연동 구현"`
 </details>
 
 <details>
