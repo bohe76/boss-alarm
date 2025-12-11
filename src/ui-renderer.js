@@ -621,14 +621,20 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}) {
 // --- Boss Management Screen Rendering Functions ---
 export function updateBossManagementUI(DOM, mode) {
     const isViewMode = mode === 'view';
+    
     // Toggle button active state
     DOM.viewEditModeToggleButton.classList.toggle('active', isViewMode);
+    
+    // Change button label based on the mode it will switch TO
+    DOM.viewEditModeToggleButton.textContent = isViewMode ? '편집' : '뷰';
+
     // Show/hide elements based on mode
     DOM.bossManagementInstruction.style.display = isViewMode ? 'none' : 'block';
     DOM.bossListInput.style.display = isViewMode ? 'none' : 'block';
     DOM.sortBossListButton.style.display = isViewMode ? 'none' : 'block';
     DOM.nextBossToggleButton.style.display = isViewMode ? 'block' : 'none';
     DOM.bossListTableContainer.style.display = isViewMode ? 'block' : 'none';
+
     if (isViewMode) {
         let filterNextBoss = LocalStorageManager.get('bossManagementNextBossFilter');
         renderBossListTableView(DOM, filterNextBoss);
