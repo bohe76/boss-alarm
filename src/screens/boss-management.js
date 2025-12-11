@@ -50,6 +50,13 @@ export function initBossManagementScreen(DOM) {
         DOM.sortBossListButton.textContent = "보스 설정 저장"; // Change button text
         
         DOM.sortBossListButton.addEventListener('click', () => {
+            const currentModeOnSave = LocalStorageManager.get('bossManagementMode') || VIEW_MODE;
+            if (currentModeOnSave !== EDIT_MODE) {
+                // Should not happen if UI is correctly hidden, but good for defensive programming
+                console.warn('Attempted to save in view mode. Operation blocked.');
+                return;
+            }
+
             // Parse the current input
             const result = parseBossList(DOM.bossListInput);
             

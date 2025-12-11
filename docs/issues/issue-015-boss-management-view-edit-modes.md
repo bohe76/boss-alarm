@@ -140,13 +140,13 @@ resolved_date: ""
 <details>
 <summary>4.1. Unit 테스트 추가</summary>
 
-- [ ] **사전 분석:** '뷰/편집' 모드 전환, '다음 보스' 필터링, `localStorage` 연동, 그리고 표 형식 렌더링 로직에 대한 유닛 테스트를 `test/boss-management.test.js` 또는 `test/ui-renderer.test.js`에 추가합니다.
-- [ ] **실행 계획:**
+- [x] **사전 분석:** '뷰/편집' 모드 전환, '다음 보스' 필터링, `localStorage` 연동, 그리고 표 형식 렌더링 로직에 대한 유닛 테스트를 `test/boss-management.test.js` 또는 `test/ui-renderer.test.js`에 추가합니다.
+- [x] **실행 계획:**
     *   `bossManagementMode` 및 `bossManagementNextBossFilter` `localStorage` 값을 Mocking하여 모드 및 필터 상태 로드/저장 테스트.
     *   `updateBossManagementUI` 함수가 모드에 따라 올바른 DOM 요소를 표시/숨김 처리하는지 테스트.
     *   `renderBossListTableView` 함수가 `BossDataManager` 데이터를 기반으로 정확한 HTML 테이블을 생성하는지, '다음 보스' 필터가 올바르게 적용되는지 테스트.
-- [ ] **검증:** `npm test`를 실행하여 새로 추가된 유닛 테스트가 모두 통과하는지 확인합니다.
-- [ ] **커밋:** `git commit -m "test(boss-management): 뷰/편집 모드 및 다음 보스 필터 기능 유닛 테스트 추가"`
+- [x] **검증:** `npm test`를 실행하여 새로 추가된 유닛 테스트가 모두 통과하는지 확인합니다.
+- [x] **커밋:** `git commit -m "test(boss-management): 뷰/편집 모드 및 다음 보스 필터 기능 유닛 테스트 추가"`
 </details>
 
 <details>
