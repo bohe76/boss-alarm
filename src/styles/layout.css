@@ -1,0 +1,357 @@
+/* src/styles/layout.css - Header, Footer, Sidebar, Navigation */
+
+/* Header Styles */
+header {
+    background-color: #f8f8f8;
+    color: #111;
+    padding: 0px 20px; /* Set top/bottom padding to 0 */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    flex-shrink: 0; /* Prevent header from shrinking */
+    position: fixed; /* Fix header at the top */
+    top: 0;
+    width: 100%;
+    z-index: 100; /* Ensure header is on top */
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    max-width: 1200px; /* Max width for content */
+    margin: 0 auto; /* Center content */
+}
+
+.header-container h1 {
+    margin: 0 auto; /* Center h1 between other flex items */
+    font-size: 1.8em;
+    white-space: nowrap;
+}
+
+/* Sidebar Toggle Button (Desktop) */
+.sidebar-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px; /* Changed from 5px to 8px (spacing-xs) */
+    padding-left: 0; /* Ensure no left padding */
+    text-align: left; /* Ensure content is left-aligned */
+    color: #111; /* Match header text color */
+    margin-left: -16px; /* Space between toggle and h1 */
+}
+
+.sidebar-toggle-icon {
+    width: 48px;
+    height: 48px;
+    fill: currentColor;
+}
+
+/* Full Height Layout Container */
+#full-height-content { /* New container for sidebar and main content */
+    display: flex;
+    flex: 1; /* Take remaining vertical space */
+    max-width: 1200px; /* Max width for content */
+    margin: 0 auto; /* Center content */
+    width: 100%;
+}
+
+/* Sidebar Navigation */
+nav.sidebar {
+    width: 54px; /* Collapsed width */
+    background-color: #f8f8f8; /* Changed to body's background color */
+    color: white;
+    transition: width 0.3s ease;
+    flex-shrink: 0; /* Prevent sidebar from shrinking */
+    overflow-x: hidden; /* Hide overflow when collapsed */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+nav.sidebar.expanded {
+    width: 200px; /* Expanded width */
+    align-items: flex-start;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+}
+
+.sidebar-menu li {
+    margin-bottom: 10px;
+}
+
+.sidebar-menu a {
+    display: flex;
+    align-items: center;
+    color: #222; /* Changed to original sidebar background color */
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.2s, color 0.2s;
+    padding: 8px 0px 8px 12px; /* Changed from 10px 0px 10px 13px to 8px 0px 8px 12px (spacing-xs top/bottom, spacing-sm left) */
+    white-space: nowrap;
+}
+
+.sidebar-menu a:hover {
+    background-color: #e0e0e0; /* Lighter gray for hover */
+    color: #222; /* Match default text color */
+}
+
+.sidebar-menu a.active {
+    background-color: #d0d0d0; /* Slightly darker gray for active */
+    color: #222; /* Match default text color */
+}
+
+.menu-icon {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+    margin-right: 15px;
+    fill: none !important; /* !important 추가 */
+    stroke: currentColor; /* Added */
+    flex-shrink: 0; /* Prevent icon from shrinking */
+}
+
+nav.sidebar:not(.expanded) .menu-text {
+    opacity: 0;
+    visibility: hidden;
+    max-width: 0;
+    overflow: hidden;
+    transition: opacity 0.3s ease, max-width 0.3s ease, visibility 0.3s ease;
+}
+
+nav.sidebar.expanded .sidebar-menu a .menu-text {
+    opacity: 1;
+    visibility: visible;
+    max-width: 100px; /* Adjust as needed */
+    transition: opacity 0.3s ease, max-width 0.3s ease, visibility 0.3s ease;
+}
+
+/* Main Content Area */
+main {
+    flex: 1; /* Take remaining horizontal space */
+    padding: 20px;
+    background-color: #f8f8f8;
+    overflow-y: auto; /* Enable scrolling for main content */
+}
+
+.screen {
+    display: none; /* Hide all screens by default */
+}
+
+.screen.active {
+    display: block; /* Show active screen */
+}
+
+/* Footer Styles */
+footer {
+    background-color: #333;
+    color: white;
+    padding: 20px 20px;
+    text-align: center; /* Added */
+    font-size: 0.9em;
+    flex-shrink: 0; /* Prevent footer from shrinking */
+    display: flex; /* Added */
+    flex-direction: column; /* Added */
+    align-items: center; /* Added */
+}
+
+footer p {
+    margin: 0;
+}
+
+/* Styling for the footer content wrapper */
+.footer-content-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 10px;    /* Original row gap */
+    column-gap: 100px; /* New column gap */
+    max-width: var(--app-max-width);
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: left;
+}
+
+/* Styling for the footer contact link */
+.footer-link {
+    color: #76b9ed; /* New color */
+    text-decoration: none; /* Remove underline */
+}
+
+.footer-link:hover {
+    color: #a0d4fd; /* Lighter shade on hover */
+}
+
+/* Mobile Navigation Styles */
+:root {
+    --bottom-nav-height: 60px; /* Define height for the bottom nav bar */
+}
+
+/* Hide bottom nav on desktop by default */
+.bottom-nav,
+.sidebar-backdrop {
+    display: none;
+}
+
+/* Explicitly hide mobile-only elements on desktop */
+@media (min-width: 769px) {
+    .more-menu-close-button {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    /* --- Hide desktop sidebar and toggle --- */
+    body.is-mobile-view nav.sidebar,
+    body.is-mobile-view #sidebarToggle {
+        display: none;
+    }
+    #sidebarToggle {
+        display: none; /* 모바일에서 기본적으로 숨김 */
+    }
+    nav.sidebar {
+        display: none; /* 모바일에서 기본적으로 숨김 */
+    }
+    /* --- Show and style the bottom navigation bar --- */
+    .bottom-nav {
+        display: flex;
+        justify-content: space-around;
+        align-items: center; /* Align items to the center as labels are removed */
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: var(--bottom-nav-height);
+        background-color: #f8f8f8;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        z-index: 1000;
+        padding-bottom: env(safe-area-inset-bottom); /* For iPhone safe area */
+    }
+    /* --- Adjust main content padding --- */
+    body {
+        padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+    }
+
+    main {
+        min-height: calc(100vh - var(--header-height) - var(--bottom-nav-height) - 55px - 40px); /* Ensures main pushes footer below fixed bottom nav */
+        /* padding-bottom is now on the body to lift the footer as well */
+    }
+
+
+    .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center; /* Center icon vertically within the item */
+        flex-grow: 1;
+        text-decoration: none;
+        color: #888;
+        background: none;
+        border: none;
+        font-family: inherit;
+        /* font-size: 10px; REMOVED as labels are gone */
+        padding: 0 4px;
+        cursor: pointer;
+    }
+
+    .bottom-nav-item .menu-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 0;
+        /* margin-bottom: 2px; REMOVED as labels are gone */
+        fill: currentColor;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .bottom-nav-item .bottom-nav-text {
+        white-space: nowrap;
+    }
+
+    .bottom-nav-item.active {
+        color: #333; /* Active color - Dark grey (matching footer background) */
+    }
+
+    .bottom-nav-item.active .menu-icon {
+        transform: scale(1.3);
+    }
+
+    /* --- 'More' menu overlay using the old sidebar --- */
+    #sidebar.more-menu-open {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1010; /* Above bottom nav */
+        background-color: #f4f7f6;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 20px;
+        box-sizing: border-box; /* Include padding in width/height */
+        transform: translateX(0); /* Ensure it's visible */
+        transition: transform 0.3s ease-in-out;
+        overflow-y: auto;
+    }
+
+    /* Make the links in the overlay look better */
+    .more-menu-open .sidebar-menu {
+        margin-top: 50px;
+        width: 100%;
+    }
+    .more-menu-open .sidebar-menu a {
+        padding: 16px;
+        font-size: 1.2em;
+    }
+    .more-menu-open .sidebar-menu a .menu-text {
+        opacity: 1;
+        visibility: visible;
+        max-width: none;
+    }
+
+    .more-menu-close-button {
+        display: none; /* 모바일에서 기본적으로 숨김 */
+        /* Hide by default on desktop - handled by media query below */
+    }
+
+    /* Style for the close button inside the 'more' menu */
+    #sidebar.more-menu-open .more-menu-close-button {
+        display: block;
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #333;
+        padding: 5px;
+    }
+
+    #sidebar.more-menu-open .more-menu-close-button svg {
+        width: 30px;
+        height: 30px;
+        fill: currentColor;
+    }
+
+
+    /* --- Backdrop for the 'More' menu --- */
+    .sidebar-backdrop {
+        display: none; /* Hidden by default */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1005; /* Below the menu, above everything else */
+    }
+
+    .sidebar-backdrop.active {
+        display: block;
+    }
+    
+    .footer-content-wrapper {
+        column-gap: 60px;
+    }
+}

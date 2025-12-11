@@ -1,0 +1,556 @@
+/* src/styles/components.css - Buttons, Cards, Modals, Inputs */
+
+/* --- Buttons --- */
+.button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 16px; /* Consistent padding */
+    border: none; /* No border for a clean look */
+    border-radius: 4px; /* Slightly rounded corners */
+    cursor: pointer;
+    font-size: 1em;
+    line-height: 1.2em; /* Explicit line height for text alignment */
+    transition: background-color 0.2s ease, color 0.2s ease;
+    background-color: #455A64; /* Changed to #455A64 as requested */
+    color: #ffffff; /* Remains white */
+    text-decoration: none; /* Ensure no underline for a/button elements */
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.button:hover:not(:disabled) {
+    background-color: #263238; /* Changed to #263238 as requested */
+}
+
+.button:disabled {
+    background-color: #CFD8DC;
+    color: #111;
+    cursor: default; /* Changed from not-allowed to default to hide the circle with diagonal line */
+    opacity: 0.6;
+}
+
+/* Primary Button Styles */
+.primary-button {
+    background-color: #AD1457;
+}
+
+.primary-button:hover:not(:disabled) {
+    background-color: #880E4F;
+}
+
+/* Toggle Button Styles */
+.toggle-button {
+    /* 기본 .button 스타일을 따르거나 필요한 경우 일부 재정의 */
+    background-color: #f0f0f0; /* 비활성화 상태일 때의 배경색 */
+    color: #666; /* 비활성화 상태일 때의 글자색 */
+    border-radius: 48px;
+}
+
+.toggle-button:hover:not(:disabled) {
+    background-color: #e0e0e0; /* 호버 시 배경색 */
+}
+
+.toggle-button.active {
+    background-color: #FF8F00; /* 활성화 상태일 때의 배경색 */
+    color: #ffffff; /* 활성화 상태일 때의 글자색 */
+    border-radius: 48px;
+}
+
+.toggle-button.active:hover:not(:disabled) {
+    background-color: #FF6F00; /* 활성화 상태에서 호버 시 배경색 */
+}
+
+/* Action Chip Styles (for viewEditModeToggleButton) */
+.action-chip {
+    border-radius: 48px; /* Rounded corners */
+    padding-left: 12px; /* Add 20px left padding */
+    padding-right: 16px; /* Add 20px right padding */
+    /* Inherits background-color and color from .primary-button */
+}
+
+.action-chip-icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px; /* Adjust size as needed */
+    height: 24px; /* Adjust size as needed */
+    border-radius: 50%;
+    background-color: #ffffff; /* Solid white background for the circle */
+    margin-right: 8px; /* Space between icon and text */
+}
+
+.action-chip-icon-wrapper svg {
+    width: 16px; /* Adjust icon size to fit in circle */
+    height: 16px; /* Adjust icon size to fit in circle */
+    stroke: #AD1457; /* Icon color changed to primary color */
+    stroke-width: 2; /* Heroicons default is 1.5, make it slightly bolder */
+}
+
+/* 알림 시작/중지 버튼 */
+#startButton { background-color: #1D3557; color: white; }
+#startButton:hover { background-color: #1D3557; }
+#startButton.running { background-color: #ea4335; }
+#startButton.running:hover { background-color: #b30006; }
+
+/* Specific width for action buttons */
+#manage-custom-lists-button,
+#clearAllRemainingTimesButton,
+#moveToBossSettingsButton,
+#gameSelect {
+    width: 184px;
+    box-sizing: border-box; /* Ensure padding doesn't increase width */
+}
+
+/* Alarm Toggle Button (Header) */
+.alarm-toggle-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    margin-bottom: 00px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    margin-right: 30px;
+}
+
+.alarm-icon {
+    width: 40px;
+    height: 40px;
+    transition: all 0.3s ease; /* Transition for all properties */
+    transform: translateZ(0); /* Force hardware acceleration */
+}
+
+.alarm-icon path {
+    stroke: #ccc; /* Directly set stroke color for off state */
+    fill: none; /* Added */
+    stroke-width: 2.5; /* Added for thicker lines */
+}
+
+.alarm-toggle-button.alarm-on .alarm-icon path {
+    stroke: #ea4335; /* Direct red stroke for on state */
+}
+
+.alarm-toggle-button.alarm-on .alarm-icon {
+    animation: hue-rotate-animation 2s linear infinite;
+}
+
+@keyframes hue-rotate-animation {
+    0% {
+        filter: hue-rotate(0deg);
+    }
+    100% {
+        filter: hue-rotate(360deg);
+    }
+}
+.alarm-toggle-button.alarm-off .alarm-icon {
+    color: #333; /* Darker gray for off state */
+}
+
+/* PiP Toggle Button */
+.pip-toggle-button {
+    display: none; /* Hidden by default, enabled via JS if API is supported */
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: auto; /* Pushes the button to the far right of the header. */
+    color: #777; /* Using existing color for secondary text */
+    transition: color 0.2s ease;
+}
+
+.pip-toggle-button svg {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle; /* Align icon nicely with the header text */
+}
+
+.pip-toggle-button:hover {
+    color: #333; /* Using existing color for primary text */
+}
+
+/* --- Toggle Switches --- */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 23px;
+    margin-left: 10px;
+    vertical-align: middle;
+    border-radius: 999px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .1s;
+    transition: .1s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 15px;
+    width: 15px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #1D3557;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #1D3557;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(17px);
+    -ms-transform: translateX(17px);
+    transform: translateX(17px);
+}
+
+.slider.round {
+    border-radius: 23px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* --- Cards --- */
+.card-standard {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    margin-bottom: 0; /* Changed from 20px to 0 */
+    box-sizing: border-box;
+}
+
+.card-list-item {
+    background-color: #fff;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 10px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /*border-bottom: 1px solid #ccc;  Apply border to the header */
+    padding-bottom: 16px;          /* Apply padding to the header */
+    /*margin-bottom: 20px;           Apply margin to the header */
+}
+
+.card-header h3 {
+    margin: 0;
+    color: #1D3557;
+}
+
+.card-header h4 {
+    margin: 0;
+    font-size: 1.0em;
+    color: #1D3557;
+}
+
+/* List Items within Cards */
+.list-item {
+    padding: 12px 0;
+    /* border 속성은 여기서 제거 */
+}
+.list-item + .list-item { /* .list-item 바로 다음에 오는 .list-item에만 적용 */
+    border-top: 1px solid #ccc;
+}
+
+/* Dense Modifier */
+.list-item--dense {
+    padding: 6px 0;
+}
+.list-item--dense + .list-item--dense {
+    border-top-style: dashed;
+}
+
+/* Card Sizing Classes */
+.card-size-standard {
+    max-width: 380px;
+    width: 100%;
+    margin-bottom: 0; /* Changed from 20px to 0 */
+}
+.card-size-small {
+    max-width: 182px; /* Changed from 180px to 182px */
+    width: 100%;
+}
+.card-size-list {
+    max-width: 800px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* --- Forms & Inputs --- */
+input::placeholder,
+textarea::placeholder {
+    color: #999;
+    opacity: 1; /* Firefox default opacity can make it lighter */
+}
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+    color: #999;
+}
+input::-moz-placeholder,
+textarea::-moz-placeholder {
+    color: #999;
+    opacity: 1;
+}
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+    color: #999;
+}
+
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+    height: 400px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 8px; /* Changed from 10px to 8px (spacing-xs) */
+    font-size: 14px;
+}
+
+/* Volume Slider */
+.mute-control-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px; /* Spacing between button and slider */
+    width: 100%;
+    padding: 0; /* Remove horizontal padding */
+    box-sizing: border-box;
+}
+
+.mute-button {
+    background: none;
+    border: 2px solid;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    color: #AD1457; /* Primary color */
+    transition: color 0.3s ease, background-color 0.3s ease;
+    box-sizing: border-box;
+    flex-shrink: 0; /* Prevent shrinking in flex container */
+}
+.mute-button.muted {
+    color: #666; /* Grey for sound OFF (muted) */
+}
+
+.volume-slider {
+    -webkit-appearance: none; /* Override default CSS */
+    appearance: none;
+    width: 100%; /* Full width of the container */
+    height: 8px; /* Slider track height */
+    background: linear-gradient(to right, var(--primary-dark) 0%, var(--primary-dark) var(--volume-progress, 50%), #ddd var(--volume-progress, 50%), #ddd 100%);
+    border-radius: 5px;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
+    flex-grow: 1; /* Allow slider to take up space */
+}
+
+/* Slider Thumb Styles */
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    box-shadow: 0 0 2px rgba(0,0,0,0.2);
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 2px rgba(0,0,0,0.2);
+}
+
+/* --- Modals --- */
+.modal {
+    display: flex; /* 이미 flex지만 명시 */
+    align-items: center; /* 세로 중앙 정렬 */
+    justify-content: center; /* 가로 중앙 정렬 */
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+    backdrop-filter: blur(3px);
+}
+
+.modal-header {
+    background-color: #f0f0f0; /* Light background for header */
+    padding: 15px 20px; /* Padding for header content */
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0; /* Remove default h2 margin */
+    color: #333;
+}
+
+.modal-content {
+    background-color: #f8f8f8;
+    margin: 0 auto;
+    padding: 0;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 800px;
+    height: 740px; /* 고정 높이 추가 */
+    border-radius: 12px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.modal-body {
+    flex: 1; /* Allow modal-body to grow and shrink */
+    overflow-y: auto; /* Enable scrolling for content if it overflows */
+    padding: 20px; /* Add padding here for modal-body content */
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: flex-end; /* 버튼들을 오른쪽으로 정렬 */
+    gap: 10px;
+    background-color: #f0f0f0;
+}
+
+.close-button {
+    display: inline-block;
+    color: #333; /* Changed to dark grey/black */
+    font-size: 32px; /* Slightly larger */
+    font-weight: normal; /* Less bold */
+    position: absolute;
+    right: 15px;
+    cursor: pointer;
+    border: none; /* Removed border */
+    background: none; /* Ensure no background color */
+}
+
+/* Modal Tabs */
+.modal-tabs {
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 0; /* 간격 제거 */
+}
+
+.tab-button {
+    background-color: transparent;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 1em;
+    color: #555;
+    transition: color 0.2s, border-bottom 0.2s;
+    flex-grow: 1; /* Distribute space evenly */
+}
+
+.tab-button:hover {
+    color: #111;
+}
+
+.tab-button.active {
+    color: #1D3557; /* Active tab color */
+    border-bottom: 2px solid #1D3557; /* Active tab indicator */
+    font-weight: bold;
+}
+
+/* Modal specific inputs */
+.modal-content .control-group {
+    margin-bottom: 13px;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.modal-content input[type="text"],
+.modal-content textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+
+/* --- Toasts --- */
+.toast-container {
+    position: fixed; /* Fixed position relative to the viewport */
+    top: 50%; /* Center vertically */
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center horizontally and vertically */
+    z-index: 1002; /* Ensure it's on top of other content, higher than modal's 1001 */
+    display: flex; /* Use flex to manage multiple toasts */
+    flex-direction: column; /* Stack toasts vertically */
+    gap: 10px; /* Space between multiple toasts */
+    max-width: 90%; /* Limit width to prevent overflow on small screens */
+    pointer-events: none; /* Allow clicks to pass through to elements below */
+}
+
+.toast-message {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    opacity: 0; /* Hidden by default */
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    transform: scale(0.9); /* Start slightly smaller for animation */
+    pointer-events: auto; /* Re-enable pointer events for the toast itself */
+    text-align: center;
+}
+
+.toast-message.show {
+    opacity: 1;
+    transform: scale(1); /* Scale to normal size */
+}

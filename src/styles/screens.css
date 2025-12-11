@@ -1,0 +1,950 @@
+/* src/styles/screens.css - Screen specific styles */
+
+/* --- Dashboard Screen --- */
+.dashboard-layout {
+    display: flex;
+    flex-direction: column; /* Mobile: all columns/cards stack vertically */
+    align-items: center;   /* Center align all cards */
+    gap: 16px;             /* Changed from 20px to 16px */
+    width: 100%;
+    max-width: 800px; /* Limit overall dashboard max width */
+    margin: 0 auto; /* Center align the entire dashboard */
+}
+
+.dashboard-column-left,
+.dashboard-column-right {
+    display: flex;
+    flex-direction: column; /* Cards within each column stack vertically */
+    gap: 16px; /* Changed from 20px to 16px */
+    align-items: center; /* Center align cards within column */
+    width: 100%; /* Occupy full parent width on mobile */
+    max-width: 380px; /* Match max width of individual cards */
+}
+
+/* PC (wide screen) layout */
+@media (min-width: 769px) {
+    .dashboard-layout {
+        flex-direction: row; /* PC: arrange two columns horizontally */
+        justify-content: center; /* Center align the two columns themselves */
+        align-items: flex-start; /* Align columns from the top */
+        gap: 16px; /* Changed from 40px to 16px */
+    }
+
+    .dashboard-column-left,
+    .dashboard-column-right {
+        width: 380px; /* Fix column width to match card max width */
+        min-width: 380px; /* Prevent shrinking */
+        max-width: 380px;
+    }
+}
+
+.dashboard-small-cards-row {
+    display: flex;
+    flex-direction: row; /* Always horizontal */
+    flex-wrap: wrap;     /* Wrap if space is insufficient */
+    justify-content: center; /* Center align items */
+    gap: 16px;           /* Changed from 20px to 16px */
+    width: 100%;         /* Occupy full parent width */
+    max-width: 380px;    /* Max-width for two small cards combination */
+}
+
+/* Dashboard Content Styles */
+.next-boss-highlight {
+    margin-bottom: 10px;
+}
+
+.next-boss-label {
+    font-size: 1.1em;
+    color: #1D3557; /* Black color */
+    font-weight: bold;
+}
+
+.boss-details-highlight {
+    color: #1E88E5; /* 변경: 다음 보스*/
+    font-weight: bold;
+    font-size: 1.4em;
+}
+
+.next-boss-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.status-content {
+    display: flex;
+    flex-direction: column; /* 추가 */
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+}
+
+.alarm-status-running {
+    color: #AD1457; /* Primary color */
+}
+
+#alarmStatusText {
+    font-weight: bold; /* 알림 상태 텍스트 항상 굵게 */
+    font-size: 1.4em; /* 폰트 크기 1.4em으로 변경 */
+}
+
+/* Remaining Time Colors */
+.remaining-time {
+    color: #ea4335; /* 변경: 남은 시간의 빨간색으로 변경 */
+    font-size: 2.0em; /* 남은 시간 폰트 크기 증가 */
+}
+
+.imminent-boss-info {
+    color: #1E88E5; /* 변경: 5분 미만 보스 */
+    font-weight: bold;
+}
+
+.imminent-remaining-time {
+    color: #ea4335; /* 변경: 5분 미만 남은 시간의 빨간색으로 변경 */
+    font-weight: bold;
+}
+
+.medium-priority {
+    color: #111;
+    font-weight: bold;
+}
+
+.warning-priority {
+    color: #FF8F00;
+    font-weight: bold;
+}
+
+.default-grey {
+    color: #777;
+}
+
+/* Upcoming Boss List Specifics */
+#upcomingBossListContent ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#upcomingBossListContent span.remaining-time.medium-priority {
+    color: #ea4335;
+}
+
+#upcomingBossListContent span.remaining-time.default-grey {
+    color: #ea4335;
+}
+
+#upcomingBossListContent .spawn-time.default-grey {
+    color: #777 !important;
+}
+
+#upcomingBossListContent .medium-priority {
+    color: #111;
+    font-weight: bold;
+}
+
+#upcomingBossListContent .spawn-time {
+    font-weight: 700;
+    color: #111;
+}
+
+.boss-details-highlight .spawn-time {
+    font-weight: 700;
+    color: #111;
+}
+
+/* --- Boss Management Screen --- */
+.boss-management-controls {
+    display: flex;
+    justify-content: flex-end; /* Right align content */
+    align-items: center;
+    margin-bottom: 20px; /* Space below the controls */
+    max-width: 800px; /* Match with h2 and card-size-list */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.toggle-buttons-wrapper {
+    display: flex;
+    gap: 10px; /* Space between the two toggle buttons */
+}
+
+.boss-list-card {
+    margin-bottom: 20px; /* Space between cards */
+}
+
+.boss-list-card .card-header {
+    padding-bottom: 0; /* Remove padding from default card-header */
+    margin-bottom: 10px; /* Space between header and list */
+}
+
+.boss-list-card h3.date-header {
+    font-weight: bold;
+    color: #1D3557;
+    background-color: transparent;
+    padding: 0;
+    text-align: left;
+    font-size: 1.1em;
+    margin: 0;
+}
+
+.boss-list-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.boss-list-card ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-top: 1px solid #eee;
+}
+
+.boss-list-card ul li:first-child {
+    border-top: none;
+}
+
+.boss-list-card .time-info {
+    font-weight: bold;
+    color: #333;
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+
+.boss-list-card .name-info {
+    flex-grow: 1;
+}
+
+.boss-list-card .no-boss-message {
+    padding: 20px;
+    text-align: center;
+    color: #777;
+}
+
+.boss-list-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0;
+}
+
+#boss-management-screen textarea {
+    margin-bottom: 20px;
+    height: 400px;
+}
+
+/* --- Calculator Screen (Zen & Crazy) --- */
+.calculator-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+:root {
+    --zen-input-width: 164px;
+    --zen-input-height: 40px;
+}
+
+.zen-grid-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 34px;
+}
+
+.zen-grid-row:last-of-type {
+    margin-bottom: 0;
+}
+
+.zen-grid-row .input-group,
+.zen-grid-row .result-display,
+.zen-grid-row .button-group,
+.zen-grid-row .crazy-stopwatch-display-group,
+.zen-grid-row .crazy-expected-time-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.zen-grid-row .input-group,
+.zen-grid-row .button-group {
+    width: var(--zen-input-width);
+}
+
+.zen-grid-row label {
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: #777;
+    line-height: 1;
+}
+
+.hidden-label {
+    visibility: hidden;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #111;
+    display: block;
+}
+
+/* Zen Calculator Specifics */
+.zen-grid-row #remainingTimeInput {
+    width: var(--zen-input-width);
+    height: 46px;
+    padding: 33px 16px 33px 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 2em;
+    font-weight: 700;
+    background-color: #f8f8f8;
+    box-sizing: border-box;
+    text-align: center;
+    line-height: 1;
+}
+
+.zen-grid-row #bossSelectionDropdown {
+    width: var(--zen-input-width);
+    height: var(--zen-input-height);
+    padding: 8px 30px 8px 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+    background-color: #f8f8f8;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23111' %3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 24px;
+    cursor: pointer;
+}
+
+.zen-grid-row #bossAppearanceTimeDisplay {
+    width: var(--zen-input-width);
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f8f8f8;
+    box-sizing: border-box;
+    font-size: 2em;
+    font-weight: 700;
+    color: #ea4335;
+    text-align: center;
+    padding: 6px 16px 8px 16px;
+}
+
+.zen-grid-row #updateBossTimeButton {
+    width: var(--zen-input-width);
+    height: var(--zen-input-height);
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+#remainingTimeInput,
+#bossSelectionDropdown {
+    width: var(--zen-input-width);
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+    background-color: #f8f8f8;
+    box-sizing: border-box;
+}
+
+.result-display {
+    color: #1D3557;
+}
+
+/* Crazy Calculator Specifics */
+.crazy-calculator-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 0;
+}
+
+.crazy-stopwatch-display-group label,
+.crazy-expected-time-group label,
+.crazy-over-time-group label {
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: #777;
+}
+
+.crazy-expected-time-group label .expected-text {
+    color: #777;
+}
+
+.crazy-expected-time-group label .expected-label {
+    color: #ea4335;
+}
+
+.crazy-expected-time-group label.over-time-label .expected-label {
+    color: #1D3557;
+}
+
+#crazyStopwatchDisplay {
+    width: var(--zen-input-width);
+    font-size: 2em;
+    font-weight: 700;
+    color: #111;
+    background-color: #f8f8f8;
+    padding: 6px 16px 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+#crazyExpectedTimeDisplay {
+    width: var(--zen-input-width);
+    font-size: 2em;
+    font-weight: 700;
+    color: #ea4335;
+    background-color: #f8f8f8;
+    padding: 6px 16px 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+#crazyExpectedTimeDisplay.over-time {
+    color: #43AA8B;
+}
+
+.crazy-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: -16px;
+}
+
+.crazy-buttons button {
+    width: 104px;
+}
+
+.crazy-list-action {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0px;
+    width: 100%;
+}
+
+.crazy-temp-results {
+    margin-top: 20px;
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+}
+
+.crazy-temp-results.compact-top {
+    margin-top: 0;
+}
+
+.crazy-temp-table,
+.crazy-saved-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.crazy-temp-table th,
+.crazy-temp-table td,
+.crazy-saved-table th,
+.crazy-saved-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+    min-width: 50px;
+    white-space: nowrap;
+}
+
+.crazy-temp-table th,
+.crazy-saved-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #333;
+}
+
+.crazy-saved-table tbody tr:nth-child(even),
+.crazy-temp-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.crazy-saved-table tbody tr:hover,
+.crazy-temp-table tbody tr:hover {
+    background-color: #f0f0f0;
+}
+
+.crazy-saved-table {
+    margin-top: 12px;
+}
+
+.crazy-saved-list {
+    margin-top: 24px;
+}
+
+/* --- Boss Scheduler Screen --- */
+.boss-list-display-container {
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+    margin-bottom: 20px;
+}
+
+.scheduler-card {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.boss-scheduler-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.boss-scheduler-controls {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.boss-scheduler-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 0px;
+    margin-bottom: 20px;
+}
+
+.control-group-horizontal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.boss-input-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 0 10px 0;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #666;
+    flex-shrink: 0;
+}
+
+.boss-name-header {
+    flex-basis: 130px;
+    flex-shrink: 0;
+}
+
+.remaining-time-header {
+    flex-grow: 1;
+    max-width: 70px;
+    text-align: right;
+    padding-left: 4px;
+}
+
+.spawn-time-header {
+    flex-basis: 80px;
+    text-align: center;
+    flex-shrink: 0;
+    padding-left: 10px;
+}
+
+#gameSelect {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.boss-inputs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    margin-bottom: 0px;
+    padding-right: 10px;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+.boss-input-item {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    gap: 12px;
+    width: 100%;
+}
+
+.boss-name {
+    font-weight: bold;
+    color: #333;
+    flex-basis: 130px;
+    flex-shrink: 0;
+}
+
+.remaining-time-input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9em;
+    max-width: 70px;
+    text-align: center;
+}
+
+.calculated-spawn-time {
+    font-weight: 700;
+    color: #333;
+    flex-basis: 80px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* --- Custom List Modal Specifics --- */
+.custom-list-tab-content {
+    display: none;
+}
+
+.custom-list-tab-content.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.custom-list-manage-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.custom-list-manage-item .list-name {
+    font-weight: bold;
+    color: #333;
+}
+
+.custom-list-manage-item .button-group {
+    display: flex;
+    gap: 8px;
+}
+
+#save-custom-list-button {
+    margin-left: auto;
+}
+
+/* --- Settings Screen (Fixed Alarm) --- */
+section#settings-screen h3 {
+    margin-top: 0;
+}
+
+.fixed-alarm-section {
+    margin-bottom: 20px;
+}
+
+.fixed-alarm-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.fixed-alarm-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.alarm-item-line1, .alarm-item-line2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.alarm-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.alarm-time {
+    font-weight: bold;
+    font-size: 1.8em;
+    color: #111;
+}
+
+.alarm-name {
+    font-size: 1.1em;
+    color: #333;
+}
+
+.alarm-days {
+    display: flex;
+    gap: 4px;
+    font-size: 0.9em;
+    color: #666;
+    letter-spacing: 1.5px;
+}
+
+.day-button {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    color: #333;
+    font-size: 0.85em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.day-button.active {
+    background-color: #FF8F00;
+    color: #fff;
+    border-color: transparent;
+}
+
+#fixedAlarmList .alarm-days .day-button {
+    pointer-events: none;
+}
+
+.fixed-alarm-item .button-group {
+    display: flex;
+    gap: 8px;
+}
+
+.empty-list-message {
+    text-align: center;
+    color: #777;
+    padding: 20px 0;
+}
+
+.fixed-alarm-item.faded {
+    opacity: 0.5;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.add-fixed-alarm-section {
+    margin-top: 20px;
+}
+
+/* --- Alarm Log Screen --- */
+.log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#log-container {
+    /* height: 400px; */
+    /* overflow-y: auto; */
+}
+
+#log-container ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.log-entry {
+    font-size: 1.0em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+.log-entry.important {
+    color: #ea4335;
+}
+
+#log-container .log-entry strong {
+    color: #111;
+}
+
+/* Dashboard log overrides */
+#recentAlarmLogContent .log-entry.important {
+    color: #333;
+}
+
+#recentAlarmLogContent ul li:first-child {
+    font-weight: bold;
+    color: #AD1457 !important;
+}
+
+#recentAlarmLogContent .log-entry strong {
+    font-weight: 700;
+    color: #111;
+}
+
+/* --- Share Screen --- */
+.share-content-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+}
+
+/* --- Help & Version Info --- */
+.tab-content pre,
+.doc-content-pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: #f8f8f8;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    line-height: 1.5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+.version-accordion, .help-section, .help-sub-section {
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.version-summary, .help-summary, .help-sub-summary {
+    display: flex;
+    padding: 12px 16px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    list-style: none;
+    font-weight: bold;
+    color: #333;
+}
+
+.help-summary, .help-sub-summary {
+    padding-left: 40px;
+    align-items: center;
+}
+
+.help-sub-summary {
+    background-color: #f8f8f8;
+    color: #444;
+    font-weight: normal;
+    padding-left: 50px;
+}
+
+.version-summary::-webkit-details-marker,
+.help-summary::-webkit-details-marker,
+.help-sub-summary::-webkit-details-marker {
+    display: none;
+}
+
+.version-summary::before, .help-summary::before {
+    content: '▶';
+    position: absolute;
+    left: 10px; /* version summary */
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.2s ease;
+    font-size: 0.8em;
+    color: #666;
+}
+
+.help-summary::before {
+    left: 15px;
+}
+
+.help-sub-summary::before {
+    content: '▶';
+    position: absolute;
+    left: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.2s ease;
+    font-size: 0.8em;
+    color: #666;
+}
+
+.version-accordion[open] .version-summary::before,
+.help-section[open] .help-summary::before,
+.help-sub-section[open] .help-sub-summary::before {
+    transform: translateY(-50%) rotate(90deg);
+}
+
+.version-summary .version-number {
+    margin-left: 20px;
+    color: #333;
+}
+
+.version-details, .help-content, .help-sub-content {
+    padding: 12px 16px;
+    border-top: 1px solid #eee;
+    background-color: #f8f8f8;
+}
+
+.version-details ul, .help-content ul, .help-sub-content ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.help-content ul, .help-sub-content ul {
+    list-style: disc;
+    padding-left: 20px;
+}
+
+.version-details li, .help-content p, .help-sub-content p {
+    margin-bottom: 5px;
+    line-height: 1.5;
+    color: #555;
+}
+
+.version-details li strong {
+    color: #111;
+}
+
+.version-details ul ul {
+    padding-left: 20px;
+    margin-top: 5px;
+    list-style: disc;
+}
+
+.version-details ul ul li {
+    margin-bottom: 2px;
+    font-size: 0.95em;
+    color: #666;
+}
