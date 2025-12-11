@@ -80,14 +80,14 @@ resolved_date: ""
 <details>
 <summary>1.2. '뷰 모드'에서 '다음 보스' 토글 기능 구현</summary>
 
-- [ ] **사전 분석:** '다음 보스' 토글 버튼이 '뷰 모드'일 때만 활성화되어야 함을 인지합니다. `LocalStorageManager`를 사용하여 '다음 보스' 필터 상태를 저장하고 로드합니다.
-- [ ] **실행 계획 1 (토글 함수):** `src/screens/boss-management.js`에 `toggleNextBossFilter` 함수를 생성하고, 클릭 이벤트에 바인딩합니다. 이 함수는 `LocalStorageManager.set('bossManagementNextBossFilter', isEnabled)`를 사용하여 상태를 저장합니다.
-- [ ] **실행 계획 2 (초기 상태 설정):** '뷰 모드'로 전환될 때 `LocalStorageManager.get('bossManagementNextBossFilter')`를 통해 저장된 상태를 로드하고, 없으면 'ON'으로 초기화합니다.
-- [ ] **실행 계획 3 (UI 업데이트):** 상태 변경 시 `ui-renderer.js`의 `renderBossListTableView(DOM, filter)` 함수를 호출하여 필터링된 보스 목록을 다시 렌더링합니다.
-- [ ] **검증:**
+- [x] **사전 분석:** '다음 보스' 토글 버튼이 '뷰 모드'일 때만 활성화되어야 함을 인지합니다. `LocalStorageManager`를 사용하여 '다음 보스' 필터 상태를 저장하고 로드합니다.
+- [x] **실행 계획 1 (토글 함수):** `src/screens/boss-management.js`에 `toggleNextBossFilter` 함수를 생성하고, 클릭 이벤트에 바인딩합니다. 이 함수는 `LocalStorageManager.set('bossManagementNextBossFilter', isEnabled)`를 사용하여 상태를 저장합니다.
+- [x] **실행 계획 2 (초기 상태 설정):** '뷰 모드'로 전환될 때 `LocalStorageManager.get('bossManagementNextBossFilter')`를 통해 저장된 상태를 로드하고, 없으면 'ON'으로 초기화합니다.
+- [x] **실행 계획 3 (UI 업데이트):** 상태 변경 시 `ui-renderer.js`의 `renderBossListTableView(DOM, filter)` 함수를 호출하여 필터링된 보스 목록을 다시 렌더링합니다.
+- [x] **검증:**
     1.  '뷰 모드'에서 '다음 보스' 토글 버튼 클릭 시 필터링이 정상적으로 적용되는지 확인합니다.
     2.  새로고침 후에도 '다음 보스' 필터 상태가 유지되는지 확인합니다.
-- [ ] **커밋:** `git commit -m "feat(boss-management): 뷰 모드에서 다음 보스 필터 토글 기능 구현"`
+- [x] **커밋:** `git commit -m "feat(boss-management): 뷰 모드에서 다음 보스 필터 토글 기능 구현"`
 </details>
 
 ### **2단계: UI 렌더링 로직 분리 및 구현**
