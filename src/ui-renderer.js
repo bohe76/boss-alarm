@@ -631,7 +631,7 @@ export function updateBossManagementUI(DOM, mode) {
     // Set innerHTML for the button including the icon and label
     DOM.viewEditModeToggleButton.innerHTML = isViewMode ? `${PENCIL_ICON_SVG} 편집` : `${EYE_ICON_SVG} 뷰`;
 
-    console.log("viewEditModeToggleButton innerHTML after set:", DOM.viewEditModeToggleButton.innerHTML); // Debug log
+    // console.log("viewEditModeToggleButton innerHTML after set:", DOM.viewEditModeToggleButton.innerHTML); // Debug log
 
     // Show/hide elements based on mode
     DOM.bossManagementInstruction.style.display = isViewMode ? 'none' : 'block';
