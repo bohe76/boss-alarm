@@ -1935,7 +1935,7 @@ footer p {
 .action-chip-icon-wrapper svg {
     width: 16px; /* Adjust icon size to fit in circle */
     height: 16px; /* Adjust icon size to fit in circle */
-    stroke: currentColor; /* Inherit color from parent button */
+    stroke: #ffffff; /* Force stroke color to white */
     stroke-width: 2; /* Heroicons default is 1.5, make it slightly bolder */
 }/* PiP Toggle Button */
 .pip-toggle-button {
