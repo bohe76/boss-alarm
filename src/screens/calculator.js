@@ -4,7 +4,8 @@ import { LocalStorageManager, BossDataManager } from '../data-managers.js';
 import { 
     showToast, 
     populateBossSelectionDropdown, 
-    updateBossListTextarea, 
+    updateBossListTextarea,
+    updateBossManagementUI, 
     updateCrazyStopwatchDisplay, 
     updateCrazyExpectedTimeDisplay, 
     renderCrazyTempResults, 
@@ -146,6 +147,10 @@ export function initCalculatorScreen(DOM) {
                 // 4. Save and Update UI
                 BossDataManager.setBossSchedule(newSchedule);
                 updateBossListTextarea(DOM); // This will use the new formatted output logic
+                
+                // Update Boss Management UI (View/Edit Mode)
+                const currentMode = LocalStorageManager.get('bossManagementMode') || 'view';
+                updateBossManagementUI(DOM, currentMode);
                 
                 showToast(DOM, `${bossName} 보스 시간이 ${newBossTime}으로 업데이트 되었습니다.`);
                 trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 시간 업데이트', bossName: bossName, newTime: newBossTime });
