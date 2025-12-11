@@ -54,11 +54,11 @@ resolved_date: ""
 <details>
 <summary>0.1. '뷰/편집' 토글 버튼 및 '다음 보스' 토글 버튼 DOM 요소 추가</summary>
 
-- [ ] **사전 분석:** `src/screens/boss-management.js`의 `initBossManagementScreen` 함수 내에서 DOM 조작이 이루어질 위치를 확인합니다. `index.html`에서 `boss-management-screen` 영역에 필요한 HTML 구조를 추가합니다.
-- [ ] **실행 계획 1 (HTML 추가):** `index.html`의 `boss-management-screen` 내 `h2` 제목 아래에 '뷰/편집' 토글 버튼과 '다음 보스' 토글 버튼을 위한 HTML 구조를 추가합니다. `DOM.bossManagementScreen` 내부에 추가될 요소들의 ID를 정의합니다.
-- [ ] **실행 계획 2 (DOM 요소 등록):** `src/dom-elements.js`에 새로 추가된 토글 버튼들의 ID를 등록하여 `DOM` 객체에서 접근 가능하도록 합니다.
-- [ ] **검증:** 개발자 도구에서 해당 DOM 요소들이 정상적으로 추가되고 `DOM` 객체에 바인딩되었는지 확인합니다.
-- [ ] **커밋:** `git commit -m "feat(boss-management): 뷰/편집 및 다음 보스 토글 버튼 DOM 요소 추가"`
+- [x] **사전 분석:** `src/screens/boss-management.js`의 `initBossManagementScreen` 함수 내에서 DOM 조작이 이루어질 위치를 확인합니다. `index.html`에서 `boss-management-screen` 영역에 필요한 HTML 구조를 추가합니다.
+- [x] **실행 계획 1 (HTML 추가):** `index.html`의 `boss-management-screen` 내 `h2` 제목 아래에 '뷰/편집' 토글 버튼과 '다음 보스' 토글 버튼을 위한 HTML 구조를 추가합니다. `DOM.bossManagementScreen` 내부에 추가될 요소들의 ID를 정의합니다.
+- [x] **실행 계획 2 (DOM 요소 등록):** `src/dom-elements.js`에 새로 추가된 토글 버튼들의 ID를 등록하여 `DOM` 객체에서 접근 가능하도록 합니다.
+- [x] **검증:** 개발자 도구에서 해당 DOM 요소들이 정상적으로 추가되고 `DOM` 객체에 바인딩되었는지 확인합니다.
+- [x] **커밋:** `git commit -m "feat(boss-management): 뷰/편집 및 다음 보스 토글 버튼 DOM 요소 추가"`
 </details>
 
 ### **1단계: 모드 전환 로직 구현**
