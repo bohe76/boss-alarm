@@ -183,6 +183,11 @@ export function formatBossListTime(timeStr) {
  * @param {string} timeString - The time string to parse.
  * @returns {{hours: number, minutes: number, seconds: number}|null}
  */
+export function getKoreanDayOfWeek(date) {
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    return days[date.getDay()];
+}
+
 export function parseTime(timeString) {
     const trimmedInput = timeString.trim();
     const numericOnlyRegex = /^\d+$/;
@@ -222,4 +227,3 @@ export function parseTime(timeString) {
 
     return { hours, minutes, seconds };
 }
-
