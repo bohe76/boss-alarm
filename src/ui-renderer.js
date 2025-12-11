@@ -4,13 +4,10 @@ import { log, getLogs } from './logger.js'; // Import log and getLogs
 // import { loadJsonContent } from './api-service.js'; // loadJsonContent is no longer needed here
 import { CustomListManager } from './custom-list-manager.js';
 import { getGameNames, getBossNamesForGame } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
-
 import { formatTimeDifference, formatSpawnTime, formatBossListTime } from './utils.js'; // New import
-
 
 const MUTE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`;
 const UNMUTE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>`;
-
 
 // Function to display toast messages
 export function showToast(DOM, message) {
@@ -18,18 +15,13 @@ export function showToast(DOM, message) {
         console.error('Toast container not found.');
         return;
     }
-
     const toast = document.createElement('div');
     toast.className = 'toast-message';
     toast.textContent = message;
-
     DOM.toastContainer.appendChild(toast);
-
     // Force reflow to enable transition
     void toast.offsetWidth;
-
     toast.classList.add('show');
-
     setTimeout(() => {
         toast.classList.remove('show');
         toast.addEventListener('transitionend', () => {
@@ -41,13 +33,10 @@ export function showToast(DOM, message) {
 // Function to populate the boss selection dropdown with future bosses
 export function populateBossSelectionDropdown(DOM) {
     if (!DOM.bossSelectionDropdown) return;
-
     const bossSchedule = BossDataManager.getBossSchedule();
     const now = new Date();
-
     // Clear existing options, keeping the default "보스 선택"
     DOM.bossSelectionDropdown.innerHTML = '<option value="">보스 선택</option>';
-
     bossSchedule.forEach(item => {
         if (item.type === 'boss' && item.scheduledDate && item.scheduledDate.getTime() > now.getTime()) {
             const time = item.time; // HH:MM or HH:MM:SS
@@ -62,18 +51,14 @@ export function populateBossSelectionDropdown(DOM) {
 
 export function updateSoundControls(DOM) {
     if (!DOM.muteToggleButton || !DOM.volumeSlider) return;
-
     const isMuted = LocalStorageManager.getMuteState();
     const volume = LocalStorageManager.getVolume();
-
     // Update mute button icon and class
     DOM.muteToggleButton.innerHTML = isMuted ? UNMUTE_ICON : MUTE_ICON;
     DOM.muteToggleButton.classList.toggle('muted', isMuted);
-
     // Determine the volume to display on the slider
     const displayVolume = isMuted ? 0 : volume;
     DOM.volumeSlider.value = displayVolume;
-
     // Update the CSS custom property for the track background
     const percentage = (displayVolume / DOM.volumeSlider.max) * 100;
     DOM.volumeSlider.style.setProperty('--volume-progress', `${percentage}%`);
@@ -86,14 +71,11 @@ import { isPipWindowOpen, updatePipContent } from './pip-manager.js';
 // --- Dashboard Rendering Functions ---
 export function updateNextBossDisplay(DOM) {
     if (!DOM.nextBossContent) return;
-
     const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
-
     if (nextBoss) {
         const isImminent = minTimeDiff < 5 * 60 * 1000;
         const isWarning = minTimeDiff < 10 * 60 * 1000;
         const isMedium = minTimeDiff < 60 * 60 * 1000;
-
         let remainingTimeClass = '';
         if (isImminent) {
             remainingTimeClass = 'imminent-remaining-time'; // Red
@@ -104,16 +86,13 @@ export function updateNextBossDisplay(DOM) {
         } else {
             remainingTimeClass = 'default-grey'; // Grey
         }
-
         const remainingTimeStringRaw = formatTimeDifference(minTimeDiff);
         const remainingTimeString = remainingTimeStringRaw.replace(/[()]/g, ''); // Remove parentheses
         const formattedSpawnTime = formatSpawnTime(nextBoss.time);
-
         DOM.nextBossContent.innerHTML = `<span class="boss-details-highlight"><span class="spawn-time">${formattedSpawnTime}</span> ${nextBoss.name}<br><span class="remaining-time ${remainingTimeClass}">${remainingTimeString}</span></span>`;
     } else {
         DOM.nextBossContent.textContent = '다음 보스 없음';
     }
-
     // Synchronize PiP window if it's open
     if (isPipWindowOpen()) {
         updatePipContent(nextBoss, minTimeDiff);
@@ -122,7 +101,6 @@ export function updateNextBossDisplay(DOM) {
 
 export function renderUpcomingBossList(DOM) {
     if (!DOM.upcomingBossListContent) return;
-
     const upcomingBosses = BossDataManager.getUpcomingBosses(11);
     let html = '<ul>';
     if (upcomingBosses.length > 0) {
@@ -131,14 +109,11 @@ export function renderUpcomingBossList(DOM) {
             const isImminent = timeDiff < 5 * 60 * 1000;
             const isWarning = timeDiff < 10 * 60 * 1000; // New
             const isMedium = timeDiff < 60 * 60 * 1000;
-
             const remaining = formatTimeDifference(timeDiff, isImminent);
             const formattedSpawnTime = formatSpawnTime(boss.time);
-
             let spawnTimeClass = '';
             let bossNameClass = '';
             let remainingTimeClass = '';
-
             if (isImminent) { // < 5 minutes (Highest priority)
                 spawnTimeClass = 'imminent-boss-info';
                 bossNameClass = 'imminent-boss-info';
@@ -156,7 +131,6 @@ export function renderUpcomingBossList(DOM) {
                 bossNameClass = 'default-grey';
                 remainingTimeClass = 'default-grey';
             }
-
             html += `<li class="list-item list-item--dense"><span class="spawn-time ${spawnTimeClass}">${formattedSpawnTime}</span> <span class="${bossNameClass}">${boss.name}</span> <span class="${remainingTimeClass}">${remaining}</span></li>`;
         });
     } else {
@@ -168,10 +142,8 @@ export function renderUpcomingBossList(DOM) {
 
 export function renderAlarmStatusSummary(DOM) {
     if (!DOM.alarmStatusText) return;
-
     const isAlarmRunning = getIsAlarmRunning();
     let statusText = isAlarmRunning ? '알림 실행 중' : '알림 중지됨';
-
     DOM.alarmStatusText.textContent = statusText;
     if (isAlarmRunning) {
         DOM.alarmStatusText.classList.add('alarm-status-running');
@@ -182,7 +154,6 @@ export function renderAlarmStatusSummary(DOM) {
 
 export function renderRecentAlarmLog(DOM) {
     if (!DOM.recentAlarmLogContent) return;
-
     const logs = getLogs();
     let html = '<ul>';
     if (logs.length > 0) {
@@ -271,7 +242,6 @@ function convertBoldMarkdownToHtml(text) {
     return text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 }
 
-
 // --- Crazy Calculator Display Functions ---
 export function updateCrazyStopwatchDisplay(DOM, time) {
     if (DOM.crazyStopwatchDisplay) {
@@ -284,7 +254,6 @@ export function updateCrazyExpectedTimeDisplay(DOM, time, isOverTime) {
         DOM.crazyExpectedTimeDisplay.textContent = time;
         const labelSpan = DOM.crazyExpectedTimeDisplay.previousElementSibling.querySelector('.expected-label');
         const labelGroup = DOM.crazyExpectedTimeDisplay.previousElementSibling;
-
         if (isOverTime) {
             DOM.crazyExpectedTimeDisplay.classList.add('over-time');
             if (labelSpan) labelSpan.textContent = '오버 시간';
@@ -381,7 +350,6 @@ export function renderCrazySavedList(DOM, records) {
     }
 }
 
-
 // --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 ---
 // bossSchedule 배열의 내용을 기반으로 텍스트 영역을 업데이트합니다.
 export function updateBossListTextarea(DOM) { // Function signature remains unchanged
@@ -400,21 +368,15 @@ export function updateBossListTextarea(DOM) { // Function signature remains unch
     DOM.bossListInput.value = outputLines.join('\n');
 }
 
-
-
-
 // --- 5.2. 고정 알림 목록 렌더링 함수 ---
 export function renderFixedAlarms(DOM) {
     if (!DOM.fixedAlarmListDiv) return;
     DOM.fixedAlarmListDiv.innerHTML = ''; // Clear existing list
-
     const fixedAlarms = LocalStorageManager.getFixedAlarms();
-
     if (fixedAlarms.length === 0) {
         DOM.fixedAlarmListDiv.innerHTML = '<p class="empty-list-message">등록된 고정 알림이 없습니다.</p>';
         return;
     }
-
     fixedAlarms.forEach((alarm) => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'list-item fixed-alarm-item';
@@ -422,12 +384,10 @@ export function renderFixedAlarms(DOM) {
         if (!alarm.enabled) {
             itemDiv.classList.add('faded');
         }
-
         // 2줄 구조의 HTML
         const days = ['일', '월', '화', '수', '목', '금', '토'];
         // 데이터 마이그레이션 전의 기존 알람은 days 속성이 없으므로, 기본값으로 모든 요일을 활성화
         const activeDays = alarm.days ?? [0, 1, 2, 3, 4, 5, 6];
-
         itemDiv.innerHTML = `
             <div class="alarm-item-line1">
                 <span class="alarm-info">
@@ -454,7 +414,6 @@ export function renderFixedAlarms(DOM) {
         `;
         DOM.fixedAlarmListDiv.appendChild(itemDiv);
     });
-
     // 참고: 기존의 '새 고정 알림 추가' UI 생성 및 이벤트 리스너 로직은 모두 제거되었습니다.
 }
 
@@ -473,11 +432,8 @@ export function updateFixedAlarmVisuals(DOM) {
     });
 }
 
-
 export function renderVersionInfo(DOM, versionData) {
-
     let versionEntries = [];
-
     // Check if versionData is an array and process accordingly
     if (Array.isArray(versionData)) {
         versionData.forEach(item => {
@@ -494,7 +450,6 @@ export function renderVersionInfo(DOM, versionData) {
         }
         return;
     }
-
     if (DOM.versionHistoryContent && versionEntries.length > 0) {
         let html = '';
         versionEntries.forEach((versionEntry, index) => {
@@ -536,7 +491,6 @@ export function renderCalculatorScreen(DOM) {
     if (DOM.bossAppearanceTimeDisplay) {
         DOM.bossAppearanceTimeDisplay.textContent = '--:--:--'; // Reset display
     }
-
     // New: Populate boss selection dropdown
     populateBossSelectionDropdown(DOM);
     // New: Disable update button initially
@@ -551,7 +505,6 @@ export function renderCalculatorScreen(DOM) {
     if (DOM.toastContainer) {
         DOM.toastContainer.innerHTML = '';
     }
-
     // Crazy Calculator initialization
     if (DOM.crazyStopwatchDisplay) {
         DOM.crazyStopwatchDisplay.textContent = '00:00';
@@ -571,7 +524,6 @@ export function renderCalculatorScreen(DOM) {
         DOM.crazySavedList.innerHTML = '';
     }
 }
-
 
 export function renderCustomListManagementModalContent(DOM) {
     if (!DOM.customListManagementContainer) return;
@@ -595,7 +547,6 @@ export function showCustomListTab(DOM, tabId) {
     // Deactivate all tab buttons and hide all tab contents
     [DOM.tabAddCustomList, DOM.tabManageCustomLists].forEach(btn => btn.classList.remove('active'));
     [DOM.customListAddSection, DOM.customListManageSection].forEach(section => section.classList.remove('active'));
-
     // Activate the selected tab button and show its content
     if (tabId === 'add') {
         DOM.tabAddCustomList.classList.add('active');
@@ -612,11 +563,9 @@ export function showCustomListTab(DOM, tabId) {
     }
 }
 
-
 // --- Boss Scheduler Screen Rendering Functions ---
 export function renderBossSchedulerScreen(DOM, remainingTimes = {}) {
     if (!DOM.bossSchedulerScreen) return;
-
     // Populate game selection dropdown
     const gameNameObjects = getGameNames();
     if (DOM.gameSelect) {
@@ -624,7 +573,6 @@ export function renderBossSchedulerScreen(DOM, remainingTimes = {}) {
             `<option value="${game.name}">${game.isCustom ? '*' : ''}${game.name}</option>`
         ).join('');
     }
-
     // Render bosses for the initially selected game
     if (gameNameObjects.length > 0) {
         renderBossInputs(DOM, gameNameObjects[0].name, remainingTimes);
@@ -646,7 +594,6 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}) {
         DOM.bossInputsContainer.innerHTML = '<p>선택된 게임/목록에 보스가 없습니다.</p>';
         return;
     }
-
     // Get current schedule to find existing IDs
     const currentSchedule = BossDataManager.getBossSchedule();
     const bossMap = new Map();
@@ -659,225 +606,64 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}) {
             }
         }
     });
-
-        DOM.bossInputsContainer.innerHTML = bossNames.map(bossName => {
-
-            const initialValue = remainingTimes[bossName] || '';
-
-            const bossId = bossMap.get(bossName) || ''; // Get existing ID or empty string
-
-            return `
-
-                <div class="list-item boss-input-item">
-
-                    <span class="boss-name">${bossName}</span>
-
-                    <input type="text" class="remaining-time-input" data-boss-name="${bossName}" data-id="${bossId}" value="${initialValue}">
-
-                    <span class="calculated-spawn-time">--:--:--</span>
-
-                </div>
-
-            `;
-
-        }).join('');
-
+    DOM.bossInputsContainer.innerHTML = bossNames.map(bossName => {
+        const initialValue = remainingTimes[bossName] || '';
+        const bossId = bossMap.get(bossName) || ''; // Get existing ID or empty string
+        return `
+            <div class="list-item boss-input-item">
+                <span class="boss-name">${bossName}</span>
+                <input type="text" class="remaining-time-input" data-boss-name="${bossName}" data-id="${bossId}" value="${initialValue}">
+                <span class="calculated-spawn-time">--:--:--</span>
+            </div>
+        `;
+    }).join('');
+}
+// --- Boss Management Screen Rendering Functions ---
+export function updateBossManagementUI(DOM, mode) {
+    const isViewMode = mode === 'view';
+    // Toggle button active state
+    DOM.viewEditModeToggleButton.classList.toggle('active', isViewMode);
+    // Show/hide elements based on mode
+    DOM.bossManagementInstruction.style.display = isViewMode ? 'none' : 'block';
+    DOM.bossListInput.style.display = isViewMode ? 'none' : 'block';
+    DOM.sortBossListButton.style.display = isViewMode ? 'none' : 'block';
+    DOM.nextBossToggleButton.style.display = isViewMode ? 'block' : 'none';
+    DOM.bossListTableContainer.style.display = isViewMode ? 'block' : 'none';
+    if (isViewMode) {
+        let filterNextBoss = LocalStorageManager.get('bossManagementNextBossFilter');
+        renderBossListTableView(DOM, filterNextBoss);
     }
-
-    
-
-    // --- Boss Management Screen Rendering Functions ---
-
-    export function updateBossManagementUI(DOM, mode) {
-
-        const isViewMode = mode === 'view';
-
-        
-
-        // Toggle button active state
-
-        DOM.viewEditModeToggleButton.classList.toggle('active', isViewMode);
-
-    
-
-        // Show/hide elements based on mode
-
-        DOM.bossManagementInstruction.style.display = isViewMode ? 'none' : 'block';
-
-        DOM.bossListInput.style.display = isViewMode ? 'none' : 'block';
-
-        DOM.sortBossListButton.style.display = isViewMode ? 'none' : 'block';
-
-        DOM.nextBossToggleButton.style.display = isViewMode ? 'block' : 'none';
-
-        DOM.bossListTableContainer.style.display = isViewMode ? 'block' : 'none';
-
-    
-
-        if (isViewMode) {
-
-            let filterNextBoss = LocalStorageManager.get('bossManagementNextBossFilter');
-
-            renderBossListTableView(DOM, filterNextBoss);
-
-        }
-
-    }
-
-    
-
-    export function renderBossListTableView(DOM, filterNextBoss) {
-
-    
-
-        if (!DOM.bossListTableContainer) return;
-
-    
-
-    
-
-    
-
-        let schedule = BossDataManager.getBossSchedule();
-
-    
-
-        const now = new Date();
-
-    
-
-    
-
-    
-
-        if (filterNextBoss) {
-
-    
-
-            schedule = schedule.filter(item => {
-
-    
-
-                if (item.type === 'date') return true; // Always keep date markers for grouping
-
-    
-
-                return item.scheduledDate && item.scheduledDate > now;
-
-    
-
-            });
-
-    
-
-        }
-
-    
-
-    
-
-    
-
-        let html = '<table class="boss-list-table">';
-
-    
-
-        let currentDate = null;
-
-    
-
-    
-
-    
-
-        schedule.forEach(item => {
-
-    
-
-            if (item.type === 'date') {
-
-    
-
-                currentDate = item.value;
-
-    
-
-                html += `<tr><td colspan="2" class="date-header">${currentDate}</td></tr>`;
-
-    
-
-            } else if (item.type === 'boss') {
-
-    
-
-                const time = formatBossListTime(item.time);
-
-    
-
-                html += `
-
-    
-
-                    <tr>
-
-    
-
-                        <td class="time-cell">${time}</td>
-
-    
-
-                        <td class="name-cell">${item.name}</td>
-
-    
-
-                    </tr>
-
-    
-
-                `;
-
-    
-
-            }
-
-    
-
+}
+
+export function renderBossListTableView(DOM, filterNextBoss) {
+    if (!DOM.bossListTableContainer) return;
+    let schedule = BossDataManager.getBossSchedule();
+    const now = new Date();
+    if (filterNextBoss) {
+        schedule = schedule.filter(item => {
+            if (item.type === 'date') return true; // Always keep date markers for grouping
+            return item.scheduledDate && item.scheduledDate > now;
         });
-
-    
-
-    
-
-    
-
-        if (schedule.filter(item => item.type === 'boss').length === 0) {
-
-    
-
-            html += '<tr><td colspan="2" class="no-boss-message">표시할 보스가 없습니다.</td></tr>';
-
-    
-
-        }
-
-    
-
-    
-
-    
-
-        html += '</table>';
-
-    
-
-        DOM.bossListTableContainer.innerHTML = html;
-
-    
-
     }
-
-    
-
-    
-
-    
+    let html = '<table class="boss-list-table">';
+    let currentDate = null;
+    schedule.forEach(item => {
+        if (item.type === 'date') {
+            currentDate = item.value;
+            html += `<tr><td colspan="2" class="date-header">${currentDate}</td></tr>`;
+        } else if (item.type === 'boss') {
+            const time = formatBossListTime(item.time);
+            html += `
+                <tr>
+                    <td class="time-cell">${time}</td>
+                    <td class="name-cell">${item.name}</td>
+                </tr>
+            `;
+        }
+    });
+    if (schedule.filter(item => item.type === 'boss').length === 0) {
+        html += '<tr><td colspan="2" class="no-boss-message">표시할 보스가 없습니다.</td></tr>';
+    }
+    html += '</table>';
+    DOM.bossListTableContainer.innerHTML = html;
+}
