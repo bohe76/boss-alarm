@@ -117,13 +117,13 @@ resolved_date: ""
 <details>
 <summary>3.1. `src/screens/boss-management.js` 초기화 로직 수정</summary>
 
-- [ ] **사전 분석:** `initBossManagementScreen` 함수는 이제 모드 전환과 '다음 보스' 필터 상태를 초기화하고, `ui-renderer.js`의 함수들을 호출해야 합니다.
-- [ ] **실행 계획:** `src/screens/boss-management.js`의 `initBossManagementScreen` 함수 내에서:
+- [x] **사전 분석:** `initBossManagementScreen` 함수는 이제 모드 전환과 '다음 보스' 필터 상태를 초기화하고, `ui-renderer.js`의 함수들을 호출해야 합니다.
+- [x] **실행 계획:** `src/screens/boss-management.js`의 `initBossManagementScreen` 함수 내에서:
     *   `LocalStorageManager`에서 저장된 모드를 로드합니다.
     *   로드된 모드를 기반으로 `ui-renderer.js`의 `updateBossManagementUI`를 호출하여 초기 UI를 설정합니다.
     *   만약 모드가 '뷰 모드'이면 `LocalStorageManager`에서 '다음 보스' 필터 상태를 로드하고, 이를 `ui-renderer.js`의 `renderBossListTableView` 호출 시 인자로 전달합니다.
-- [ ] **검증:** 앱 실행 시 '보스 관리' 화면이 마지막으로 저장된 모드로 올바르게 시작하고, '뷰 모드'일 때 '다음 보스' 필터 상태가 유지되며 데이터가 정상적으로 표시되는지 확인합니다.
-- [ ] **커밋:** `git commit -m "refactor(boss-management): 보스 관리 화면 초기화 로직에 모드 전환 및 필터 적용"`
+- [x] **검증:** 앱 실행 시 '보스 관리' 화면이 마지막으로 저장된 모드로 올바르게 시작하고, '뷰 모드'일 때 '다음 보스' 필터 상태가 유지되며 데이터가 정상적으로 표시되는지 확인합니다.
+- [x] **커밋:** `git commit -m "refactor(boss-management): 보스 관리 화면 초기화 로직에 모드 전환 및 필터 적용"`
 </details>
 
 <details>
