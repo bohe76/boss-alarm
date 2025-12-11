@@ -68,14 +68,15 @@
 
 ### 3.2. 보스 관리 화면 (`src/screens/boss-management.js`)
 
-*   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initBossManagementScreen(DOM)`이 호출됩니다.
+*   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initBossManagementScreen(DOM)`이 호출됩니다. 이 함수는 `LocalStorageManager`에서 저장된 '뷰/편집' 모드 및 '다음 보스' 필터 상태를 로드하고, `ui-renderer.js`의 `updateBossManagementUI(DOM, mode)`를 호출하여 해당 모드에 맞는 UI를 초기 렌더링합니다.
 *   **이벤트 리스너:**
-    *   **"보스 설정 저장" 버튼 (`DOM.sortBossListButton`):** 클릭 시 `boss-parser.js`의 `parseBossList()`를 호출하여 텍스트 영역의 내용을 파싱하고 유효성을 검사합니다.
+    *   **'뷰/편집' 토글 버튼 (`DOM.viewEditModeToggleButton`):** 클릭 시 '뷰 모드'와 '편집 모드'를 전환하고, `LocalStorageManager`에 상태를 저장합니다. 변경된 모드를 기반으로 `updateBossManagementUI`를 호출하여 UI를 갱신합니다.
+    *   **'다음 보스' 토글 버튼 (`DOM.nextBossToggleButton`):** '뷰 모드'일 때만 활성화되며, 클릭 시 '다음 보스만 보기' 필터 상태를 토글하고 `LocalStorageManager`에 저장합니다. 이후 `updateBossManagementUI`를 호출하여 필터링된 보스 목록을 다시 렌더링합니다.
+    *   **"보스 설정 저장" 버튼 (`DOM.sortBossListButton`):** '편집 모드'일 때만 활성화되며, 클릭 시 `boss-parser.js`의 `parseBossList()`를 호출하여 텍스트 영역의 내용을 파싱하고 유효성을 검사합니다.
         *   **유효성 실패:** 에러 메시지를 담은 경고창(`alert`)을 띄우고 저장을 중단합니다.
         *   **유효성 성공:** 파싱된 결과를 `BossDataManager.setBossSchedule()`로 저장하고, `ui-renderer.js`의 `updateBossListTextarea(DOM)`를 호출하여 정렬 및 포맷팅된 텍스트로 갱신합니다. `window.isBossListDirty`를 `false`로 초기화합니다.
     *   **보스 목록 텍스트 영역 (`DOM.bossListInput`) `input` 이벤트:** 사용자가 텍스트 영역을 수정하면 `window.isBossListDirty = true`로 설정하여 저장되지 않은 변경 사항이 있음을 표시합니다. (실시간 저장은 하지 않습니다.)
-*   **화면 이탈 방지:** `app.js`의 `showScreen` 함수에서 다른 화면으로 이동 시 `isDirty`가 `true`이면 경고창(`confirm`)을 띄워 데이터 손실을 방지합니다.
-*   **데이터 흐름 요약:** 텍스트 영역 수정은 임시 상태이며, "보스 설정 저장" 버튼을 눌러야만 파싱, 검증, 병합 과정을 거쳐 `BossDataManager`에 반영됩니다.
+*   **데이터 흐름 요약:** '보스 관리' 화면은 `LocalStorageManager`를 통해 모드 및 필터 상태를 관리하고, `ui-renderer.js`를 통해 모드에 따른 동적인 UI를 제공합니다. '편집 모드'에서는 텍스트 영역 수정을 통해 `BossDataManager`에 데이터를 반영하며, '뷰 모드'에서는 테이블 형태로 보스 목록을 표시하고 '다음 보스' 필터를 적용합니다.
 
 ### 3.3. 보스 스케줄러 화면 (`src/screens/boss-scheduler.js`)
 
