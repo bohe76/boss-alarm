@@ -97,7 +97,7 @@
 #clearAllRemainingTimesButton,
 #moveToBossSettingsButton,
 #gameSelect {
-    width: 184px;
+    width: 154px; /* Changed from 184px to 154px */
     box-sizing: border-box; /* Ensure padding doesn't increase width */
 }
 

@@ -491,27 +491,45 @@
 }
 
 /* --- Boss Scheduler Screen --- */
-.boss-list-display-container {
-    display: flex;
-    flex-direction: column;
-    height: 500px;
-    margin-bottom: 20px;
+
+
+.scheduler-controls-header {
+    max-width: 800px; /* Match card width */
+    width: 100%;
+    margin: 0 auto 16px auto; /* 16px bottom margin, centered horizontally */
+    box-sizing: border-box; /* Ensure padding/border included in width */
+    padding: 0 20px; /* Match card padding for inner content alignment */
 }
 
-.scheduler-card {
-    background-color: transparent;
-    padding: 0;
-    border-radius: 0;
-    box-shadow: none;
-    margin-bottom: 0;
-    flex-grow: 1;
-    overflow-y: auto;
+@media (min-width: 769px) {
+    .scheduler-controls-header {
+        display: flex;
+        align-items: center; /* Align items vertically in center */
+        justify-content: flex-start; /* Left align content */
+        gap: 12px; /* Gap between h3 and control group */
+    }
+    .scheduler-controls-header h3 {
+        white-space: nowrap; /* Prevent "보스 목록" from wrapping */
+        margin-top: 0; /* Ensure vertical alignment in flex container */
+        margin-bottom: 0; /* Ensure vertical alignment in flex container */
+    }
+}
+
+@media (max-width: 768px) {
+    .scheduler-controls-header {
+        display: flex;
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center items horizontally */
+        justify-content: center; /* Center items vertically if space allows */
+        gap: 10px; /* Gap between h3 and control group */
+        padding: 0 10px; /* Adjust padding for mobile */
+    }
 }
 
 .boss-scheduler-layout {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    /* align-items: center; Removed to allow children to control their horizontal alignment */
     width: 100%;
 }
 
@@ -533,47 +551,41 @@
 .control-group-horizontal {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end; /* Changed from center to flex-end */
     gap: 12px;
-    margin-bottom: 15px;
+    margin-bottom: 0; /* Changed from 16px to 0 */
+    max-width: 800px; /* Match card width */
+    width: 100%;
+    margin-left: auto; /* Center with card */
+    margin-right: auto; /* Center with card */
+}
+
+@media (max-width: 768px) {
+    .control-group-horizontal {
+        justify-content: center; /* Center for mobile */
+    }
 }
 
 .action-buttons {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end; /* Changed from center to flex-end */
     gap: 12px;
     margin-top: 0;
     margin-bottom: 20px;
+    max-width: 800px; /* Match card width */
+    width: 100%;
+    margin-left: auto; /* Center with card */
+    margin-right: auto; /* Center with card */
 }
 
-.boss-input-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 0 0 10px 0;
-    margin-bottom: 10px;
-    font-weight: bold;
-    color: #666;
-    flex-shrink: 0;
+@media (max-width: 768px) {
+    .action-buttons {
+        justify-content: center; /* Center for mobile */
+    }
 }
 
-.boss-name-header {
-    flex-basis: 130px;
-    flex-shrink: 0;
-}
-
-.remaining-time-header {
-    flex-grow: 1;
-    max-width: 70px;
-    text-align: right;
-    padding-left: 4px;
-}
-
-.spawn-time-header {
-    flex-basis: 80px;
-    text-align: center;
-    flex-shrink: 0;
-    padding-left: 10px;
+.boss-list-display-container {
+    margin-bottom: 16px; /* Added bottom margin as requested */
 }
 
 #gameSelect {
@@ -585,49 +597,106 @@
     cursor: pointer;
 }
 
-.boss-inputs-container {
+.boss-list-display-container {
+    /* Styles for this are now in components.css (card-standard, card-size-list) */
+    /* This container will handle horizontal scroll on mobile */
+}
+
+.boss-input-header {
+    display: flex;
+    gap: 12px;
+    padding-bottom: 10px;
+    margin-bottom: 0; /* Changed from 10px to 0 */
+    font-weight: bold;
+    color: #666;
+    border-bottom: none; /* Changed from 2px solid #eee to none */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.scheduler-card {
+    max-height: 500px;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 0px;
-    margin-bottom: 0px;
-    padding-right: 10px;
-    border-top: 1px solid #eee;
-    padding-top: 10px;
 }
 
 .boss-input-item {
     display: flex;
     align-items: center;
-    background-color: transparent;
-    border-radius: 0;
-    box-shadow: none;
     gap: 12px;
     width: 100%;
+    padding: 6px 0; /* Changed from 12px 0 to 6px 0 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
+.boss-input-item + .boss-input-item {
+    border-top: 1px dashed #eee; /* Changed from solid to dashed */
+}
+
+.boss-name-header,
+.boss-name {
+    flex: 1; /* Allows boss name to grow */
+    min-width: 100px; /* Prevents it from collapsing too much */
+    max-width: 150px; /* Limits growth to prevent remaining times from being pushed too far */
+    text-align: left; /* Boss name is always left aligned */
+}
 .boss-name {
     font-weight: bold;
     color: #333;
-    flex-basis: 130px;
+}
+
+.remaining-time-header,
+.remaining-time-input {
+    width: 80px;
     flex-shrink: 0;
+    text-align: center; /* Back to center as per user's correction */
+}
+
+.spawn-time-header,
+.calculated-spawn-time {
+    width: 80px;
+    flex-shrink: 0;
+    text-align: center; /* Back to center as per user's correction */
+}
+.calculated-spawn-time {
+    font-weight: 700;
+    color: #333;
 }
 
 .remaining-time-input {
-    flex-grow: 1;
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 0.9em;
-    max-width: 70px;
-    text-align: center;
+    box-sizing: border-box;
 }
 
-.calculated-spawn-time {
-    font-weight: 700;
-    color: #333;
-    flex-basis: 80px;
-    text-align: center;
-    flex-shrink: 0;
+/* Mobile-specific layout with horizontal scroll */
+@media (max-width: 768px) {
+    .boss-list-display-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .boss-list-display-container::-webkit-scrollbar {
+        height: 8px;
+    }
+    .boss-list-display-container::-webkit-scrollbar-track {
+        background: #f0f0f0;
+    }
+    .boss-list-display-container::-webkit-scrollbar-thumb {
+        background-color: #ccc;
+        border-radius: 4px;
+    }
+
+    .boss-input-header,
+    .boss-input-item {
+        min-width: 360px; /* Force a minimum width to ensure scrolling */
+    }
 }
 
 /* --- Custom List Modal Specifics --- */
