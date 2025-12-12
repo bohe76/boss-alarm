@@ -3,6 +3,7 @@
 let timerId = null;
 let flatSchedule = [];
 let lastTick = 0;
+let sentAlarms = new Set(); // New: Keep track of alarms already sent by the worker
 
 self.onmessage = function(e) {
     const { type, payload } = e.data;
@@ -19,6 +20,7 @@ self.onmessage = function(e) {
         }
     } else if (type === 'UPDATE_SCHEDULE') {
         flatSchedule = payload;
+        sentAlarms.clear(); // New: Reset sent alarms when schedule is updated
     }
 };
 
@@ -26,8 +28,10 @@ function tick() {
     const now = Date.now();
     
     flatSchedule.forEach(item => {
-        if (item.targetTime > lastTick && item.targetTime <= now) {
+        const alarmKey = `${item.id}-${item.type}`; // New: Unique identifier for the alarm
+        if (item.targetTime > lastTick && item.targetTime <= now && !sentAlarms.has(alarmKey)) { // New: Check if already sent
             self.postMessage({ type: 'ALARM', payload: item });
+            sentAlarms.add(alarmKey); // New: Mark as sent
         }
     });
 
