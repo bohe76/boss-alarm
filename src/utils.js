@@ -164,20 +164,6 @@ export function normalizeTimeFormat(timeStr) {
 }
 
 /**
- * 보스 목록 출력용 시간 포맷터
- * @param {string} timeStr - HH:MM:SS 형식의 시간 문자열
- * @returns {string} - 초가 00이면 HH:MM, 아니면 HH:MM:SS
- */
-export function formatBossListTime(timeStr) {
-    if (!timeStr) return "";
-    // Check if it ends with ":00"
-    if (timeStr.endsWith(':00')) {
-        return timeStr.substring(0, 5); // Return "HH:MM"
-    }
-    return timeStr; // Return "HH:MM:SS"
-}
-
-/**
  * Parses a time string (HH:MM, HH:MM:SS, HHMM, HHMMSS) into its components.
  * This function PURELY parses the string and does NOT calculate based on current time.
  * @param {string} timeString - The time string to parse.

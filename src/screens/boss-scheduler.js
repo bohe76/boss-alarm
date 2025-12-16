@@ -49,23 +49,29 @@ export function handleApplyBossSettings(DOM) {
         if (remainingTime && calculatedDateIso) {
             const appearanceTime = new Date(calculatedDateIso);
             const timeStr = `${padNumber(appearanceTime.getHours())}:${padNumber(appearanceTime.getMinutes())}:${padNumber(appearanceTime.getSeconds())}`;
+            const timeFormat = remainingTimeInput.dataset.timeFormat || 'hms'; // Default to 'hms'
+
+            const bossData = {
+                time: timeStr,
+                scheduledDate: appearanceTime,
+                timeFormat: timeFormat, // Add the format
+                alerted_5min: false,
+                alerted_1min: false,
+                alerted_0min: false
+            };
 
             if (bossId && bossMap.has(bossId)) {
                 const existingBoss = bossMap.get(bossId);
                 currentBosses.push({
                     ...existingBoss,
-                    scheduledDate: appearanceTime,
-                    time: timeStr,
-                    alerted_5min: false, alerted_1min: false, alerted_0min: false
+                    ...bossData
                 });
             } else {
                 currentBosses.push({
                     type: 'boss',
                     id: bossId || generateUniqueId(),
                     name: bossName,
-                    time: timeStr,
-                    scheduledDate: appearanceTime,
-                    alerted_5min: false, alerted_1min: false, alerted_0min: false
+                    ...bossData
                 });
             }
         }
@@ -81,6 +87,7 @@ export function handleApplyBossSettings(DOM) {
                 type: 'boss', id: generateUniqueId(), name: boss.name,
                 time: `${padNumber(newAppearanceTime.getHours())}:${padNumber(newAppearanceTime.getMinutes())}:${padNumber(newAppearanceTime.getSeconds())}`,
                 scheduledDate: newAppearanceTime,
+                timeFormat: boss.timeFormat, // Preserve original format
                 alerted_5min: false, alerted_1min: false, alerted_0min: false
              });
         }
@@ -147,16 +154,33 @@ export function initBossSchedulerScreen(DOM) {
         DOM.bossSchedulerScreen.addEventListener('input', (event) => {
             if (event.target.classList.contains('remaining-time-input')) {
                 const inputField = event.target;
-                const remainingTime = inputField.value;
+                const remainingTime = inputField.value.trim();
                 const calculatedTimeSpan = inputField.nextElementSibling;
                 const calculatedDate = calculateBossAppearanceTime(remainingTime);
+
+                // Stricter logic to determine and store the input format
+                const isNumeric = /^\d+$/.test(remainingTime);
+                const isHms = (isNumeric && remainingTime.length === 6) || (!isNumeric && remainingTime.split(':').length === 3);
                 
+                if (remainingTime) {
+                    inputField.dataset.timeFormat = isHms ? 'hms' : 'hm';
+                } else {
+                    delete inputField.dataset.timeFormat;
+                }
+
                 if (calculatedDate && calculatedTimeSpan) {
-                    calculatedTimeSpan.textContent = `${padNumber(calculatedDate.getHours())}:${padNumber(calculatedDate.getMinutes())}:${padNumber(calculatedDate.getSeconds())}`;
+                    let timeString;
+                    if (inputField.dataset.timeFormat === 'hm') {
+                        timeString = `${padNumber(calculatedDate.getHours())}:${padNumber(calculatedDate.getMinutes())}`;
+                    } else { // 'hms'
+                        timeString = `${padNumber(calculatedDate.getHours())}:${padNumber(calculatedDate.getMinutes())}:${padNumber(calculatedDate.getSeconds())}`;
+                    }
+                    calculatedTimeSpan.textContent = timeString;
                     inputField.dataset.calculatedDate = calculatedDate.toISOString();
                 } else {
                     if (calculatedTimeSpan) calculatedTimeSpan.textContent = '--:--:--';
                     delete inputField.dataset.calculatedDate;
+                    delete inputField.dataset.timeFormat;
                 }
             }
         });

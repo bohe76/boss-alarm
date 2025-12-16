@@ -89,6 +89,9 @@ export function parseBossList(bossListInput) {
                 return;
             }
 
+            // Determine time format from original user input
+            const timeFormat = (timeString.includes(':') && timeString.split(':').length > 2) || (!timeString.includes(':') && timeString.length > 4) ? 'hms' : 'hm';
+
             const { hours: bossHour, minutes: bossMinute, seconds: bossSecond } = timeParts;
 
             const bossTimeInSeconds = bossHour * 3600 + bossMinute * 60 + bossSecond;
@@ -111,6 +114,7 @@ export function parseBossList(bossListInput) {
                 time: `${padNumber(bossHour)}:${padNumber(bossMinute)}:${padNumber(bossSecond)}`,
                 name: parts.slice(1).join(' '),
                 scheduledDate: scheduledDate,
+                timeFormat: timeFormat, // Store the detected format
                 alerted_5min: false,
                 alerted_1min: false,
                 alerted_0min: false,
@@ -137,7 +141,8 @@ export function parseBossList(bossListInput) {
                 mergedBosses.push({
                     ...existing, // Keep ID, alert states
                     time: parsed.time, // Update time string
-                    scheduledDate: parsed.scheduledDate // Update calculated date
+                    scheduledDate: parsed.scheduledDate, // Update calculated date
+                    timeFormat: parsed.timeFormat // Update time format
                 });
                 // Remove from pool to avoid double matching
                 existingBossPool.splice(matchIndex, 1);
