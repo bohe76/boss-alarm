@@ -72,24 +72,24 @@
 *   **이벤트 리스너:**
     *   **'뷰/편집' 토글 버튼 (`DOM.viewEditModeToggleButton`):** 클릭 시 모드를 전환하고 `LocalStorageManager`에 저장합니다. `updateBossManagementUI`를 호출하여 UI를 갱신합니다.
     *   **'다음 보스' 토글 버튼 (`DOM.nextBossToggleButton`):** 뷰 모드에서만 활성화되며, 클릭 시 필터 상태를 토글하고 저장합니다. 이후 `updateBossManagementUI` -> `renderBossListTableView`를 호출하여 **카드 리스트 형태**로 필터링된 목록을 다시 렌더링합니다.
-    *   **"보스 설정 저장" 버튼 (`DOM.sortBossListButton`):** 편집 모드에서만 활성화되며, 클릭 시 `boss-parser.js`의 `parseBossList()`를 호출하여 텍스트 영역의 내용을 파싱하고 유효성을 검사합니다.
+    *   **"보스 설정 저장" 버튼 (`DOM.sortBossListButton`):** 편집 모드에서만 활성화되며, 클릭 시 `boss-parser.js`의 `parseBossList()`를 호출하여 텍스트 영역의 내용을 파싱합니다. 이 과정에서 각 줄의 시간 형식을 감지하여 `timeFormat` 속성을 `boss` 객체에 포함시키고, 유효성을 검사합니다.
         *   **유효성 실패:** 에러 메시지를 담은 경고창(`alert`)을 띄우고 저장을 중단합니다.
-        *   **유효성 성공:** 파싱된 결과를 `BossDataManager.setBossSchedule()`로 저장하고, `ui-renderer.js`의 `updateBossListTextarea(DOM)`를 호출하여 정렬 및 포맷팅된 텍스트로 갱신합니다. `window.isBossListDirty`를 `false`로 초기화합니다.
-*   **데이터 흐름 요약:** `LocalStorageManager`를 통해 모드 및 필터 상태를 관리합니다. **뷰 모드**에서는 `BossDataManager` 데이터를 기반으로 `ui-renderer.js`가 날짜별 카드 리스트를 생성하여 표시하고, **편집 모드**에서는 사용자 입력을 파싱하여 `BossDataManager`에 저장하는 양방향 흐름을 가집니다.
+        *   **유효성 성공:** 파싱된 결과를 `BossDataManager.setBossSchedule()`로 저장하고, `ui-renderer.js`의 `updateBossListTextarea(DOM)`를 호출하여 정렬 및 `timeFormat`에 따라 포맷팅된 텍스트로 갱신합니다. `window.isBossListDirty`를 `false`로 초기화합니다.
+*   **데이터 흐름 요약:** `LocalStorageManager`를 통해 모드 및 필터 상태를 관리합니다. **뷰 모드**에서는 `BossDataManager` 데이터를 기반으로 `ui-renderer.js`가 `timeFormat`을 존중하여 날짜별 카드 리스트를 생성하고, **편집 모드**에서는 사용자 입력을 파싱하여 `timeFormat`을 포함한 데이터를 `BossDataManager`에 저장하는 양방향 흐름을 가집니다.
 
 ### 3.3. 보스 스케줄러 화면 (`src/screens/boss-scheduler.js`)
 
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initBossSchedulerScreen(DOM)`이 호출됩니다. `EventBus.on('show-boss-scheduler-screen', ...)` 리스너가 화면 전환 시 `ui-renderer.js`의 `renderBossSchedulerScreen()`을 호출합니다.
 *   **이벤트 리스너 (DOM.bossSchedulerScreen에 위임):**
     *   **게임 선택 변경 (`DOM.gameSelect`):** `ui-renderer.js`의 `renderBossInputs()`를 호출하여 선택된 게임에 맞는 보스 입력 필드를 렌더링합니다. 이때 기존 보스의 ID를 `data-id` 속성에 매핑합니다.
-    *   **남은 시간 입력 (`.remaining-time-input`):** `calculateBossAppearanceTime()`로 출현 시간을 계산하여 표시하고, 정확한 `Date` 객체를 계산하여 `dataset`에 저장합니다.
+    *   **남은 시간 입력 (`.remaining-time-input`):** `input` 이벤트 발생 시, 사용자의 입력 형식을('hm' 또는 'hms') 감지하여 `dataset.timeFormat`에 저장하고, `calculateBossAppearanceTime()`으로 계산된 젠 시간을 `timeFormat`에 맞춰 동적으로 표시합니다. 최종 시간은 `dataset.calculatedDate`에 ISO 형식으로 저장됩니다.
     *   **"모든 남은 시간 지우기" 버튼 (`DOM.clearAllRemainingTimesButton`):** 모든 입력 필드를 초기화합니다.
     *   **"보스 설정 적용" 버튼 (`DOM.moveToBossSettingsButton`):**
-        1.  입력된 남은 시간(및 저장된 `Date`)과 `data-id`를 기반으로 기존 보스 데이터를 업데이트하거나 신규 보스를 생성합니다.
+        1.  입력된 남은 시간(및 `dataset.calculatedDate`, `dataset.timeFormat`)과 `data-id`를 기반으로 `timeFormat` 속성이 포함된 `boss` 객체를 생성하거나 업데이트합니다.
         2.  전체 보스 리스트를 `scheduledDate` 기준으로 정렬하고, 날짜 마커(`type: 'date'`)를 적절한 위치에 새로 삽입하는 **재구성(Reconstruction)** 과정을 거칩니다.
         3.  완성된 리스트를 `BossDataManager.setBossSchedule()`에 저장하고 `updateBossListTextarea`를 호출합니다.
         4.  `EventBus.emit('navigate', 'boss-management-screen')`을 발행하여 '보스 관리' 화면으로 전환을 요청합니다.
-*   **데이터 흐름 요약:** 사용자 입력을 바탕으로 정확한 시간(`Date`)을 계산하고, ID를 통해 데이터를 안전하게 업데이트하며, 전체 리스트를 재구성하여 데이터 꼬임을 방지합니다.
+*   **데이터 흐름 요약:** 사용자 입력을 바탕으로 정확한 시간(`Date`)과 표시 형식(`timeFormat`)을 계산/감지하여 저장하고, ID를 통해 데이터를 안전하게 업데이트하며, 전체 리스트를 재구성하여 데이터 꼬임을 방지합니다.
 
 ### 3.4. 알림 로그 화면 (`src/screens/alarm-log.js`)
 
