@@ -72,7 +72,7 @@ describe('BossSchedulerScreen Initialization and UI State', () => {
         DOM.bossSchedulerScreen.appendChild(DOM.bossListInput); // 추가
         
         DOM.bossInputsContainer.innerHTML = `
-            <div class="boss-input-item"><span class="boss-name">Boss 1</span><input type="text" class="remaining-time-input" value="00:30:00"><span class="calculated-spawn-time">--:--:--</span></div>
+            <div class="boss-input-item"><span class="boss-name">Boss 1</span><input type="text" class="remaining-time-input" data-boss-name="Boss 1" value="00:30:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="Boss 1"></div>
         `;
         initBossSchedulerScreen(DOM);
     });
@@ -106,12 +106,12 @@ describe('BossSchedulerScreen Initialization and UI State', () => {
     });
 
     it('should persist remaining times when navigating away', () => {
-        const expectedRemainingTimes = { 'Boss A': '01:00:00', 'Boss B': '02:00:00' };
+        const expectedRemainingTimes = { 'Boss 1': '00:30:00', 'Boss A': '01:00:00', 'Boss B': '02:00:00' };
         
         // Simulate inputs
         DOM.bossInputsContainer.innerHTML = `
-            <div class="boss-input-item"><span class="boss-name">Boss A</span><input type="text" class="remaining-time-input" value="01:00:00"><span class="calculated-spawn-time">--:--:--</span></div>
-            <div class="boss-input-item"><span class="boss-name">Boss B</span><input type="text" class="remaining-time-input" value="02:00:00"><span class="calculated-spawn-time">--:--:--</span></div>
+            <div class="boss-input-item"><span class="boss-name">Boss A</span><input type="text" class="remaining-time-input" data-boss-name="Boss A" value="01:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="Boss A"></div>
+            <div class="boss-input-item"><span class="boss-name">Boss B</span><input type="text" class="remaining-time-input" data-boss-name="Boss B" value="02:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="Boss B"></div>
         `;
         DOM.bossInputsContainer.querySelectorAll('.remaining-time-input').forEach(input => {
             calculateBossAppearanceTimeSpy.mockReturnValue(new Date()); // Mock any valid date
@@ -126,7 +126,8 @@ describe('BossSchedulerScreen Initialization and UI State', () => {
 
         expect(UIRenderer.renderBossSchedulerScreen).toHaveBeenCalledWith(
             DOM,
-            expectedRemainingTimes
+            expectedRemainingTimes,
+            {} // expectedMemoInputs
         );
     });
 });

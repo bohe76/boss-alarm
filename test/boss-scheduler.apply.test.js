@@ -65,10 +65,10 @@ describe('BossSchedulerScreen Apply Logic', () => {
 
     it('should correctly process boss times and sort them', () => {
         DOM.bossInputsContainer.innerHTML = `
-            <div class="boss-input-item"><span class="boss-name">우로보로스</span><input type="text" class="remaining-time-input" data-id="id-우로보로스" value="09:24:00"><span class="calculated-spawn-time">--:--:--</span></div>
-            <div class="boss-input-item"><span class="boss-name">파르바</span><input type="text" class="remaining-time-input" data-id="id-파르바" value="00:00:00"><span class="calculated-spawn-time">--:--:--</span></div>
-            <div class="boss-input-item"><span class="boss-name">셀로비아</span><input type="text" class="remaining-time-input" data-id="id-셀로비아" value="10:50:13"><span class="calculated-spawn-time">--:--:--</span></div>
-            <div class="boss-input-item"><span class="boss-name">페티</span><input type="text" class="remaining-time-input" data-id="id-페티" value="11:00:00"><span class="calculated-spawn-time">--:--:--</span></div>
+            <div class="boss-input-item"><span class="boss-name">우로보로스</span><input type="text" class="remaining-time-input" data-id="id-우로보로스" value="09:24:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="우로보로스"></div>
+            <div class="boss-input-item"><span class="boss-name">파르바</span><input type="text" class="remaining-time-input" data-id="id-파르바" value="00:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="파르바"></div>
+            <div class="boss-input-item"><span class="boss-name">셀로비아</span><input type="text" class="remaining-time-input" data-id="id-셀로비아" value="10:50:13"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="셀로비아"></div>
+            <div class="boss-input-item"><span class="boss-name">페티</span><input type="text" class="remaining-time-input" data-id="id-페티" value="11:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="페티"></div>
         `;
 
         // Trigger input events to populate dataset.calculatedDate
@@ -91,8 +91,8 @@ describe('BossSchedulerScreen Apply Logic', () => {
 
     it('should handle special bosses with +12h logic', () => {
         DOM.bossInputsContainer.innerHTML = `
-            <div class="boss-input-item"><span class="boss-name">셀로비아</span><input type="text" class="remaining-time-input" data-id="id-셀로비아" value="05:00:00"><span class="calculated-spawn-time">--:--:--</span></div>
-            <div class="boss-input-item"><span class="boss-name">파르바</span><input type="text" class="remaining-time-input" data-id="id-파르바" value="10:00:00"><span class="calculated-spawn-time">--:--:--</span></div>
+            <div class="boss-input-item"><span class="boss-name">셀로비아</span><input type="text" class="remaining-time-input" data-id="id-셀로비아" value="05:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="셀로비아"></div>
+            <div class="boss-input-item"><span class="boss-name">파르바</span><input type="text" class="remaining-time-input" data-id="id-파르바" value="10:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="파르바"></div>
         `;
         const inputSelovia = DOM.bossInputsContainer.querySelector('input[data-id="id-셀로비아"]');
         calculateBossAppearanceTimeSpy.mockReturnValueOnce(new Date('2025-11-29T05:00:00+09:00'));
@@ -117,8 +117,8 @@ describe('BossSchedulerScreen Apply Logic', () => {
 
     it('should filter out invasion bosses that are not today', () => {
         DOM.bossInputsContainer.innerHTML = `
-            <div class="boss-input-item"><span class="boss-name">침공 셀로비아</span><input type="text" class="remaining-time-input" data-id="침공 셀로비아" value="09:00:00"><span class="calculated-spawn-time">--:--:--</span></div>
-            <div class="boss-input-item"><span class="boss-name">일반 보스</span><input type="text" class="remaining-time-input" data-id="id-일반보스" value="10:30:00"><span class="calculated-spawn-time">--:--:--</span></div>
+            <div class="boss-input-item"><span class="boss-name">침공 셀로비아</span><input type="text" class="remaining-time-input" data-id="침공 셀로비아" value="09:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="침공 셀로비아"></div>
+            <div class="boss-input-item"><span class="boss-name">일반 보스</span><input type="text" class="remaining-time-input" data-id="id-일반보스" value="10:30:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="일반 보스"></div>
         `;
         const inputInvade = DOM.bossInputsContainer.querySelector('input[data-id="침공 셀로비아"]');
         // 침공 보스는 다음날로 계산되어 필터링되어야 함
@@ -137,7 +137,7 @@ describe('BossSchedulerScreen Apply Logic', () => {
 
     it('should apply "fresh start" logic', () => {
         mockBossSchedule = [{ type: 'boss', id: 'id-old', name: 'Old Boss' }];
-        DOM.bossInputsContainer.innerHTML = `<div class="boss-input-item"><span class="boss-name">New Boss</span><input type="text" class="remaining-time-input" value="00:15:00"><span class="calculated-spawn-time">--:--:--</span></div>`;
+        DOM.bossInputsContainer.innerHTML = `<div class="boss-input-item"><span class="boss-name">New Boss</span><input type="text" class="remaining-time-input" value="00:15:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="New Boss"></div>`;
         const input = DOM.bossInputsContainer.querySelector('input');
         calculateBossAppearanceTimeSpy.mockReturnValueOnce(new Date('2025-11-28T19:15:00+09:00'));
         input.dispatchEvent(new Event('input', { bubbles: true }));

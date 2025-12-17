@@ -625,17 +625,59 @@
 
 .boss-input-item {
     display: flex;
+    flex-wrap: wrap; /* Allow wrapping for mobile 2-row layout */
     align-items: center;
-    gap: 12px;
+    gap: 0; /* Let inner rows handle gap */
     width: 100%;
-    padding: 6px 0; /* Changed from 12px 0 to 6px 0 */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    padding: 10px 0; /* Adjusted padding */
+    white-space: normal; /* Allow normal whitespace handling for wrapping */
+    overflow: visible; /* Allow content to show */
+    text-overflow: clip; /* Remove ellipsis */
 }
 
 .boss-input-item + .boss-input-item {
-    border-top: 1px dashed #eee; /* Changed from solid to dashed */
+    border-top: 1px dashed #eee;
+}
+
+.boss-input-row-main {
+    display: flex;
+    align-items: center;
+    width: 100%; /* Mobile: full width */
+    gap: 12px;
+}
+
+.boss-input-row-memo {
+    width: 100%; /* Mobile: full width */
+    margin-top: 8px; /* Spacing from main row */
+}
+
+.memo-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9em;
+    box-sizing: border-box;
+    background-color: #fcfcfc;
+}
+
+/* PC Layout */
+@media (min-width: 769px) {
+    .boss-input-item {
+        flex-wrap: nowrap; /* Single row on PC */
+        gap: 12px;
+    }
+
+    .boss-input-row-main {
+        width: auto;
+        flex-grow: 1;
+    }
+
+    .boss-input-row-memo {
+        width: 240px; /* Fixed width for memo on PC */
+        margin-top: 0;
+        flex-shrink: 0;
+    }
 }
 
 .boss-name-header,

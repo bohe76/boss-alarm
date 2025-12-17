@@ -7,10 +7,11 @@ import { updateBossListTextarea } from '../ui-renderer.js';
 import { generateUniqueId, padNumber } from '../utils.js';
 import { trackEvent } from '../analytics.js';
 
-let _remainingTimes = {}; // Encapsulated state
+let _remainingTimes = {}; // Encapsulated state for remaining times
+let _memoInputs = {}; // Encapsulated state for memo inputs
 
 function handleShowScreen(DOM) {
-    renderBossSchedulerScreen(DOM, _remainingTimes);
+    renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs);
     updateCalculatedTimes(DOM);
 }
 
@@ -42,9 +43,11 @@ export function handleApplyBossSettings(DOM) {
     DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
         const bossName = item.querySelector('.boss-name').textContent;
         const remainingTimeInput = item.querySelector('.remaining-time-input');
+        const memoInput = item.querySelector('.memo-input'); // Select memo input
         const remainingTime = remainingTimeInput.value;
         const bossId = remainingTimeInput.dataset.id;
         const calculatedDateIso = remainingTimeInput.dataset.calculatedDate;
+        const memo = memoInput ? memoInput.value.trim() : ''; // Get memo value
 
         if (remainingTime && calculatedDateIso) {
             const appearanceTime = new Date(calculatedDateIso);
@@ -55,6 +58,7 @@ export function handleApplyBossSettings(DOM) {
                 time: timeStr,
                 scheduledDate: appearanceTime,
                 timeFormat: timeFormat, // Add the format
+                memo: memo, // Add memo
                 alerted_5min: false,
                 alerted_1min: false,
                 alerted_0min: false
@@ -88,6 +92,9 @@ export function handleApplyBossSettings(DOM) {
                 time: `${padNumber(newAppearanceTime.getHours())}:${padNumber(newAppearanceTime.getMinutes())}:${padNumber(newAppearanceTime.getSeconds())}`,
                 scheduledDate: newAppearanceTime,
                 timeFormat: boss.timeFormat, // Preserve original format
+                // +12h 보스에는 메모를 복사하지 않는 것이 일반적일 수 있으나, 
+                // 명시적인 요구사항이 없으므로 일단 비워둡니다. 필요시 boss.memo 로 복사 가능.
+                memo: '', 
                 alerted_5min: false, alerted_1min: false, alerted_0min: false
              });
         }
@@ -125,9 +132,12 @@ export function handleApplyBossSettings(DOM) {
     updateBossListTextarea(DOM);
     
     _remainingTimes = {};
+    _memoInputs = {}; // Reset memo inputs
     DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
         const bossName = item.querySelector('.boss-name').textContent;
         _remainingTimes[bossName] = item.querySelector('.remaining-time-input').value;
+        const memoVal = item.querySelector('.memo-input').value;
+        if (memoVal) _memoInputs[bossName] = memoVal;
     });
 
     EventBus.emit('navigate', 'boss-management-screen');
@@ -138,14 +148,14 @@ export function handleApplyBossSettings(DOM) {
 export function initBossSchedulerScreen(DOM) {
     EventBus.on('show-boss-scheduler-screen', () => handleShowScreen(DOM));
     EventBus.on('rerender-boss-scheduler', () => {
-        renderBossSchedulerScreen(DOM, _remainingTimes);
+        renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs);
         updateCalculatedTimes(DOM);
     });
 
     if (DOM.bossSchedulerScreen) {
         DOM.bossSchedulerScreen.addEventListener('change', (event) => {
             if (event.target === DOM.gameSelect) {
-                renderBossInputs(DOM, DOM.gameSelect.value);
+                renderBossInputs(DOM, DOM.gameSelect.value, _remainingTimes, _memoInputs);
                 updateCalculatedTimes(DOM);
                 trackEvent('Change Select', { event_category: 'Interaction', event_label: '보스 목록 선택', value: DOM.gameSelect.value });
             }
@@ -153,12 +163,15 @@ export function initBossSchedulerScreen(DOM) {
 
         DOM.bossSchedulerScreen.addEventListener('input', (event) => {
             if (event.target.classList.contains('remaining-time-input')) {
+                // ... (Existing remaining time logic)
                 const inputField = event.target;
+                const bossName = inputField.dataset.bossName;
+                _remainingTimes[bossName] = inputField.value; // Update state
+
                 const remainingTime = inputField.value.trim();
-                const calculatedTimeSpan = inputField.nextElementSibling;
+                const calculatedTimeSpan = inputField.parentElement.querySelector('.calculated-spawn-time'); // Changed selection logic slightly
                 const calculatedDate = calculateBossAppearanceTime(remainingTime);
 
-                // Stricter logic to determine and store the input format
                 const isNumeric = /^\d+$/.test(remainingTime);
                 const isHms = (isNumeric && remainingTime.length === 6) || (!isNumeric && remainingTime.split(':').length === 3);
                 
@@ -182,6 +195,11 @@ export function initBossSchedulerScreen(DOM) {
                     delete inputField.dataset.calculatedDate;
                     delete inputField.dataset.timeFormat;
                 }
+            } else if (event.target.classList.contains('memo-input')) {
+                // Handle memo input changes
+                const inputField = event.target;
+                const bossName = inputField.dataset.bossName;
+                _memoInputs[bossName] = inputField.value;
             }
         });
 
@@ -203,31 +221,50 @@ export function initBossSchedulerScreen(DOM) {
 
         // 남은 시간 입력 필드에서 Enter 키를 눌렀을 때 다음 필드로 포커스 이동
         DOM.bossSchedulerScreen.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' && event.target.classList.contains('remaining-time-input')) {
-                event.preventDefault(); // Enter 키의 기본 동작 방지
-
-                const currentInput = event.target;
-                const allInputs = Array.from(DOM.bossInputsContainer.querySelectorAll('.remaining-time-input'));
-                const currentIndex = allInputs.indexOf(currentInput);
-
-                if (currentIndex > -1 && currentIndex < allInputs.length - 1) {
-                    allInputs[currentIndex + 1].focus(); // 다음 입력 필드로 포커스 이동
-                } else if (currentIndex === allInputs.length - 1) {
-                    // 마지막 필드에서 Enter 시, 다음 동작은 필요에 따라 정의 (예: 버튼 활성화 또는 다른 UI 요소 포커스)
-                    // 현재는 특별한 동작 없이 포커스만 유지.
+            if (event.key === 'Enter') {
+                 if (event.target.classList.contains('remaining-time-input')) {
+                    event.preventDefault(); 
+                    // Move focus to the memo input of the same row if available, or next row's time input?
+                    // Better UX for mobile might be: Time Input -> Memo Input -> Next Row Time Input
+                    const currentInput = event.target;
+                    const memoInput = currentInput.parentElement.querySelector('.memo-input');
+                    if (memoInput) {
+                        memoInput.focus();
+                    }
+                } else if (event.target.classList.contains('memo-input')) {
+                    event.preventDefault();
+                    // Move to next row's time input
+                    const currentInput = event.target;
+                    const allMemoInputs = Array.from(DOM.bossInputsContainer.querySelectorAll('.memo-input'));
+                    const currentIndex = allMemoInputs.indexOf(currentInput);
+                    const allTimeInputs = Array.from(DOM.bossInputsContainer.querySelectorAll('.remaining-time-input'));
+                    
+                    if (currentIndex > -1 && currentIndex < allTimeInputs.length - 1) {
+                         allTimeInputs[currentIndex + 1].focus();
+                    }
                 }
             }
         });
 
         DOM.bossSchedulerScreen.addEventListener('click', (event) => {
             if (event.target === DOM.clearAllRemainingTimesButton) {
-                if (confirm("모든 남은 시간을 삭제하시겠습니까?")) {
+                if (confirm("모든 남은 시간과 메모를 삭제하시겠습니까?")) {
                     DOM.bossInputsContainer.querySelectorAll('.remaining-time-input').forEach(input => {
                         input.value = '';
                         delete input.dataset.calculatedDate;
-                        input.nextElementSibling.textContent = '--:--:--';
+                         // Find sibling calculated time span
+                         const span = input.parentElement.querySelector('.calculated-spawn-time');
+                         if(span) span.textContent = '--:--:--';
                     });
-                    log("모든 남은 시간이 삭제되었습니다.", true);
+                    // Clear memos as well
+                    DOM.bossInputsContainer.querySelectorAll('.memo-input').forEach(input => {
+                        input.value = '';
+                    });
+                    
+                    _remainingTimes = {};
+                    _memoInputs = {};
+
+                    log("모든 남은 시간과 메모가 삭제되었습니다.", true);
                     trackEvent('Click Button', { event_category: 'Interaction', event_label: '남은 시간 초기화' });
                 } else {
                     trackEvent('Click Button', { event_category: 'Interaction', event_label: '남은 시간 초기화 취소' });

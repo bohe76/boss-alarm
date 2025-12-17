@@ -572,7 +572,7 @@ export function showCustomListTab(DOM, tabId) {
 }
 
 // --- Boss Scheduler Screen Rendering Functions ---
-export function renderBossSchedulerScreen(DOM, remainingTimes = {}) {
+export function renderBossSchedulerScreen(DOM, remainingTimes = {}, memoInputs = {}) {
     if (!DOM.bossSchedulerScreen) return;
     // Populate game selection dropdown
     const gameNameObjects = getGameNames();
@@ -583,7 +583,7 @@ export function renderBossSchedulerScreen(DOM, remainingTimes = {}) {
     }
     // Render bosses for the initially selected game
     if (gameNameObjects.length > 0) {
-        renderBossInputs(DOM, gameNameObjects[0].name, remainingTimes);
+        renderBossInputs(DOM, gameNameObjects[0].name, remainingTimes, memoInputs);
     } else {
         if (DOM.bossInputsContainer) {
             DOM.bossInputsContainer.innerHTML = '<p>선택할 수 있는 게임 목록이 없습니다.</p>';
@@ -596,32 +596,40 @@ export function renderBossSchedulerScreen(DOM, remainingTimes = {}) {
  * @param {object} DOM - The DOM elements object.
  * @param {string} gameName - The name of the selected game.
  */
-export function renderBossInputs(DOM, gameName, remainingTimes = {}) {
+export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs = {}) {
     const bossNames = getBossNamesForGame(gameName);
     if (!bossNames || bossNames.length === 0) {
         DOM.bossInputsContainer.innerHTML = '<p>선택된 게임/목록에 보스가 없습니다.</p>';
         return;
     }
-    // Get current schedule to find existing IDs
+    // Get current schedule to find existing IDs and Memos
     const currentSchedule = BossDataManager.getBossSchedule();
     const bossMap = new Map();
     currentSchedule.forEach(item => {
         if (item.type === 'boss') {
-            // Map boss name to ID. Note: If duplicate names exist, this simple map might pick one arbitrarily.
-            // However, for the scheduler view which typically lists unique boss names per game, this serves as a bridge.
             if (!bossMap.has(item.name)) {
-                bossMap.set(item.name, item.id);
+                bossMap.set(item.name, item); // Store whole item
             }
         }
     });
+
     DOM.bossInputsContainer.innerHTML = bossNames.map(bossName => {
-        const initialValue = remainingTimes[bossName] || '';
-        const bossId = bossMap.get(bossName) || ''; // Get existing ID or empty string
+        const initialTimeValue = remainingTimes[bossName] || '';
+        const existingBoss = bossMap.get(bossName);
+        const bossId = existingBoss ? existingBoss.id : '';
+        // Use stored memo input if available, otherwise use existing memo from data, or empty string
+        const initialMemoValue = memoInputs[bossName] !== undefined ? memoInputs[bossName] : (existingBoss && existingBoss.memo ? existingBoss.memo : '');
+
         return `
             <div class="list-item boss-input-item">
-                <span class="boss-name">${bossName}</span>
-                <input type="text" class="remaining-time-input" data-boss-name="${bossName}" data-id="${bossId}" value="${initialValue}">
-                <span class="calculated-spawn-time">--:--:--</span>
+                <div class="boss-input-row-main">
+                    <span class="boss-name">${bossName}</span>
+                    <input type="text" class="remaining-time-input" data-boss-name="${bossName}" data-id="${bossId}" value="${initialTimeValue}">
+                    <span class="calculated-spawn-time">--:--:--</span>
+                </div>
+                <div class="boss-input-row-memo">
+                    <input type="text" class="memo-input" data-boss-name="${bossName}" value="${initialMemoValue}" placeholder="비고 (20자)" maxlength="20">
+                </div>
             </div>
         `;
     }).join('');
@@ -710,9 +718,12 @@ export function renderBossListTableView(DOM, filterNextBoss) {
                 time = item.time; // HH:MM:SS
             }
             currentCardHtml += `
-                <div class="list-item list-item--dense">
-                    <span style="font-weight: bold; min-width: 60px;">${time}</span>
-                    <span style="margin-left: 16px;">${item.name}</span>
+                <div class="list-item list-item--dense" style="flex-direction: column; align-items: flex-start;">
+                    <div style="display: flex; width: 100%; align-items: center;">
+                        <span style="font-weight: bold; min-width: 60px;">${time}</span>
+                        <span style="margin-left: 16px; flex-grow: 1;">${item.name}</span>
+                    </div>
+                    ${item.memo ? `<div style="font-size: 0.85em; color: #888; margin-top: 4px; margin-left: 76px;">${item.memo}</div>` : ''}
                 </div>
             `;
             hasBossInCurrentDate = true;

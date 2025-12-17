@@ -47,6 +47,7 @@ describe('BossSchedulerScreen UI Interaction', () => {
             <div class="boss-input-item">
                 <input type="text" class="remaining-time-input" value="">
                 <span class="calculated-spawn-time">--:--:--</span>
+                <input type="text" class="memo-input">
             </div>
         `;
         const input = DOM.bossInputsContainer.querySelector('.remaining-time-input');
@@ -60,13 +61,16 @@ describe('BossSchedulerScreen UI Interaction', () => {
             <div class="boss-input-item">
                 <input type="text" class="remaining-time-input" value="01:00:00" data-calculated-date="some-date">
                 <span class="calculated-spawn-time">...</span>
+                <input type="text" class="memo-input" value="some memo">
             </div>
         `;
         const input = DOM.bossInputsContainer.querySelector('.remaining-time-input');
+        const memoInput = DOM.bossInputsContainer.querySelector('.memo-input');
         
         DOM.clearAllRemainingTimesButton.click();
 
         expect(input.value).toBe('');
         expect(input.dataset.calculatedDate).toBeUndefined();
+        expect(memoInput.value).toBe('');
     });
 });
