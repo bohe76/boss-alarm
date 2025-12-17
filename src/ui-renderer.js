@@ -172,8 +172,10 @@ export function renderRecentAlarmLog(DOM) {
 }
 
 export function renderDashboard(DOM) {
-    updateNextBossDisplay(DOM);
-    renderUpcomingBossList(DOM);
+    if (getIsAlarmRunning()) {
+        updateNextBossDisplay(DOM);
+        renderUpcomingBossList(DOM);
+    }
     renderAlarmStatusSummary(DOM);
     updateSoundControls(DOM);
 }

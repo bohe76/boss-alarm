@@ -1,9 +1,10 @@
 // src/screens/boss-management.js
 import { parseBossList } from '../boss-parser.js';
-import { updateBossListTextarea, updateBossManagementUI } from '../ui-renderer.js'; // updateBossManagementUI 추가
-import { BossDataManager, LocalStorageManager } from '../data-managers.js'; // LocalStorageManager 추가
+import { updateBossListTextarea, updateBossManagementUI } from '../ui-renderer.js';
+import { BossDataManager, LocalStorageManager } from '../data-managers.js';
 import { log } from '../logger.js';
-import { trackEvent } from '../analytics.js'; // Added GA import
+import { trackEvent } from '../analytics.js';
+import { getIsAlarmRunning } from '../alarm-scheduler.js';
 
 // 모드 상수 정의
 const VIEW_MODE = 'view';
@@ -24,9 +25,10 @@ function startAutoRefresh(DOM) {
 
         const currentMode = LocalStorageManager.get('bossManagementMode') || VIEW_MODE;
         const filterNextBoss = LocalStorageManager.get('bossManagementNextBossFilter');
+        const isAlarmRunning = getIsAlarmRunning();
 
-        // Only refresh in View Mode with Next Boss Filter ON
-        if (currentMode === VIEW_MODE && filterNextBoss) {
+        // Only refresh in View Mode with Next Boss Filter ON AND Alarm Running
+        if (currentMode === VIEW_MODE && filterNextBoss && isAlarmRunning) {
             updateBossManagementUI(DOM, currentMode);
         }
     }, 1000);

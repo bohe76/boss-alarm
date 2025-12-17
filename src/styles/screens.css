@@ -615,6 +615,13 @@
     text-overflow: ellipsis;
 }
 
+.memo-header {
+    display: none; /* Hidden by default for mobile */
+    width: 240px; /* Width for PC */
+    flex-shrink: 0;
+    text-align: left;
+}
+
 .scheduler-card {
     max-height: 500px;
     overflow-y: auto;
@@ -654,11 +661,10 @@
 .memo-input {
     width: 100%;
     padding: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid #ccc; /* #ddd -> #ccc 로 변경 */
     border-radius: 4px;
     font-size: 0.9em;
     box-sizing: border-box;
-    background-color: #fcfcfc;
 }
 
 /* PC Layout */
@@ -670,7 +676,7 @@
 
     .boss-input-row-main {
         width: auto;
-        flex-grow: 1;
+        flex-grow: 0; /* 기존 1에서 0으로 변경 */
     }
 
     .boss-input-row-memo {
@@ -682,10 +688,9 @@
 
 .boss-name-header,
 .boss-name {
-    flex: 1; /* Allows boss name to grow */
-    min-width: 100px; /* Prevents it from collapsing too much */
-    max-width: 150px; /* Limits growth to prevent remaining times from being pushed too far */
-    text-align: left; /* Boss name is always left aligned */
+    width: 150px; /* 고정 너비로 설정 */
+    flex-shrink: 0; /* 줄어들지 않음 */
+    text-align: left; /* Boss name은 항상 왼쪽 정렬 */
 }
 .boss-name {
     font-weight: bold;
@@ -716,6 +721,21 @@
     border-radius: 4px;
     font-size: 0.9em;
     box-sizing: border-box;
+}
+
+.memo-header {
+    display: flex; /* PC에서는 기본적으로 보이게 */
+    align-items: center; /* 텍스트 세로 중앙 정렬 */
+    width: 240px;
+    flex-shrink: 0;
+    text-align: left;
+}
+
+/* Mobile-specific layout */
+@media (max-width: 768px) {
+    .memo-header {
+        display: none; /* 모바일에서 숨김 */
+    }
 }
 
 /* Mobile-specific layout with horizontal scroll */
