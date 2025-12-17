@@ -9,6 +9,29 @@ import { trackEvent } from '../analytics.js'; // Added GA import
 const VIEW_MODE = 'view';
 const EDIT_MODE = 'edit';
 
+let autoRefreshInterval = null;
+
+function startAutoRefresh(DOM) {
+    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+
+    autoRefreshInterval = setInterval(() => {
+        // Stop timer if screen is not active
+        if (!DOM.bossManagementScreen.classList.contains('active')) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+            return;
+        }
+
+        const currentMode = LocalStorageManager.get('bossManagementMode') || VIEW_MODE;
+        const filterNextBoss = LocalStorageManager.get('bossManagementNextBossFilter');
+
+        // Only refresh in View Mode with Next Boss Filter ON
+        if (currentMode === VIEW_MODE && filterNextBoss) {
+            updateBossManagementUI(DOM, currentMode);
+        }
+    }, 1000);
+}
+
 export function initBossManagementScreen(DOM) {
     // 초기 모드 설정 (localStorage에서 로드 또는 기본값 'view')
     let currentMode = LocalStorageManager.get('bossManagementMode') || VIEW_MODE;
@@ -88,6 +111,11 @@ export function initBossManagementScreen(DOM) {
 export function getScreen() {
     return {
         id: 'boss-management-screen',
-        init: initBossManagementScreen
+        init: initBossManagementScreen,
+        onTransition: (DOM) => {
+            const currentMode = LocalStorageManager.get('bossManagementMode') || VIEW_MODE;
+            updateBossManagementUI(DOM, currentMode);
+            startAutoRefresh(DOM);
+        }
     };
 }
