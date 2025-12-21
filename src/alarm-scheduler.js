@@ -60,13 +60,13 @@ function addAlarmsToFlatSchedule(list, boss, isFixed, nowTime) {
         bossScheduledTime = new Date(boss.scheduledDate).getTime();
     }
 
-    if (!boss.alerted_5min) {
+    if (!boss.alerted_5min || boss.alerted_5min !== bossScheduledTime - 5 * 60 * 1000) {
         list.push({ id: boss.id, name: boss.name, type: '5min', targetTime: bossScheduledTime - 5 * 60 * 1000, isFixed: isFixed });
     }
-    if (!boss.alerted_1min) {
+    if (!boss.alerted_1min || boss.alerted_1min !== bossScheduledTime - 1 * 60 * 1000) {
         list.push({ id: boss.id, name: boss.name, type: '1min', targetTime: bossScheduledTime - 1 * 60 * 1000, isFixed: isFixed });
     }
-    if (!boss.alerted_0min) {
+    if (!boss.alerted_0min || boss.alerted_0min !== bossScheduledTime) {
         list.push({ id: boss.id, name: boss.name, type: '0min', targetTime: bossScheduledTime, isFixed: isFixed });
     }
 }
@@ -104,7 +104,7 @@ export function getIsAlarmRunning() {
     return LocalStorageManager.getAlarmRunningState();
 }
 
-function handleAlarm({ id, name, type, isFixed }) {
+function handleAlarm({ id, name, type, isFixed, targetTime }) {
     let currentBoss = null;
     if (isFixed) {
         currentBoss = LocalStorageManager.getFixedAlarms().find(a => a.id === id);
@@ -114,9 +114,9 @@ function handleAlarm({ id, name, type, isFixed }) {
 
     if (!currentBoss) return;
 
-    if (type === '5min' && currentBoss.alerted_5min) return;
-    if (type === '1min' && currentBoss.alerted_1min) return;
-    if (type === '0min' && currentBoss.alerted_0min) return;
+    // alerted_5min, alerted_1min, alerted_0min이 targetTime과 일치하면 이미 처리된 알림으로 간주
+    // 이전 boolean 값 (true)을 가지고 있을 경우, targetTime과 절대 같을 수 없으므로 새로운 알림으로 처리됨
+    if (currentBoss[`alerted_${type}`] === targetTime) return;
 
     let msg = '';
     if (type === '5min') msg = `5분 전, ${name}`;
@@ -132,7 +132,7 @@ function handleAlarm({ id, name, type, isFixed }) {
     }
 
     if (isFixed) {
-        currentBoss[`alerted_${type}`] = true;
+        currentBoss[`alerted_${type}`] = targetTime;
         LocalStorageManager.updateFixedAlarm(id, currentBoss);
         syncScheduleToWorker();
     } else {
@@ -152,32 +152,7 @@ function handleAlarm({ id, name, type, isFixed }) {
 
 function updateAppState() {
     const now = new Date();
-    const currentTimeString = now.toTimeString().substring(0, 5);
 
-    if (currentTimeString === '00:00') {
-        let mutableBossSchedule = BossDataManager.getBossSchedule();
-        const fixedAlarms = LocalStorageManager.getFixedAlarms();
-        let changed = false;
-
-        mutableBossSchedule.forEach(boss => {
-            if (boss.alerted_5min || boss.alerted_1min || boss.alerted_0min) {
-                boss.alerted_5min = false; boss.alerted_1min = false; boss.alerted_0min = false;
-                changed = true;
-            }
-        });
-        fixedAlarms.forEach(alarm => {
-            if (alarm.alerted_5min || alarm.alerted_1min || alarm.alerted_0min) {
-                alarm.alerted_5min = false; alarm.alerted_1min = false; alarm.alerted_0min = false;
-                LocalStorageManager.updateFixedAlarm(alarm.id, alarm);
-                changed = true;
-            }
-        });
-        if (changed) {
-            BossDataManager.setBossSchedule(mutableBossSchedule);
-            syncScheduleToWorker();
-            log("자정이 되어 모든 알림 상태를 초기화합니다.", true);
-        }
-    }
 
     const nextInfo = calculateNextBoss(now);
     BossDataManager.setNextBossInfo(nextInfo.nextBoss, nextInfo.minTimeDiff);
