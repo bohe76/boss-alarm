@@ -28,7 +28,7 @@ function tick() {
     const now = Date.now();
     
     flatSchedule.forEach(item => {
-        const alarmKey = `${item.id}-${item.type}`; // New: Unique identifier for the alarm
+        const alarmKey = `${item.id}-${item.type}-${item.targetTime}`; // Unique identifier including time
         if (item.targetTime > lastTick && item.targetTime <= now && !sentAlarms.has(alarmKey)) { // New: Check if already sent
             self.postMessage({ type: 'ALARM', payload: item });
             sentAlarms.add(alarmKey); // New: Mark as sent
