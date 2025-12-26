@@ -1,4 +1,4 @@
-import { BossDataManager, LocalStorageManager } from './data-managers.js'; // Import managers
+import { BossDataManager, LocalStorageManager, BOSS_THRESHOLDS } from './data-managers.js'; // Import managers and thresholds
 import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRunning
 import { log, getLogs } from './logger.js'; // Import log and getLogs
 // import { loadJsonContent } from './api-service.js'; // loadJsonContent is no longer needed here
@@ -76,9 +76,9 @@ export function updateNextBossDisplay(DOM) {
     if (!DOM.nextBossContent) return;
     const { nextBoss, minTimeDiff } = BossDataManager.getNextBossInfo();
     if (nextBoss) {
-        const isImminent = minTimeDiff < 5 * 60 * 1000;
-        const isWarning = minTimeDiff < 10 * 60 * 1000;
-        const isMedium = minTimeDiff < 60 * 60 * 1000;
+        const isImminent = minTimeDiff < BOSS_THRESHOLDS.IMMINENT;
+        const isWarning = minTimeDiff < BOSS_THRESHOLDS.WARNING;
+        const isMedium = minTimeDiff < BOSS_THRESHOLDS.MEDIUM;
         let remainingTimeClass = '';
         if (isImminent) {
             remainingTimeClass = 'imminent-remaining-time'; // Red
@@ -98,7 +98,8 @@ export function updateNextBossDisplay(DOM) {
     }
     // Synchronize PiP window if it's open
     if (isPipWindowOpen()) {
-        updatePipContent(nextBoss, minTimeDiff);
+        const { nextBoss: pipNextBoss, minTimeDiff: pipMinTimeDiff, imminentBosses } = BossDataManager.getBossStatusSummary();
+        updatePipContent(pipNextBoss, pipMinTimeDiff, imminentBosses);
     }
 }
 
@@ -107,11 +108,12 @@ export function renderUpcomingBossList(DOM) {
     const upcomingBosses = BossDataManager.getUpcomingBosses(11);
     let html = '<ul>';
     if (upcomingBosses.length > 0) {
+        const now = Date.now();
         upcomingBosses.slice(1).forEach(boss => {
-            const timeDiff = boss.timestamp - Date.now();
-            const isImminent = timeDiff < 5 * 60 * 1000;
-            const isWarning = timeDiff < 10 * 60 * 1000; // New
-            const isMedium = timeDiff < 60 * 60 * 1000;
+            const timeDiff = boss.timestamp - now;
+            const isImminent = timeDiff < BOSS_THRESHOLDS.IMMINENT;
+            const isWarning = timeDiff < BOSS_THRESHOLDS.WARNING;
+            const isMedium = timeDiff < BOSS_THRESHOLDS.MEDIUM;
             const remaining = formatTimeDifference(timeDiff, isImminent);
             const formattedSpawnTime = formatSpawnTime(boss.time);
             let spawnTimeClass = '';
@@ -412,9 +414,9 @@ export function renderFixedAlarms(DOM) {
             <div class="alarm-item-line2">
                 <div class="alarm-days">
                     ${days.map((day, index) => {
-                        const isActive = activeDays.includes(index);
-                        return `<button class="day-button ${isActive ? 'active' : ''}" data-day-index="${index}">${day}</button>`;
-                    }).join('')}
+            const isActive = activeDays.includes(index);
+            return `<button class="day-button ${isActive ? 'active' : ''}" data-day-index="${index}">${day}</button>`;
+        }).join('')}
                 </div>
                 <div class="button-group">
                     <button class="button edit-fixed-alarm-button" data-id="${alarm.id}">편집</button>
@@ -579,7 +581,7 @@ export function renderBossSchedulerScreen(DOM, remainingTimes = {}, memoInputs =
     // Populate game selection dropdown
     const gameNameObjects = getGameNames();
     if (DOM.gameSelect) {
-        DOM.gameSelect.innerHTML = gameNameObjects.map(game => 
+        DOM.gameSelect.innerHTML = gameNameObjects.map(game =>
             `<option value="${game.name}">${game.isCustom ? '*' : ''}${game.name}</option>`
         ).join('');
     }
@@ -639,23 +641,24 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
 // --- Boss Management Screen Rendering Functions ---
 export function updateBossManagementUI(DOM, mode) {
     const isViewMode = mode === 'view';
-    
+
     // Toggle button active state (removed as it's always primary color)
     // DOM.viewEditModeToggleButton.classList.toggle('active', isViewMode);
-    
+
     // Set innerHTML for the button including the icon and label
     DOM.viewEditModeToggleButton.innerHTML = isViewMode ? `${PENCIL_ICON_SVG} 편집` : `${EYE_ICON_SVG} 뷰`;
 
     // console.log("viewEditModeToggleButton innerHTML after set:", DOM.viewEditModeToggleButton.innerHTML); // Debug log
 
-            // Show/hide elements based on mode
-            if (DOM.bossManagementInstruction) DOM.bossManagementInstruction.style.display = isViewMode ? 'none' : 'block';
-            if (DOM.bossListInput) DOM.bossListInput.style.display = isViewMode ? 'none' : 'block';
-            if (DOM.sortBossListButton) DOM.sortBossListButton.style.display = isViewMode ? 'none' : 'block';
-            if (DOM.nextBossToggleButton) DOM.nextBossToggleButton.style.display = isViewMode ? 'block' : 'none';
-            if (DOM.bossListTableContainer) DOM.bossListTableContainer.style.display = isViewMode ? 'block' : 'none';
-    
-            if (isViewMode) {        let filterNextBoss = LocalStorageManager.get('bossManagementNextBossFilter');
+    // Show/hide elements based on mode
+    if (DOM.bossManagementInstruction) DOM.bossManagementInstruction.style.display = isViewMode ? 'none' : 'block';
+    if (DOM.bossListInput) DOM.bossListInput.style.display = isViewMode ? 'none' : 'block';
+    if (DOM.sortBossListButton) DOM.sortBossListButton.style.display = isViewMode ? 'none' : 'block';
+    if (DOM.nextBossToggleButton) DOM.nextBossToggleButton.style.display = isViewMode ? 'block' : 'none';
+    if (DOM.bossListTableContainer) DOM.bossListTableContainer.style.display = isViewMode ? 'block' : 'none';
+
+    if (isViewMode) {
+        let filterNextBoss = LocalStorageManager.get('bossManagementNextBossFilter');
         renderBossListTableView(DOM, filterNextBoss);
     }
 }
@@ -672,7 +675,7 @@ export function renderBossListTableView(DOM, filterNextBoss) {
         //    하지만 여기서는 리스트 순회하며 동적으로 카드를 여닫는 구조이므로,
         //    일단 보스만 필터링하고 날짜 마커는 살려둠.
         schedule = schedule.filter(item => {
-            if (item.type === 'date') return true; 
+            if (item.type === 'date') return true;
             return item.scheduledDate && item.scheduledDate > now;
         });
     }
@@ -705,7 +708,7 @@ export function renderBossListTableView(DOM, filterNextBoss) {
             const currentYear = new Date().getFullYear();
             const dateObj = new Date(`${currentYear}-${currentDate.replace('.', '-')}`);
             const dayOfWeek = getKoreanDayOfWeek(dateObj);
-            
+
             currentCardHtml = `
                 <div class="card-header">
                     <h3>${currentDate} (${dayOfWeek})</h3>

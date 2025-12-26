@@ -1,5 +1,4 @@
-// src/pip-manager.js
-// Removed: import { formatSpawnTime } from './utils.js'; 
+import { BossDataManager, BOSS_THRESHOLDS } from './data-managers.js';
 
 let pipWindow = null;
 let isPipOpen = false;
@@ -12,26 +11,50 @@ export async function togglePipWindow() {
         if (pipWindow) {
             pipWindow.close();
         }
-        // The 'pagehide' event will handle resetting the state
         return;
     }
 
     try {
-        // 창 크기 옵션을 포함하여 PiP 창을 요청합니다.
+        const { imminentBosses } = BossDataManager.getBossStatusSummary();
+        const n = imminentBosses.length;
+
+        // 📐 [96px Baseline] Precision Math
+        // Root is 96px. If 2+ bosses, add 37px for 2nd, then 29px for others.
+        let initialInnerH = 96;
+        if (n >= 2) {
+            initialInnerH = 96 + 37 + (n - 2) * 29;
+        }
+
         pipWindow = await documentPictureInPicture.requestWindow({
             width: 240,
-            height: 100,
+            height: initialInnerH,
+            preferInitialWindowPlacement: true,
         });
-        isPipOpen = true;
 
-        // pip-content.html 파일의 내용을 가져옵니다.
+        isPipOpen = true;
+        pipWindow.document.title = "보스 알리미";
+
         const response = await fetch('src/pip-content.html');
         const content = await response.text();
-
-        // PiP 창에 HTML 콘텐츠를 삽입합니다.
         pipWindow.document.body.innerHTML = content;
 
-        // 사용자가 PiP 창을 닫을 때 'pagehide' 이벤트가 발생합니다.
+        // Trigger immediate update
+        const status = BossDataManager.getBossStatusSummary();
+        updatePipContent(status.nextBoss, status.minTimeDiff, status.imminentBosses);
+
+        // ⚡ [96px Baseline] Instant Sync
+        pipWindow.onclick = () => {
+            const status = BossDataManager.getBossStatusSummary();
+            const n = status.imminentBosses.length;
+            let targetH = 96;
+            if (n >= 2) {
+                targetH = 96 + 37 + (n - 2) * 29;
+            }
+
+            const chromeHeight = pipWindow.outerHeight - pipWindow.innerHeight;
+            pipWindow.resizeTo(240, targetH + chromeHeight);
+        };
+
         pipWindow.addEventListener('pagehide', () => {
             pipWindow = null;
             isPipOpen = false;
@@ -46,54 +69,83 @@ export async function togglePipWindow() {
 
 /**
  * Picture-in-Picture 창의 내용을 업데이트합니다.
- * @param {object} nextBoss - 다음 보스 정보 객체
- * @param {number} minTimeDiff - 남은 시간 (밀리초)
  */
-export function updatePipContent(nextBoss, minTimeDiff) {
+export function updatePipContent(nextBoss, minTimeDiff, imminentBosses = []) {
     if (!isPipOpen || !pipWindow || !pipWindow.document) return;
-    
+
     const nameElement = pipWindow.document.getElementById('pip-boss-name');
     const remainingTimeElement = pipWindow.document.getElementById('pip-remaining-time');
+    const listElement = pipWindow.document.getElementById('pip-imminent-list');
 
-    if (nameElement && remainingTimeElement) {
-        if (nextBoss && minTimeDiff > 0) {
-            const totalSeconds = Math.max(0, Math.floor(minTimeDiff / 1000));
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
+    if (!nameElement || !remainingTimeElement || !listElement) return;
 
-            const pad = (num) => String(num).padStart(2, '0');
-            
-            let formattedRemainingTime;
-            if (hours > 0) {
-                formattedRemainingTime = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-            } else {
-                formattedRemainingTime = `${pad(minutes)}:${pad(seconds)}`;
-            }
+    let targetInnerHeight = 96;
 
-            const isImminent = minTimeDiff < 5 * 60 * 1000;
-            const isWarning = minTimeDiff < 10 * 60 * 1000;
-            const isMedium = minTimeDiff < 60 * 60 * 1000;
+    if (nextBoss) {
+        const pad = (num) => String(num).padStart(2, '0');
+        const format = (diff) => {
+            const totalSec = Math.max(0, Math.floor(diff / 1000));
+            const h = Math.floor(totalSec / 3600);
+            const m = Math.floor((totalSec % 3600) / 60);
+            const s = totalSec % 60;
+            return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+        };
 
-            let remainingTimeClass = '';
-            if (isImminent) {
-                remainingTimeClass = 'imminent-remaining-time';
-            } else if (isWarning) {
-                remainingTimeClass = 'warning-priority';
-            } else if (isMedium) {
-                remainingTimeClass = 'medium-priority';
-            } else {
-                remainingTimeClass = 'default-grey';
-            }
+        nameElement.textContent = nextBoss.name;
+        remainingTimeElement.textContent = format(minTimeDiff);
 
-            nameElement.textContent = nextBoss.name;
-            remainingTimeElement.textContent = formattedRemainingTime;
-            remainingTimeElement.className = `remaining-time ${remainingTimeClass}`;
-
+        if (minTimeDiff < BOSS_THRESHOLDS.IMMINENT) {
+            remainingTimeElement.style.color = '#ea4335';
+        } else if (minTimeDiff < BOSS_THRESHOLDS.WARNING) {
+            remainingTimeElement.style.color = '#FF8F00';
         } else {
-            nameElement.textContent = '다음 보스 없음';
-            remainingTimeElement.textContent = '--:--:--';
-            remainingTimeElement.className = 'remaining-time'; // Reset to default
+            remainingTimeElement.style.color = '#777';
+        }
+
+        const imminentList = imminentBosses.filter(b => b.id !== nextBoss.id);
+        const mainContainer = pipWindow.document.getElementById('pip-main-boss');
+
+        if (imminentList.length > 0) {
+            if (mainContainer) mainContainer.classList.remove('no-list');
+            listElement.innerHTML = imminentList.map(boss => {
+                const diff = boss.timestamp - Date.now();
+                return `
+                    <div class="imminent-item">
+                        <span class="imminent-name">${boss.name}</span>
+                        <span class="imminent-time">${format(diff)}</span>
+                    </div>
+                `;
+            }).join('');
+
+            // 📐 [96px Baseline] Precision Math
+            // imminentList.length is (Total Bosses - 1)
+            // If n=2 (imminentList=1): 96 + 37 + 0 = 133
+            targetInnerHeight = 96 + 37 + (imminentList.length - 1) * 29;
+        } else {
+            if (mainContainer) mainContainer.classList.add('no-list');
+            listElement.innerHTML = '';
+            targetInnerHeight = 96;
+        }
+    } else {
+        nameElement.textContent = '다음 보스 없음';
+        remainingTimeElement.textContent = '--:--:--';
+        remainingTimeElement.style.color = '#777';
+        listElement.innerHTML = '';
+        targetInnerHeight = 96;
+    }
+
+    // 💡 Single-Pulse Detection: Compare calculated target with physical innerHeight
+    const syncBtn = pipWindow.document.getElementById('pip-sync-btn');
+    if (syncBtn) {
+        const currentInnerH = pipWindow.innerHeight;
+        const needsSync = Math.abs(targetInnerHeight - currentInnerH) > 2;
+
+        if (needsSync) {
+            syncBtn.style.display = 'flex';
+            syncBtn.classList.add('blinking');
+        } else {
+            syncBtn.style.display = 'none';
+            syncBtn.classList.remove('blinking');
         }
     }
 }

@@ -4,17 +4,16 @@ import { log } from './logger.js';
 import { speak } from './speech.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js';
 import { renderAlarmStatusSummary } from './ui-renderer.js';
-import { calculateNextOccurrence } from './utils.js';
 
 let worker = null;
 
 try {
     worker = new Worker('./src/workers/timer-worker.js', { type: 'module' });
-    worker.onerror = function(e) {
+    worker.onerror = function (e) {
         log(`Web Worker 오류 발생: ${e.message}`, true);
         console.error('Worker Error:', e);
     };
-    worker.onmessage = function(e) {
+    worker.onmessage = function (e) {
         const { type, payload } = e.data;
         if (type === 'TICK') {
             updateAppState();
@@ -31,17 +30,12 @@ export function syncScheduleToWorker() {
     if (!worker) return;
 
     const now = Date.now();
-    const bossSchedule = BossDataManager.getBossSchedule().filter(item => item.type === 'boss');
-    const fixedAlarms = LocalStorageManager.getFixedAlarms().filter(alarm => alarm.enabled);
-    
+    // Use the centralized engine to get all sorted upcoming bosses
+    const allUpcoming = BossDataManager.getAllUpcomingBosses(now);
+
     const flatSchedule = [];
-
-    bossSchedule.forEach(boss => {
-        addAlarmsToFlatSchedule(flatSchedule, boss, false, now);
-    });
-
-    fixedAlarms.forEach(alarm => {
-        addAlarmsToFlatSchedule(flatSchedule, alarm, true, now);
+    allUpcoming.forEach(boss => {
+        addAlarmsToFlatSchedule(flatSchedule, boss);
     });
 
     worker.postMessage({
@@ -50,15 +44,9 @@ export function syncScheduleToWorker() {
     });
 }
 
-function addAlarmsToFlatSchedule(list, boss, isFixed, nowTime) {
-    let bossScheduledTime;
-
-    if (isFixed) {
-        const nextOccurrence = calculateNextOccurrence(boss, new Date(nowTime));
-        bossScheduledTime = nextOccurrence ? nextOccurrence.getTime() : 0; // Use nextOccurrence
-    } else {
-        bossScheduledTime = new Date(boss.scheduledDate).getTime();
-    }
+function addAlarmsToFlatSchedule(list, boss) {
+    const bossScheduledTime = boss.timestamp;
+    const isFixed = boss.isFixed;
 
     if (!boss.alerted_5min || boss.alerted_5min !== bossScheduledTime - 5 * 60 * 1000) {
         list.push({ id: boss.id, name: boss.name, type: '5min', targetTime: bossScheduledTime - 5 * 60 * 1000, isFixed: isFixed });
@@ -77,18 +65,18 @@ BossDataManager.subscribe(() => {
 
 export function startAlarm(DOM) {
     LocalStorageManager.setAlarmRunningState(true);
-    
+
     if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
         Notification.requestPermission();
     }
 
     log("알림 시스템을 시작합니다.");
     speak("보스 알리미를 시작합니다.");
-    
-    syncScheduleToWorker(); 
+
+    syncScheduleToWorker();
     if (worker) worker.postMessage({ type: 'START' });
-    
-    updateAppState(); 
+
+    updateAppState();
     renderAlarmStatusSummary(DOM);
 }
 
@@ -115,7 +103,6 @@ function handleAlarm({ id, name, type, isFixed, targetTime }) {
     if (!currentBoss) return;
 
     // alerted_5min, alerted_1min, alerted_0min이 targetTime과 일치하면 이미 처리된 알림으로 간주
-    // 이전 boolean 값 (true)을 가지고 있을 경우, targetTime과 절대 같을 수 없으므로 새로운 알림으로 처리됨
     if (currentBoss[`alerted_${type}`] === targetTime) return;
 
     let msg = '';
@@ -151,35 +138,7 @@ function handleAlarm({ id, name, type, isFixed, targetTime }) {
 }
 
 function updateAppState() {
-    const now = new Date();
-
-
-    const nextInfo = calculateNextBoss(now);
-    BossDataManager.setNextBossInfo(nextInfo.nextBoss, nextInfo.minTimeDiff);
-}
-
-function calculateNextBoss(now) {
-    const bossSchedule = BossDataManager.getBossSchedule().filter(item => item.type === 'boss');
-    const fixedAlarms = LocalStorageManager.getFixedAlarms().filter(alarm => alarm.enabled);
-    
-    let allAlarms = [];
-    
-    bossSchedule.forEach(boss => allAlarms.push({ ...boss, isFixed: false }));
-
-    fixedAlarms.forEach(alarm => {
-        const nextOccurrence = calculateNextOccurrence(alarm, now);
-        if (nextOccurrence) {
-            allAlarms.push({ ...alarm, scheduledDate: nextOccurrence, isFixed: true });
-        }
-    });
-
-    allAlarms.sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime());
-
-    const futureAlarms = allAlarms.filter(a => a.scheduledDate.getTime() >= now.getTime());
-    
-    if (futureAlarms.length > 0) {
-        const next = futureAlarms[0];
-        return { nextBoss: next, minTimeDiff: next.scheduledDate.getTime() - now.getTime() };
-    }
-    return { nextBoss: null, minTimeDiff: Infinity };
+    // Use the centralized summary engine
+    const { nextBoss, minTimeDiff } = BossDataManager.getBossStatusSummary();
+    BossDataManager.setNextBossInfo(nextBoss, minTimeDiff);
 }

@@ -1,5 +1,10 @@
-// src/data-managers.js
 import { calculateNextOccurrence } from './utils.js';
+
+export const BOSS_THRESHOLDS = {
+    IMMINENT: 5 * 60 * 1000,    // 5 minutes
+    WARNING: 10 * 60 * 1000,    // 10 minutes
+    MEDIUM: 60 * 60 * 1000      // 1 hour
+};
 
 export const BossDataManager = (() => {
     let bossSchedule = []; // 파싱된 보스 정보를 저장할 배열
@@ -28,75 +33,58 @@ export const BossDataManager = (() => {
             notify();
         },
         getNextBossInfo: () => ({ nextBoss: _nextBoss, minTimeDiff: _minTimeDiff }),
-                getUpcomingBosses: (count) => {
-                                const currentTimestamp = Date.now(); // Standardize `now` as currentTimestamp
-                                const nowAsDate = new Date(currentTimestamp); // Consistent Local Date object for comparisons
-                    
-                                const upcoming = [];                    let addedCount = 0;
-        
-                    // Get fixed bosses from LocalStorageManager
-                    const fixedBosses = LocalStorageManager.getFixedAlarms()
-                        .filter(alarm => alarm.enabled) // Only consider enabled fixed alarms
-                        .map(alarm => ({ ...alarm, isFixed: true })); // Copy all properties including id, and mark as fixed
-        
-                                // Combine bossSchedule and fixedBosses, filter out non-boss entries and past bosses, then sort
-        
-                                const allBosses = [...bossSchedule, ...fixedBosses]
-        
-                                    .filter(boss => boss.time) // Filter out entries without a 'time' property (i.e., date entries)
-        
-                                                                .map(boss => {
-                                    
-                                                                    let timestamp;
-                                    
-                                                                    if (boss.isFixed) {
-                                                                        // Use the new helper function to calculate the next occurrence
-                                                                        const nextOccurrence = calculateNextOccurrence(boss, nowAsDate); // Pass consistent nowAsDate
-                                                                        timestamp = nextOccurrence ? nextOccurrence.getTime() : 0; // If null, set to 0 to filter out
-                                                                    } else if (boss.scheduledDate) {
-                                    
-                                                                        // Dynamic boss: Use the already calculated scheduledDate
-                                                                        const scheduledDateAsDate = new Date(boss.scheduledDate);
-                                                                        timestamp = new Date(
-                                                                            scheduledDateAsDate.getFullYear(),
-                                                                            scheduledDateAsDate.getMonth(),
-                                                                            scheduledDateAsDate.getDate(),
-                                                                            scheduledDateAsDate.getHours(),
-                                                                            scheduledDateAsDate.getMinutes(),
-                                                                            scheduledDateAsDate.getSeconds()
-                                                                        ).getTime();
-                                                                    } else {
-                                    
-                                                                         // Fallback (should rarely happen for valid bosses): treat as today
-                                    
-                                                                        const [hours, minutes, seconds] = boss.time.split(':').map(Number);
-                                    
-                                                                        const bossDateTime = new Date(nowAsDate.getFullYear(), nowAsDate.getMonth(), nowAsDate.getDate(), hours, minutes, seconds || 0);
-                                    
-                                                                        timestamp = bossDateTime.getTime();
-                                    
-                                                                    }
-                                    
-                                                                    return { ...boss, timestamp };
-                                    
-                                                                })
-                                                                .filter(boss => {
-                                                                    return boss.timestamp > currentTimestamp;
-                                                                })
-                                                                .sort((a, b) => {
-                                                                    return a.timestamp - b.timestamp;
-                                                                });                            
-                                        for (const boss of allBosses) {
-                                            if (addedCount < count) {
-                                                upcoming.push(boss);
-                                                addedCount++;
-                                            } else {                    break;
-                        }
-                    }
-                    return upcoming;
-                },
-            };
-        })();
+
+        /**
+         * Returns all future bosses from both manual schedule and fixed alarms, sorted by time.
+         * This is the CORE engine for boss calculations.
+         */
+        getAllUpcomingBosses: (nowTime = Date.now()) => {
+            const nowAsDate = new Date(nowTime);
+
+            const manualBosses = bossSchedule
+                .filter(item => item.type === 'boss' && item.time)
+                .map(boss => ({
+                    ...boss,
+                    timestamp: new Date(boss.scheduledDate).getTime(),
+                    isFixed: false
+                }));
+
+            const fixedBosses = LocalStorageManager.getFixedAlarms()
+                .filter(alarm => alarm.enabled)
+                .map(alarm => {
+                    const nextOccurrence = calculateNextOccurrence(alarm, nowAsDate);
+                    return {
+                        ...alarm,
+                        timestamp: nextOccurrence ? nextOccurrence.getTime() : 0,
+                        isFixed: true,
+                        scheduledDate: nextOccurrence
+                    };
+                })
+                .filter(boss => boss.timestamp > nowTime);
+
+            return [...manualBosses, ...fixedBosses]
+                .sort((a, b) => a.timestamp - b.timestamp);
+        },
+
+        /**
+         * Returns a summary of the current boss status including the next boss and imminent ones.
+         */
+        getBossStatusSummary: (nowTime = Date.now()) => {
+            const all = BossDataManager.getAllUpcomingBosses(nowTime);
+            const nextBoss = all[0] || null;
+            const minTimeDiff = nextBoss ? nextBoss.timestamp - nowTime : Infinity;
+
+            // Filter bosses that are appearing within the imminent threshold (usually 5 mins)
+            const imminentBosses = all.filter(boss => (boss.timestamp - nowTime) <= BOSS_THRESHOLDS.IMMINENT);
+
+            return { nextBoss, minTimeDiff, imminentBosses, allUpcoming: all };
+        },
+
+        getUpcomingBosses: (count) => {
+            return BossDataManager.getAllUpcomingBosses().slice(0, count);
+        },
+    };
+})();
 
 export const LocalStorageManager = (() => {
     let fixedAlarms = []; // 고정 알림 목록 (사용자 정의 가능)
