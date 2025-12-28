@@ -10,6 +10,7 @@ export const BossDataManager = (() => {
     let bossSchedule = []; // 파싱된 보스 정보를 저장할 배열
     let _nextBoss = null; // 다음 보스 정보를 저장할 변수
     let _minTimeDiff = Infinity; // 다음 보스까지 남은 시간을 저장할 변수
+    let _presets = {}; // 보스 프리셋 메타데이터 저장용
     const subscribers = []; // 구독자(콜백 함수) 목록
 
     const notify = () => {
@@ -19,6 +20,21 @@ export const BossDataManager = (() => {
     };
 
     return {
+        initPresets: (presets) => {
+            _presets = presets;
+        },
+        getBossInterval: (bossName, contextId) => {
+            if (contextId && _presets[contextId] && _presets[contextId].bossMetadata[bossName]) {
+                return _presets[contextId].bossMetadata[bossName].interval || 0;
+            }
+            // ID가 없는 경우 전체 프리셋에서 검색 (하위 호환성)
+            for (const context of Object.values(_presets)) {
+                if (context.bossMetadata[bossName]) {
+                    return context.bossMetadata[bossName].interval || 0;
+                }
+            }
+            return 0;
+        },
         subscribe: (callback) => {
             subscribers.push(callback);
         },

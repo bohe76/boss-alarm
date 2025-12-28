@@ -159,30 +159,7 @@ export function parseBossList(bossListInput) {
         mergedBosses.sort((a, b) => a.scheduledDate - b.scheduledDate);
 
         // 4. Reconstruction with Date Markers
-        const finalSchedule = [];
-        let lastDateStr = "";
-
-        mergedBosses.forEach(boss => {
-            const d = boss.scheduledDate;
-            const month = d.getMonth() + 1;
-            const day = d.getDate();
-            const currentDateStr = `${padNumber(month)}.${padNumber(day)}`;
-
-            if (currentDateStr !== lastDateStr) {
-                const markerDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-                finalSchedule.push({
-                    type: 'date',
-                    value: currentDateStr,
-                    scheduledDate: markerDate
-                });
-                lastDateStr = currentDateStr;
-            }
-            finalSchedule.push(boss);
-        });
-
-        // BossDataManager.setBossSchedule(finalSchedule); // Removed auto-save
-
-        return { success: true, mergedSchedule: finalSchedule, errors: [] };
+        return { success: true, mergedSchedule: reconstructSchedule(mergedBosses), errors: [] };
 
     } catch (error) {
         const msg = `보스 목록 파싱 중 치명적 오류: ${error.message}`;
@@ -258,11 +235,20 @@ export function processBossItems(items) {
     // Sort by date
     parsedBosses.sort((a, b) => a.scheduledDate - b.scheduledDate);
 
-    // Reconstruct with Date Markers (Same structure as parseBossList)
+    // Reconstruct with Date Markers
+    return reconstructSchedule(parsedBosses);
+}
+
+/**
+ * 보스 목록을 날짜별 마커를 포함한 스케줄 형식으로 재구성합니다.
+ * @param {Array} sortedBosses - 정렬된 보스 객체 배열
+ * @returns {Array} - 날짜 마커가 삽입된 스케줄 배열
+ */
+export function reconstructSchedule(sortedBosses) {
     const finalSchedule = [];
     let lastDateStr = "";
 
-    parsedBosses.forEach(boss => {
+    sortedBosses.forEach(boss => {
         const d = boss.scheduledDate;
         const month = d.getMonth() + 1;
         const day = d.getDate();
