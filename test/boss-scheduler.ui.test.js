@@ -1,11 +1,24 @@
 // test/boss-scheduler.ui.test.js
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { initBossSchedulerScreen } from '../src/screens/boss-scheduler.js';
+import { BossDataManager } from '../src/data-managers.js';
 import * as calculator from '../src/calculator.js';
 
 let calculateBossAppearanceTimeSpy;
+let mockDraftSchedule = [];
 
 vi.mock('../src/logger.js', () => ({ log: vi.fn() }));
+
+// Mock boss-scheduler-data.js
+vi.mock('../src/boss-scheduler-data.js', () => ({
+    getBossNamesForGame: vi.fn().mockReturnValue(['보스1', '보스2', '셀로비아', '파르바', '우로보로스', '페티']) // 테스트에 사용되는 보스 이름들
+}));
+
+vi.mock('../src/ui-renderer.js', () => ({
+    renderBossInputs: vi.fn(),
+    renderBossSchedulerScreen: vi.fn(),
+    updateBossListTextarea: vi.fn()
+}));
 
 vi.mock('../src/default-boss-list.js', () => ({
     DEFAULT_BOSS_LIST_KOR: [
@@ -23,15 +36,23 @@ describe('BossSchedulerScreen UI Interaction', () => {
         vi.setSystemTime(new Date('2025-11-28T19:00:00+09:00'));
         vi.spyOn(window, 'confirm').mockReturnValue(true);
 
+        mockDraftSchedule = [];
+        vi.spyOn(BossDataManager, 'getDraftSchedule').mockImplementation(() => mockDraftSchedule);
+        vi.spyOn(BossDataManager, 'setDraftSchedule').mockImplementation((newDraft) => { mockDraftSchedule = newDraft; });
+        vi.spyOn(BossDataManager, 'getBossSchedule').mockImplementation(() => []); // 기본 빈 배열
+
         calculateBossAppearanceTimeSpy = vi.spyOn(calculator, 'calculateBossAppearanceTime').mockImplementation(() => new Date('2025-11-28T19:00:00+09:00'));
 
         DOM = {
             bossSchedulerScreen: document.createElement('div'),
             bossInputsContainer: document.createElement('div'),
             clearAllRemainingTimesButton: document.createElement('button'),
+            schedulerBossListInput: document.createElement('textarea'), // Add
+            gameSelect: { value: 'odin-main' } // Add gameSelect mock
         };
         DOM.bossSchedulerScreen.appendChild(DOM.bossInputsContainer);
         DOM.bossSchedulerScreen.appendChild(DOM.clearAllRemainingTimesButton);
+        DOM.bossSchedulerScreen.appendChild(DOM.schedulerBossListInput); // Add
         document.body.appendChild(DOM.bossSchedulerScreen);
         initBossSchedulerScreen(DOM);
     });
@@ -39,6 +60,7 @@ describe('BossSchedulerScreen UI Interaction', () => {
     afterEach(() => {
         vi.useRealTimers();
         document.body.innerHTML = '';
+        mockDraftSchedule = [];
     });
 
     it('should update calculated time on input change', () => {
@@ -66,7 +88,7 @@ describe('BossSchedulerScreen UI Interaction', () => {
         `;
         const input = DOM.bossInputsContainer.querySelector('.remaining-time-input');
         const memoInput = DOM.bossInputsContainer.querySelector('.memo-input');
-        
+
         DOM.clearAllRemainingTimesButton.click();
 
         expect(input.value).toBe('');

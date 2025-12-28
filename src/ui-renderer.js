@@ -356,8 +356,8 @@ export function renderCrazySavedList(DOM, records) {
 
 // --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 ---
 // bossSchedule 배열의 내용을 기반으로 텍스트 영역을 업데이트합니다.
-export function updateBossListTextarea(DOM) { // Function signature remains unchanged
-    const bossSchedule = BossDataManager.getBossSchedule(); // Get from manager
+export function updateBossListTextarea(DOM, scheduleData = null) {
+    const bossSchedule = scheduleData || BossDataManager.getBossSchedule(); // Use provided data or get from manager
     const outputLines = [];
     for (let i = 0; i < bossSchedule.length; i++) {
         const currentItem = bossSchedule[i];

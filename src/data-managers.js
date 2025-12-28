@@ -8,14 +8,37 @@ export const BOSS_THRESHOLDS = {
 
 export const BossDataManager = (() => {
     let bossSchedule = []; // 파싱된 보스 정보를 저장할 배열
+    let _draftSchedule = null; // Draft 스케줄 저장용 (임시 SSOT)
     let _nextBoss = null; // 다음 보스 정보를 저장할 변수
     let _minTimeDiff = Infinity; // 다음 보스까지 남은 시간을 저장할 변수
     let _presets = {}; // 보스 프리셋 메타데이터 저장용
     const subscribers = []; // 구독자(콜백 함수) 목록
 
+    // LocalStorage Key
+    const STORAGE_KEY = 'bossSchedule';
+    const DRAFT_STORAGE_KEY = 'bossSchedule_draft';
+
     const notify = () => {
         for (const subscriber of subscribers) {
             subscriber();
+        }
+    };
+
+    // 초기화: 로컬 스토리지 데이터 로드
+    // (IIFE가 실행될 때가 아니라, 필요 시점에 로드하도록 수정하거나, 
+    // 기존 로직과 충돌하지 않게 주의. 기존엔 외부에서 setBossSchedule로 초기화했음)
+    // 여기서는 Draft 기능만 추가하되, Draft는 필요할 때 로드하도록 함.
+
+    // Load Draft from LocalStorage on first access helper
+    const loadDraft = () => {
+        if (!_draftSchedule) {
+            const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
+            if (savedDraft) {
+                _draftSchedule = JSON.parse(savedDraft, (key, value) => {
+                    if (key === 'scheduledDate') return new Date(value);
+                    return value;
+                });
+            }
         }
     };
 
@@ -41,8 +64,48 @@ export const BossDataManager = (() => {
         getBossSchedule: () => bossSchedule,
         setBossSchedule: (newSchedule) => {
             bossSchedule = newSchedule;
+            // Main Schedule 저장 로직은 기존 코드(boss-scheduler.js 등)에서 수행하고 있을 수 있음.
+            // 하지만 DataManager가 책임을 지는 구조로 가는게 맞음.
+            // 일단 여기선 상태 업데이트 및 알림만 수행 (기존 호환성 유지)
+            // SSOT 저장을 명시적으로 수행하려면 여기서 localStorage 저장을 해도 됨.
             notify();
         },
+
+        // --- Draft Management ---
+        getDraftSchedule: () => {
+            loadDraft();
+            if (!_draftSchedule) {
+                // Main에서 복사
+                _draftSchedule = JSON.parse(JSON.stringify(bossSchedule), (key, value) => {
+                    if (key === 'scheduledDate') return new Date(value);
+                    return value;
+                });
+            }
+            return _draftSchedule;
+        },
+        setDraftSchedule: (newDraft) => {
+            _draftSchedule = newDraft;
+            localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(newDraft));
+        },
+        commitDraft: () => {
+            if (_draftSchedule) {
+                bossSchedule = _draftSchedule;
+                // Main Schedule LocalStorage 저장은 외부(handleApplyBossSettings)에서 하거나
+                // 여기서 해야함. 기존 로직 보존을 위해 상태만 변경하고,
+                // 호출자가 saveBossSchedule 같은걸 호출하는지 확인 필요하나,
+                // handleApplyBossSettings에서 commitDraft 후 updateBossListTextarea 등 호출하므로
+                // 여기서는 상태 동기화 + Draft 삭제만 처리
+                localStorage.removeItem(DRAFT_STORAGE_KEY);
+                _draftSchedule = null;
+                notify();
+            }
+        },
+        clearDraft: () => {
+            _draftSchedule = null;
+            localStorage.removeItem(DRAFT_STORAGE_KEY);
+        },
+        // ------------------------
+
         setNextBossInfo: (nextBoss, minTimeDiff) => {
             _nextBoss = nextBoss;
             _minTimeDiff = minTimeDiff;

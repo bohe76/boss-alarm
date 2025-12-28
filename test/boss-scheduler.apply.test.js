@@ -5,7 +5,11 @@ import { BossDataManager } from '../src/data-managers.js';
 import * as calculator from '../src/calculator.js';
 
 let mockBossSchedule = [];
+// Draft 스케줄 모킹용 변수
+let mockDraftSchedule = [];
 let setBossScheduleSpy;
+let setDraftScheduleSpy;
+let commitDraftSpy;
 let calculateBossAppearanceTimeSpy;
 
 vi.mock('../src/event-bus.js', () => {
@@ -38,22 +42,39 @@ describe('BossSchedulerScreen Apply Logic', () => {
         vi.spyOn(window, 'alert').mockImplementation(() => { });
 
         mockBossSchedule = [];
+        mockDraftSchedule = []; // 초기화
+
         vi.spyOn(BossDataManager, 'getBossSchedule').mockImplementation(() => mockBossSchedule);
         setBossScheduleSpy = vi.spyOn(BossDataManager, 'setBossSchedule').mockImplementation((newSchedule) => { mockBossSchedule = newSchedule; });
         vi.spyOn(BossDataManager, 'subscribe').mockImplementation(() => { });
+
+        // Draft 관련 메서드 모킹
+        vi.spyOn(BossDataManager, 'getDraftSchedule').mockImplementation(() => mockDraftSchedule);
+        setDraftScheduleSpy = vi.spyOn(BossDataManager, 'setDraftSchedule').mockImplementation((newDraft) => { mockDraftSchedule = newDraft; });
+        commitDraftSpy = vi.spyOn(BossDataManager, 'commitDraft').mockImplementation(() => {
+            if (mockDraftSchedule.length > 0) {
+                mockBossSchedule = [...mockDraftSchedule]; // Draft를 Main으로 복사
+                mockDraftSchedule = []; // Draft 초기화 (로직상 이렇게 가정)
+            }
+        });
 
         calculateBossAppearanceTimeSpy = vi.spyOn(calculator, 'calculateBossAppearanceTime').mockImplementation(() => new Date('2025-11-28T19:00:00+09:00'));
 
         DOM = {
             bossSchedulerScreen: document.createElement('div'),
             bossInputsContainer: document.createElement('div'),
+            clearAllRemainingTimesButton: document.createElement('button'),
             moveToBossSettingsButton: document.createElement('button'),
-            schedulerBossListInput: document.createElement('textarea'), // Add schedulerBossListInput
+            schedulerBossListInput: document.createElement('textarea'),
+            tabSchedulerText: document.createElement('button'),
+            gameSelect: { value: 'odin-main' }
         };
         document.body.appendChild(DOM.bossSchedulerScreen);
         DOM.bossSchedulerScreen.appendChild(DOM.bossInputsContainer);
         DOM.bossSchedulerScreen.appendChild(DOM.moveToBossSettingsButton);
         DOM.bossSchedulerScreen.appendChild(DOM.schedulerBossListInput); // Append schedulerBossListInput
+        DOM.bossSchedulerScreen.appendChild(DOM.clearAllRemainingTimesButton); // Append new elements
+        DOM.bossSchedulerScreen.appendChild(DOM.tabSchedulerText); // Append new elements
 
         initBossSchedulerScreen(DOM);
     });
@@ -80,10 +101,16 @@ describe('BossSchedulerScreen Apply Logic', () => {
             input.dispatchEvent(new Event('input', { bubbles: true }));
         });
 
+        // Draft가 업데이트되었는지 확인 (Input Event -> syncInputToText -> setDraftSchedule)
+        expect(setDraftScheduleSpy).toHaveBeenCalled();
+
         handleApplyBossSettings(DOM);
 
-        expect(setBossScheduleSpy).toHaveBeenCalledOnce();
-        const finalSchedule = setBossScheduleSpy.mock.calls[0][0];
+        // commitDraft가 호출되었는지 확인
+        expect(commitDraftSpy).toHaveBeenCalledOnce();
+
+        // 최종적으로 업데이트된 스케줄 확인 (commitDraft 모의 구현에 의해 mockBossSchedule에 복사됨)
+        const finalSchedule = mockBossSchedule;
 
         // +12h 자동 추가 로직이 제거되었으므로 입력한 4개의 보스만 존재
         expect(finalSchedule.filter(item => item.type === 'boss')).toHaveLength(4);
@@ -104,7 +131,10 @@ describe('BossSchedulerScreen Apply Logic', () => {
         inputParba.dispatchEvent(new Event('input', { bubbles: true }));
 
         handleApplyBossSettings(DOM);
-        const finalSchedule = setBossScheduleSpy.mock.calls[0][0];
+
+        expect(commitDraftSpy).toHaveBeenCalled();
+        const finalSchedule = mockBossSchedule;
+
         // +12h 자동 추가 로직이 제거되었으므로 입력한 2개의 보스만 존재
         expect(finalSchedule.filter(item => item.type === 'boss')).toHaveLength(2);
         expect(finalSchedule.filter(item => item.type === 'boss')[0].name).toBe('셀로비아');
@@ -128,7 +158,10 @@ describe('BossSchedulerScreen Apply Logic', () => {
         inputNormal.dispatchEvent(new Event('input', { bubbles: true }));
 
         handleApplyBossSettings(DOM);
-        const finalSchedule = setBossScheduleSpy.mock.calls[0][0];
+
+        expect(commitDraftSpy).toHaveBeenCalled();
+        const finalSchedule = mockBossSchedule;
+
         expect(finalSchedule.filter(item => item.type === 'boss')).toHaveLength(1); // 일반 보스만 남아있어야 함
         expect(finalSchedule.filter(item => item.type === 'boss')[0].name).toBe('일반 보스');
     });
