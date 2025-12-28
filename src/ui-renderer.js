@@ -579,12 +579,12 @@ export function renderBossSchedulerScreen(DOM, remainingTimes = {}, memoInputs =
     const gameNameObjects = getGameNames();
     if (DOM.gameSelect) {
         DOM.gameSelect.innerHTML = gameNameObjects.map(game =>
-            `<option value="${game.name}">${game.isCustom ? '*' : ''}${game.name}</option>`
+            `<option value="${game.id}">${game.isCustom ? '*' : ''}${game.name}</option>`
         ).join('');
     }
     // Render bosses for the initially selected game
     if (gameNameObjects.length > 0) {
-        renderBossInputs(DOM, gameNameObjects[0].name, remainingTimes, memoInputs);
+        renderBossInputs(DOM, gameNameObjects[0].id, remainingTimes, memoInputs);
     } else {
         if (DOM.bossInputsContainer) {
             DOM.bossInputsContainer.innerHTML = '<p>선택할 수 있는 게임 목록이 없습니다.</p>';

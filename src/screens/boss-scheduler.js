@@ -37,7 +37,10 @@ function showSchedulerTab(DOM, tabId) {
 }
 
 function syncInputToText(DOM) {
-    const listLines = [];
+    const currentSchedule = BossDataManager.getBossSchedule();
+    const inputValuesMap = new Map();
+
+    // 1. 입력 모드 DOM에서 최신 값 수집
     DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
         const bossName = item.querySelector('.boss-name').textContent;
         const timeSpan = item.querySelector('.calculated-spawn-time');
@@ -45,12 +48,38 @@ function syncInputToText(DOM) {
         const timeText = timeSpan.textContent;
 
         if (timeText && timeText !== '--:--:--') {
-            const memo = memoInput ? memoInput.value.trim() : '';
-            // Handle both HH:MM and HH:MM:SS
-            const formattedLine = memo ? `${timeText} ${bossName} (${memo})` : `${timeText} ${bossName}`;
-            listLines.push(formattedLine);
+            inputValuesMap.set(bossName, {
+                time: timeText,
+                memo: memoInput ? memoInput.value.trim() : ''
+            });
         }
     });
+
+    const listLines = [];
+    const processedBossNames = new Set();
+
+    // 2. 기존 스케줄 구조를 순회하며 텍스트 생성 (날짜 헤더 유지)
+    currentSchedule.forEach(item => {
+        if (item.type === 'date') {
+            listLines.push(item.value);
+        } else if (item.type === 'boss') {
+            const updated = inputValuesMap.get(item.name);
+            if (updated) {
+                const line = updated.memo ? `${updated.time} ${item.name} (${updated.memo})` : `${updated.time} ${item.name}`;
+                listLines.push(line);
+                processedBossNames.add(item.name);
+            }
+        }
+    });
+
+    // 3. 기존 스케줄에 없었지만 입력 모드에서 새로 추가된 보스들 처리
+    inputValuesMap.forEach((val, name) => {
+        if (!processedBossNames.has(name)) {
+            const line = val.memo ? `${val.time} ${name} (${val.memo})` : `${val.time} ${name}`;
+            listLines.push(line);
+        }
+    });
+
     DOM.schedulerBossListInput.value = listLines.join('\n');
 }
 

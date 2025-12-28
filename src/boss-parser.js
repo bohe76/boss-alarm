@@ -18,13 +18,13 @@ export function parseBossList(bossListInput) {
     let baseDate = null;
     let dayOffset = 0;
     let lastBossTimeInSeconds = -1;
-    
+
     const parsedBosses = []; // Only store boss objects temporarily
     const errors = []; // Store validation errors
 
     const normalizedText = text.replace(/\r\n|\r/g, '\n').replace(/[^\S\n]+/g, ' ').trim();
     const lines = normalizedText.split('\n').map(line => line.trim()).filter(line => line);
-    
+
     // Check if there are any date headers in the text
     const hasDateHeaders = lines.some(line => line.match(/^(\d{1,2})\.(\d{1,2})$/));
 
@@ -44,7 +44,7 @@ export function parseBossList(bossListInput) {
         if (!baseDate) {
             baseDate = new Date(now);
         }
-        baseDate.setHours(0,0,0,0);
+        baseDate.setHours(0, 0, 0, 0);
 
         lines.forEach((line, index) => {
             const dateMatch = line.match(/^(\d{1,2})\.(\d{1,2})$/);
@@ -65,10 +65,10 @@ export function parseBossList(bossListInput) {
                     return;
                 }
                 baseDate = parsedDate;
-                baseDate.setHours(0,0,0,0);
+                baseDate.setHours(0, 0, 0, 0);
                 dayOffset = 0;
                 lastBossTimeInSeconds = -1;
-                return; 
+                return;
             }
 
             const parts = line.split(' ');
@@ -129,12 +129,12 @@ export function parseBossList(bossListInput) {
         const currentSchedule = BossDataManager.getBossSchedule();
         const existingBosses = currentSchedule.filter(item => item.type === 'boss');
         const mergedBosses = [];
-        
+
         const existingBossPool = [...existingBosses];
 
         parsedBosses.forEach(parsed => {
             const matchIndex = existingBossPool.findIndex(existing => existing.name === parsed.name);
-            
+
             if (matchIndex !== -1) {
                 // Found a match! Preserve ID and State.
                 const existing = existingBossPool[matchIndex];
@@ -179,7 +179,7 @@ export function parseBossList(bossListInput) {
             }
             finalSchedule.push(boss);
         });
-        
+
         // BossDataManager.setBossSchedule(finalSchedule); // Removed auto-save
 
         return { success: true, mergedSchedule: finalSchedule, errors: [] };
@@ -199,9 +199,87 @@ export function getSortedBossListText(rawText) {
     // Since we want "Time Sort" button to work, we should rely on parseBossList to sort and set data,
     // and then updateBossListTextarea to show it.
     // But this function is expected to RETURN text.
-    
+
     // For now, let's just return the input text.
     // The actual sorting happens because 'parseBossList' updates the DataManager, 
     // and the UI subscribes to it.
-    return rawText; 
+    return rawText;
 }
+
+/**
+ * 구조화된 보스 아이템 배열을 파싱하여 스케줄로 변환합니다. (JSON 데이터 대응)
+ * @param {Array} items - { time: string, name: string } 배열
+ * @returns {Array} - 변환된 전체 스케줄 배열 (날짜 마커 포함)
+ */
+export function processBossItems(items) {
+    if (!items || !Array.isArray(items)) return [];
+
+    const now = new Date();
+    now.setSeconds(0);
+    now.setMilliseconds(0);
+
+    let baseDate = new Date(now);
+    baseDate.setHours(0, 0, 0, 0);
+
+    let dayOffset = 0;
+    let lastBossTimeInSeconds = -1;
+    const parsedBosses = [];
+
+    items.forEach(item => {
+        const timeParts = parseTime(item.time);
+        if (!timeParts) return;
+
+        const { hours: bossHour, minutes: bossMinute, seconds: bossSecond } = timeParts;
+        const bossTimeInSeconds = bossHour * 3600 + bossMinute * 60 + bossSecond;
+
+        // Chronological wrap-around logic
+        if (lastBossTimeInSeconds !== -1 && bossTimeInSeconds < lastBossTimeInSeconds) {
+            dayOffset++;
+        }
+        lastBossTimeInSeconds = bossTimeInSeconds;
+
+        let scheduledDate = new Date(baseDate);
+        scheduledDate.setDate(baseDate.getDate() + dayOffset);
+        scheduledDate.setHours(bossHour, bossMinute, bossSecond);
+
+        parsedBosses.push({
+            id: generateUniqueId(),
+            type: 'boss',
+            time: `${padNumber(bossHour)}:${padNumber(bossMinute)}:${padNumber(bossSecond)}`,
+            name: item.name,
+            scheduledDate: scheduledDate,
+            timeFormat: item.time.includes(':') && item.time.split(':').length > 2 ? 'hms' : 'hm',
+            alerted_5min: false,
+            alerted_1min: false,
+            alerted_0min: false,
+        });
+    });
+
+    // Sort by date
+    parsedBosses.sort((a, b) => a.scheduledDate - b.scheduledDate);
+
+    // Reconstruct with Date Markers (Same structure as parseBossList)
+    const finalSchedule = [];
+    let lastDateStr = "";
+
+    parsedBosses.forEach(boss => {
+        const d = boss.scheduledDate;
+        const month = d.getMonth() + 1;
+        const day = d.getDate();
+        const currentDateStr = `${padNumber(month)}.${padNumber(day)}`;
+
+        if (currentDateStr !== lastDateStr) {
+            const markerDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+            finalSchedule.push({
+                type: 'date',
+                value: currentDateStr,
+                scheduledDate: markerDate
+            });
+            lastDateStr = currentDateStr;
+        }
+        finalSchedule.push(boss);
+    });
+
+    return finalSchedule;
+}
+
