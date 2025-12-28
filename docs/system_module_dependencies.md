@@ -20,7 +20,7 @@
 | `event-bus.js` | `EventBus.on('navigate', ...)`: 화면 전환 이벤트 구독 |
 | `alarm-scheduler.js` | `getIsAlarmRunning()`, `startAlarm()`: 알람 상태 확인 및 시작 |
 | `utils.js` | `formatMonthDay()`: 날짜 포맷팅 (loadInitialData 내부) |
-| `default-boss-list.js` | `bossPresets`: 기본 보스 목록 로딩 (loadInitialData 내부) |
+| `boss-scheduler-data.js` | `getInitialDefaultData()`: 초기 기본 보스 목록 데이터 조회 |
 | `screens/settings.js` | `getScreen()`: '설정' 화면의 메타 정보 가져오기 (이전 `notifications.js`) |
 
 ## 2. `src/global-event-listeners.js` (전역 EventBus 리스너 관리)
@@ -61,7 +61,7 @@
 | **`custom-list-manager.js`** | `data-managers.js`, `logger.js`, `boss-scheduler-data.js` | 커스텀 목록 영구 저장, 유효성 검사, 미리 정의된 게임 이름 조회 |
 | **`boss-parser.js`** | `logger.js`, `data-managers.js`, `utils.js` | 보스 목록 텍스트 파싱, 기존 데이터 병합, `BossDataManager` 상태 변경, 로깅 |
 | **`global-event-listeners.js`** | `event-bus.js`, `data-managers.js`, `ui-renderer.js`, `screens/alarm-log.js` | 전역 EventBus 리스너를 정의하고, `BossDataManager`의 데이터 변경 및 `log-updated` 이벤트에 반응합니다. |
-| **`boss-scheduler-data.js`** | `logger.js`, `custom-list-manager.js` | 기본 보스 목록 로딩, 커스텀 목록과 조합하여 게임/목록 제공 |
+| **`boss-scheduler-data.js`** | `logger.js`, `custom-list-manager.js`, `api-service.js` | 보스 프리셋 및 초기 데이터 JSON 로딩, 커스텀 목록과 조합하여 제공 |
 | **`speech.js`** | `data-managers.js` | 음소거 상태(`getMuteState`) 확인 |
 | **`crazy-calculator.js`**| `data-managers.js`, `logger.js` | 광 계산 기록 저장 및 로드 |
 | **`calculator.js`** | 없음 | 시간 계산 로직 제공 |
@@ -70,4 +70,3 @@
 | **`event-bus.js`** | 없음 | 모듈 간 이벤트 통신 제공 |
 | **`services.js`** | `logger.js`, `boss-scheduler-data.js`, `data-managers.js`, `custom-list-manager.js` | 핵심 애플리케이션 서비스 초기화 및 외부 리소스 로드 |
 | **`utils.js`** | `logger.js` | 유효성 검사 시 로깅. (`calculateNextOccurrence` 함수를 통해 고정 알림의 다음 발생 시간을 계산) |
-| **`default-boss-list.js`** | 없음 | 기본 보스 데이터 제공 |

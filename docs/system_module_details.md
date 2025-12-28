@@ -55,9 +55,9 @@
     4.  대시보드 (`dashboard-screen`)로 전환될 경우, `renderDashboard(DOM)`를 즉시 호출하여 화면을 렌더링한 후, `setInterval(renderDashboard, 1000)`를 설정하여 1초마다 대시보드 UI를 갱신합니다. 다른 화면으로 전환 시에는 해당 `setInterval`을 해제합니다.
 
 #### `loadInitialData(DOM)` (내부 함수)
-- **설명:** 애플리케이션 시작 시 URL 쿼리 파라미터(`data`) 또는 `default-boss-list.js`에서 초기 동적 보스 목록을 로드합니다.
+- **설명:** 애플리케이션 시작 시 URL 쿼리 파라미터(`data`) 또는 초기화 과정에서 로드된 `initial-default.json` 데이터로부터 초기 보스 목록을 설정합니다.
 - **인자:** `DOM` (`Object`)
-- **핵심 내부 로직:** URL `data` 파라미터가 있으면 해당 목록을, 없으면 기본 보스 목록을 로드합니다. URL에 `fixedData` 파라미터가 있어도 현재는 처리하지 않습니다.
+- **핵심 내부 로직:** URL `data` 파라미터가 있으면 `parseBossList`를 통해 파싱하고, 없으면 `getInitialDefaultData()`로 가져온 구조화된 데이터를 `processBossItems()`로 처리하여 `BossDataManager`에 저장합니다.
 
 #### `initEventHandlers(DOM, globalTooltip)` (내부 함수)
 - **설명:** 애플리케이션의 모든 주요 UI 요소(알람 토글, 사이드바 토글, 내비게이션 링크, 모바일 "더보기" 메뉴)에 대한 전역 이벤트 리스너를 등록합니다.
@@ -228,7 +228,7 @@
     1.  `initLogger(DOM.logContainer)` 호출.
     2.  `LocalStorageManager.init()` 호출.
     3.  `CustomListManager.init()` 호출.
-    4.  `await loadBossLists()` 호출.
+    4.  `await loadBossSchedulerData()` 호출 (프리셋 및 초기 데이터 로드).
 
 ---
 
@@ -274,15 +274,18 @@
 
 - **역할:** 사용자 입력 텍스트(보스 목록)를 파싱하여 구조화된 데이터로 변환하고, 기존 데이터와 지능적으로 병합(Smart Merge)합니다.
 - **주요 `export` 함수:**
-    - `parseBossList(bossListInput)`: 텍스트 영역의 내용을 파싱합니다. 각 줄의 시간 형식을 감지하여 `timeFormat`('hm' 또는 'hms') 속성을 `boss` 객체에 추가합니다. 기존 `BossDataManager`의 데이터와 비교하여 ID를 유지하며 병합하고, 날짜 마커를 재구성한 결과 객체(`{ success, mergedSchedule, errors }`)를 반환합니다. 자동 저장을 수행하지 않으므로 호출자가 반환값을 확인 후 저장해야 합니다.
+    - `parseBossList(bossListInput)`: 텍스트 영역의 내용을 파싱합니다. 각 줄의 시간 형식을 감지하여 `timeFormat`('hm' 또는 'hms') 속성을 `boss` 객체에 추가합니다. 기존 `BossDataManager`의 데이터와 비교하여 ID를 유지하며 병합하고, 날짜 마커를 재구성한 결과 객체(`{ success, mergedSchedule, errors }`)를 반환합니다.
+    - `processBossItems(items)`: 구조화된 보스 데이터 배열(`{ time, name }`)을 직접 처리하여 스케줄 객체로 변환합니다. 초기 데이터 로딩 시 텍스트 파싱 과정을 생략하여 효율성을 높입니다.
 
 ## 14. `src/boss-scheduler-data.js`
 
-- **역할:** 미리 정의된 보스 목록 (`data/boss_lists.json`) 및 `CustomListManager`를 통해 관리되는 사용자 지정 보스 목록 데이터를 로드하고 접근하는 인터페이스를 제공합니다.
+- **역할:** 보스 프리셋 메타데이터(`boss-presets.json`) 및 초기 기본 데이터(`initial-default.json`), 그리고 `CustomListManager`를 통한 사용자 지정 목록 데이터를 로드하고 제공합니다.
 - **주요 `export` 함수:**
-    - `loadBossLists()`: 보스 목록 JSON 파일을 비동기적으로 로드합니다.
-    - `getGameNames()`: 미리 정의된 게임 및 사용자 지정 목록 이름을 반환합니다.
-    - `getBossNamesForGame(gameName)`: 특정 게임 또는 목록의 보스 이름들을 반환합니다.
+    - `loadBossSchedulerData()`: 보스 관련 모든 JSON 데이터를 비동기적으로 로드합니다.
+    - `getInitialDefaultData()`: 앱 초기 구동 시 사용할 기본 보스 목록 데이터를 반환합니다.
+    - `getBossMetadata(bossName, contextId)`: 특정 보스의 리젠 주기(Interval) 등 메타데이터를 프리셋에서 찾아 반환합니다.
+    - `getGameNames()`: 현재 대시보드 및 스케줄러에서 선택 가능한 게임/목록 이름을 반환합니다.
+    - `getBossNamesForGame(gameId)`: 특정 게임 ID에 해당하는 보스 이름들을 반환합니다.
 
 ## 15. `src/custom-list-manager.js`
 

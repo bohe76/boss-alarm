@@ -22,9 +22,9 @@
 1.  **`index.html` 로드:** 브라우저가 `app.js`를 로드하고, `app.js`의 `initApp()` 함수가 실행됩니다.
 2.  **`app.js: initApp()` 실행 (async):**
     *   `initDomElements()`를 호출하여 모든 DOM 요소 참조를 `DOM` 객체에 수집합니다.
-    *   `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자(LocalStorageManager, CustomListManager), 보스 데이터 로딩(data/boss_lists.json)과 같은 핵심 서비스를 초기화합니다. **이 과정에서 `LocalStorageManager`는 고정 알림 데이터에 `days` 속성이 없을 경우 마이그레이션 로직을 수행합니다.**
+    *   `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자, 그리고 핵심 데이터(`boss-presets.json`, `initial-default.json`)를 비동기로 로드합니다.
     *   `registerAllRoutes()`를 호출하여 `src/screens/*.js`의 모든 화면 모듈을 `src/router.js`에 등록합니다.
-    *   `loadInitialData(DOM)`를 호출하여 URL 파라미터(`data`) 또는 `default-boss-list.js`의 기본 데이터를 파싱하여 `BossDataManager`의 `bossSchedule` 상태를 초기화합니다. (URL에 `fixedData`가 있더라도 무시합니다.)
+    *   `loadInitialData(DOM)`를 호출하여 URL 파라미터(`data`)가 있으면 `parseBossList`로, 없으면 로드된 프리셋 정보를 바탕으로 `processBossItems()`를 통해 `BossDataManager`를 초기화합니다.
     *   **`renderFixedAlarms(DOM)`를 호출하여 '설정' 화면의 고정 알림 목록을 초기 렌더링합니다.**
     *   `initGlobalEventListeners(DOM)`를 호출하여, `BossDataManager` 데이터 변경 감지나 로그 업데이트 같은 전역 이벤트 리스너를 중앙에서 활성화합니다.
     *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.

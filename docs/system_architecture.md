@@ -36,12 +36,14 @@ UI는 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 �
 *   **HTML5 / CSS3:** 웹 표준 마크업 및 스타일링. CSS는 `src/styles/style.css`를 진입점으로 하여 `layout.css`, `components.css`, `screens.css`로 모듈화되어 관리됩니다.
 *   **정적 자원:** 이미지 파일 등은 `src/assets/images` 경로에 관리됩니다.
 *   **바닐라 JavaScript (ES Modules):** 프레임워크 없이 순수 JavaScript를 사용하여 모듈화된 형태로 개발되었습니다. `src/` 폴더 내에서 기능별로 분리된 모듈들을 `import`하여 사용합니다. 특히 `utils.js`에는 `calculateNextOccurrence`와 같은 핵심 시간 계산 유틸리티가 포함되어 있습니다.
-*   **설정 및 데이터 파일:** `data/` 폴더에 `boss_lists.json`, `faq_guide.json`, `feature_guide.json`, `version_history.json`과 같은 설정 및 데이터 파일을 관리합니다.
+*   **설정 및 데이터 파일:** `src/data/` 폴더에 `boss-presets.json` (보스별 젠 주기 및 프리셋), `initial-default.json` (초기 표시 목록), `faq_guide.json`, `feature_guide.json`, `version_history.json`과 같은 설정 및 데이터 파일을 관리합니다.
     *   **데이터 관리 (SSOT & Reconstruction):**
-        *   `BossDataManager`를 데이터의 유일한 진실 공급원(SSOT)으로 사용합니다.
+        *   `BossDataManager`를 데이터의 유위한 진실 공급원(SSOT)으로 사용합니다.
+        *   보스 메타데이터(젠 주기 등)는 `boss-presets.json`에서 비동기로 로드하며, 이를 기반으로 보스 스케줄 계산 및 재구성(Reconstruction)을 수행합니다.
         *   모든 데이터 변경(입력, 수정, 업데이트) 시 **Reconstruction(재구성) 전략**을 사용하여 데이터를 날짜순/시간순으로 정렬하고, 날짜 마커를 적절한 위치에 자동으로 삽입하여 저장합니다. 이를 통해 날짜 꼬임이나 데이터 중복 문제를 원천적으로 방지합니다.
         *   보스 객체는 고유 ID를 통해 식별되며, 이름 중복 시에도 안전하게 업데이트됩니다. 특히 고정 알림은 시간, 이름 외에 요일 정보(days)를 포함하며, 모든 시간 관련 계산은 사용자 로컬 시간대 기준으로 처리됩니다.
-        *   `boss` 객체는 `timeFormat` ('hm' 또는 'hms') 속성을 추가로 포함하여, 사용자가 입력한 시간 형식(초 포함 여부)을 저장합니다. 이 메타데이터는 계산이 아닌 화면 표시에만 사용되어 일관된 사용자 경험을 제공합니다.*   **Web Speech API (`window.speechSynthesis`):** 음성 알림 기능을 구현하는 데 사용됩니다.
+        *   `boss` 객체는 `timeFormat` ('hm' 또는 'hms') 속성을 추가로 포함하여, 사용자가 입력한 시간 형식(초 포함 여부)을 저장합니다. 이 메타데이터는 계산이 아닌 화면 표시에만 사용되어 일관된 사용자 경험을 제공합니다.
+*   **Web Speech API (`window.speechSynthesis`):** 음성 알림 기능을 구현하는 데 사용됩니다.
 *   **TinyURL API:** 공유 가능한 짧은 URL을 생성하는 데 사용됩니다.
 *   **비동기 처리:** `fetch` API 및 `async/await` 문법을 활용하여 TinyURL API 호출, JSON 파일 로드, 클립보드 작업 등 비동기 작업을 효율적으로 처리합니다.
 *   **Local Storage:** `LocalStorageManager`를 통해 사용자 설정(고정 알림, 음소거 상태, 사이드바 확장 상태 등) 및 사용자 지정 데이터(광 계산기 기록 등)를 브라우저에 영구적으로 저장합니다.
@@ -80,8 +82,8 @@ UI는 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 �
         *   JSDOM 환경의 비일관적인 이벤트 처리를 보완하기 위해, `beforeEach`에서 `DOM.innerHTML = `...``와 같이 필요한 DOM 구조를 직접 명시적으로 구성합니다.
         *   `input.dataset.calculatedDate`와 같은 중요 메타데이터는 Mocking된 함수의 반환값을 사용하여 `input.dispatchEvent`를 통해 정확히 설정되도록 합니다.
         *   `src` 코드에서 참조하는 모든 필수 DOM 요소(예: `DOM.bossListInput`)는 테스트의 `DOM` Mock 객체에 명시적으로 추가하여 `undefined` 오류를 방지합니다.
-    *   **데이터 Mocking (JSON 하드 코딩):**
-        *   `src/default-boss-list.js`와 같이 외부 JSON 데이터를 로드하는 모듈은 `vi.mock`을 통해 테스트 코드 내에서 **하드 코딩된 JavaScript 객체 리터럴**(`DEFAULT_BOSS_LIST_KOR: [...]`)을 반환하도록 설정합니다. 이를 통해 파일 시스템 의존성을 제거하고 테스트의 안정성과 예측 가능성을 높입니다.
+    *   **데이터 Mocking:**
+        *   `src/boss-scheduler-data.js` 등 외부 JSON 데이터를 비동기로 로드하는 모듈은 `vi.mock`을 통해 테스트 코드 내에서 **하드 코딩된 데이터**를 반환하도록 하거나, `fetch`를 모킹하여 처리합니다. 이를 통해 파일 시스템 의존성을 제거하고 테스트의 안정성과 예측 가능성을 높입니다.
 *   **구성:**
     *   테스트 설정은 `vitest.config.js`에 정의되어 있습니다.
     *   `globals`가 활성화되어(`globals: true`) 일반적인 테스트 함수(`describe`, `it`, `expect`, `vi`)를 명시적인 가져오기 없이 모든 테스트 파일에서 사용할 수 있습니다.
