@@ -132,3 +132,48 @@
 2.  **승인 후 실행 (Execution after Approval):** 사용자님의 해당 내용에 대한 승인을 받으면, 해당 내용을 적용할 도구 호출(tool call) 코드 블록을 제시하고, 사용자님의 명시적인 컨펌이 있을 때까지 어떠한 추가 출력도 생성하지 않고 완전히 대기한다.
 3.  **실행 (Execution):** 사용자님의 도구 호출에 대한 명시적인 컨펌이 있으면 작업을 실행한다.
 
+---
+
+### 핵심 코드 수정 정책 (Critical Code Modification Policy)
+
+#### 1. 절대 원칙
+
+##### 1.1. 핵심 로직 수정 금지
+다음 파일들의 **핵심 로직**은 사용자님의 **명시적 승인 없이 절대 수정하지 않는다:**
+
+| 파일 | 핵심 영역 |
+|------|----------|
+| `src/data-managers.js` | `BossDataManager`, `LocalStorageManager` 전체 |
+| `src/boss-parser.js` | `parseBossList`, 날짜/시간 파싱 로직 |
+| `src/app.js` | `processBossItems`, `loadInitialData` |
+| `src/screens/boss-scheduler.js` | `syncInputToText`, `syncTextToInput`, `handleApplyBossSettings` |
+| `src/ui-renderer.js` | `renderBossInputs`, `updateBossListTextarea` |
+
+##### 1.2. 수정 전 필수 절차
+1. **변경 의도 설명:** 무엇을, 왜 바꾸려는지 사용자님께 먼저 설명
+2. **영향 범위 분석:** 해당 변경이 다른 기능에 미치는 영향 분석 제시
+3. **사용자 승인:** 사용자님의 명시적 `진행` 승인 후에만 코드 수정
+
+##### 1.3. 금지 행위
+- 린트 오류 수정을 구실로 핵심 로직 변경
+- "최적화"를 이유로 기존 동작 방식 변경
+- 사용자 요청 없이 리팩토링 진행
+- 기존 함수의 역할/책임 변경
+
+#### 2. SSOT 원칙 (절대 불변)
+
+##### 2.1. 데이터 흐름
+```
+[JSON 파일] → processBossItems → [Main SSOT] → [Draft] → [UI]
+[사용자 입력] → [Draft] → commitDraft → [Main SSOT]
+```
+
+##### 2.2. 핵심 규칙
+- **출력은 항상 SSOT(또는 Draft)를 바탕으로**
+- **입력은 SSOT 형식에 맞게 변환하여 업데이트**
+- **시간 역전 감지:** 이전 보스보다 시간이 이르면 다음 날로 처리
+
+#### 3. 위반 시
+- 해당 변경 즉시 롤백
+- 원인 분석 및 이슈 등록
+- 재발 방지 대책 수립
