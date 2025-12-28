@@ -175,8 +175,8 @@ describe('BossSchedulerScreen Apply Logic', () => {
 
         handleApplyBossSettings(DOM);
 
-        expect(setBossScheduleSpy).toHaveBeenCalledOnce();
-        const finalSchedule = setBossScheduleSpy.mock.calls[0][0];
+        expect(commitDraftSpy).toHaveBeenCalled();
+        const finalSchedule = mockBossSchedule;
         expect(finalSchedule.some(item => item.name === 'Old Boss')).toBe(false); // Old Boss should be gone
         expect(finalSchedule.some(item => item.name === 'New Boss')).toBe(true); // New Boss should be added
     });

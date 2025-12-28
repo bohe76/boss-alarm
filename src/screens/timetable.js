@@ -40,6 +40,19 @@ export function initTimetableScreen(DOM) {
     }
 
     updateTimetableUI(DOM);
+
+    // Toggle Button Event Listener
+    if (DOM.timetableNextBossFilterToggle) {
+        // Set initial state
+        DOM.timetableNextBossFilterToggle.classList.toggle('active', !!filterNextBoss);
+
+        DOM.timetableNextBossFilterToggle.addEventListener('click', () => {
+            const isActive = DOM.timetableNextBossFilterToggle.classList.toggle('active');
+            LocalStorageManager.set('timetableNextBossFilter', isActive);
+            updateTimetableUI(DOM);
+            trackEvent('Click Button', { event_category: 'Interaction', event_label: `보스 시간표 필터: ${isActive ? 'ON' : 'OFF'}` });
+        });
+    }
 }
 
 export function getScreen() {

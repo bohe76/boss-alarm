@@ -1,33 +1,71 @@
 // src/screens/boss-scheduler.js
 import { renderBossInputs, renderBossSchedulerScreen, updateBossListTextarea } from '../ui-renderer.js';
-import { parseBossList, reconstructSchedule } from '../boss-parser.js';
+import { parseBossList } from '../boss-parser.js';
 import { calculateBossAppearanceTime } from '../calculator.js';
 import { log } from '../logger.js';
 import { EventBus } from '../event-bus.js';
 import { BossDataManager } from '../data-managers.js';
-import { generateUniqueId, padNumber } from '../utils.js';
+import { padNumber } from '../utils.js';
 import { trackEvent } from '../analytics.js';
-import { getBossNamesForGame } from '../boss-scheduler-data.js';
 
 let _remainingTimes = {}; // Encapsulated state for remaining times
 let _memoInputs = {}; // Encapsulated state for memo inputs
 
 function handleShowScreen(DOM) {
-    // Draft 데이터 로드 (없으면 Main에서 자동 생성)
+    // 1. Draft 데이터 확보 (없으면 Main에서 자동 복사됨)
     const draftSchedule = BossDataManager.getDraftSchedule();
+    console.log('[Debug] handleShowScreen - draftSchedule:', draftSchedule);
 
-    // 1. 텍스트 영역에 Draft 데이터 반영
+    // 2. Draft -> 내부 UI 상태(_remainingTimes, _memoInputs) 동기화
+    syncDraftToUIState(draftSchedule);
+    console.log('[Debug] handleShowScreen - after syncDraftToUIState:', { _remainingTimes, _memoInputs });
+
+    // 3. UI 렌더링 (드롭다운, 입력 필드, 텍스트 영역)
+    renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs, draftSchedule);
     updateBossListTextarea(DOM, draftSchedule);
 
-    // 2. 입력 모드 초기화 (Draft 데이터 기반)
-    syncTextToInput(DOM);
-    // syncTextToInput 내부에서 getDraftSchedule을 호출하여 렌더링하므로 
-    // 여기서는 별도 인자 없이 호출해도 되지만, 명시적인 흐름을 위해 내부 로직 확인 필요.
-    // 현재 구조상 syncTextToInput은 DOM 텍스트를 파싱하므로, 앞서 updateBossListTextarea로 
-    // 텍스트를 채워뒀다면 파싱 결과가 Draft와 동일할 것임.
+    // 4. 입력 필드의 계산된 시간(스팬) 업데이트
+    updateCalculatedTimes(DOM);
 
-    // 3. 탭 초기화
+    // 5. 탭 초기화 (기본: 입력 모드)
     showSchedulerTab(DOM, 'input');
+}
+
+/**
+ * Draft 스케줄 데이터를 기반으로 입력 필드용 로컬 상태(_remainingTimes, _memoInputs)를 구축합니다.
+ */
+function syncDraftToUIState(draftSchedule) {
+    console.log('[Debug] syncDraftToUIState - incoming draftSchedule:', draftSchedule);
+    _remainingTimes = {};
+    _memoInputs = {};
+    const now = Date.now();
+
+    draftSchedule.forEach(item => {
+        if (item.type === 'boss' && item.time) {
+            // 남은 시간 계산
+            const targetDate = new Date(item.scheduledDate);
+            const [h, m, s] = item.time.split(':').map(Number);
+            targetDate.setHours(h, m, s || 0);
+
+            const diffMs = targetDate.getTime() - now;
+
+            const totalSeconds = Math.abs(Math.floor(diffMs / 1000));
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            let timeStr;
+            if (item.timeFormat === 'hms') {
+                timeStr = `${padNumber(hours)}:${padNumber(minutes)}:${padNumber(seconds)}`;
+            } else {
+                timeStr = `${padNumber(hours)}:${padNumber(minutes)}`;
+            }
+
+            // [ID 기반 관리] 이름이 겹쳐도 시간과 메모가 유실되지 않음
+            _remainingTimes[item.id] = (diffMs < 0 ? '-' : '') + timeStr;
+            _memoInputs[item.id] = item.memo || '';
+        }
+    });
 }
 
 function showSchedulerTab(DOM, tabId) {
@@ -57,138 +95,97 @@ function showSchedulerTab(DOM, tabId) {
 /**
  * 입력 모드의 정보를 Draft SSOT에 반영하고 텍스트 영역을 업데이트합니다.
  */
+/**
+ * 입력 모드의 현재 값들을 바탕으로 Draft 스케줄을 완전히 재구성합니다.
+ * 날짜 마커를 자동으로 계산하여 포함합니다.
+ */
 function syncInputToText(DOM) {
-    const draftSchedule = BossDataManager.getDraftSchedule();
-    const inputValuesMap = new Map();
-
-    // 1. 입력 모드 DOM에서 최신 값 수집
+    const newBossItems = [];
+    // 1. 입력 모드 DOM에서 유효한 보스 정보 수집 (계산된 시간이 있는 것만)
     DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
-        const bossName = item.querySelector('.boss-name').textContent;
-        const timeSpan = item.querySelector('.calculated-spawn-time');
-        const memoInput = item.querySelector('.memo-input');
-        const timeText = timeSpan.textContent;
+        const nameEl = item.querySelector('.boss-name');
+        const timeEl = item.querySelector('.calculated-spawn-time');
+        const memoEl = item.querySelector('.memo-input');
 
-        if (timeText && timeText !== '--:--:--') {
-            inputValuesMap.set(bossName, {
-                time: timeText,
-                memo: memoInput ? memoInput.value.trim() : ''
-            });
-        }
-    });
+        if (nameEl && timeEl && timeEl.textContent !== '--:--:--') {
+            const bossName = nameEl.textContent;
+            const timeText = timeEl.textContent;
+            const memoValue = memoEl ? memoEl.value.trim() : '';
+            const inputEl = item.querySelector('.remaining-time-input');
+            const calculatedDateStr = inputEl ? inputEl.dataset.calculatedDate : null;
+            const timeFormat = inputEl ? (inputEl.dataset.timeFormat || 'hm') : 'hm';
 
-    // 2. Draft 데이터 업데이트 (날짜 구조 유지)
-    const updatedDraft = draftSchedule.map(item => {
-        if (item.type === 'boss') {
-            const updated = inputValuesMap.get(item.name);
-            if (updated) {
-                // 시간이나 메모가 변경되었으면 업데이트
-                // parseBossList가 시간을 'HH:MM:SS' 또는 'HH:MM'으로 파싱하므로,
-                // timeFormat을 유지하면서 시간을 업데이트해야 함.
-                // 여기서는 단순히 문자열 비교로 변경 여부 판단.
-                if (item.time !== updated.time || item.memo !== updated.memo) {
-                    // 기존 item의 timeFormat을 유지
-                    return { ...item, time: updated.time, memo: updated.memo };
-                }
+            if (calculatedDateStr) {
+                const scheduledDate = new Date(calculatedDateStr);
+                const bossId = inputEl ? inputEl.dataset.id : `boss-${Date.now()}-${newBossItems.length}`;
+
+                newBossItems.push({
+                    id: bossId,
+                    type: 'boss',
+                    name: bossName,
+                    time: timeText,
+                    timeFormat: timeFormat,
+                    memo: memoValue,
+                    scheduledDate: scheduledDate
+                });
             }
         }
-        return item;
     });
 
-    // 3. LocalStorage 및 상태 업데이트
-    BossDataManager.setDraftSchedule(updatedDraft);
+    // 2. 유효한 입력이 없으면 기존 Draft 유지 (SSOT 바탕 출력 원칙)
+    if (newBossItems.length === 0) {
+        const existingDraft = BossDataManager.getDraftSchedule();
+        updateBossListTextarea(DOM, existingDraft);
+        return;
+    }
 
-    // 4. 텍스트 영역 업데이트 (변경된 Draft 기반)
+    // 3. 시간순 정렬
+    newBossItems.sort((a, b) => a.scheduledDate - b.scheduledDate);
+
+    // 4. 날짜 마커 추가 및 최종 스케줄 구성
+    const updatedDraft = [];
+    let lastDateStr = '';
+
+    newBossItems.forEach(item => {
+        const itemDate = item.scheduledDate;
+        const itemDateStr = `${itemDate.getFullYear()}.${padNumber(itemDate.getMonth() + 1)}.${padNumber(itemDate.getDate())}`;
+
+        if (itemDateStr !== lastDateStr) {
+            updatedDraft.push({
+                type: 'date',
+                date: `${padNumber(itemDate.getMonth() + 1)}.${padNumber(itemDate.getDate())}`
+            });
+            lastDateStr = itemDateStr;
+        }
+        updatedDraft.push(item);
+    });
+
+    // 5. Draft 저장 및 텍스트 영역 갱신
+    BossDataManager.setDraftSchedule(updatedDraft);
     updateBossListTextarea(DOM, updatedDraft);
 }
 
 /**
- * 텍스트 모드의 내용을 분석하여 Draft SSOT에 반영하고 입력 필드를 업데이트합니다.
- * 날짜와 구조는 기존 Draft를 기준으로 하고, 시간과 메모만 업데이트합니다.
+ * 텍스트 모드의 내용을 분석하여 Draft SSOT를 업데이트하고 UI를 동기화합니다.
  */
 function syncTextToInput(DOM) {
-    // 1. 텍스트 영역 파싱 (사용자 입력값 추출)
+    if (!DOM.schedulerBossListInput) return;
+
     const result = parseBossList(DOM.schedulerBossListInput);
+    console.log('[Debug] syncTextToInput - parse result:', result);
+    if (!result.success) return;
 
-    // 파싱된 데이터로 맵 생성 (이름 -> {시간, 메모, format})
-    const textValuesMap = new Map();
-    if (result.success) {
-        result.mergedSchedule.forEach(item => {
-            if (item.type === 'boss') {
-                textValuesMap.set(item.name, {
-                    time: item.time,
-                    timeFormat: item.timeFormat,
-                    memo: item.memo
-                });
-            }
-        });
-    }
+    // 1. 파싱 결과를 Draft에 저장 (SSOT 업데이트)
+    const newDraft = result.mergedSchedule;
+    BossDataManager.setDraftSchedule(newDraft);
+    console.log('[Debug] syncTextToInput - newDraft set:', newDraft);
 
-    // 2. Draft 데이터 가져오기
-    const draftSchedule = BossDataManager.getDraftSchedule();
-    const now = Date.now();
+    // 2. Draft -> UI 상태 동기화
+    syncDraftToUIState(newDraft);
 
-    // 3. Draft 데이터 업데이트
-    const updatedDraft = draftSchedule.map(item => {
-        if (item.type === 'boss') {
-            const userDraft = textValuesMap.get(item.name);
-            if (userDraft) {
-                // 구조 분해 할당으로 불필요한 속성 오염 방지
-                return {
-                    ...item,
-                    time: userDraft.time,
-                    timeFormat: userDraft.timeFormat,
-                    memo: userDraft.memo
-                };
-            }
-        }
-        return item;
-    });
-
-    // 4. Draft 저장
-    BossDataManager.setDraftSchedule(updatedDraft);
-
-    // 5. 입력 필드 렌더링을 위한 데이터 준비 (남은 시간 계산)
-    const newRemainingTimes = {};
-    const newMemoInputs = {};
-    const currentPresetBossNames = new Set(getBossNamesForGame(DOM.gameSelect.value));
-
-    updatedDraft.forEach(item => {
-        if (item.type === 'boss') {
-            if (!currentPresetBossNames.has(item.name)) return;
-
-            // 남은 시간 계산 (Draft에 저장된 날짜 + Draft에 저장된 시간)
-            const targetDate = new Date(item.scheduledDate);
-            const [h, m, s] = item.time.split(':').map(Number);
-            targetDate.setHours(h, m, s || 0);
-
-            const diffMs = targetDate.getTime() - now;
-
-            if (diffMs > 0) {
-                const totalSeconds = Math.floor(diffMs / 1000);
-                const hours = Math.floor(totalSeconds / 3600);
-                const minutes = Math.floor((totalSeconds % 3600) / 60);
-                const seconds = totalSeconds % 60;
-
-                let remainingStr;
-                if (item.timeFormat === 'hms') {
-                    remainingStr = `${padNumber(hours)}:${padNumber(minutes)}:${padNumber(seconds)}`;
-                } else {
-                    remainingStr = `${padNumber(hours)}:${padNumber(minutes)}`;
-                }
-                newRemainingTimes[item.name] = remainingStr;
-            }
-            if (item.memo) {
-                newMemoInputs[item.name] = item.memo;
-            }
-        }
-    });
-
-    _remainingTimes = newRemainingTimes;
-    _memoInputs = newMemoInputs;
-
-    // 입력 필드 재렌더링
-    if (DOM.gameSelect) {
-        renderBossInputs(DOM, DOM.gameSelect.value, _remainingTimes, _memoInputs);
+    // 3. 입력 필드 재렌더링 (현재 편집 중인 Draft를 명시적으로 전달)
+    if (DOM.gameSelect && DOM.gameSelect.value) {
+        renderBossInputs(DOM, DOM.gameSelect.value, _remainingTimes, _memoInputs, newDraft);
         updateCalculatedTimes(DOM);
     }
 }
@@ -209,7 +206,7 @@ export function handleApplyBossSettings(DOM) {
     const hasBosses = draftSchedule.some(item => item.type === 'boss');
 
     if (!hasBosses) {
-        alert("보스 설정에 내용이 없습니다.");
+        alert("보스 설정에 내용이 전혀 없습니다.\n남은 시간을 1개 이상 입력 후 보스 설정 적용 버튼을 눌러 주세요.");
         return;
     }
 
@@ -236,40 +233,22 @@ export function handleApplyBossSettings(DOM) {
 export function initBossSchedulerScreen(DOM) {
     if (!DOM.bossSchedulerScreen) return;
 
-    // 이벤트 바인딩
-    // 1. 입력 모드 변경 감지 -> 실시간 Draft 업데이트 및 텍스트 동기화
-    // (성능을 위해 debounce 적용 고려 가능하나, 현재 규모에선 직접 호출)
-    if (DOM.bossInputsContainer) { // Ensure container exists before adding listener
-        DOM.bossInputsContainer.addEventListener('input', (event) => {
-            if (event.target.classList.contains('remaining-time-input') ||
-                event.target.classList.contains('memo-input')) {
-                syncInputToText(DOM);
-            }
-        });
-    }
+    // 네비게이션 연동
+    EventBus.on('show-boss-scheduler-screen', () => handleShowScreen(DOM));
 
-    // 2. 텍스트 모드 변경 감지 -> 실시간 Draft 업데이트
-    if (DOM.schedulerBossListInput) {
-        DOM.schedulerBossListInput.addEventListener('input', () => {
-            syncTextToInput(DOM);
-        });
-    }
-
-    EventBus.on('rerender-boss-scheduler', () => {
-        renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs);
-        updateCalculatedTimes(DOM);
-    });
-
-    DOM.bossSchedulerScreen.addEventListener('change', (event) => {
-        if (event.target === DOM.gameSelect) {
-            renderBossInputs(DOM, DOM.gameSelect.value, _remainingTimes, _memoInputs);
-            updateCalculatedTimes(DOM);
-        }
-    });
-
+    // 1 & 2. 입력 모드 변경 감지 (Delegation)
     DOM.bossSchedulerScreen.addEventListener('input', (event) => {
-        if (event.target.classList.contains('remaining-time-input')) {
-            const inputField = event.target;
+        const target = event.target;
+
+        // 텍스트 모드인 경우
+        if (target === DOM.schedulerBossListInput) {
+            syncTextToInput(DOM);
+            return;
+        }
+
+        // 입력 모드인 경우 (남은 시간 입력 또는 메모 입력)
+        if (target.classList.contains('remaining-time-input')) {
+            const inputField = target;
             const bossName = inputField.dataset.bossName;
             _remainingTimes[bossName] = inputField.value;
 
@@ -294,8 +273,29 @@ export function initBossSchedulerScreen(DOM) {
                 if (calculatedTimeSpan) calculatedTimeSpan.textContent = '--:--:--';
                 delete inputField.dataset.calculatedDate;
             }
-        } else if (event.target.classList.contains('memo-input')) {
-            _memoInputs[event.target.dataset.bossName] = event.target.value;
+
+            // UI 업데이트 후 Draft 동기화
+            syncInputToText(DOM);
+        } else if (target.classList.contains('memo-input')) {
+            const bossName = target.dataset.bossName;
+            _memoInputs[bossName] = target.value;
+
+            // 메모 변경 후 Draft 동기화
+            syncInputToText(DOM);
+        }
+    });
+
+    EventBus.on('rerender-boss-scheduler', () => {
+        renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs);
+        updateCalculatedTimes(DOM);
+    });
+
+    DOM.bossSchedulerScreen.addEventListener('change', (event) => {
+        if (event.target === DOM.gameSelect) {
+            const selectedGame = DOM.gameSelect.value;
+            localStorage.setItem('lastSelectedGame', selectedGame); // 선택 정보 저장
+            renderBossInputs(DOM, selectedGame, _remainingTimes, _memoInputs);
+            updateCalculatedTimes(DOM);
         }
     });
 

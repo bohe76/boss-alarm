@@ -357,22 +357,43 @@ export function renderCrazySavedList(DOM, records) {
 // --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 ---
 // bossSchedule 배열의 내용을 기반으로 텍스트 영역을 업데이트합니다.
 export function updateBossListTextarea(DOM, scheduleData = null) {
-    const bossSchedule = scheduleData || BossDataManager.getBossSchedule(); // Use provided data or get from manager
+    const bossSchedule = scheduleData || BossDataManager.getBossSchedule();
+    console.log('[Debug] updateBossListTextarea - bossSchedule:', bossSchedule);
+
     const outputLines = [];
+    let lastDateStr = "";
+
+    const pad = (n) => String(n).padStart(2, '0');
+
     for (let i = 0; i < bossSchedule.length; i++) {
-        const currentItem = bossSchedule[i];
-        if (currentItem.type === 'date') {
-            outputLines.push(currentItem.value);
-        } else if (currentItem.type === 'boss') {
-            // Use the new timeFormat property to decide the format
-            let formattedTime;
-            if (currentItem.timeFormat === 'hm') {
-                formattedTime = currentItem.time.substring(0, 5); // HH:MM
-            } else { // 'hms' or undefined for backward compatibility
-                formattedTime = currentItem.time; // HH:MM:SS
+        const item = bossSchedule[i];
+
+        // 보스 데이터인 경우, 날짜가 바뀌었는지 체크하여 헤더 삽입
+        if (item.type === 'boss' && item.scheduledDate) {
+            const date = new Date(item.scheduledDate);
+            const currentDateStr = `${pad(date.getMonth() + 1)}.${pad(date.getDate())}`; // MM.DD 형식
+
+            // 이전 보스와 날짜가 다르다면 날짜 헤더 삽입
+            if (currentDateStr !== lastDateStr) {
+                outputLines.push(currentDateStr);
+                lastDateStr = currentDateStr;
             }
-            const line = currentItem.memo ? `${formattedTime} ${currentItem.name} (${currentItem.memo})` : `${formattedTime} ${currentItem.name}`;
-            outputLines.push(line);
+
+            // 시간 포맷팅
+            let formattedTime;
+            if (item.timeFormat === 'hm') {
+                formattedTime = item.time.substring(0, 5);
+            } else {
+                formattedTime = item.time;
+            }
+
+            const memoText = item.memo ? ` (${item.memo})` : "";
+            outputLines.push(`${formattedTime} ${item.name}${memoText}`);
+        } else if (item.type === 'date') {
+            // 명시적인 date 타입이 있는 경우 (하위 호환성)
+            const dateValue = item.value || item.date;
+            outputLines.push(dateValue);
+            lastDateStr = dateValue;
         }
     }
     DOM.schedulerBossListInput.value = outputLines.join('\n');
@@ -574,7 +595,8 @@ export function showCustomListTab(DOM, tabId) {
 }
 
 // --- Boss Scheduler Screen Rendering Functions ---
-export function renderBossSchedulerScreen(DOM, remainingTimes = {}, memoInputs = {}) {
+export function renderBossSchedulerScreen(DOM, remainingTimes = {}, memoInputs = {}, scheduleData = null) {
+    console.log('[Debug] renderBossSchedulerScreen - data:', { remainingTimes, memoInputs, scheduleData });
     if (!DOM.bossSchedulerScreen) return;
     // Populate game selection dropdown
     const gameNameObjects = getGameNames();
@@ -582,10 +604,23 @@ export function renderBossSchedulerScreen(DOM, remainingTimes = {}, memoInputs =
         DOM.gameSelect.innerHTML = gameNameObjects.map(game =>
             `<option value="${game.id}">${game.isCustom ? '*' : ''}${game.name}</option>`
         ).join('');
+
+        // 로컬 스토리지에서 마지막 선택한 게임 로드
+        const lastSelectedGame = localStorage.getItem('lastSelectedGame');
+        if (lastSelectedGame && gameNameObjects.some(g => g.id === lastSelectedGame)) {
+            DOM.gameSelect.value = lastSelectedGame;
+        } else if (gameNameObjects.length > 0) {
+            // 저장된 값이 없거나 유효하지 않으면 첫 번째 항목 선택
+            DOM.gameSelect.value = gameNameObjects[0].id;
+            localStorage.setItem('lastSelectedGame', gameNameObjects[0].id);
+        }
     }
-    // Render bosses for the initially selected game
-    if (gameNameObjects.length > 0) {
-        renderBossInputs(DOM, gameNameObjects[0].id, remainingTimes, memoInputs);
+
+    // Render bosses for the selected game
+    const currentGame = DOM.gameSelect && DOM.gameSelect.value ? DOM.gameSelect.value : (gameNameObjects.length > 0 ? gameNameObjects[0].id : null);
+
+    if (currentGame) {
+        renderBossInputs(DOM, currentGame, remainingTimes, memoInputs, scheduleData);
     } else {
         if (DOM.bossInputsContainer) {
             DOM.bossInputsContainer.innerHTML = '<p>선택할 수 있는 게임 목록이 없습니다.</p>';
@@ -595,22 +630,23 @@ export function renderBossSchedulerScreen(DOM, remainingTimes = {}, memoInputs =
 
 /**
  * Renders the boss input fields for a selected game.
- * @param {object} DOM - The DOM elements object.
- * @param {string} gameName - The name of the selected game.
+ * 입력 모드는 boss-presets.json의 보스 이름 목록으로 입력 폼을 생성합니다.
  */
-export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs = {}) {
+export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs = {}, scheduleData = null) {
+    console.log('[Debug] renderBossInputs - gameName:', gameName);
     const bossNames = getBossNamesForGame(gameName);
+    console.log('[Debug] renderBossInputs - bossNames for game:', bossNames);
     if (!bossNames || bossNames.length === 0) {
         DOM.bossInputsContainer.innerHTML = '<p>선택된 게임/목록에 보스가 없습니다.</p>';
         return;
     }
-    // Get current schedule to find existing IDs and Memos
-    const currentSchedule = BossDataManager.getBossSchedule();
+    // SSOT에서 기존 입력값 복원용
+    const currentSchedule = scheduleData || BossDataManager.getDraftSchedule();
     const bossMap = new Map();
     currentSchedule.forEach(item => {
         if (item.type === 'boss') {
             if (!bossMap.has(item.name)) {
-                bossMap.set(item.name, item); // Store whole item
+                bossMap.set(item.name, item);
             }
         }
     });
@@ -619,7 +655,6 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
         const initialTimeValue = remainingTimes[bossName] || '';
         const existingBoss = bossMap.get(bossName);
         const bossId = existingBoss ? existingBoss.id : '';
-        // Use stored memo input if available, otherwise use existing memo from data, or empty string
         const initialMemoValue = memoInputs[bossName] !== undefined ? memoInputs[bossName] : (existingBoss && existingBoss.memo ? existingBoss.memo : '');
 
         return `

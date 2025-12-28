@@ -6,7 +6,8 @@ import { renderFixedAlarms, renderAlarmStatusSummary, renderDashboard, updateBos
 import { log } from './logger.js';
 import { LocalStorageManager, BossDataManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
-import { getInitialDefaultData } from './boss-scheduler-data.js';
+import * as DefaultBossList from './default-boss-list.js';
+import { formatMonthDay } from './utils.js';
 import { EventBus } from './event-bus.js';
 import { getRoute, registerRoute } from './router.js';
 import { initializeCoreServices } from './services.js';
@@ -25,40 +26,6 @@ import { getScreen as getHelpScreen } from './screens/help.js';
 import { getScreen as getSettingsScreen } from './screens/settings.js';
 import { getScreen as getShareScreen } from './screens/share.js';
 import { getScreen as getVersionInfoScreen } from './screens/version-info.js';
-/**
- * Processes raw boss items from default data and returns a normalized schedule array.
- */
-function processBossItems(items) {
-    if (!items || !Array.isArray(items)) return [];
-
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    let day = now.getDate();
-    let lastTimeInMinutes = -1;
-
-    return items.map((item, index) => {
-        const [hours, minutes] = item.time.split(':').map(Number);
-        const currentTimeInMinutes = hours * 60 + minutes;
-
-        // [근본 로직 복구] 이전 보스보다 시간이 이를 경우 날짜를 다음 날로 넘김 (예: 23:29 -> 03:50)
-        if (lastTimeInMinutes !== -1 && currentTimeInMinutes < lastTimeInMinutes) {
-            day++;
-        }
-        lastTimeInMinutes = currentTimeInMinutes;
-
-        const scheduledDate = new Date(year, month, day, hours, minutes, 0);
-
-        return {
-            id: `boss-${Date.now()}-${index}`,
-            name: item.name,
-            time: item.time, // "HH:mm"
-            memo: item.memo || "",
-            type: 'boss',
-            scheduledDate: scheduledDate
-        };
-    });
-}
 
 let dashboardRefreshInterval = null; // Declare the interval variable
 
@@ -210,14 +177,43 @@ function loadInitialData(DOM) {
     }
 
     if (!loadSuccess) {
-        const initialData = getInitialDefaultData();
-        if (initialData && initialData.items) {
-            const schedule = processBossItems(initialData.items);
-            BossDataManager.setBossSchedule(schedule);
+        const defaultBossList = DefaultBossList.bossPresets[0].list;
+        let updatedBossList = defaultBossList;
+        const hasDateEntries = /^(\d{2}\.\d{2})/m.test(defaultBossList);
+        if (!hasDateEntries) {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+            const todayFormatted = formatMonthDay(today);
+            const tomorrowFormatted = formatMonthDay(tomorrow);
+            const lines = defaultBossList.split('\n').filter(line => line.trim() !== '');
+            let insertIndex = -1;
+            let lastTimeInMinutes = -1;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                const timeMatch = line.match(/^(\d{2}):(\d{2})/);
+                if (timeMatch) {
+                    const currentTimeInMinutes = parseInt(timeMatch[1], 10) * 60 + parseInt(timeMatch[2], 10);
+                    if (lastTimeInMinutes !== -1 && currentTimeInMinutes < lastTimeInMinutes) {
+                        insertIndex = i;
+                        break;
+                    }
+                    lastTimeInMinutes = currentTimeInMinutes;
+                }
+            }
+            if (insertIndex !== -1) lines.splice(insertIndex, 0, tomorrowFormatted);
+            lines.unshift(todayFormatted);
+            updatedBossList = lines.join('\n');
+        }
+        DOM.schedulerBossListInput.value = updatedBossList;
+
+        const result = parseBossList(DOM.schedulerBossListInput);
+        if (result.success) {
+            BossDataManager.setBossSchedule(result.mergedSchedule);
             log("기본 보스 목록을 불러왔습니다.");
         } else {
-            console.error("Critical: Default boss data loading failed!");
-            alert("기본 보스 목록 로드에 실패했습니다. 페이지를 새로고침해 주세요.");
+            console.error("Critical: Default boss list parsing failed!", result.errors);
+            alert("기본 보스 목록 로드에 실패했습니다. 시스템 관리자에게 문의하세요.");
         }
     }
 

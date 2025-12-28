@@ -29,7 +29,7 @@ export async function loadBossSchedulerData() {
         log(`데이터 로드 실패: ${error.message}.`);
         // 에러 발생 시 사용자에게 확인창 표시
         alert("⚠️ 보스 데이터를 불러오지 못했습니다.\n\n네트워크 연결 상태를 확인하거나 페이지를 새로고침해 주세요. 계속해서 문제가 발생할 경우 관리자에게 문의해 주시기 바랍니다.");
-        return { bossMetadata: {}, initialDefaultData: [] };
+        return { bossMetadata: {}, initialDefaultData: { items: [] } };
     }
 }
 

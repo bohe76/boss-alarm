@@ -45,6 +45,7 @@ export function initDomElements() {
 
         // Elements within Timetable Screen
         editTimetableButton: document.getElementById('editTimetableButton'), // New
+        timetableNextBossFilterToggle: document.getElementById('timetableNextBossFilterToggle'), // New
         bossListCardsContainer: document.getElementById('bossListCardsContainer'), // New
         // Elements within Dashboard Screen
         pipToggleButton: document.getElementById('pip-toggle-button'),

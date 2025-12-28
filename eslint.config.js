@@ -4,12 +4,13 @@ import js from "@eslint/js";
 export default [
   js.configs.recommended,
   {
-    files: ["src/**/*.js"],
+    files: ["**/*.js"],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
       globals: {
-        ...globals.browser
+        ...globals.browser,
+        ...globals.node
       }
     },
     rules: {

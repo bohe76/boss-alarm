@@ -1,176 +1,69 @@
-// src/boss-parser.js
-
 import { log } from './logger.js';
-import { BossDataManager } from './data-managers.js'; // Import manager
-import { generateUniqueId, padNumber, parseTime } from './utils.js'; // Import utils
 
-/**
- * 보스 목록 텍스트를 파싱하고 기존 데이터와 병합합니다.
- * @param {HTMLTextAreaElement} bossListInput - 보스 목록이 입력된 텍스트 영역
- * @returns {Object} - { success: boolean, mergedSchedule: Array, errors: string[] }
- */
-export function parseBossList(bossListInput) {
-    const text = bossListInput.value;
-    const now = new Date();
-    now.setSeconds(0);
-    now.setMilliseconds(0);
-
-    let baseDate = null;
-    let dayOffset = 0;
-    let lastBossTimeInSeconds = -1;
-
-    const parsedBosses = []; // Only store boss objects temporarily
-    const errors = []; // Store validation errors
-
-    const normalizedText = text.replace(/\r\n|\r/g, '\n').replace(/[^\S\n]+/g, ' ').trim();
+export function parseBossList(inputElement) {
+    const rawText = inputElement.value || "";
+    const normalizedText = rawText.replace(/\r\n/g, '\n').trim();
     const lines = normalizedText.split('\n').map(line => line.trim()).filter(line => line);
 
-    // Check if there are any date headers in the text
-    const hasDateHeaders = lines.some(line => line.match(/^(\d{1,2})\.(\d{1,2})$/));
+    // Filter out date headers like "MM.DD"
+    const bossLines = lines.filter(line => !line.match(/^(\d{1,2})\.(\d{1,2})$/));
+
+    const now = new Date();
+    let baseDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    baseDate.setHours(0, 0, 0, 0);
+    let lastTimeInMinutes = -1;
+
+    const mergedSchedule = [];
+    const errors = [];
 
     try {
-        // 1. Initial Parsing (Text -> Object with calculated Date)
-        if (lines.length > 0) {
-            const firstDateMatch = lines[0].match(/^(\d{1,2})\.(\d{1,2})$/);
-            if (firstDateMatch) {
-                const month = parseInt(firstDateMatch[1], 10) - 1;
-                const day = parseInt(firstDateMatch[2], 10);
-                baseDate = new Date(now.getFullYear(), month, day);
-                if (isNaN(baseDate.getTime())) {
-                    baseDate = new Date(now);
+        bossLines.forEach((line, index) => {
+            const timeMatch = line.match(/^(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?\s+(.+)$/);
+            if (timeMatch) {
+                const hours = parseInt(timeMatch[1], 10);
+                const minutes = parseInt(timeMatch[2], 10);
+                const seconds = timeMatch[3] ? parseInt(timeMatch[3], 10) : 0;
+                let bossSpec = timeMatch[4].trim();
+
+                let bossName = bossSpec;
+                let memo = "";
+                const memoMatch = bossSpec.match(/^(.+?)\s+(.+)$/);
+                if (memoMatch) {
+                    bossName = memoMatch[1].trim();
+                    memo = memoMatch[2].trim();
                 }
-            }
-        }
-        if (!baseDate) {
-            baseDate = new Date(now);
-        }
-        baseDate.setHours(0, 0, 0, 0);
 
-        lines.forEach((line, index) => {
-            const dateMatch = line.match(/^(\d{1,2})\.(\d{1,2})$/);
-            if (dateMatch) {
-                const month = parseInt(dateMatch[1], 10) - 1;
-                const day = parseInt(dateMatch[2], 10);
-                if (month < 0 || month > 11 || day < 1 || day > 31) {
-                    const msg = `[줄 ${index + 1}] 유효하지 않은 날짜 값입니다: ${line}. 월은 1-12, 일은 1-31 사이여야 합니다.`;
-                    log(msg, false);
-                    errors.push(msg);
-                    return;
+                // [시간 역전 감지] 이전 보스보다 시간이 이르면 날짜를 다음 날로 증가
+                const currentTimeInMinutes = hours * 60 + minutes;
+                if (lastTimeInMinutes !== -1 && currentTimeInMinutes < lastTimeInMinutes) {
+                    baseDate.setDate(baseDate.getDate() + 1);
                 }
-                const parsedDate = new Date(now.getFullYear(), month, day);
-                if (isNaN(parsedDate.getTime())) {
-                    const msg = `[줄 ${index + 1}] 유효하지 않은 날짜 형식입니다: ${line}.`;
-                    log(msg, false);
-                    errors.push(msg);
-                    return;
-                }
-                baseDate = parsedDate;
-                baseDate.setHours(0, 0, 0, 0);
-                dayOffset = 0;
-                lastBossTimeInSeconds = -1;
-                return;
-            }
+                lastTimeInMinutes = currentTimeInMinutes;
 
-            const parts = line.split(' ');
-            if (parts.length < 2) {
-                const msg = `[줄 ${index + 1}] 보스 이름이 없습니다: ${line}. (형식: HH:MM 보스이름)`;
-                log(msg, false);
-                errors.push(msg);
-                return;
-            }
+                const scheduledDate = new Date(baseDate);
+                scheduledDate.setHours(hours, minutes, seconds, 0);
 
-            const timeString = parts[0];
-            const timeParts = parseTime(timeString);
-
-            if (!timeParts) {
-                const msg = `[줄 ${index + 1}] 유효하지 않은 시간 형식입니다: ${timeString}. (형식: HH:MM, HH:MM:SS, HHMM, HHMMSS)`;
-                log(msg, false);
-                errors.push(msg);
-                return;
-            }
-
-            // Determine time format from original user input
-            const timeFormat = (timeString.includes(':') && timeString.split(':').length > 2) || (!timeString.includes(':') && timeString.length > 4) ? 'hms' : 'hm';
-
-            const { hours: bossHour, minutes: bossMinute, seconds: bossSecond } = timeParts;
-
-            const bossTimeInSeconds = bossHour * 3600 + bossMinute * 60 + bossSecond;
-
-            // Only apply chronological wrap-around if explicit date headers are NOT present
-            if (!hasDateHeaders && lastBossTimeInSeconds !== -1 && bossTimeInSeconds < lastBossTimeInSeconds) {
-                dayOffset++;
-            }
-            lastBossTimeInSeconds = bossTimeInSeconds;
-
-            let scheduledDate = new Date(baseDate);
-            scheduledDate.setDate(baseDate.getDate() + dayOffset);
-            scheduledDate.setHours(bossHour, bossMinute, bossSecond);
-
-            // Extract boss name and memo
-            // Format example: "HH:MM BossName (Memo)"
-            const fullBossInfo = parts.slice(1).join(' ');
-            let bossName = fullBossInfo;
-            let memo = '';
-
-            const memoMatch = fullBossInfo.match(/\(([^)]+)\)$/);
-            if (memoMatch) {
-                memo = memoMatch[1];
-                bossName = fullBossInfo.replace(/\(([^)]+)\)$/, '').trim();
-            }
-
-            parsedBosses.push({
-                type: 'boss',
-                time: `${padNumber(bossHour)}:${padNumber(bossMinute)}:${padNumber(bossSecond)}`,
-                name: bossName,
-                memo: memo,
-                scheduledDate: scheduledDate,
-                timeFormat: timeFormat,
-                alerted_5min: false,
-                alerted_1min: false,
-                alerted_0min: false,
-            });
-        });
-
-        if (errors.length > 0) {
-            return { success: false, mergedSchedule: [], errors: errors };
-        }
-
-        // 2. Smart Merge with Existing Data (SSOT)
-        const currentSchedule = BossDataManager.getBossSchedule();
-        const existingBosses = currentSchedule.filter(item => item.type === 'boss');
-        const mergedBosses = [];
-
-        const existingBossPool = [...existingBosses];
-
-        parsedBosses.forEach(parsed => {
-            const matchIndex = existingBossPool.findIndex(existing => existing.name === parsed.name);
-
-            if (matchIndex !== -1) {
-                // Found a match! Preserve ID and State.
-                const existing = existingBossPool[matchIndex];
-                mergedBosses.push({
-                    ...existing, // Keep ID, alert states
-                    time: parsed.time,
-                    memo: parsed.memo,
-                    scheduledDate: parsed.scheduledDate,
-                    timeFormat: parsed.timeFormat
+                mergedSchedule.push({
+                    id: `boss-${Date.now()}-${index}`,
+                    name: bossName,
+                    time: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}${timeMatch[3] ? ':' + String(seconds).padStart(2, '0') : ''}`,
+                    memo: memo,
+                    type: 'boss',
+                    scheduledDate: scheduledDate
                 });
-                // Remove from pool to avoid double matching
-                existingBossPool.splice(matchIndex, 1);
             } else {
-                // New boss
-                mergedBosses.push({
-                    ...parsed,
-                    id: generateUniqueId() // Assign new ID
-                });
+                errors.push(`형식 오류 (줄 ${index + 1}): "${line}"`);
             }
         });
 
-        // 3. Sort
-        mergedBosses.sort((a, b) => a.scheduledDate - b.scheduledDate);
+        if (errors.length > 0 && mergedSchedule.length === 0) {
+            return { success: false, mergedSchedule: [], errors };
+        }
 
-        // 4. Reconstruction with Date Markers
-        return { success: true, mergedSchedule: reconstructSchedule(mergedBosses), errors: [] };
+        // Sort by time
+        mergedSchedule.sort((a, b) => a.scheduledDate - b.scheduledDate);
+
+        return { success: true, mergedSchedule, errors };
 
     } catch (error) {
         const msg = `보스 목록 파싱 중 치명적 오류: ${error.message}`;
@@ -180,89 +73,6 @@ export function parseBossList(bossListInput) {
     }
 }
 
-/**
- * 구조화된 보스 아이템 배열을 파싱하여 스케줄로 변환합니다. (JSON 데이터 대응)
- * @param {Array} items - { time: string, name: string, memo: string } 배열
- * @returns {Array} - 변환된 전체 스케줄 배열 (날짜 마커 포함)
- */
-export function processBossItems(items) {
-    if (!items || !Array.isArray(items)) return [];
-
-    const now = new Date();
-    now.setSeconds(0);
-    now.setMilliseconds(0);
-
-    let baseDate = new Date(now);
-    baseDate.setHours(0, 0, 0, 0);
-
-    let dayOffset = 0;
-    let lastBossTimeInSeconds = -1;
-    const parsedBosses = [];
-
-    items.forEach(item => {
-        const timeParts = parseTime(item.time);
-        if (!timeParts) return;
-
-        const { hours: bossHour, minutes: bossMinute, seconds: bossSecond } = timeParts;
-        const bossTimeInSeconds = bossHour * 3600 + bossMinute * 60 + bossSecond;
-
-        // Chronological wrap-around logic: 이전 보스보다 시간이 작으면 다음날
-        if (lastBossTimeInSeconds !== -1 && bossTimeInSeconds < lastBossTimeInSeconds) {
-            dayOffset++;
-        }
-        lastBossTimeInSeconds = bossTimeInSeconds;
-
-        let scheduledDate = new Date(baseDate);
-        scheduledDate.setDate(baseDate.getDate() + dayOffset);
-        scheduledDate.setHours(bossHour, bossMinute, bossSecond);
-
-        parsedBosses.push({
-            id: generateUniqueId(),
-            type: 'boss',
-            time: `${padNumber(bossHour)}:${padNumber(bossMinute)}:${padNumber(bossSecond)}`,
-            name: item.name,
-            memo: item.memo || '',
-            scheduledDate: scheduledDate,
-            timeFormat: item.time.includes(':') && item.time.split(':').length > 2 ? 'hms' : 'hm',
-            alerted_5min: false,
-            alerted_1min: false,
-            alerted_0min: false,
-        });
-    });
-
-    // Sort by date
-    parsedBosses.sort((a, b) => a.scheduledDate - b.scheduledDate);
-
-    // Reconstruct with Date Markers
-    return reconstructSchedule(parsedBosses);
-}
-
-/**
- * 보스 목록을 날짜별 마커를 포함한 스케줄 형식으로 재구성합니다.
- * @param {Array} sortedBosses - 정렬된 보스 객체 배열
- * @returns {Array} - 날짜 마커가 삽입된 스케줄 배열
- */
-export function reconstructSchedule(sortedBosses) {
-    const finalSchedule = [];
-    let lastDateStr = "";
-
-    sortedBosses.forEach(boss => {
-        const d = boss.scheduledDate;
-        const month = d.getMonth() + 1;
-        const day = d.getDate();
-        const currentDateStr = `${padNumber(month)}.${padNumber(day)}`;
-
-        if (currentDateStr !== lastDateStr) {
-            const markerDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-            finalSchedule.push({
-                type: 'date',
-                value: currentDateStr,
-                scheduledDate: markerDate
-            });
-            lastDateStr = currentDateStr;
-        }
-        finalSchedule.push(boss);
-    });
-
-    return finalSchedule;
+export function getSortedBossListText(rawText) {
+    return rawText;
 }
