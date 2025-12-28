@@ -57,7 +57,15 @@
 #### `loadInitialData(DOM)` (내부 함수)
 - **설명:** 애플리케이션 시작 시 URL 쿼리 파라미터(`data`) 또는 초기화 과정에서 로드된 `initial-default.json` 데이터로부터 초기 보스 목록을 설정합니다.
 - **인자:** `DOM` (`Object`)
-- **핵심 내부 로직:** URL `data` 파라미터가 있으면 `parseBossList`를 통해 파싱하고, 없으면 `getInitialDefaultData()`로 가져온 구조화된 데이터를 `processBossItems()`로 처리하여 `BossDataManager`에 저장합니다.
+- **핵심 내부 로직:** URL `data` 파라미터가 있으면 `parseBossList`를 통해 파싱하고, 없으면 `getInitialDefaultData()`로 가져온 구조화된 데이터를 `processBossItems()`로 처리하여 `BossDataManager.setBossSchedule()`으로 저장합니다. `setBossSchedule()`호출 시 Draft와 localStorage도 즉시 동기화됩니다.
+
+#### `processBossItems(items)` (내부 함수)
+- **설명:** `initial-default.json`에서 로드한 보스 아이템 배열을 SSOT 형식의 스케줄 배열로 변환합니다.
+- **인자:** `items` (`Array`) - `{ name, time, memo? }` 형태의 보스 아이템 배열
+- **반환값:** `Array` - `{ id, name, time, memo, type, scheduledDate }` 형태의 SSOT 배열
+- **핵심 로직:**
+    *   현재 날짜를 기준으로 각 보스의 `scheduledDate`를 생성합니다.
+    *   **시간 역전 감지:** 이전 보스보다 시간이 이르면 날짜를 다음 날로 자동 증가시킵니다. (예: 23:29 → 03:50은 다음 날)
 
 #### `initEventHandlers(DOM, globalTooltip)` (내부 함수)
 - **설명:** 애플리케이션의 모든 주요 UI 요소(알람 토글, 사이드바 토글, 내비게이션 링크, 모바일 "더보기" 메뉴)에 대한 전역 이벤트 리스너를 등록합니다.
@@ -150,13 +158,21 @@
 ### 주요 `export` 상수
 
 #### `BossDataManager` (싱글톤 객체)
-- **설명:** 보스 스케줄 및 다음 보스 정보를 관리합니다.
+- **설명:** 보스 스케줄(SSOT) 및 Draft(임시 스케줄)를 관리합니다. SSOT 변경 시 Draft와 localStorage가 즉시 동기화됩니다.
 - **주요 메소드:**
-    *   `getBossSchedule()`: `Array`. 현재 파싱된 보스 일정 배열을 반환합니다.
-    *   `setBossSchedule(newSchedule)`: `void`. 새로운 보스 일정 배열로 교체하고, 모든 구독자에게 데이터 변경을 알립니다.
+    *   `initPresets(presets)`: `void`. 보스 프리셋 메타데이터(`boss-presets.json`)를 주입합니다. `initializeCoreServices()`에서 호출됩니다.
+    *   `getBossInterval(bossName, contextId)`: `number | null`. 특정 보스의 리젠 주기(분)를 프리셋에서 찾아 반환합니다. 보스 이름과 게임 컨텍스트를 기반으로 검색합니다.
+    *   `getBossSchedule()`: `Array`. 현재 파싱된 보스 일정 배열(Main SSOT)을 반환합니다.
+    *   `setBossSchedule(newSchedule)`: `void`. 새로운 보스 일정 배열로 교체하고, **Draft를 즉시 복사하여 동기화**하며, 모든 구독자에게 데이터 변경을 알립니다. Main과 Draft 모두 localStorage에 저장됩니다.
+    *   `getDraftSchedule()`: `Array`. 현재 편집 중인 Draft 스케줄을 반환합니다. Draft가 없으면 Main SSOT에서 복사하여 생성합니다.
+    *   `setDraftSchedule(newDraft)`: `void`. Draft 스케줄을 설정하고 localStorage에 저장합니다.
+    *   `commitDraft()`: `void`. Draft 스케줄을 Main SSOT에 적용하고 Draft를 초기화합니다.
+    *   `clearDraft()`: `void`. Draft 스케줄을 초기화합니다.
     *   `getNextBossInfo()`: `{ nextBoss, minTimeDiff }`. 현재 가장 가까운 다음 보스 정보와 남은 시간을 반환합니다.
     *   `setNextBossInfo(nextBoss, minTimeDiff)`: `void`. 다음 보스 정보를 설정하고, 모든 구독자에게 데이터 변경을 알립니다.
-    *   `getUpcomingBosses(count)`: `Array`. 현재 시간 이후 예정된 보스 목록을 `count`만큼 정확히 반환합니다. 동적 보스의 `scheduledDate`를 존중하고 고정 알림은 현재 날짜를 기반으로 하여 통합 처리합니다.
+    *   `getAllUpcomingBosses(nowTime)`: `Array`. 동적 보스와 고정 알림을 통합하여 시간순으로 정렬된 모든 예정된 보스 목록을 반환합니다.
+    *   `getBossStatusSummary(nowTime)`: `Object`. 다음 보스, 남은 시간, 임박한 보스 목록 등 현재 상태 요약을 반환합니다.
+    *   `getUpcomingBosses(count)`: `Array`. 현재 시간 이후 예정된 보스 목록을 `count`만큼 정확히 반환합니다.
     *   `subscribe(callback)`: `void`. `BossDataManager`의 데이터 변경을 감지할 콜백 함수를 등록합니다. **반응형 상태 관리 패턴(Observer Pattern)**을 구현합니다.
 
 #### `LocalStorageManager` (싱글톤 객체)
@@ -280,21 +296,26 @@
 
 ## 13. `src/boss-parser.js`
 
-- **역할:** 사용자 입력 텍스트(보스 목록)를 파싱하여 구조화된 데이터로 변환하고, 기존 데이터와 지능적으로 병합(Smart Merge)합니다.
+- **역할:** 사용자 입력 텍스트(보스 목록)를 파싱하여 구조화된 데이터로 변환합니다. **시간 역전 감지 로직**을 통해 날짜 롤오버를 자동 처리합니다.
 - **주요 `export` 함수:**
-    - `parseBossList(bossListInput)`: 텍스트 영역의 내용을 파싱하고 `reconstructSchedule`을 통해 날짜 마커를 삽입합니다.
-    - `processBossItems(items)`: 구조화된 데이터를 처리한 후 `reconstructSchedule`을 호출하여 동일한 규칙의 스케줄을 생성합니다.
-    - `reconstructSchedule(sortedBosses)`: 정렬된 보스 배열을 바탕으로 날짜 마커가 포함된 최종 스케줄 객체를 생성하는 공통 로직을 담당합니다.
+    - `parseBossList(bossListInput)`: 텍스트 영역의 내용을 파싱하여 SSOT 형식의 배열로 변환합니다. `scheduledDate`를 기준으로 정렬하며, 이전 보스보다 시간이 이르면 날짜를 다음 날로 자동 증가시킵니다.
+    - `getSortedBossListText(rawText)`: 원본 텍스트를 그대로 반환합니다 (하위 호환성).
 
 ## 14. `src/boss-scheduler-data.js`
 
-- **역할:** 보스 프리셋 메타데이터(`boss-presets.json`) 및 초기 기본 데이터(`initial-default.json`), 그리고 `CustomListManager`를 통한 사용자 지정 목록 데이터를 로드하고 제공합니다.
+- **역할:** 보스 프리셋 메타데이터(`boss-presets.json`) 및 초기 기본 데이터(`initial-default.json`)를 비동기 로드하고 제공합니다. `CustomListManager`와 연동하여 사용자 지정 목록도 통합 관리합니다.
 - **주요 `export` 함수:**
-    - `loadBossSchedulerData()`: 보스 관련 모든 JSON 데이터를 비동기적으로 로드합니다.
-    - `getInitialDefaultData()`: 앱 초기 구동 시 사용할 기본 보스 목록 데이터를 반환합니다.
-    - `getBossMetadata(bossName, contextId)`: 특정 보스의 리젠 주기(Interval) 등 메타데이터를 프리셋에서 찾아 반환합니다.
-    - `getGameNames()`: 현재 대시보드 및 스케줄러에서 선택 가능한 게임/목록 이름을 반환합니다.
-    - `getBossNamesForGame(gameId)`: 특정 게임 ID에 해당하는 보스 이름들을 반환합니다.
+    - `loadBossSchedulerData()`: `boss-presets.json`과 `initial-default.json`을 `fetch`로 비동기 로드합니다. 로드 실패 시 사용자에게 알림(`alert`)을 표시하고 빈 데이터로 폴백합니다.
+    - `getInitialDefaultData()`: 앱 초기 구동 시 사용할 기본 보스 목록 데이터(`{ items: [...] }`)를 반환합니다.
+    - `getBossMetadata()`: 전체 보스 프리셋 메타데이터 객체를 반환합니다.
+    - `getGameNames()`: 프리셋 게임 목록과 사용자 커스텀 목록을 통합하여 `{ id, name, isCustom }` 형태의 배열로 반환합니다.
+    - `getBossNamesForGame(gameIdOrName)`: 특정 게임/목록의 보스 이름 배열을 반환합니다. 프리셋 ID, 게임 이름, 커스텀 목록 순서로 검색합니다.
+
+## 14.1. `src/services.js`
+
+- **역할:** 애플리케이션의 핵심 서비스들을 초기화하는 진입점을 제공합니다.
+- **주요 `export` 함수:**
+    - `initializeCoreServices(DOM)`: 로거 초기화, `LocalStorageManager.init()`, `CustomListManager.init()` 호출, 보스 데이터 비동기 로드 후 `BossDataManager.initPresets()` 호출을 순차적으로 수행합니다. `app.js`의 `initApp()`에서 `await`로 호출됩니다.
 
 ## 15. `src/custom-list-manager.js`
 

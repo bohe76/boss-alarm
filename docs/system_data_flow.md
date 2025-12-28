@@ -80,17 +80,21 @@
 
 ### 3.3. 보스 스케줄러 화면 (`src/screens/boss-scheduler.js`)
 
-*   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initBossSchedulerScreen(DOM)`이 호출됩니다. `EventBus.on('show-boss-scheduler-screen', ...)` 리스너가 화면 전환 시 `ui-renderer.js`의 `renderBossSchedulerScreen()`을 호출합니다.
+*   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initBossSchedulerScreen(DOM)`이 호출됩니다. 화면 진입 시 `BossDataManager.getDraftSchedule()`을 통해 Draft를 확보하고, UI 상태를 동기화합니다.
+*   **SSOT 원칙:** 스케줄러는 **Draft(임시 SSOT)**를 기반으로 동작합니다. 모든 UI 출력은 Draft에서 읽어오고, 사용자 입력은 Draft에 반영됩니다. "보스 설정 적용" 버튼을 누르면 Draft가 Main SSOT에 커밋됩니다.
+*   **입력/텍스트 모드 전환:**
+    *   **입력 모드 → 텍스트 모드:** `syncInputToText()`가 입력 필드의 유효한 데이터를 Draft에 반영하고 텍스트 영역을 갱신합니다. 유효한 입력이 없으면 기존 Draft를 유지합니다.
+    *   **텍스트 모드 → 입력 모드:** `syncTextToInput()`이 텍스트 내용을 파싱하여 Draft에 반영하고 입력 필드를 갱신합니다.
 *   **이벤트 리스너 (DOM.bossSchedulerScreen에 위임):**
     *   **게임 선택 변경 (`DOM.gameSelect`):** `ui-renderer.js`의 `renderBossInputs()`를 호출하여 선택된 게임에 맞는 보스 입력 필드를 렌더링합니다. 이때 기존 보스의 ID를 `data-id` 속성에 매핑합니다.
     *   **남은 시간 입력 (`.remaining-time-input`):** `input` 이벤트 발생 시, 사용자의 입력 형식을('hm' 또는 'hms') 감지하여 `dataset.timeFormat`에 저장하고, `calculateBossAppearanceTime()`으로 계산된 젠 시간을 `timeFormat`에 맞춰 동적으로 표시합니다. 최종 시간은 `dataset.calculatedDate`에 ISO 형식으로 저장됩니다.
     *   **"모든 남은 시간 지우기" 버튼 (`DOM.clearAllRemainingTimesButton`):** 모든 입력 필드를 초기화합니다.
     *   **"보스 설정 적용" 버튼 (`DOM.moveToBossSettingsButton`):**
-        1.  입력된 남은 시간(및 `dataset.calculatedDate`, `dataset.timeFormat`)과 `data-id`를 기반으로 `timeFormat` 속성이 포함된 `boss` 객체를 생성하거나 업데이트합니다.
-        2.  전체 보스 리스트를 `scheduledDate` 기준으로 정렬하고, 날짜 마커(`type: 'date'`)를 적절한 위치에 새로 삽입하는 **재구성(Reconstruction)** 과정을 거칩니다.
-        3.  완성된 리스트를 `BossDataManager.setBossSchedule()`에 저장하고 `updateBossListTextarea`를 호출합니다.
-        4.  `EventBus.emit('navigate', 'boss-management-screen')`을 발행하여 '보스 관리' 화면으로 전환을 요청합니다.
-*   **데이터 흐름 요약:** 사용자 입력을 바탕으로 정확한 시간(`Date`)과 표시 형식(`timeFormat`)을 계산/감지하여 저장하고, ID를 통해 데이터를 안전하게 업데이트하며, 전체 리스트를 재구성하여 데이터 꼬임을 방지합니다.
+        1.  현재 활성화된 모드(입력/텍스트)의 데이터를 Draft에 최종 반영합니다.
+        2.  `BossDataManager.commitDraft()`를 호출하여 Draft를 Main SSOT에 적용합니다.
+        3.  `EventBus.emit('navigate', 'boss-management-screen')`을 발행하여 '보스 관리' 화면으로 전환을 요청합니다.
+*   **날짜 처리 (`boss-parser.js`):** 텍스트 파싱 시 **시간 역전 감지 로직**이 적용됩니다. 이전 보스보다 시간이 이른 보스가 나타나면 날짜를 다음 날로 자동 증가시켜 날짜 롤오버를 처리합니다. (예: 23:29 → 03:50은 다음 날)
+*   **데이터 흐름 요약:** 스케줄러는 Draft를 SSOT로 사용하며, UI 출력은 Draft에서 읽고 사용자 입력은 Draft에 반영합니다. "보스 설정 적용" 시 Draft가 Main SSOT에 커밋되어 영구 저장됩니다.
 
 ### 3.4. 알림 로그 화면 (`src/screens/alarm-log.js`)
 

@@ -37,10 +37,13 @@ UI는 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 �
 *   **정적 자원:** 이미지 파일 등은 `src/assets/images` 경로에 관리됩니다.
 *   **바닐라 JavaScript (ES Modules):** 프레임워크 없이 순수 JavaScript를 사용하여 모듈화된 형태로 개발되었습니다. `src/` 폴더 내에서 기능별로 분리된 모듈들을 `import`하여 사용합니다. 특히 `utils.js`에는 `calculateNextOccurrence`와 같은 핵심 시간 계산 유틸리티가 포함되어 있습니다.
 *   **설정 및 데이터 파일:** `src/data/` 폴더에 `boss-presets.json` (보스별 젠 주기 및 프리셋), `initial-default.json` (초기 표시 목록), `faq_guide.json`, `feature_guide.json`, `version_history.json`과 같은 설정 및 데이터 파일을 관리합니다.
-    *   **데이터 관리 (SSOT & Reconstruction):**
+    *   **JS → JSON 데이터 관리 체계 전환:** 기존에 JavaScript 코드 내에 하드코딩되어 있던 보스 데이터를 외부 JSON 파일(`boss-presets.json`, `initial-default.json`)로 분리하였습니다. 이를 통해 데이터 수정 시 코드 변경 없이 JSON 파일만 수정하면 되며, 유지보수성과 확장성이 향상되었습니다.
+    *   **데이터 관리 (SSOT & Draft 패턴):**
         *   보스 메타데이터(젠 주기 등)는 `boss-presets.json`에서 비동기로 로드하며, `BossDataManager`에 주입하여 효율적인 실시간 조회를 지원합니다.
+        *   **Main SSOT와 Draft 패턴:** `BossDataManager`는 Main SSOT(확정 데이터)와 Draft(임시 편집 데이터)를 분리하여 관리합니다. SSOT 변경 시 Draft가 즉시 동기화되며, 모두 localStorage에 영구 저장됩니다.
+        *   **시간 역전 감지:** `boss-parser.js`에서 텍스트 파싱 시 이전 보스보다 시간이 이른 보스가 나타나면 날짜를 다음 날로 자동 증가시켜 날짜 롤오버를 처리합니다. (예: 23:29 → 03:50은 다음 날)
         *   데이터 로딩 실패 시 사용자에게 알림(`alert`)을 제공하고 빈 스케줄로 폴백(Fallback)하여 앱의 안정성을 보장합니다.
-        *   모든 데이터 변경(입력, 수정, 업데이트) 시 **Reconstruction(재구성) 전략**을 사용하여 데이터를 날짜순/시간순으로 정렬하고, `reconstructSchedule` 공통 로직을 통해 일관된 날짜 마커를 삽입합니다.
+        *   모든 데이터 변경(입력, 수정, 업데이트) 시 **Reconstruction(재구성) 전략**을 사용하여 데이터를 날짜순/시간순으로 정렬하고, 일관된 날짜 마커를 삽입합니다.
         *   보스 객체는 고유 ID를 통해 식별되며, 이름 중복 시에도 안전하게 업데이트됩니다. 특히 고정 알림은 시간, 이름 외에 요일 정보(days)를 포함하며, 모든 시간 관련 계산은 사용자 로컬 시간대 기준으로 처리됩니다.
         *   `boss` 객체는 `timeFormat` ('hm' 또는 'hms') 속성을 포함하여 사용자가 입력한 시간 형식을 보존합니다.
 *   **Web Speech API (`window.speechSynthesis`):** 음성 알림 기능을 구현하는 데 사용됩니다.
