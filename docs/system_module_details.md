@@ -141,7 +141,11 @@
 ## 5. `src/data-managers.js` (데이터 관리 및 상태 관리)
 
 ### 역할
-애플리케이션의 핵심 데이터(보스 스케줄) 및 영구 저장소(localStorage)에 저장되는 다양한 설정 및 데이터를 관리하는 싱글톤 모듈입니다. `BossDataManager`는 데이터 변경 시 구독자에게 알리는 반응형 패턴을 구현합니다.
+애플리케이션의 핵심 데이터(보스 스케줄) 및 영구 저장소(localStorage)에 저장되는 다양한 설정 및 데이터를 관리하는 싱글톤 모듈입니다.
+*   보스 메타데이터(젠 주기 등)는 `boss-presets.json`에서 비동기로 로드하며, `BossDataManager`에 주입하여 효율적인 실시간 조회를 지원합니다.
+*   데이터 로딩 실패 시 사용자에게 알림(`alert`)을 제공하고 빈 스케줄로 폴백(Fallback)하여 앱의 안정성을 보장합니다.
+*   모든 데이터 변경(입력, 수정, 업데이트) 시 **Reconstruction(재구성) 전략**을 사용하여 데이터를 날짜순/시간순으로 정렬하고, 일관된 규칙으로 날짜 마커를 삽입합니다.
+*   보스 객체는 고유 ID를 통해 식별되며, 이름 중복 시에도 안전하게 업데이트됩니다. 특히 고정 알림은 시간, 이름 외에 요일 정보(days)를 포함하며, 모든 시간 관련 계산은 사용자 로컬 시간대 기준으로 처리됩니다.
 
 ### 주요 `export` 상수
 
@@ -243,6 +247,10 @@
 - **설명:** `app.js`에 의해 호출되어, 모든 전역 `EventBus` 리스너를 등록하고 활성화합니다.
 - **인자:** `DOM` (`Object`)
 - **반환값:** `void`
+- **주요 `export` 함수:**
+    - `BossDataManager.initPresets(presets)`: 불러온 외부 프리셋 데이터를 매니저에 주입합니다.
+    - `BossDataManager.getBossInterval(bossName, contextId)`: 특정 보스의 리젠 주기를 프리셋에서 직접 조회합니다.
+    - `BossDataManager.subscribe(callback)`: 데이터 변경 시 실행할 콜백 함수를 등록합니다.
 - **핵심 내부 로직:**
     1.  `BossDataManager.subscribe`: 데이터 변경 시 대시보드 UI(`renderDashboard`)를 자동으로 갱신하는 리스너를 등록합니다.
     2.  `EventBus.on('log-updated')`: 새로운 로그가 발생했을 때, 현재 '알림 로그' 화면이 활성화 상태이면 로그 목록(`renderAlarmLog`)을 실시간으로 갱신하는 리스너를 등록합니다.
@@ -274,8 +282,9 @@
 
 - **역할:** 사용자 입력 텍스트(보스 목록)를 파싱하여 구조화된 데이터로 변환하고, 기존 데이터와 지능적으로 병합(Smart Merge)합니다.
 - **주요 `export` 함수:**
-    - `parseBossList(bossListInput)`: 텍스트 영역의 내용을 파싱합니다. 각 줄의 시간 형식을 감지하여 `timeFormat`('hm' 또는 'hms') 속성을 `boss` 객체에 추가합니다. 기존 `BossDataManager`의 데이터와 비교하여 ID를 유지하며 병합하고, 날짜 마커를 재구성한 결과 객체(`{ success, mergedSchedule, errors }`)를 반환합니다.
-    - `processBossItems(items)`: 구조화된 보스 데이터 배열(`{ time, name }`)을 직접 처리하여 스케줄 객체로 변환합니다. 초기 데이터 로딩 시 텍스트 파싱 과정을 생략하여 효율성을 높입니다.
+    - `parseBossList(bossListInput)`: 텍스트 영역의 내용을 파싱하고 `reconstructSchedule`을 통해 날짜 마커를 삽입합니다.
+    - `processBossItems(items)`: 구조화된 데이터를 처리한 후 `reconstructSchedule`을 호출하여 동일한 규칙의 스케줄을 생성합니다.
+    - `reconstructSchedule(sortedBosses)`: 정렬된 보스 배열을 바탕으로 날짜 마커가 포함된 최종 스케줄 객체를 생성하는 공통 로직을 담당합니다.
 
 ## 14. `src/boss-scheduler-data.js`
 

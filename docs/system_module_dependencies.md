@@ -68,5 +68,5 @@
 | **`logger.js`** | `event-bus.js` | `EventBus.emit()`을 통해 로그 업데이트 이벤트 발행 |
 | **`router.js`** | 없음 | 화면 라우팅 시스템 제공 |
 | **`event-bus.js`** | 없음 | 모듈 간 이벤트 통신 제공 |
-| **`services.js`** | `logger.js`, `boss-scheduler-data.js`, `data-managers.js`, `custom-list-manager.js` | 핵심 애플리케이션 서비스 초기화 및 외부 리소스 로드 |
+| **`services.js`** | `logger.js`, `boss-scheduler-data.js`, `data-managers.js`, `custom-list-manager.js` | 핵심 서비스 초기화 및 데이터 로드 후 `BossDataManager.initPresets()` 호출 |
 | **`utils.js`** | `logger.js` | 유효성 검사 시 로깅. (`calculateNextOccurrence` 함수를 통해 고정 알림의 다음 발생 시간을 계산) |

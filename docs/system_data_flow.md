@@ -23,8 +23,9 @@
 2.  **`app.js: initApp()` 실행 (async):**
     *   `initDomElements()`를 호출하여 모든 DOM 요소 참조를 `DOM` 객체에 수집합니다.
     *   `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자, 그리고 핵심 데이터(`boss-presets.json`, `initial-default.json`)를 비동기로 로드합니다.
+    *   **로드된 프리셋 데이터를 `BossDataManager.initPresets()`를 통해 주입하여 연산 준비를 마칩니다.**
     *   `registerAllRoutes()`를 호출하여 `src/screens/*.js`의 모든 화면 모듈을 `src/router.js`에 등록합니다.
-    *   `loadInitialData(DOM)`를 호출하여 URL 파라미터(`data`)가 있으면 `parseBossList`로, 없으면 로드된 프리셋 정보를 바탕으로 `processBossItems()`를 통해 `BossDataManager`를 초기화합니다.
+*   `loadInitialData(DOM)`를 호출하여 URL 파라미터(`data`)가 있으면 `parseBossList`로, 없으면 로드된 프리셋 정보를 바탕으로 `processBossItems()`를 통해 `BossDataManager`를 초기화합니다.
     *   **`renderFixedAlarms(DOM)`를 호출하여 '설정' 화면의 고정 알림 목록을 초기 렌더링합니다.**
     *   `initGlobalEventListeners(DOM)`를 호출하여, `BossDataManager` 데이터 변경 감지나 로그 업데이트 같은 전역 이벤트 리스너를 중앙에서 활성화합니다.
     *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
@@ -107,7 +108,8 @@
 ### 3.6. 버전 정보 화면 (`src/screens/version-info.js`)
 
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 'version-info-screen'으로 내비게이션될 때 `initVersionInfoScreen(DOM)`이 호출됩니다.
-*   **처리 흐름:** `api-service.js`의 `loadJsonContent()`를 통해 `data/version_history.json` 파일에서 버전 기록 데이터를 로드하고, `ui-renderer.js`의 `renderVersionInfo()`를 호출하여 `DOM.versionHistoryContent`에 표시합니다.
+*   **처리 흐름:** `api-| **`services.js`** | `logger.js`, `boss-scheduler-data.js`, `data-managers.js`, `custom-list-manager.js` | 핵심 서비스 초기화 및 데이터 로드 후 `BossDataManager`에 프리셋 주입 |
+하고, `ui-renderer.js`의 `renderVersionInfo()`를 호출하여 `DOM.versionHistoryContent`에 표시합니다.
 *   **데이터 흐름 요약:** 화면 전환 시 `api-service.js`를 통해 `version_history.json` 파일에서 버전 기록 데이터를 로드하여 `DOM.versionHistoryContent`에 표시합니다.
 
 ### 3.7. 도움말 화면 (`src/screens/help.js`)
