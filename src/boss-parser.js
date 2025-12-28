@@ -106,15 +106,25 @@ export function parseBossList(bossListInput) {
             scheduledDate.setDate(baseDate.getDate() + dayOffset);
             scheduledDate.setHours(bossHour, bossMinute, bossSecond);
 
-            // Filtering past bosses logic removed as per instruction to allow editing.
+            // Extract boss name and memo
+            // Format example: "HH:MM BossName (Memo)"
+            const fullBossInfo = parts.slice(1).join(' ');
+            let bossName = fullBossInfo;
+            let memo = '';
+
+            const memoMatch = fullBossInfo.match(/\(([^)]+)\)$/);
+            if (memoMatch) {
+                memo = memoMatch[1];
+                bossName = fullBossInfo.replace(/\(([^)]+)\)$/, '').trim();
+            }
 
             parsedBosses.push({
                 type: 'boss',
-                // ID will be assigned in the merge step
                 time: `${padNumber(bossHour)}:${padNumber(bossMinute)}:${padNumber(bossSecond)}`,
-                name: parts.slice(1).join(' '),
+                name: bossName,
+                memo: memo,
                 scheduledDate: scheduledDate,
-                timeFormat: timeFormat, // Store the detected format
+                timeFormat: timeFormat,
                 alerted_5min: false,
                 alerted_1min: false,
                 alerted_0min: false,
@@ -140,9 +150,10 @@ export function parseBossList(bossListInput) {
                 const existing = existingBossPool[matchIndex];
                 mergedBosses.push({
                     ...existing, // Keep ID, alert states
-                    time: parsed.time, // Update time string
-                    scheduledDate: parsed.scheduledDate, // Update calculated date
-                    timeFormat: parsed.timeFormat // Update time format
+                    time: parsed.time,
+                    memo: parsed.memo,
+                    scheduledDate: parsed.scheduledDate,
+                    timeFormat: parsed.timeFormat
                 });
                 // Remove from pool to avoid double matching
                 existingBossPool.splice(matchIndex, 1);
@@ -169,23 +180,9 @@ export function parseBossList(bossListInput) {
     }
 }
 
-// Deprecated: The sorting logic is now integrated into parseBossList and UI rendering.
-// We keep a simplified version that just triggers the parse-sort-update cycle via BossDataManager.
-export function getSortedBossListText(rawText) {
-    // This function is now just a placeholder or helper.
-    // Since we want "Time Sort" button to work, we should rely on parseBossList to sort and set data,
-    // and then updateBossListTextarea to show it.
-    // But this function is expected to RETURN text.
-
-    // For now, let's just return the input text.
-    // The actual sorting happens because 'parseBossList' updates the DataManager, 
-    // and the UI subscribes to it.
-    return rawText;
-}
-
 /**
  * 구조화된 보스 아이템 배열을 파싱하여 스케줄로 변환합니다. (JSON 데이터 대응)
- * @param {Array} items - { time: string, name: string } 배열
+ * @param {Array} items - { time: string, name: string, memo: string } 배열
  * @returns {Array} - 변환된 전체 스케줄 배열 (날짜 마커 포함)
  */
 export function processBossItems(items) {
@@ -209,7 +206,7 @@ export function processBossItems(items) {
         const { hours: bossHour, minutes: bossMinute, seconds: bossSecond } = timeParts;
         const bossTimeInSeconds = bossHour * 3600 + bossMinute * 60 + bossSecond;
 
-        // Chronological wrap-around logic
+        // Chronological wrap-around logic: 이전 보스보다 시간이 작으면 다음날
         if (lastBossTimeInSeconds !== -1 && bossTimeInSeconds < lastBossTimeInSeconds) {
             dayOffset++;
         }
@@ -224,6 +221,7 @@ export function processBossItems(items) {
             type: 'boss',
             time: `${padNumber(bossHour)}:${padNumber(bossMinute)}:${padNumber(bossSecond)}`,
             name: item.name,
+            memo: item.memo || '',
             scheduledDate: scheduledDate,
             timeFormat: item.time.includes(':') && item.time.split(':').length > 2 ? 'hms' : 'hm',
             alerted_5min: false,
@@ -268,4 +266,3 @@ export function reconstructSchedule(sortedBosses) {
 
     return finalSchedule;
 }
-

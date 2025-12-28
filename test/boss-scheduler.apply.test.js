@@ -85,11 +85,12 @@ describe('BossSchedulerScreen Apply Logic', () => {
         expect(setBossScheduleSpy).toHaveBeenCalledOnce();
         const finalSchedule = setBossScheduleSpy.mock.calls[0][0];
 
-        expect(finalSchedule.filter(item => item.type === 'boss')).toHaveLength(7);
+        // +12h 자동 추가 로직이 제거되었으므로 입력한 4개의 보스만 존재
+        expect(finalSchedule.filter(item => item.type === 'boss')).toHaveLength(4);
         expect(finalSchedule.filter(item => item.type === 'date')).toHaveLength(1); // 11.29 날짜 마커
     });
 
-    it('should handle special bosses with +12h logic', () => {
+    it('should handle special bosses (12h respawn bosses are now manually added)', () => {
         DOM.bossInputsContainer.innerHTML = `
             <div class="boss-input-item"><span class="boss-name">셀로비아</span><input type="text" class="remaining-time-input" data-id="id-셀로비아" value="05:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="셀로비아"></div>
             <div class="boss-input-item"><span class="boss-name">파르바</span><input type="text" class="remaining-time-input" data-id="id-파르바" value="10:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="파르바"></div>
@@ -104,15 +105,12 @@ describe('BossSchedulerScreen Apply Logic', () => {
 
         handleApplyBossSettings(DOM);
         const finalSchedule = setBossScheduleSpy.mock.calls[0][0];
-        expect(finalSchedule.filter(item => item.type === 'boss')).toHaveLength(4);
+        // +12h 자동 추가 로직이 제거되었으므로 입력한 2개의 보스만 존재
+        expect(finalSchedule.filter(item => item.type === 'boss')).toHaveLength(2);
         expect(finalSchedule.filter(item => item.type === 'boss')[0].name).toBe('셀로비아');
         expect(finalSchedule.filter(item => item.type === 'boss')[0].time).toBe('05:00:00');
         expect(finalSchedule.filter(item => item.type === 'boss')[1].name).toBe('파르바');
         expect(finalSchedule.filter(item => item.type === 'boss')[1].time).toBe('10:00:00');
-        expect(finalSchedule.filter(item => item.type === 'boss')[2].name).toBe('셀로비아');
-        expect(finalSchedule.filter(item => item.type === 'boss')[2].time).toBe('17:00:00');
-        expect(finalSchedule.filter(item => item.type === 'boss')[3].name).toBe('파르바');
-        expect(finalSchedule.filter(item => item.type === 'boss')[3].time).toBe('22:00:00');
     });
 
     it('should filter out invasion bosses that are not today', () => {

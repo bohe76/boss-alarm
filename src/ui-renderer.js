@@ -371,7 +371,8 @@ export function updateBossListTextarea(DOM) { // Function signature remains unch
             } else { // 'hms' or undefined for backward compatibility
                 formattedTime = currentItem.time; // HH:MM:SS
             }
-            outputLines.push(`${formattedTime} ${currentItem.name}`);
+            const line = currentItem.memo ? `${formattedTime} ${currentItem.name} (${currentItem.memo})` : `${formattedTime} ${currentItem.name}`;
+            outputLines.push(line);
         }
     }
     DOM.schedulerBossListInput.value = outputLines.join('\n');

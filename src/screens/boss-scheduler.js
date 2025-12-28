@@ -1,18 +1,23 @@
 // src/screens/boss-scheduler.js
-import { renderBossInputs, renderBossSchedulerScreen } from '../ui-renderer.js';
+import { renderBossInputs, renderBossSchedulerScreen, updateBossListTextarea } from '../ui-renderer.js';
+import { parseBossList, reconstructSchedule } from '../boss-parser.js';
 import { calculateBossAppearanceTime } from '../calculator.js';
 import { log } from '../logger.js';
 import { EventBus } from '../event-bus.js';
 import { BossDataManager } from '../data-managers.js';
-import { updateBossListTextarea } from '../ui-renderer.js';
-import { parseBossList } from '../boss-parser.js';
 import { generateUniqueId, padNumber } from '../utils.js';
 import { trackEvent } from '../analytics.js';
+import { getBossNamesForGame } from '../boss-scheduler-data.js';
 
 let _remainingTimes = {}; // Encapsulated state for remaining times
 let _memoInputs = {}; // Encapsulated state for memo inputs
 
 function handleShowScreen(DOM) {
+    // 진입 시점에 현재 BossDataManager의 데이터를 텍스트 영역에 먼저 반영
+    updateBossListTextarea(DOM);
+    // 텍스트 모드 데이터를 기반으로 입력 모드 초기화
+    syncTextToInput(DOM);
+
     renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs);
     updateCalculatedTimes(DOM);
     showSchedulerTab(DOM, 'input'); // Reset to input tab on show
@@ -31,11 +36,16 @@ function showSchedulerTab(DOM, tabId) {
 
     if (tabId === 'text' && DOM.bossInputsContainer && DOM.schedulerBossListInput) {
         syncInputToText(DOM);
+    } else if (tabId === 'input' && DOM.schedulerBossListInput) {
+        syncTextToInput(DOM);
     }
 
     trackEvent('Click Button', { event_category: 'Interaction', event_label: `스케줄러 탭 전환: ${tabId === 'input' ? '입력 모드' : '텍스트 모드'}` });
 }
 
+/**
+ * 입력 모드의 정보를 텍스트 모드로 동기화합니다.
+ */
 function syncInputToText(DOM) {
     const currentSchedule = BossDataManager.getBossSchedule();
     const inputValuesMap = new Map();
@@ -83,11 +93,59 @@ function syncInputToText(DOM) {
     DOM.schedulerBossListInput.value = listLines.join('\n');
 }
 
+/**
+ * SSOT(BossDataManager)의 데이터를 기반으로 입력 모드를 동기화합니다.
+ */
+function syncTextToInput(DOM) {
+    const currentSchedule = BossDataManager.getBossSchedule();
+    const now = Date.now();
+    const newRemainingTimes = {};
+    const newMemoInputs = {};
+
+    // 현재 게임 프리셋에 있는 보스 이름 목록
+    const currentPresetBossNames = new Set(getBossNamesForGame(DOM.gameSelect.value));
+
+    // SSOT에서 직접 데이터를 가져와서 남은 시간 계산
+    currentSchedule.forEach(item => {
+        if (item.type === 'boss') {
+            // 현재 프리셋에 있는 보스만 동기화
+            if (!currentPresetBossNames.has(item.name)) return;
+
+            const diffMs = item.scheduledDate.getTime() - now;
+            if (diffMs > 0) {
+                const totalSeconds = Math.floor(diffMs / 1000);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+
+                let timeStr;
+                if (item.timeFormat === 'hms') {
+                    timeStr = `${padNumber(hours)}:${padNumber(minutes)}:${padNumber(seconds)}`;
+                } else {
+                    timeStr = `${padNumber(hours)}:${padNumber(minutes)}`;
+                }
+                newRemainingTimes[item.name] = timeStr;
+            }
+            if (item.memo) {
+                newMemoInputs[item.name] = item.memo;
+            }
+        }
+    });
+
+    _remainingTimes = newRemainingTimes;
+    _memoInputs = newMemoInputs;
+
+    // 입력 필드 재렌더링
+    if (DOM.gameSelect) {
+        renderBossInputs(DOM, DOM.gameSelect.value, _remainingTimes, _memoInputs);
+        updateCalculatedTimes(DOM);
+    }
+}
+
 export function handleApplyBossSettings(DOM) {
     const isTextMode = DOM.tabSchedulerText && DOM.tabSchedulerText.classList.contains('active');
 
     if (isTextMode && DOM.schedulerBossListInput) {
-        // Text Mode handling
         const result = parseBossList(DOM.schedulerBossListInput);
         if (!result.success) {
             alert("보스 시간표 값에 오류가 있어 적용할 수 없습니다.\n\n" + result.errors.join('\n'));
@@ -97,22 +155,14 @@ export function handleApplyBossSettings(DOM) {
         BossDataManager.setBossSchedule(result.mergedSchedule);
     } else {
         // Input Mode handling
-        // Check if there is at least one valid input
         const hasValidInput = Array.from(DOM.bossInputsContainer.querySelectorAll('.remaining-time-input'))
             .some(input => input.value.trim() !== '' && input.dataset.calculatedDate);
 
         if (!hasValidInput) {
             alert("보스 설정에 내용이 전혀 없습니다.\n남은 시간을 1개 이상 입력 후 보스 설정 적용 버튼을 눌러 주세요.");
-            trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 설정 적용 실패', reason: 'No valid input' });
             return;
         }
 
-        const specialBossNames = [
-            "파르바", "셀로비아", "흐니르", "페티", "바우티", "니드호그", "야른", "라이노르", "비요른", "헤르모드", "스칼라니르", "브륀힐드", "라타토스크", "수드리", "지감4층",
-            "침공 파르바", "침공 셀로비아", "침공 흐니르", "침공 페티", "침공 바우티", "침공 니드호그", "침공 야른", "침공 라이노르", "침공 비요른", "침공 헤르모드", "침공 스칼라니르", "침공 브륀힐드", "침공 라타토스크", "침공 수드리"
-        ];
-
-        // 1. Get Current Data for ID Lookup
         const currentSchedule = BossDataManager.getBossSchedule();
         const existingBossesForMap = currentSchedule.filter(item => item.type === 'boss');
         const bossMap = new Map();
@@ -120,119 +170,53 @@ export function handleApplyBossSettings(DOM) {
 
         let currentBosses = [];
 
-        // 2. Process User Inputs
         DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
             const bossName = item.querySelector('.boss-name').textContent;
             const remainingTimeInput = item.querySelector('.remaining-time-input');
-            const memoInput = item.querySelector('.memo-input'); // Select memo input
+            const memoInput = item.querySelector('.memo-input');
             const remainingTime = remainingTimeInput.value;
             const bossId = remainingTimeInput.dataset.id;
             const calculatedDateIso = remainingTimeInput.dataset.calculatedDate;
-            const memo = memoInput ? memoInput.value.trim() : ''; // Get memo value
+            const memo = memoInput ? memoInput.value.trim() : '';
 
             if (remainingTime && calculatedDateIso) {
                 const appearanceTime = new Date(calculatedDateIso);
                 const timeStr = `${padNumber(appearanceTime.getHours())}:${padNumber(appearanceTime.getMinutes())}:${padNumber(appearanceTime.getSeconds())}`;
-                const timeFormat = remainingTimeInput.dataset.timeFormat || 'hms'; // Default to 'hms'
+                const timeFormat = remainingTimeInput.dataset.timeFormat || 'hms';
 
                 const bossData = {
                     time: timeStr,
                     scheduledDate: appearanceTime,
-                    timeFormat: timeFormat, // Add the format
-                    memo: memo, // Add memo
+                    timeFormat: timeFormat,
+                    memo: memo,
                     alerted_5min: false,
                     alerted_1min: false,
                     alerted_0min: false
                 };
 
                 if (bossId && bossMap.has(bossId)) {
-                    const existingBoss = bossMap.get(bossId);
-                    currentBosses.push({
-                        ...existingBoss,
-                        ...bossData
-                    });
+                    currentBosses.push({ ...bossMap.get(bossId), ...bossData });
                 } else {
-                    currentBosses.push({
-                        type: 'boss',
-                        id: bossId || generateUniqueId(),
-                        name: bossName,
-                        ...bossData
-                    });
+                    currentBosses.push({ type: 'boss', id: generateUniqueId(), name: bossName, ...bossData });
                 }
             }
         });
 
-        // 3. Add +12h Bosses
-        const additionalBosses = [];
-        currentBosses.forEach(boss => {
-            if (specialBossNames.includes(boss.name)) {
-                const newAppearanceTime = new Date(boss.scheduledDate);
-                newAppearanceTime.setHours(newAppearanceTime.getHours() + 12);
-                additionalBosses.push({
-                    type: 'boss', id: generateUniqueId(), name: boss.name,
-                    time: `${padNumber(newAppearanceTime.getHours())}:${padNumber(newAppearanceTime.getMinutes())}:${padNumber(newAppearanceTime.getSeconds())}`,
-                    scheduledDate: newAppearanceTime,
-                    timeFormat: boss.timeFormat, // Preserve original format
-                    memo: '',
-                    alerted_5min: false, alerted_1min: false, alerted_0min: false
-                });
-            }
-        });
-        currentBosses = [...currentBosses, ...additionalBosses];
-
-        // 4. Filtering
+        // Filtering & Sorting
         const todayString = new Date().toDateString();
         currentBosses = currentBosses.filter(boss => {
             const isInvasionBoss = boss.name.includes("침공");
             return !isInvasionBoss || boss.scheduledDate.toDateString() === todayString;
         });
-
-        // 5. Sort
         currentBosses.sort((a, b) => a.scheduledDate - b.scheduledDate);
 
-        // 6. Reconstruction
-        const newScheduleItems = [];
-        let lastDateStr = "";
-        currentBosses.forEach(boss => {
-            const d = boss.scheduledDate;
-            const currentDateStr = `${padNumber(d.getMonth() + 1)}.${padNumber(d.getDate())}`;
-            if (currentDateStr !== lastDateStr) {
-                newScheduleItems.push({
-                    type: 'date', value: currentDateStr,
-                    scheduledDate: new Date(d.getFullYear(), d.getMonth(), d.getDate())
-                });
-                lastDateStr = currentDateStr;
-            }
-            newScheduleItems.push(boss);
-        });
-
-        // 7. Save
-        BossDataManager.setBossSchedule(newScheduleItems);
+        // Reconstruction & Save
+        BossDataManager.setBossSchedule(reconstructSchedule(currentBosses));
     }
 
-    // 8. Update UI & Post-processing
     updateBossListTextarea(DOM);
-
-    _remainingTimes = {};
-    _memoInputs = {}; // Reset memo inputs
-    DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
-        const bossNameSpan = item.querySelector('.boss-name');
-        const timeInput = item.querySelector('.remaining-time-input');
-        const memoInput = item.querySelector('.memo-input');
-
-        if (bossNameSpan && timeInput) {
-            const bossName = bossNameSpan.textContent;
-            if (timeInput.value) _remainingTimes[bossName] = timeInput.value;
-            if (memoInput && memoInput.value) _memoInputs[bossName] = memoInput.value;
-        }
-    });
-
     EventBus.emit('navigate', 'timetable-screen');
-    log("보스 스케줄러에서 보스 시간표로 목록이 적용되었습니다.", true);
-    trackEvent('Click Button', {
-        event_category: 'Interaction',
-        event_label: `보스 설정 적용 (${isTextMode ? '텍스트 모드' : '입력 모드'})`
-    });
+    log("보스 설정이 적용되었습니다.", true);
 }
 
 export function initBossSchedulerScreen(DOM) {
@@ -247,7 +231,6 @@ export function initBossSchedulerScreen(DOM) {
             if (event.target === DOM.gameSelect) {
                 renderBossInputs(DOM, DOM.gameSelect.value, _remainingTimes, _memoInputs);
                 updateCalculatedTimes(DOM);
-                trackEvent('Change Select', { event_category: 'Interaction', event_label: '보스 목록 선택', value: DOM.gameSelect.value });
             }
         });
 
@@ -255,78 +238,31 @@ export function initBossSchedulerScreen(DOM) {
             if (event.target.classList.contains('remaining-time-input')) {
                 const inputField = event.target;
                 const bossName = inputField.dataset.bossName;
-                _remainingTimes[bossName] = inputField.value; // Update state
+                _remainingTimes[bossName] = inputField.value;
 
                 const remainingTime = inputField.value.trim();
                 const calculatedTimeSpan = inputField.parentElement.querySelector('.calculated-spawn-time');
                 const calculatedDate = calculateBossAppearanceTime(remainingTime);
 
-                const isNumeric = /^\d+$/.test(remainingTime);
-                const isHms = (isNumeric && remainingTime.length === 6) || (!isNumeric && remainingTime.split(':').length === 3);
-
                 if (remainingTime) {
+                    const isNumeric = /^\d+$/.test(remainingTime);
+                    const isHms = (isNumeric && remainingTime.length === 6) || (!isNumeric && remainingTime.split(':').length === 3);
                     inputField.dataset.timeFormat = isHms ? 'hms' : 'hm';
-                } else {
-                    delete inputField.dataset.timeFormat;
                 }
 
                 if (calculatedDate && calculatedTimeSpan) {
-                    let timeString;
-                    if (inputField.dataset.timeFormat === 'hm') {
-                        timeString = `${padNumber(calculatedDate.getHours())}:${padNumber(calculatedDate.getMinutes())}`;
-                    } else { // 'hms'
-                        timeString = `${padNumber(calculatedDate.getHours())}:${padNumber(calculatedDate.getMinutes())}:${padNumber(calculatedDate.getSeconds())}`;
-                    }
+                    const timeFormat = inputField.dataset.timeFormat;
+                    let timeString = `${padNumber(calculatedDate.getHours())}:${padNumber(calculatedDate.getMinutes())}`;
+                    if (timeFormat === 'hms') timeString += `:${padNumber(calculatedDate.getSeconds())}`;
+
                     calculatedTimeSpan.textContent = timeString;
                     inputField.dataset.calculatedDate = calculatedDate.toISOString();
                 } else {
                     if (calculatedTimeSpan) calculatedTimeSpan.textContent = '--:--:--';
                     delete inputField.dataset.calculatedDate;
-                    delete inputField.dataset.timeFormat;
                 }
             } else if (event.target.classList.contains('memo-input')) {
-                const inputField = event.target;
-                const bossName = inputField.dataset.bossName;
-                _memoInputs[bossName] = inputField.value;
-            }
-        });
-
-        DOM.bossSchedulerScreen.addEventListener('focusout', (event) => {
-            if (event.target.classList.contains('remaining-time-input')) {
-                const inputField = event.target;
-                const remainingTime = inputField.value.trim();
-                if (remainingTime === '') return;
-                const bossAppearanceTime = calculateBossAppearanceTime(remainingTime);
-                if (!bossAppearanceTime) {
-                    const bossName = inputField.parentElement.querySelector('.boss-name').textContent;
-                    const allInputs = Array.from(DOM.bossInputsContainer.querySelectorAll('.remaining-time-input'));
-                    const index = allInputs.indexOf(inputField) + 1;
-                    alert(`[${index}번째 줄] ${bossName}의 시간이 잘못 입력되었습니다.\n(입력값: ${remainingTime})`);
-                    setTimeout(() => { inputField.focus(); }, 0);
-                }
-            }
-        });
-
-        DOM.bossSchedulerScreen.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                if (event.target.classList.contains('remaining-time-input')) {
-                    event.preventDefault();
-                    const currentInput = event.target;
-                    const memoInput = currentInput.parentElement.querySelector('.memo-input');
-                    if (memoInput) {
-                        memoInput.focus();
-                    }
-                } else if (event.target.classList.contains('memo-input')) {
-                    event.preventDefault();
-                    const currentInput = event.target;
-                    const allMemoInputs = Array.from(DOM.bossInputsContainer.querySelectorAll('.memo-input'));
-                    const currentIndex = allMemoInputs.indexOf(currentInput);
-                    const allTimeInputs = Array.from(DOM.bossInputsContainer.querySelectorAll('.remaining-time-input'));
-
-                    if (currentIndex > -1 && currentIndex < allTimeInputs.length - 1) {
-                        allTimeInputs[currentIndex + 1].focus();
-                    }
-                }
+                _memoInputs[event.target.dataset.bossName] = event.target.value;
             }
         });
 
@@ -342,10 +278,8 @@ export function initBossSchedulerScreen(DOM) {
                     DOM.bossInputsContainer.querySelectorAll('.memo-input').forEach(input => {
                         input.value = '';
                     });
-
                     _remainingTimes = {};
                     _memoInputs = {};
-
                     log("모든 남은 시간과 메모가 삭제되었습니다.", true);
                     trackEvent('Click Button', { event_category: 'Interaction', event_label: '남은 시간 초기화' });
                 }
