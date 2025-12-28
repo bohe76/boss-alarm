@@ -17,7 +17,7 @@ import { trackPageView, trackEvent } from './analytics.js'; // Added GA imports
 
 // Screen Modules
 import { getScreen as getAlarmLogScreen } from './screens/alarm-log.js';
-import { getScreen as getBossManagementScreen } from './screens/boss-management.js';
+import { getScreen as getTimetableScreen } from './screens/timetable.js';
 import { getScreen as getBossSchedulerScreen } from './screens/boss-scheduler.js';
 import { getScreen as getCalculatorScreen } from './screens/calculator.js';
 import { getScreen as getCustomListScreen } from './screens/custom-list.js';
@@ -33,7 +33,7 @@ let dashboardRefreshInterval = null; // Declare the interval variable
 function registerAllRoutes() {
     const screenModules = [
         getAlarmLogScreen(),
-        getBossManagementScreen(),
+        getTimetableScreen(),
         getBossSchedulerScreen(),
         getCalculatorScreen(),
         getCustomListScreen(),
@@ -77,25 +77,9 @@ function hideTooltip(globalTooltip) {
 
 // Function to show a specific screen and hide others
 function showScreen(DOM, screenId) {
-    // Unsaved changes check for Boss Management Screen
-    const activeScreen = document.querySelector('.screen.active');
-    if (activeScreen && activeScreen.id === 'boss-management-screen' && window.isBossListDirty) {
-        if (!confirm("값이 저장되지 않았습니다. 그래도 화면을 이동하시겠습니까?\n(확인 시 수정 사항은 반영되지 않습니다.)")) {
-            return; // Cancel navigation
-        }
-        window.isBossListDirty = false; // Reset flag on confirm
-        // Optional: Revert textarea to last saved state?
-        // For now, we just allow navigation. If user comes back, they might see dirty text or reset text depending on implementation.
-        // To be safe, let's force a reset of the textarea from DATA when leaving or entering?
-        // Actually, 'boss-management-screen' doesn't have 'onTransition' to reset.
-        // But since we didn't save, DATA is pristine.
-        // If we want to clear the dirty text, we should do it here.
-        updateBossListTextarea(DOM); // Revert UI to match saved DATA
-    }
-
     const screens = [
         DOM.dashboardScreen,
-        DOM.bossManagementScreen,
+        DOM.timetableScreen,
         DOM.settingsScreen,
         DOM.alarmLogScreen,
         DOM.versionInfoScreen,
@@ -115,7 +99,7 @@ function showScreen(DOM, screenId) {
     // Track virtual page view
     const screenNames = {
         'dashboard-screen': '대시보드',
-        'boss-management-screen': '보스 관리',
+        'timetable-screen': '보스 시간표',
         'boss-scheduler-screen': '보스 스케줄러',
         'calculator-screen': '계산기',
         'alarm-log-screen': '알림 로그',
@@ -135,9 +119,9 @@ function showScreen(DOM, screenId) {
     }
 
     const allNavLinks = [
-        DOM.navDashboard, DOM.navBossManagement, DOM.navCalculator, DOM.navBossScheduler,
+        DOM.navDashboard, DOM.navTimetable, DOM.navCalculator, DOM.navBossScheduler,
         DOM.navSettings, DOM.navAlarmLog, DOM.navVersionInfo, DOM.navShare, DOM.navHelp,
-        DOM.bottomNavDashboard, DOM.bottomNavBossManagement, DOM.bottomNavCalculator, DOM.bottomNavShare
+        DOM.bottomNavDashboard, DOM.bottomNavTimetable, DOM.bottomNavCalculator, DOM.bottomNavShare
     ];
 
     allNavLinks.forEach(link => {
@@ -175,12 +159,13 @@ function showScreen(DOM, screenId) {
     if (screenId === 'boss-scheduler-screen') EventBus.emit('show-boss-scheduler-screen');
 }
 
-function loadInitialData(DOM) {    const params = new URLSearchParams(window.location.search);
+function loadInitialData(DOM) {
+    const params = new URLSearchParams(window.location.search);
     let loadSuccess = false;
 
     if (params.has('data')) {
-        DOM.bossListInput.value = decodeURIComponent(params.get('data'));
-        const result = parseBossList(DOM.bossListInput);
+        DOM.schedulerBossListInput.value = decodeURIComponent(params.get('data'));
+        const result = parseBossList(DOM.schedulerBossListInput);
         if (result.success) {
             BossDataManager.setBossSchedule(result.mergedSchedule);
             loadSuccess = true;
@@ -189,8 +174,8 @@ function loadInitialData(DOM) {    const params = new URLSearchParams(window.loc
             alert("URL의 보스 설정 값이 올바르지 않습니다. 오류:\n" + result.errors.join('\n') + "\n\n기본값으로 초기화합니다.");
             log("URL 데이터 파싱 실패. 기본값으로 복구합니다.", false);
         }
-    } 
-    
+    }
+
     if (!loadSuccess) {
         const defaultBossList = DefaultBossList.bossPresets[0].list;
         let updatedBossList = defaultBossList;
@@ -220,9 +205,9 @@ function loadInitialData(DOM) {    const params = new URLSearchParams(window.loc
             lines.unshift(todayFormatted);
             updatedBossList = lines.join('\n');
         }
-        DOM.bossListInput.value = updatedBossList;
-        
-        const result = parseBossList(DOM.bossListInput);
+        DOM.schedulerBossListInput.value = updatedBossList;
+
+        const result = parseBossList(DOM.schedulerBossListInput);
         if (result.success) {
             BossDataManager.setBossSchedule(result.mergedSchedule);
             log("기본 보스 목록을 불러왔습니다.");
@@ -233,9 +218,9 @@ function loadInitialData(DOM) {    const params = new URLSearchParams(window.loc
     }
 
 
-    
 
-    
+
+
     updateBossListTextarea(DOM); // Ensure UI reflects the parsed and normalized data
 }
 
@@ -271,7 +256,7 @@ function initEventHandlers(DOM, globalTooltip) {
     });
 
     const navLinks = [
-        DOM.navDashboard, DOM.navBossManagement, DOM.navCalculator, DOM.navBossScheduler,
+        DOM.navDashboard, DOM.navTimetable, DOM.navCalculator, DOM.navBossScheduler,
         DOM.navSettings, DOM.navAlarmLog, DOM.navVersionInfo, DOM.navShare, DOM.navHelp
     ];
 
@@ -302,7 +287,7 @@ function initEventHandlers(DOM, globalTooltip) {
     });
 
     const bottomNavLinks = [
-        DOM.bottomNavDashboard, DOM.bottomNavBossManagement, DOM.bottomNavCalculator, DOM.bottomNavShare
+        DOM.bottomNavDashboard, DOM.bottomNavTimetable, DOM.bottomNavCalculator, DOM.bottomNavShare
     ];
 
     bottomNavLinks.forEach(link => {
@@ -316,6 +301,13 @@ function initEventHandlers(DOM, globalTooltip) {
             });
         }
     });
+
+    if (DOM.editTimetableButton) {
+        DOM.editTimetableButton.addEventListener('click', () => {
+            EventBus.emit('navigate', 'boss-scheduler-screen');
+            trackEvent('Click Button', { event_category: 'Navigation', event_label: '시간표 수정하기 버튼 클릭' });
+        });
+    }
 
     const closeMoreMenu = () => {
         DOM.sidebar.classList.remove('more-menu-open');
@@ -359,7 +351,7 @@ function initEventHandlers(DOM, globalTooltip) {
         };
         DOM.sidebar.addEventListener('keydown', handleFocusTrap);
         DOM.sidebar.addEventListener('transitionend', () => {
-             DOM.sidebar.removeEventListener('keydown', handleFocusTrap);
+            DOM.sidebar.removeEventListener('keydown', handleFocusTrap);
         }, { once: true });
         trackEvent('Click Button', { event_category: 'Navigation', event_label: '더보기 (모바일) 열기' });
     };
@@ -380,7 +372,7 @@ function initEventHandlers(DOM, globalTooltip) {
         trackEvent('Click Button', { event_category: 'Navigation', event_label: '더보기 (모바일) 닫기' });
     });
     if (DOM.sidebarBackdrop) DOM.sidebarBackdrop.addEventListener('click', closeMoreMenu);
-    
+
     DOM.sidebar.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', () => {
             if (DOM.sidebar.classList.contains('more-menu-open')) closeMoreMenu();
@@ -401,7 +393,7 @@ export async function initApp() {
             trackEvent('Click Button', { event_category: 'Interaction', event_label: '푸터 문의하기' });
         });
     }
-    
+
     // Check for Document PiP API support
     if ('documentPictureInPicture' in window) {
         if (DOM.pipToggleButton) {
@@ -411,7 +403,7 @@ export async function initApp() {
 
     await initializeCoreServices(DOM);
     registerAllRoutes();
-    
+
     // Initialize Custom List Modal functionality explicitly as it's not a route
     const customListScreen = getCustomListScreen();
     if (customListScreen && customListScreen.init) {
@@ -419,10 +411,10 @@ export async function initApp() {
     }
 
     loadInitialData(DOM);
-    
-    
+
+
     renderFixedAlarms(DOM);
-            
+
     const isAlarmRunningInitially = getIsAlarmRunning();
     if (isAlarmRunningInitially) {
         DOM.alarmToggleButton.classList.add('alarm-on');
@@ -452,7 +444,7 @@ export async function initApp() {
     EventBus.on('navigate', (screenId) => showScreen(DOM, screenId));
     initGlobalEventListeners(DOM);
     initEventHandlers(DOM, globalTooltip);
-    
+
     const handleResize = () => {
         const isMobileView = window.innerWidth <= 768;
         document.body.classList.toggle('is-mobile-view', isMobileView);

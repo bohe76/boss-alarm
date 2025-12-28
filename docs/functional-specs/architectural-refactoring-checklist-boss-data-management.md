@@ -1,7 +1,7 @@
 ---
 id: architectural-refactoring-checklist-boss-data-management
 title: "아키텍처 리팩토링 체크리스트: 보스 데이터 관리 기능 재편성 (v1.0)"
-status: "진행 중" # 미해결 | 진행 중 | 해결됨
+status: "해결됨" # 미해결 | 진행 중 | 해결됨
 priority: "High"
 assignee: "Gemini"
 labels:
@@ -10,7 +10,7 @@ labels:
   - ux
   - feature
 created_date: "2025-12-18"
-resolved_date: ""
+resolved_date: "2025-12-28"
 ---
 
 # 리팩토링 명세서: 보스 데이터 관리 기능 재편성 (단계별 실행 계획)
@@ -22,9 +22,13 @@ resolved_date: ""
 **핵심 원칙:**
 1.  **점진적 변경:** 메뉴명 변경, UI 재배치, 로직 통합 등은 사용자에게 미치는 영향을 최소화하며 단계적으로 적용합니다.
 2.  **데이터 무결성:** `BossDataManager`를 통한 SSOT 원칙을 엄수하며, 모드 전환 및 저장 시 데이터 일관성을 최우선으로 고려합니다.
-3.  **철저한 검증:** 각 단계 후에는 단위 테스트 및 기능 테스트를 통해 변경 사항의 유효성을 확인합니다.
+3.  **철저한 검증:** 각 단계 후에는 단위 테스트 및 기능 테스트를 통해 변경 사항의 유효성을 확인합니다. **모든 검증 완료 후 `npm run lint` 및 `npm test`를 실행하여 코드 품질 및 기존 테스트 통과 여부를 확인합니다.**
 4.  **UX 일관성:** '보스 설정'의 '뷰/편집' 토글과 같은 기존 UX 패턴을 적극 활용하여 학습 곡선을 최소화합니다.
 5.  **심층 사전 분석:** 각 단계 시작 전, 변경으로 인한 모든 직접/간접적 코드 의존성 및 잠재적 사이드 이펙트를 철저히 분석하여 실행 계획을 확정합니다.
+6.  **순차적 커밋:** 각 `<details>` 블록은 하나의 독립적인 커밋 단위입니다. 다음 단계로 넘어가기 전에 반드시 현재 단계를 커밋하고, `npm test`가 모든 테스트를 통과하는지 확인합니다. 검증 실패 시, 해당 단계의 커밋을 `git revert`하거나 `git reset --hard HEAD~1`로 이전 상태를 복구합니다.
+
+> [!CAUTION]
+> 이 체크리스트가 완료될 때까지, 보스 설정/시간표 및 보스 스케줄러 관련 기능에는 **새로운 기능 추가 또는 기존 로직 변경을 금지**합니다. (Feature Freeze) 버그 수정은 예외로 하되, 버그 수정 커밋은 본 체크리스트 작업과 별도 브랜치에서 수행합니다.
 
 ---
 
@@ -88,10 +92,13 @@ resolved_date: ""
 - [ ] **실행 계획:**
     1.  `app.js` 상단에서 `import { getScreen as getBossManagementScreen } from './screens/boss-management.js';`를 `import { getScreen as getTimetableScreen } from './screens/timetable.js';`로 변경합니다. (별칭 및 파일명 변경 반영)
     2.  `registerAllRoutes()` 함수 내에서 `registerRoute('boss-management-screen', getBossManagementScreen());`를 `registerRoute('timetable-screen', getTimetableScreen());`로 변경합니다.
-    3.  `showScreen` 함수 내에서 `activeScreen && activeScreen.id === 'boss-management-screen'`과 같이 `boss-management-screen` ID를 사용하는 모든 조건 및 문자열을 `timetable-screen`으로 변경합니다. `window.isBossListDirty` 관련 로직은 '보스 시간표'가 조회 전용이 되므로 제거합니다. (해당 로직은 이제 '보스 스케줄러'로 이동)
-    4.  `initEventHandlers` 함수 내 `navLinks`, `bottomNavLinks` 배열을 구성하는 부분에서 `DOM.navBossManagement`, `DOM.bottomNavBossManagement`를 `DOM.navTimetable`, `DOM.bottomNavTimetable`로 변경합니다.
-    5.  `DOM.editTimetableButton`이 존재할 경우에만 클릭 이벤트 리스너를 추가하여 `EventBus.emit('navigate', 'boss-scheduler-screen')`을 발생시키도록 `initEventHandlers`를 수정합니다.
-    6.  `screenNames` 객체에서 `'boss-management-screen'` 항목을 `'timetable-screen': '보스 시간표'`로 업데이트합니다.
+    3.  `showScreen` 함수 내에서 `boss-management-screen` ID를 사용하는 **모든 4곳**(Line 82, 98, 118 등)을 `timetable-screen`으로 변경합니다.
+        *   `activeScreen.id === 'boss-management-screen'` (저장 안함 경고 조건): 이 조건 및 `window.isBossListDirty` 관련 로직은 '보스 시간표'가 조회 전용이 되므로 **제거**합니다.
+        *   `screens` 배열 내 `DOM.bossManagementScreen` 참조를 `DOM.timetableScreen`으로 변경합니다.
+        *   `screenNames` 객체 내 `'boss-management-screen'` 키를 `'timetable-screen': '보스 시간표'`로 변경합니다.
+    4.  `initEventHandlers` 함수 내 `navLinks` (Line 273-275) 및 `bottomNavLinks` (Line 304-306) 배열 **모두에서** `DOM.navBossManagement`, `DOM.bottomNavBossManagement`를 `DOM.navTimetable`, `DOM.bottomNavTimetable`로 변경합니다.
+    5.  `showScreen` 함수 내 `allNavLinks` 배열 (Line 137-140)에서 `DOM.navBossManagement`, `DOM.bottomNavBossManagement`를 `DOM.navTimetable`, `DOM.bottomNavTimetable`로 변경합니다.
+    6.  `DOM.editTimetableButton`이 존재할 경우에만 클릭 이벤트 리스너를 추가하여 `EventBus.emit('navigate', 'boss-scheduler-screen')`을 발생시키도록 `initEventHandlers`를 수정합니다.
 - [ ] **검증:**
     *   모든 내비게이션 링크(사이드바, 하단 탭, [시간표 수정하기] 버튼)를 통해 '보스 시간표' 화면으로 정상 이동하는지 확인합니다.
     *   '보스 시간표' 화면 진입 시 `app.js` 콘솔 로그에 오류가 없는지 확인합니다.
@@ -105,6 +112,8 @@ resolved_date: ""
 - [ ] **사전 분석 (심층):**
     *   **영향 범위:** `src/screens/boss-management.js` 파일 자체, 그리고 이 파일을 `import` 하는 모든 모듈 (현재 `src/app.js`).
     *   **의존성:** `boss-management.js`는 `BossDataManager`, `LocalStorageManager`, `log`, `trackEvent`, `updateBossListTextarea`, `updateBossManagementUI`를 사용합니다. 파일명 변경 시 `app.js`에서 `import` 경로도 함께 변경해야 합니다. 모듈 내에서 사용하던 `EDIT_MODE`, `VIEW_MODE`, `DOM.viewEditModeToggleButton`, `DOM.nextBossToggleButton`, `DOM.sortBossListButton`, `DOM.bossListInput`, `window.isBossListDirty` 등은 제거되거나 다른 모듈로 이동해야 합니다. `startAutoRefresh`는 '보스 시간표'에서도 필요합니다.
+    *   **유지되는 의존성:** `alarm-scheduler.js`의 `getIsAlarmRunning` import는 `startAutoRefresh`에서 계속 사용되므로 **유지**되어야 합니다.
+    *   **기존 테스트 영향:** 이 변경으로 인해 `test/boss-management.test.js`가 영향을 받습니다. 코드 변경 후 바로 `npm test`를 실행하여 실패 케이스를 확인하고, 필요 시 테스트 코드를 먼저 수정합니다 (5단계 참조).
 - [ ] **실행 계획:**
     1.  **파일명 변경:** `src/screens/boss-management.js`를 `src/screens/timetable.js`로 변경합니다.
     2.  `src/screens/timetable.js` 파일 내부에서 다음 로직을 제거하거나 변경합니다.
@@ -116,10 +125,13 @@ resolved_date: ""
         *   `initTimetableScreen` 함수 내에서 `LocalStorageManager.get('bossManagementMode')` 관련 로직을 제거하고, `LocalStorageManager.get('bossManagementNextBossFilter')`만 유지합니다. `updateBossManagementUI` 호출 시 `currentMode` 인자를 `VIEW_MODE` 상수로 고정하거나 (혹은 아예 인자 없이) 호출하도록 변경합니다.
         *   `startAutoRefresh` 함수는 계속 유지하되, `currentMode` 확인 로직을 제거하고 `LocalStorageManager.get('bossManagementNextBossFilter')` 및 `getIsAlarmRunning()` 조건만으로 `updateBossManagementUI` (향후 `updateTimetableUI`)를 호출하도록 단순화합니다.
     3.  `getScreen()` 함수에서 반환하는 `id`를 `'timetable-screen'`으로 변경하고, `init` 함수로 `initTimetableScreen`을 반환하도록 합니다.
+    4.  **`trackEvent` 라벨 변경:** 파일 내 `trackEvent` 호출 (Line 54, 69 등)의 라벨에서 `'보스 설정'`을 **`'보스 시간표'`**로 변경합니다. (GA 분석 데이터 일관성)
+    5.  **LocalStorage 마이그레이션:** `initTimetableScreen` 함수 시작 부분에 `localStorage.removeItem('bossManagementMode');`를 호출하여 기존 사용자의 더 이상 사용되지 않는 데이터를 자동으로 정리합니다.
 - [ ] **검증:**
     *   '보스 시간표' 화면으로 이동 시 JavaScript 콘솔에 오류가 없는지 확인합니다.
     *   화면에서 편집 관련 UI(텍스트 영역, 저장 버튼 등)가 보이지 않고, '다음 보스' 필터(UI 요소는 제거되었으나 로직은 남아있어야 함)와 카드 리스트 뷰가 작동하는지 확인합니다.
     *   `startAutoRefresh`가 알람 ON/OFF 및 필터 상태에 따라 정상적으로 뷰를 갱신하는지 확인합니다.
+    *   `localStorage`에 `bossManagementMode` 키가 더 이상 존재하지 않는지 확인합니다.
 - [ ] **커밋 제안:** `refactor(screens): 'boss-management.js'를 'timetable.js'로 전환 및 조회 전용화`
 </details>
 
@@ -250,6 +262,7 @@ resolved_date: ""
     7.  "스케줄러 초기화" 버튼 (`DOM.clearAllRemainingTimesButton`) 클릭 시, `currentInputMode`에 따라 스마트 입력 필드 또는 텍스트 영역을 초기화하도록 로직을 확장합니다. (버튼 라벨을 "스케줄러 초기화"로 변경)
     8.  `handleShowScreen` 함수에서 `updateSchedulerUI(DOM)`를 호출하여 초기 화면 렌더링 시에도 모드 토글 및 데이터가 반영되도록 합니다.
     9.  `_remainingTimes` 및 `_memoInputs` 초기 로드: `BossDataManager.getBossSchedule()`을 기반으로 현재 저장된 보스들의 시간과 메모를 `_remainingTimes`, `_memoInputs`에 초기값으로 채워 넣습니다.
+    10. **`EventBus.emit` 호출 수정:** `handleApplyBossSettings` 함수 내 `EventBus.emit('navigate', 'boss-management-screen')` (Line 143)을 `EventBus.emit('navigate', 'timetable-screen')`으로 변경합니다. (보스 설정 적용 후 이동 화면 ID 변경)
 - [ ] **검증:**
     *   토글 스위치를 통해 두 모드 간 전환이 정상적으로 되는지 확인합니다.
     *   각 모드에서 데이터를 입력하고 다른 모드로 전환했을 때 데이터가 유지되는지 확인합니다. (파싱 오류 경고 테스트 포함)
@@ -382,6 +395,32 @@ resolved_date: ""
     4.  필요시 `vi.resetModules()` 또는 `beforeEach`에서 `_remainingTimes = {}; _memoInputs = {};`와 같이 모듈 내부 상태를 Mocking 또는 초기화하는 전략을 사용합니다.
 - [ ] **검증:** `npm test`를 실행하여 모든 테스트가 통과하는지 확인합니다.
 - [ ] **커밋 제안:** `test(scheduler): '보스 스케줄러' 모드 전환 및 동기화 테스트 추가`
+</details>
+
+<details>
+<summary><strong>5.3. `test/boss-management.test.js` -> `test/timetable.test.js` 파일 변환</strong></summary>
+
+- [ ] **사전 분석 (심층):**
+    *   **영향 범위:** `test/boss-management.test.js` (221줄), `src/screens/timetable.js` (구 `boss-management.js`).
+    *   **의존성:** 테스트 파일은 `initBossManagementScreen` 함수를 import하고, DOM Mock에서 `boss-management-screen`, `bossManagementMode`, `bossManagementNextBossFilter` 키를 사용합니다. 1.4단계의 코드 변경에 맞춰 업데이트해야 합니다.
+- [ ] **실행 계획:**
+    1.  **파일명 변경:** `test/boss-management.test.js`를 `test/timetable.test.js`로 변경합니다.
+    2.  **import 경로 변경:** Line 2의 `import { initBossManagementScreen } from '../src/screens/boss-management.js';`를 `import { initTimetableScreen } from '../src/screens/timetable.js';`로 변경합니다.
+    3.  **describe 블록 이름 변경:** `describe('Boss Management Screen', ...)`를 `describe('Timetable Screen', ...)`로 변경합니다.
+    4.  **DOM Mock HTML 내 ID 변경:** `beforeEach` 내 `document.body.innerHTML`에서 `id="boss-management-screen"`을 `id="timetable-screen"`으로 변경합니다.
+    5.  **DOM 객체 속성명 변경:** `DOM.bossManagementScreen`을 `DOM.timetableScreen`으로 변경합니다.
+    6.  **LocalStorage 키 Mock 변경/제거:**
+        *   `LocalStorageManager.get('bossManagementMode')` 관련 Mock 및 Assertion을 **제거**합니다. (조회 전용화에 따라 더 이상 사용되지 않음)
+        *   `bossManagementNextBossFilter` 키는 유지하거나 `timetableNextBossFilter`로 변경합니다. (1.4단계의 결정에 따름)
+    7.  **편집 모드 관련 테스트 케이스 제거:**
+        *   `should toggle between view and edit mode on button click and save to localStorage` 테스트를 **제거**합니다.
+        *   `should execute save logic only in edit mode` 테스트를 **제거**합니다.
+        *   `should set window.isBossListDirty to true on textarea input` 테스트를 **제거**합니다.
+        *   `should reset window.isBossListDirty to false after successful save` 테스트를 **제거**합니다.
+    8.  **함수 호출 변경:** 테스트 내에서 `initBossManagementScreen(DOM)`을 `initTimetableScreen(DOM)`으로 변경합니다.
+    9.  **trackEvent 라벨 Assertion 업데이트:** `'보스 설정'`을 `'보스 시간표'`로 변경합니다.
+- [ ] **검증:** `npm test`를 실행하여 모든 테스트가 통과하는지 확인합니다.
+- [ ] **커밋 제안:** `test(screens): 'boss-management.test.js'를 'timetable.test.js'로 전환 및 조회 전용 테스트로 단순화`
 </details>
 
 ---

@@ -68,7 +68,7 @@
 
 ### 3.2. 보스 관리 화면 (`src/screens/boss-management.js`)
 
-*   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initBossManagementScreen(DOM)`이 호출됩니다. 이 함수는 `LocalStorageManager`에서 저장된 '뷰/편집' 모드(`bossManagementMode`) 및 '다음 보스' 필터(`bossManagementNextBossFilter`) 상태를 로드하고, `ui-renderer.js`의 `updateBossManagementUI(DOM, mode)`를 호출하여 해당 모드에 맞는 UI를 초기 렌더링합니다.
+*   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initTimetableScreen(DOM)`이 호출됩니다. 이 함수는 `LocalStorageManager`에서 '다음 보스' 필터(`timetableNextBossFilter`) 상태를 로드하고, `ui-renderer.js`의 `updateTimetableUI(DOM)`를 호출하여 시간표 UI를 초기 렌더링합니다. '보스 시간표' 화면은 조회 전용이며, 수정을 위해 '보스 스케줄러'로 이동할 수 있는 버튼을 제공합니다.
 *   **이벤트 리스너:**
     *   **'뷰/편집' 토글 버튼 (`DOM.viewEditModeToggleButton`):** 클릭 시 모드를 전환하고 `LocalStorageManager`에 저장합니다. `updateBossManagementUI`를 호출하여 UI를 갱신합니다.
     *   **'다음 보스' 토글 버튼 (`DOM.nextBossToggleButton`):** 뷰 모드에서만 활성화되며, 클릭 시 필터 상태를 토글하고 저장합니다. 이후 `updateBossManagementUI` -> `renderBossListTableView`를 호출하여 **카드 리스트 형태**로 필터링된 목록을 다시 렌더링합니다.

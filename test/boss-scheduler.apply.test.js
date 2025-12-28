@@ -35,12 +35,12 @@ describe('BossSchedulerScreen Apply Logic', () => {
         process.env.TZ = 'Asia/Seoul';
         vi.useFakeTimers();
         vi.setSystemTime(new Date('2025-11-28T19:00:00+09:00'));
-        vi.spyOn(window, 'alert').mockImplementation(() => {});
+        vi.spyOn(window, 'alert').mockImplementation(() => { });
 
         mockBossSchedule = [];
         vi.spyOn(BossDataManager, 'getBossSchedule').mockImplementation(() => mockBossSchedule);
         setBossScheduleSpy = vi.spyOn(BossDataManager, 'setBossSchedule').mockImplementation((newSchedule) => { mockBossSchedule = newSchedule; });
-        vi.spyOn(BossDataManager, 'subscribe').mockImplementation(() => {});
+        vi.spyOn(BossDataManager, 'subscribe').mockImplementation(() => { });
 
         calculateBossAppearanceTimeSpy = vi.spyOn(calculator, 'calculateBossAppearanceTime').mockImplementation(() => new Date('2025-11-28T19:00:00+09:00'));
 
@@ -48,14 +48,14 @@ describe('BossSchedulerScreen Apply Logic', () => {
             bossSchedulerScreen: document.createElement('div'),
             bossInputsContainer: document.createElement('div'),
             moveToBossSettingsButton: document.createElement('button'),
-            bossListInput: document.createElement('textarea'), // Add bossListInput
+            schedulerBossListInput: document.createElement('textarea'), // Add schedulerBossListInput
         };
         document.body.appendChild(DOM.bossSchedulerScreen);
         DOM.bossSchedulerScreen.appendChild(DOM.bossInputsContainer);
         DOM.bossSchedulerScreen.appendChild(DOM.moveToBossSettingsButton);
-        DOM.bossSchedulerScreen.appendChild(DOM.bossListInput); // Append bossListInput
+        DOM.bossSchedulerScreen.appendChild(DOM.schedulerBossListInput); // Append schedulerBossListInput
 
-        initBossSchedulerScreen(DOM); 
+        initBossSchedulerScreen(DOM);
     });
 
     afterEach(() => {
@@ -79,12 +79,12 @@ describe('BossSchedulerScreen Apply Logic', () => {
             if (input.dataset.id === 'id-페티') calculateBossAppearanceTimeSpy.mockReturnValueOnce(new Date('2025-11-29T06:00:00+09:00'));
             input.dispatchEvent(new Event('input', { bubbles: true }));
         });
-        
+
         handleApplyBossSettings(DOM);
 
         expect(setBossScheduleSpy).toHaveBeenCalledOnce();
         const finalSchedule = setBossScheduleSpy.mock.calls[0][0];
-        
+
         expect(finalSchedule.filter(item => item.type === 'boss')).toHaveLength(7);
         expect(finalSchedule.filter(item => item.type === 'date')).toHaveLength(1); // 11.29 날짜 마커
     });
@@ -104,15 +104,15 @@ describe('BossSchedulerScreen Apply Logic', () => {
 
         handleApplyBossSettings(DOM);
         const finalSchedule = setBossScheduleSpy.mock.calls[0][0];
-        expect(finalSchedule.filter(item => item.type === 'boss')).toHaveLength(4); 
+        expect(finalSchedule.filter(item => item.type === 'boss')).toHaveLength(4);
         expect(finalSchedule.filter(item => item.type === 'boss')[0].name).toBe('셀로비아');
-        expect(finalSchedule.filter(item => item.type === 'boss')[0].time).toBe('05:00:00'); 
+        expect(finalSchedule.filter(item => item.type === 'boss')[0].time).toBe('05:00:00');
         expect(finalSchedule.filter(item => item.type === 'boss')[1].name).toBe('파르바');
-        expect(finalSchedule.filter(item => item.type === 'boss')[1].time).toBe('10:00:00'); 
+        expect(finalSchedule.filter(item => item.type === 'boss')[1].time).toBe('10:00:00');
         expect(finalSchedule.filter(item => item.type === 'boss')[2].name).toBe('셀로비아');
-        expect(finalSchedule.filter(item => item.type === 'boss')[2].time).toBe('17:00:00'); 
+        expect(finalSchedule.filter(item => item.type === 'boss')[2].time).toBe('17:00:00');
         expect(finalSchedule.filter(item => item.type === 'boss')[3].name).toBe('파르바');
-        expect(finalSchedule.filter(item => item.type === 'boss')[3].time).toBe('22:00:00'); 
+        expect(finalSchedule.filter(item => item.type === 'boss')[3].time).toBe('22:00:00');
     });
 
     it('should filter out invasion bosses that are not today', () => {
@@ -122,7 +122,7 @@ describe('BossSchedulerScreen Apply Logic', () => {
         `;
         const inputInvade = DOM.bossInputsContainer.querySelector('input[data-id="침공 셀로비아"]');
         // 침공 보스는 다음날로 계산되어 필터링되어야 함
-        calculateBossAppearanceTimeSpy.mockReturnValueOnce(new Date('2025-11-29T09:00:00+09:00')); 
+        calculateBossAppearanceTimeSpy.mockReturnValueOnce(new Date('2025-11-29T09:00:00+09:00'));
         inputInvade.dispatchEvent(new Event('input', { bubbles: true }));
 
         const inputNormal = DOM.bossInputsContainer.querySelector('input[data-id="id-일반보스"]');
@@ -143,7 +143,7 @@ describe('BossSchedulerScreen Apply Logic', () => {
         input.dispatchEvent(new Event('input', { bubbles: true }));
 
         handleApplyBossSettings(DOM);
-        
+
         expect(setBossScheduleSpy).toHaveBeenCalledOnce();
         const finalSchedule = setBossScheduleSpy.mock.calls[0][0];
         expect(finalSchedule.some(item => item.name === 'Old Boss')).toBe(false); // Old Boss should be gone

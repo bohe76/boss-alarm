@@ -1,16 +1,16 @@
 import { calculateAppearanceTimeFromMinutes } from '../calculator.js';
 import { CrazyCalculator } from '../crazy-calculator.js';
 import { LocalStorageManager, BossDataManager } from '../data-managers.js';
-import { 
-    showToast, 
-    populateBossSelectionDropdown, 
+import {
+    showToast,
+    populateBossSelectionDropdown,
     updateBossListTextarea,
-    updateBossManagementUI, 
-    updateCrazyStopwatchDisplay, 
-    updateCrazyExpectedTimeDisplay, 
-    renderCrazyTempResults, 
-    renderCrazySavedList, 
-    renderCalculatorScreen 
+    updateTimetableUI,
+    updateCrazyStopwatchDisplay,
+    updateCrazyExpectedTimeDisplay,
+    renderCrazyTempResults,
+    renderCrazySavedList,
+    renderCalculatorScreen
 } from '../ui-renderer.js';
 import { formatTime, padNumber } from '../utils.js';
 import { log } from '../logger.js';
@@ -30,7 +30,7 @@ export function initCalculatorScreen(DOM) {
     if (DOM.crazySavedList) {
         DOM.crazySavedList.style.display = 'none';
     }
-    
+
     // --- Zen Calculator Screen Event Handlers ---
     if (DOM.remainingTimeInput) {
         DOM.remainingTimeInput.addEventListener('input', () => {
@@ -77,7 +77,7 @@ export function initCalculatorScreen(DOM) {
             // 1. Get existing schedule and find the boss to update
             const currentSchedule = BossDataManager.getBossSchedule();
             let bossFoundAndUpdated = false;
-            
+
             // Filter out date markers, we will reconstruct them.
             let allBosses = currentSchedule.filter(item => item.type === 'boss');
 
@@ -95,19 +95,19 @@ export function initCalculatorScreen(DOM) {
                     // But `calculateBossAppearanceTime` returns a string based on `now`.
                     // So `newBossTime` is relative to TODAY/NOW.
                     // Therefore, we should construct `newScheduledDate` based on `now`, not `targetDate`.
-                    
+
                     const now = new Date();
                     let updatedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), newHour, newMinute, newSecond || 0);
-                    
+
                     // If the calculated time is earlier than now (e.g. rolled over to next day in calc logic, but here we only have string),
                     // Wait, `calculateBossAppearanceTime` uses `now` and adds remaining time. It handles rollover in hours > 24?
                     // No, `calculateBossAppearanceTime` returns HH:MM:SS string.
                     // If remaining time is 25 hours, it returns time next day.
                     // We need to trust that if the user says "remaining time", the resulting time is future.
                     if (updatedDate.getTime() < now.getTime()) {
-                         updatedDate.setDate(updatedDate.getDate() + 1);
+                        updatedDate.setDate(updatedDate.getDate() + 1);
                     }
-                    
+
                     return {
                         ...boss,
                         time: newBossTime,
@@ -147,13 +147,12 @@ export function initCalculatorScreen(DOM) {
                 // 4. Save and Update UI
                 BossDataManager.setBossSchedule(newSchedule);
                 updateBossListTextarea(DOM); // This will use the new formatted output logic
-                
-                // Update Boss Management UI (View/Edit Mode)
-                const currentMode = LocalStorageManager.get('bossManagementMode') || 'view';
-                updateBossManagementUI(DOM, currentMode);
-                
+
+                // Update Timetable UI
+                updateTimetableUI(DOM);
+
                 showToast(DOM, `${bossName} 보스 시간이 ${newBossTime}으로 업데이트 되었습니다.`);
-                trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 시간 업데이트', bossName: bossName, newTime: newBossTime });
+                trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 시간 업데이트 (젠 계산기)', bossName: bossName, newTime: newBossTime });
 
                 DOM.remainingTimeInput.value = '';
                 DOM.bossAppearanceTimeDisplay.textContent = '--:--:--';

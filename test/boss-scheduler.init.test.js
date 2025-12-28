@@ -50,11 +50,11 @@ describe('BossSchedulerScreen Initialization and UI State', () => {
         process.env.TZ = 'Asia/Seoul';
         vi.useFakeTimers();
         vi.setSystemTime(new Date('2025-11-28T19:00:00+09:00'));
-        vi.spyOn(window, 'alert').mockImplementation(() => {});
-        
+        vi.spyOn(window, 'alert').mockImplementation(() => { });
+
         mockBossSchedule = [];
         vi.spyOn(BossDataManager, 'getBossSchedule').mockImplementation(() => mockBossSchedule);
-        vi.spyOn(BossDataManager, 'subscribe').mockImplementation(() => {});
+        vi.spyOn(BossDataManager, 'subscribe').mockImplementation(() => { });
 
         calculateBossAppearanceTimeSpy = vi.spyOn(calculator, 'calculateBossAppearanceTime').mockImplementation(() => new Date('2025-11-28T19:00:00+09:00'));
 
@@ -63,14 +63,14 @@ describe('BossSchedulerScreen Initialization and UI State', () => {
             gameSelect: document.createElement('select'),
             bossInputsContainer: document.createElement('div'),
             moveToBossSettingsButton: document.createElement('button'),
-            bossListInput: document.createElement('textarea'), // 추가
+            schedulerBossListInput: document.createElement('textarea'), // 추가
         };
         document.body.appendChild(DOM.bossSchedulerScreen);
         DOM.bossSchedulerScreen.appendChild(DOM.gameSelect);
         DOM.bossSchedulerScreen.appendChild(DOM.bossInputsContainer);
         DOM.bossSchedulerScreen.appendChild(DOM.moveToBossSettingsButton);
-        DOM.bossSchedulerScreen.appendChild(DOM.bossListInput); // 추가
-        
+        DOM.bossSchedulerScreen.appendChild(DOM.schedulerBossListInput); // 추가
+
         DOM.bossInputsContainer.innerHTML = `
             <div class="boss-input-item"><span class="boss-name">Boss 1</span><input type="text" class="remaining-time-input" data-boss-name="Boss 1" value="00:30:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="Boss 1"></div>
         `;
@@ -89,15 +89,15 @@ describe('BossSchedulerScreen Initialization and UI State', () => {
 
     it('should correctly update calculated times and dataset.calculatedDate on rerender', () => {
         const input = DOM.bossInputsContainer.querySelector('.remaining-time-input');
-        
+
         // Ensure that calculateBossAppearanceTimeSpy is called and sets the dataset
         calculateBossAppearanceTimeSpy.mockReturnValue(new Date('2025-11-28T19:30:00+09:00'));
         input.dispatchEvent(new Event('input', { bubbles: true }));
 
-        EventBus.emit('rerender-boss-scheduler'); 
-        
+        EventBus.emit('rerender-boss-scheduler');
+
         const calculatedTimeSpan = DOM.bossInputsContainer.querySelector('.calculated-spawn-time');
-        
+
         expect(calculatedTimeSpan.textContent).toBe('19:30:00');
         expect(input.dataset.calculatedDate).toBeDefined();
         const date = new Date(input.dataset.calculatedDate);
@@ -107,7 +107,7 @@ describe('BossSchedulerScreen Initialization and UI State', () => {
 
     it('should persist remaining times when navigating away', () => {
         const expectedRemainingTimes = { 'Boss 1': '00:30:00', 'Boss A': '01:00:00', 'Boss B': '02:00:00' };
-        
+
         // Simulate inputs
         DOM.bossInputsContainer.innerHTML = `
             <div class="boss-input-item"><span class="boss-name">Boss A</span><input type="text" class="remaining-time-input" data-boss-name="Boss A" value="01:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="Boss A"></div>
@@ -117,12 +117,12 @@ describe('BossSchedulerScreen Initialization and UI State', () => {
             calculateBossAppearanceTimeSpy.mockReturnValue(new Date()); // Mock any valid date
             input.dispatchEvent(new Event('input', { bubbles: true })); // Populate dataset
         });
-        
+
         vi.spyOn(UIRenderer, 'renderBossSchedulerScreen').mockClear(); // Clear previous calls
         DOM.moveToBossSettingsButton.click(); // This calls handleApplyBossSettings which saves _remainingTimes
 
         // Simulate navigation back
-        EventBus.emit('rerender-boss-scheduler'); 
+        EventBus.emit('rerender-boss-scheduler');
 
         expect(UIRenderer.renderBossSchedulerScreen).toHaveBeenCalledWith(
             DOM,

@@ -17,7 +17,7 @@ export function initDomElements() {
 
         // Sidebar Navigation Links
         navDashboard: document.getElementById('nav-dashboard'), // New
-        navBossManagement: document.getElementById('nav-boss-management'), // New
+        navTimetable: document.getElementById('nav-timetable'), // New
         navCalculator: document.getElementById('nav-calculator'), // New
         navBossScheduler: document.getElementById('nav-boss-scheduler'), // New
         navSettings: document.getElementById('nav-settings'), // New
@@ -28,13 +28,13 @@ export function initDomElements() {
 
         // Bottom Navigation Links
         bottomNavDashboard: document.getElementById('bottom-nav-dashboard'),
-        bottomNavBossManagement: document.getElementById('bottom-nav-boss-management'),
+        bottomNavTimetable: document.getElementById('bottom-nav-timetable'),
         bottomNavCalculator: document.getElementById('bottom-nav-calculator'),
         bottomNavShare: document.getElementById('bottom-nav-share'),
 
         // Screen Specific Elements (initially all are present in index.html)
         dashboardScreen: document.getElementById('dashboard-screen'),
-        bossManagementScreen: document.getElementById('boss-management-screen'),
+        timetableScreen: document.getElementById('timetable-screen'),
         calculatorScreen: document.getElementById('calculator-screen'), // New
         bossSchedulerScreen: document.getElementById('boss-scheduler-screen'), // New
         settingsScreen: document.getElementById('settings-screen'),
@@ -43,15 +43,9 @@ export function initDomElements() {
         shareScreen: document.getElementById('share-screen'),
         helpScreen: document.getElementById('help-screen'),
 
-        // Elements within Boss Management Screen
-        bossListInput: document.getElementById('bossListInput'),
-        sortBossListButton: document.getElementById('sortBossListButton'), // New
-        viewEditModeToggleButton: document.getElementById('viewEditModeToggleButton'), // New
-        nextBossToggleButton: document.getElementById('nextBossToggleButton'), // New
-        bossManagementInstruction: document.getElementById('boss-management-instruction'), // New
-        bossListTableContainer: document.getElementById('bossListCardsContainer'), // New
-        // Debug log to confirm if the element is found
-        _debugBossManagementInstruction: document.getElementById('boss-management-instruction'),
+        // Elements within Timetable Screen
+        editTimetableButton: document.getElementById('editTimetableButton'), // New
+        bossListCardsContainer: document.getElementById('bossListCardsContainer'), // New
         // Elements within Dashboard Screen
         pipToggleButton: document.getElementById('pip-toggle-button'),
         nextBossContent: document.getElementById('nextBossContent'),
@@ -115,6 +109,11 @@ export function initDomElements() {
         bossInputsContainer: document.getElementById('bossInputsContainer'), // New
         clearAllRemainingTimesButton: document.getElementById('clearAllRemainingTimesButton'), // New
         moveToBossSettingsButton: document.getElementById('moveToBossSettingsButton'), // New
+        tabSchedulerInput: document.getElementById('tab-scheduler-input'), // New
+        tabSchedulerText: document.getElementById('tab-scheduler-text'), // New
+        schedulerInputModeSection: document.getElementById('scheduler-input-mode-section'), // New
+        schedulerTextModeSection: document.getElementById('scheduler-text-mode-section'), // New
+        schedulerBossListInput: document.getElementById('schedulerBossListInput'), // New
 
         // Custom Boss List Feature Elements
         manageCustomListsButton: document.getElementById('manage-custom-lists-button'),

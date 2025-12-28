@@ -7,26 +7,26 @@
 
     <!-- KakaoTalk In-App Browser Redirection Script -->
     <script>
-      (function() {
-        // 1. 현재 접속한 환경이 '카카오톡 인앱 브라우저'인지 확인
-        if (navigator.userAgent.match(/KAKAOTALK/i)) {
+        (function () {
+            // 1. 현재 접속한 환경이 '카카오톡 인앱 브라우저'인지 확인
+            if (navigator.userAgent.match(/KAKAOTALK/i)) {
 
-          // 2. 안드로이드인 경우: 크롬(Chrome)으로 강제 전환 (Intent 스킴 사용)
-          if (navigator.userAgent.match(/Android/i)) {
-            // 현재 페이지 주소에서 프로토콜(http://, https://)을 떼어냄
-            const urlWithoutProtocol = location.href.replace(/https?:\/\//i, '');
+                // 2. 안드로이드인 경우: 크롬(Chrome)으로 강제 전환 (Intent 스킴 사용)
+                if (navigator.userAgent.match(/Android/i)) {
+                    // 현재 페이지 주소에서 프로토콜(http://, https://)을 떼어냄
+                    const urlWithoutProtocol = location.href.replace(/https?:\/\//i, '');
 
-            // package 설정을 제거하여, 사용자의 기본 브라우저나 선택창이 뜨도록 함
-            // scheme=https; 로 설정하면 기본 브라우저가 https를 처리
-            const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;end`;
+                    // package 설정을 제거하여, 사용자의 기본 브라우저나 선택창이 뜨도록 함
+                    // scheme=https; 로 설정하면 기본 브라우저가 https를 처리
+                    const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;end`;
 
-            // 이동 실행
-            location.href = intentUrl;
-          }
+                    // 이동 실행
+                    location.href = intentUrl;
+                }
 
-          // 3. 아이폰(iOS)인 경우: 자동 탈출 불가능 (애플 보안 정책) -> 안내 메시지 노출
-          else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
-            const guideHTML = `
+                // 3. 아이폰(iOS)인 경우: 자동 탈출 불가능 (애플 보안 정책) -> 안내 메시지 노출
+                else if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+                    const guideHTML = `
                 <div style="
                     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                     background: rgba(0,0,0,0.7); z-index: 99999;
@@ -62,15 +62,16 @@
                     }
                 </style>
             `;
-            document.body.innerHTML += guideHTML;
-          }
-        }
-      })();
+                    document.body.innerHTML += guideHTML;
+                }
+            }
+        })();
     </script>
 
     <!-- SEO Meta Tags -->
     <title>보스 알리미 - 보탐 매니저, 젠 타임 계산기 및 스케줄러</title>
-    <meta name="description" content="보스 젠 시간을 관리하고 알림을 받을 수 있는 보스 알리미, 보탐 매니저입니다. PIP 기능, 커스텀 보스 목록, 젠 타임 계산, 알림 기능을 제공합니다.">
+    <meta name="description"
+        content="보스 젠 시간을 관리하고 알림을 받을 수 있는 보스 알리미, 보탐 매니저입니다. PIP 기능, 커스텀 보스 목록, 젠 타임 계산, 알림 기능을 제공합니다.">
     <meta name="keywords" content="보스, 젠 타임, 보스 알림, 계산기, 보스 스케줄러, MMORPG, 게임, 커스텀 보스, 보탐 매니저">
     <meta name="author" content="bohe">
     <meta name="robots" content="index, follow">
@@ -294,13 +295,13 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" id="nav-boss-management" data-screen="boss-management-screen">
+                    <a href="#" id="nav-timetable" data-screen="timetable-screen">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="menu-icon">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
-                        <span class="menu-text">보스 설정</span>
+                        <span class="menu-text">보스 시간표</span>
                     </a>
                 </li>
                 <li>
@@ -410,9 +411,13 @@
                             <div id="nextBossCard" class="card-standard card-size-standard">
                                 <div class="card-header">
                                     <h3>다음 보스</h3>
-                                    <button id="pip-toggle-button" class="pip-toggle-button" style="display: none;" aria-label="PIP 모드 전환">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path>
+                                    <button id="pip-toggle-button" class="pip-toggle-button" style="display: none;"
+                                        aria-label="PIP 모드 전환">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25">
+                                            </path>
                                         </svg>
                                     </button>
                                 </div>
@@ -452,7 +457,8 @@
                                         <button id="muteToggleButton" class="mute-button" aria-label="음소거 토글">
                                             <!-- Speaker Icon will be rendered here by JS -->
                                         </button>
-                                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.01" value="1" aria-label="볼륨 조절">
+                                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1"
+                                            step="0.01" value="1" aria-label="볼륨 조절">
                                     </div>
                                 </div>
                             </div>
@@ -473,25 +479,13 @@
 
 
 
-            <section id="boss-management-screen" class="screen">
-                <h2>보스 설정</h2>
+            <section id="timetable-screen" class="screen">
+                <h2>보스 시간표</h2>
                 <div class="boss-management-controls">
-                    <div class="toggle-buttons-wrapper">
-                        <!-- "다음 보스" toggle button (only in View Mode) -->
-                        <button id="nextBossToggleButton" class="button toggle-button active" style="display: none;">다음 보스</button>
-                        <!-- "뷰/편집" toggle button -->
-                        <button id="viewEditModeToggleButton" class="button primary-button action-chip">뷰/편집</button>
-                    </div>
+                    <button id="editTimetableButton" class="button primary-button">시간표 수정하기</button>
                 </div>
                 <div id="bossListCardsContainer" class="card-size-list" style="display: none;">
                     <!-- Boss list cards will be rendered here in View Mode -->
-                </div>
-                <div class="card-size-list">
-                    <p id="boss-management-instruction" class="boss-management-instruction">알림을 원하지 않는 보스는 텍스트에서 삭제하세요.<br>정확한 알림을 원하면 초까지 입력해주세요.</p>
-                    <textarea id="bossListInput"></textarea>
-                    <div class="boss-list-actions">
-                        <button id="sortBossListButton" class="button primary-button">보스 설정 저장</button>
-                    </div>
                 </div>
             </section>
 
@@ -578,24 +572,40 @@
                 <h2>보스 스케줄러</h2>
 
                 <div class="boss-scheduler-layout">
-                            <div class="scheduler-controls-header">
-                                <h3>보스 목록</h3>
-                                <div class="control-group-horizontal">
-                                    <select id="gameSelect"></select>
-                                    <button id="manage-custom-lists-button" class="button">커스텀 보스 관리</button>
+                    <div class="scheduler-controls-header">
+                        <h3>보스 목록</h3>
+                        <div class="control-group-horizontal">
+                            <select id="gameSelect"></select>
+                            <button id="manage-custom-lists-button" class="button">커스텀 보스 관리</button>
+                        </div>
+                    </div>
+
+                    <div class="modal-tabs" style="max-width: 800px; margin: 0 auto 16px auto;">
+                        <button id="tab-scheduler-input" class="tab-button active">입력 모드</button>
+                        <button id="tab-scheduler-text" class="tab-button">텍스트 모드</button>
+                    </div>
+
+                    <div id="scheduler-input-mode-section" class="scheduler-tab-content active">
+                        <div class="boss-list-display-container card-standard card-size-list">
+                            <div class="boss-input-header">
+                                <span class="boss-name-header">보스이름</span>
+                                <span class="remaining-time-header">남은 시간</span>
+                                <span class="spawn-time-header">젠 시간</span>
+                                <span class="memo-header">비고</span>
+                            </div>
+                            <div class="scheduler-card">
+                                <div id="bossInputsContainer">
+                                    <!-- Boss input fields will be rendered here -->
                                 </div>
                             </div>
-                    <div class="boss-list-display-container card-standard card-size-list">
-                        <div class="boss-input-header">
-                            <span class="boss-name-header">보스이름</span>
-                            <span class="remaining-time-header">남은 시간</span>
-                            <span class="spawn-time-header">젠 시간</span>
-                            <span class="memo-header">비고</span>
                         </div>
-                        <div class="scheduler-card">
-                            <div id="bossInputsContainer">
-                                <!-- Boss input fields will be rendered here -->
-                            </div>
+                    </div>
+
+                    <div id="scheduler-text-mode-section" class="scheduler-tab-content" style="display: none;">
+                        <div class="card-size-list">
+                            <p class="boss-management-instruction">알림을 원하지 않는 보스는 텍스트에서 삭제하세요.<br>정확한 알림을 원하면 초까지
+                                입력해주세요.</p>
+                            <textarea id="schedulerBossListInput" placeholder="12:34 보스이름 형식으로 입력하세요."></textarea>
                         </div>
                     </div>
 
@@ -783,8 +793,8 @@
                     d="M2.25 12L9 4.5l7.75 7.5V19.5c0 .69-.56 1.25-1.25 1.25H4.5c-.69 0-1.25-.56-1.25-1.25V12z" />
             </svg>
         </a>
-        <a href="#" id="bottom-nav-boss-management" data-screen="boss-management-screen" class="bottom-nav-item"
-            aria-label="보스 설정">
+        <a href="#" id="bottom-nav-timetable" data-screen="timetable-screen" class="bottom-nav-item"
+            aria-label="보스 시간표">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor" class="menu-icon">
                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -817,9 +827,12 @@
     <footer>
         <div class="footer-content-wrapper">
             <p>Created by: bohe</p> <!-- R1C1 -->
-            <p><a href="https://tally.so/r/vGMYND?appVersion=" id="footer-contact-button" class="footer-link footer-contact-item" target="_blank" rel="noopener noreferrer">문의하기</a></p> <!-- R1C2 -->
+            <p><a href="https://tally.so/r/vGMYND?appVersion=" id="footer-contact-button"
+                    class="footer-link footer-contact-item" target="_blank" rel="noopener noreferrer">문의하기</a></p>
+            <!-- R1C2 -->
             <p>v<span id="footer-version"></span></p> <!-- R2C1 -->
-            <p><a href="https://open.kakao.com/o/sVnWix5h" target="_blank" rel="noopener noreferrer" class="footer-link">오픈 채팅방</a></p> <!-- R2C2 -->
+            <p><a href="https://open.kakao.com/o/sVnWix5h" target="_blank" rel="noopener noreferrer"
+                    class="footer-link">오픈 채팅방</a></p> <!-- R2C2 -->
         </div>
     </footer>
     <div id="sidebar-backdrop"></div>

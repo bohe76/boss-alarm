@@ -1,0 +1,56 @@
+// src/screens/timetable.js
+import { updateTimetableUI } from '../ui-renderer.js';
+import { LocalStorageManager } from '../data-managers.js';
+import { getIsAlarmRunning } from '../alarm-scheduler.js';
+import { trackEvent } from '../analytics.js';
+
+let autoRefreshInterval = null;
+
+function startAutoRefresh(DOM) {
+    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+
+    autoRefreshInterval = setInterval(() => {
+        // Stop timer if screen is not active
+        if (!DOM.timetableScreen.classList.contains('active')) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+            return;
+        }
+
+        const filterNextBoss = LocalStorageManager.get('timetableNextBossFilter');
+        const isAlarmRunning = getIsAlarmRunning();
+
+        // Only refresh if Next Boss Filter is ON AND Alarm is Running
+        if (filterNextBoss && isAlarmRunning) {
+            updateTimetableUI(DOM);
+        }
+    }, 1000);
+}
+
+export function initTimetableScreen(DOM) {
+    // Migration: Remove obsolete keys and migrate filter state
+    localStorage.removeItem('bossManagementMode');
+
+    let filterNextBoss = LocalStorageManager.get('timetableNextBossFilter');
+    if (filterNextBoss === null) {
+        const oldFilter = LocalStorageManager.get('bossManagementNextBossFilter');
+        filterNextBoss = oldFilter !== null ? oldFilter : true; // Default to true
+        LocalStorageManager.set('timetableNextBossFilter', filterNextBoss);
+        localStorage.removeItem('bossManagementNextBossFilter');
+    }
+
+    updateTimetableUI(DOM);
+}
+
+export function getScreen() {
+    return {
+        id: 'timetable-screen',
+        init: initTimetableScreen,
+        onTransition: (DOM) => {
+            const filterNextBoss = LocalStorageManager.get('timetableNextBossFilter');
+            updateTimetableUI(DOM);
+            startAutoRefresh(DOM);
+            trackEvent('Screen View', { event_category: 'Navigation', event_label: `보스 시간표 진입 (필터: ${filterNextBoss ? 'ON' : 'OFF'})` });
+        }
+    };
+}

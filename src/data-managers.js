@@ -47,7 +47,8 @@ export const BossDataManager = (() => {
                     ...boss,
                     timestamp: new Date(boss.scheduledDate).getTime(),
                     isFixed: false
-                }));
+                }))
+                .filter(boss => boss.timestamp > nowTime);
 
             const fixedBosses = LocalStorageManager.getFixedAlarms()
                 .filter(alarm => alarm.enabled)

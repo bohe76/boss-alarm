@@ -3,49 +3,71 @@
 /* --- Dashboard Screen --- */
 .dashboard-layout {
     display: flex;
-    flex-direction: column; /* Mobile: all columns/cards stack vertically */
-    align-items: center;   /* Center align all cards */
-    gap: 16px;             /* Changed from 20px to 16px */
+    flex-direction: column;
+    /* Mobile: all columns/cards stack vertically */
+    align-items: center;
+    /* Center align all cards */
+    gap: 16px;
+    /* Changed from 20px to 16px */
     width: 100%;
-    max-width: 800px; /* Limit overall dashboard max width */
-    margin: 0 auto; /* Center align the entire dashboard */
+    max-width: 800px;
+    /* Limit overall dashboard max width */
+    margin: 0 auto;
+    /* Center align the entire dashboard */
 }
 
 .dashboard-column-left,
 .dashboard-column-right {
     display: flex;
-    flex-direction: column; /* Cards within each column stack vertically */
-    gap: 16px; /* Changed from 20px to 16px */
-    align-items: center; /* Center align cards within column */
-    width: 100%; /* Occupy full parent width on mobile */
-    max-width: 380px; /* Match max width of individual cards */
+    flex-direction: column;
+    /* Cards within each column stack vertically */
+    gap: 16px;
+    /* Changed from 20px to 16px */
+    align-items: center;
+    /* Center align cards within column */
+    width: 100%;
+    /* Occupy full parent width on mobile */
+    max-width: 380px;
+    /* Match max width of individual cards */
 }
 
 /* PC (wide screen) layout */
 @media (min-width: 769px) {
     .dashboard-layout {
-        flex-direction: row; /* PC: arrange two columns horizontally */
-        justify-content: center; /* Center align the two columns themselves */
-        align-items: flex-start; /* Align columns from the top */
-        gap: 16px; /* Changed from 40px to 16px */
+        flex-direction: row;
+        /* PC: arrange two columns horizontally */
+        justify-content: center;
+        /* Center align the two columns themselves */
+        align-items: flex-start;
+        /* Align columns from the top */
+        gap: 16px;
+        /* Changed from 40px to 16px */
     }
 
     .dashboard-column-left,
     .dashboard-column-right {
-        width: 380px; /* Fix column width to match card max width */
-        min-width: 380px; /* Prevent shrinking */
+        width: 380px;
+        /* Fix column width to match card max width */
+        min-width: 380px;
+        /* Prevent shrinking */
         max-width: 380px;
     }
 }
 
 .dashboard-small-cards-row {
     display: flex;
-    flex-direction: row; /* Always horizontal */
-    flex-wrap: wrap;     /* Wrap if space is insufficient */
-    justify-content: center; /* Center align items */
-    gap: 16px;           /* Changed from 20px to 16px */
-    width: 100%;         /* Occupy full parent width */
-    max-width: 380px;    /* Max-width for two small cards combination */
+    flex-direction: row;
+    /* Always horizontal */
+    flex-wrap: wrap;
+    /* Wrap if space is insufficient */
+    justify-content: center;
+    /* Center align items */
+    gap: 16px;
+    /* Changed from 20px to 16px */
+    width: 100%;
+    /* Occupy full parent width */
+    max-width: 380px;
+    /* Max-width for two small cards combination */
 }
 
 /* Dashboard Content Styles */
@@ -55,12 +77,14 @@
 
 .next-boss-label {
     font-size: 1.1em;
-    color: #1D3557; /* Black color */
+    color: #1D3557;
+    /* Black color */
     font-weight: bold;
 }
 
 .boss-details-highlight {
-    color: #1E88E5; /* 변경: 다음 보스*/
+    color: #1E88E5;
+    /* 변경: 다음 보스*/
     font-weight: bold;
     font-size: 1.4em;
 }
@@ -75,7 +99,8 @@
 
 .status-content {
     display: flex;
-    flex-direction: column; /* 추가 */
+    flex-direction: column;
+    /* 추가 */
     justify-content: center;
     align-items: center;
     text-align: center;
@@ -83,27 +108,34 @@
 }
 
 .alarm-status-running {
-    color: #AD1457; /* Primary color */
+    color: #AD1457;
+    /* Primary color */
 }
 
 #alarmStatusText {
-    font-weight: bold; /* 알림 상태 텍스트 항상 굵게 */
-    font-size: 1.4em; /* 폰트 크기 1.4em으로 변경 */
+    font-weight: bold;
+    /* 알림 상태 텍스트 항상 굵게 */
+    font-size: 1.4em;
+    /* 폰트 크기 1.4em으로 변경 */
 }
 
 /* Remaining Time Colors */
 .remaining-time {
-    color: #ea4335; /* 변경: 남은 시간의 빨간색으로 변경 */
-    font-size: 2.0em; /* 남은 시간 폰트 크기 증가 */
+    color: #ea4335;
+    /* 변경: 남은 시간의 빨간색으로 변경 */
+    font-size: 2.0em;
+    /* 남은 시간 폰트 크기 증가 */
 }
 
 .imminent-boss-info {
-    color: #1E88E5; /* 변경: 5분 미만 보스 */
+    color: #1E88E5;
+    /* 변경: 5분 미만 보스 */
     font-weight: bold;
 }
 
 .imminent-remaining-time {
-    color: #ea4335; /* 변경: 5분 미만 남은 시간의 빨간색으로 변경 */
+    color: #ea4335;
+    /* 변경: 5분 미만 남은 시간의 빨간색으로 변경 */
     font-weight: bold;
 }
 
@@ -158,26 +190,33 @@
 /* --- Boss Management Screen --- */
 .boss-management-controls {
     display: flex;
-    justify-content: flex-end; /* Right align content */
+    justify-content: flex-end;
+    /* Right align content */
     align-items: center;
-    margin-bottom: 20px; /* Space below the controls */
-    max-width: 800px; /* Match with h2 and card-size-list */
+    margin-bottom: 20px;
+    /* Space below the controls */
+    max-width: 800px;
+    /* Match with h2 and card-size-list */
     margin-left: auto;
     margin-right: auto;
 }
 
 .toggle-buttons-wrapper {
     display: flex;
-    gap: 10px; /* Space between the two toggle buttons */
+    gap: 10px;
+    /* Space between the two toggle buttons */
 }
 
 .boss-list-card {
-    margin-bottom: 20px; /* Space between cards */
+    margin-bottom: 20px;
+    /* Space between cards */
 }
 
 .boss-list-card .card-header {
-    padding-bottom: 0; /* Remove padding from default card-header */
-    margin-bottom: 10px; /* Space between header and list */
+    padding-bottom: 0;
+    /* Remove padding from default card-header */
+    margin-bottom: 10px;
+    /* Space between header and list */
 }
 
 .boss-list-card h3.date-header {
@@ -491,38 +530,60 @@
 }
 
 /* --- Boss Scheduler Screen --- */
+.scheduler-tab-content {
+    display: none;
+}
 
+.scheduler-tab-content.active {
+    display: block;
+}
 
 .scheduler-controls-header {
-    max-width: 800px; /* Match card width */
+    max-width: 800px;
+    /* Match card width */
     width: 100%;
-    margin: 0 auto 16px auto; /* 16px bottom margin, centered horizontally */
-    box-sizing: border-box; /* Ensure padding/border included in width */
-    padding: 0 20px; /* Match card padding for inner content alignment */
+    margin: 0 auto 16px auto;
+    /* 16px bottom margin, centered horizontally */
+    box-sizing: border-box;
+    /* Ensure padding/border included in width */
+    padding: 0 20px;
+    /* Match card padding for inner content alignment */
 }
 
 @media (min-width: 769px) {
     .scheduler-controls-header {
         display: flex;
-        align-items: center; /* Align items vertically in center */
-        justify-content: flex-start; /* Left align content */
-        gap: 12px; /* Gap between h3 and control group */
+        align-items: center;
+        /* Align items vertically in center */
+        justify-content: flex-start;
+        /* Left align content */
+        gap: 12px;
+        /* Gap between h3 and control group */
     }
+
     .scheduler-controls-header h3 {
-        white-space: nowrap; /* Prevent "보스 목록" from wrapping */
-        margin-top: 0; /* Ensure vertical alignment in flex container */
-        margin-bottom: 0; /* Ensure vertical alignment in flex container */
+        white-space: nowrap;
+        /* Prevent "보스 목록" from wrapping */
+        margin-top: 0;
+        /* Ensure vertical alignment in flex container */
+        margin-bottom: 0;
+        /* Ensure vertical alignment in flex container */
     }
 }
 
 @media (max-width: 768px) {
     .scheduler-controls-header {
         display: flex;
-        flex-direction: column; /* Stack items vertically */
-        align-items: center; /* Center items horizontally */
-        justify-content: center; /* Center items vertically if space allows */
-        gap: 10px; /* Gap between h3 and control group */
-        padding: 0 10px; /* Adjust padding for mobile */
+        flex-direction: column;
+        /* Stack items vertically */
+        align-items: center;
+        /* Center items horizontally */
+        justify-content: center;
+        /* Center items vertically if space allows */
+        gap: 10px;
+        /* Gap between h3 and control group */
+        padding: 0 10px;
+        /* Adjust padding for mobile */
     }
 }
 
@@ -551,41 +612,53 @@
 .control-group-horizontal {
     display: flex;
     align-items: center;
-    justify-content: flex-end; /* Changed from center to flex-end */
+    justify-content: flex-end;
+    /* Changed from center to flex-end */
     gap: 12px;
-    margin-bottom: 0; /* Changed from 16px to 0 */
-    max-width: 800px; /* Match card width */
+    margin-bottom: 0;
+    /* Changed from 16px to 0 */
+    max-width: 800px;
+    /* Match card width */
     width: 100%;
-    margin-left: auto; /* Center with card */
-    margin-right: auto; /* Center with card */
+    margin-left: auto;
+    /* Center with card */
+    margin-right: auto;
+    /* Center with card */
 }
 
 @media (max-width: 768px) {
     .control-group-horizontal {
-        justify-content: center; /* Center for mobile */
+        justify-content: center;
+        /* Center for mobile */
     }
 }
 
 .action-buttons {
     display: flex;
-    justify-content: flex-end; /* Changed from center to flex-end */
+    justify-content: flex-end;
+    /* Changed from center to flex-end */
     gap: 12px;
     margin-top: 0;
     margin-bottom: 20px;
-    max-width: 800px; /* Match card width */
+    max-width: 800px;
+    /* Match card width */
     width: 100%;
-    margin-left: auto; /* Center with card */
-    margin-right: auto; /* Center with card */
+    margin-left: auto;
+    /* Center with card */
+    margin-right: auto;
+    /* Center with card */
 }
 
 @media (max-width: 768px) {
     .action-buttons {
-        justify-content: center; /* Center for mobile */
+        justify-content: center;
+        /* Center for mobile */
     }
 }
 
 .boss-list-display-container {
-    margin-bottom: 16px; /* Added bottom margin as requested */
+    margin-bottom: 16px;
+    /* Added bottom margin as requested */
 }
 
 #gameSelect {
@@ -606,18 +679,22 @@
     display: flex;
     gap: 12px;
     padding-bottom: 10px;
-    margin-bottom: 0; /* Changed from 10px to 0 */
+    margin-bottom: 0;
+    /* Changed from 10px to 0 */
     font-weight: bold;
     color: #666;
-    border-bottom: none; /* Changed from 2px solid #eee to none */
+    border-bottom: none;
+    /* Changed from 2px solid #eee to none */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .memo-header {
-    display: none; /* Hidden by default for mobile */
-    width: 240px; /* Width for PC */
+    display: none;
+    /* Hidden by default for mobile */
+    width: 240px;
+    /* Width for PC */
     flex-shrink: 0;
     text-align: left;
 }
@@ -632,36 +709,46 @@
 
 .boss-input-item {
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping for mobile 2-row layout */
+    flex-wrap: wrap;
+    /* Allow wrapping for mobile 2-row layout */
     align-items: center;
-    gap: 0; /* Let inner rows handle gap */
+    gap: 0;
+    /* Let inner rows handle gap */
     width: 100%;
-    padding: 10px 0; /* Adjusted padding */
-    white-space: normal; /* Allow normal whitespace handling for wrapping */
-    overflow: visible; /* Allow content to show */
-    text-overflow: clip; /* Remove ellipsis */
+    padding: 10px 0;
+    /* Adjusted padding */
+    white-space: normal;
+    /* Allow normal whitespace handling for wrapping */
+    overflow: visible;
+    /* Allow content to show */
+    text-overflow: clip;
+    /* Remove ellipsis */
 }
 
-.boss-input-item + .boss-input-item {
+.boss-input-item+.boss-input-item {
     border-top: 1px dashed #eee;
 }
 
 .boss-input-row-main {
     display: flex;
     align-items: center;
-    width: 100%; /* Mobile: full width */
+    width: 100%;
+    /* Mobile: full width */
     gap: 12px;
 }
 
 .boss-input-row-memo {
-    width: 100%; /* Mobile: full width */
-    margin-top: 8px; /* Spacing from main row */
+    width: 100%;
+    /* Mobile: full width */
+    margin-top: 8px;
+    /* Spacing from main row */
 }
 
 .memo-input {
     width: 100%;
     padding: 8px;
-    border: 1px solid #ccc; /* #ddd -> #ccc 로 변경 */
+    border: 1px solid #ccc;
+    /* #ddd -> #ccc 로 변경 */
     border-radius: 4px;
     font-size: 0.9em;
     box-sizing: border-box;
@@ -670,17 +757,20 @@
 /* PC Layout */
 @media (min-width: 769px) {
     .boss-input-item {
-        flex-wrap: nowrap; /* Single row on PC */
+        flex-wrap: nowrap;
+        /* Single row on PC */
         gap: 12px;
     }
 
     .boss-input-row-main {
         width: auto;
-        flex-grow: 0; /* 기존 1에서 0으로 변경 */
+        flex-grow: 0;
+        /* 기존 1에서 0으로 변경 */
     }
 
     .boss-input-row-memo {
-        width: 240px; /* Fixed width for memo on PC */
+        width: 240px;
+        /* Fixed width for memo on PC */
         margin-top: 0;
         flex-shrink: 0;
     }
@@ -688,10 +778,14 @@
 
 .boss-name-header,
 .boss-name {
-    width: 150px; /* 고정 너비로 설정 */
-    flex-shrink: 0; /* 줄어들지 않음 */
-    text-align: left; /* Boss name은 항상 왼쪽 정렬 */
+    width: 150px;
+    /* 고정 너비로 설정 */
+    flex-shrink: 0;
+    /* 줄어들지 않음 */
+    text-align: left;
+    /* Boss name은 항상 왼쪽 정렬 */
 }
+
 .boss-name {
     font-weight: bold;
     color: #333;
@@ -701,15 +795,18 @@
 .remaining-time-input {
     width: 80px;
     flex-shrink: 0;
-    text-align: center; /* Back to center as per user's correction */
+    text-align: center;
+    /* Back to center as per user's correction */
 }
 
 .spawn-time-header,
 .calculated-spawn-time {
     width: 80px;
     flex-shrink: 0;
-    text-align: center; /* Back to center as per user's correction */
+    text-align: center;
+    /* Back to center as per user's correction */
 }
+
 .calculated-spawn-time {
     font-weight: 700;
     color: #333;
@@ -724,8 +821,10 @@
 }
 
 .memo-header {
-    display: flex; /* PC에서는 기본적으로 보이게 */
-    align-items: center; /* 텍스트 세로 중앙 정렬 */
+    display: flex;
+    /* PC에서는 기본적으로 보이게 */
+    align-items: center;
+    /* 텍스트 세로 중앙 정렬 */
     width: 240px;
     flex-shrink: 0;
     text-align: left;
@@ -734,7 +833,8 @@
 /* Mobile-specific layout */
 @media (max-width: 768px) {
     .memo-header {
-        display: none; /* 모바일에서 숨김 */
+        display: none;
+        /* 모바일에서 숨김 */
     }
 }
 
@@ -744,12 +844,15 @@
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
+
     .boss-list-display-container::-webkit-scrollbar {
         height: 8px;
     }
+
     .boss-list-display-container::-webkit-scrollbar-track {
         background: #f0f0f0;
     }
+
     .boss-list-display-container::-webkit-scrollbar-thumb {
         background-color: #ccc;
         border-radius: 4px;
@@ -757,7 +860,8 @@
 
     .boss-input-header,
     .boss-input-item {
-        min-width: 360px; /* Force a minimum width to ensure scrolling */
+        min-width: 360px;
+        /* Force a minimum width to ensure scrolling */
     }
 }
 
@@ -780,7 +884,7 @@
     border-radius: 4px;
     margin-bottom: 8px;
     background-color: #fff;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .custom-list-manage-item .list-name {
@@ -818,7 +922,8 @@ section#settings-screen h3 {
     gap: 8px;
 }
 
-.alarm-item-line1, .alarm-item-line2 {
+.alarm-item-line1,
+.alarm-item-line2 {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -971,16 +1076,20 @@ section#settings-screen h3 {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
-.version-accordion, .help-section, .help-sub-section {
+.version-accordion,
+.help-section,
+.help-sub-section {
     margin-bottom: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
-.version-summary, .help-summary, .help-sub-summary {
+.version-summary,
+.help-summary,
+.help-sub-summary {
     display: flex;
     padding: 12px 16px;
     cursor: pointer;
@@ -992,7 +1101,8 @@ section#settings-screen h3 {
     color: #333;
 }
 
-.help-summary, .help-sub-summary {
+.help-summary,
+.help-sub-summary {
     padding-left: 40px;
     align-items: center;
 }
@@ -1010,10 +1120,12 @@ section#settings-screen h3 {
     display: none;
 }
 
-.version-summary::before, .help-summary::before {
+.version-summary::before,
+.help-summary::before {
     content: '▶';
     position: absolute;
-    left: 10px; /* version summary */
+    left: 10px;
+    /* version summary */
     top: 50%;
     transform: translateY(-50%);
     transition: transform 0.2s ease;
@@ -1047,24 +1159,31 @@ section#settings-screen h3 {
     color: #333;
 }
 
-.version-details, .help-content, .help-sub-content {
+.version-details,
+.help-content,
+.help-sub-content {
     padding: 12px 16px;
     border-top: 1px solid #eee;
     background-color: #f8f8f8;
 }
 
-.version-details ul, .help-content ul, .help-sub-content ul {
+.version-details ul,
+.help-content ul,
+.help-sub-content ul {
     list-style: none;
     padding-left: 0;
     margin: 0;
 }
 
-.help-content ul, .help-sub-content ul {
+.help-content ul,
+.help-sub-content ul {
     list-style: disc;
     padding-left: 20px;
 }
 
-.version-details li, .help-content p, .help-sub-content p {
+.version-details li,
+.help-content p,
+.help-sub-content p {
     margin-bottom: 5px;
     line-height: 1.5;
     color: #555;

@@ -6,7 +6,7 @@ import { trackEvent } from '../analytics.js';
 export function initShareScreen(DOM) {
     (async () => {
         DOM.shareMessage.textContent = "공유 링크 생성 중입니다. 잠시만 기다려 주세요...";
-        const currentBossListData = DOM.bossListInput.value;
+        const currentBossListData = DOM.schedulerBossListInput.value;
         const encodedBossListData = encodeURIComponent(currentBossListData);
         const baseUrl = window.location.href.split('?')[0];
         const longUrl = `${baseUrl}?data=${encodedBossListData}`;
