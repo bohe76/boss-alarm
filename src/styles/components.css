@@ -581,13 +581,14 @@ textarea {
 .tab-button {
     background-color: transparent;
     border: none;
-    padding: 10px 15px;
+    padding: 12px 20px;
     cursor: pointer;
-    font-size: 1em;
+    font-size: 1.05em;
     color: #555;
     transition: color 0.2s, border-bottom 0.2s;
-    flex-grow: 1;
-    /* Distribute space evenly */
+    flex: 1;
+    /* Distribute space evenly and ensure equal width */
+    white-space: nowrap !important;
 }
 
 .tab-button:hover {

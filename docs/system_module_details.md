@@ -49,7 +49,7 @@
     - `screenId` (`string`): 표시할 화면의 ID (예: 'dashboard-screen').
 - **핵심 내부 로직:**
     1.  모든 화면 요소의 `active` 클래스를 제거하고, `screenId`에 해당하는 화면에만 `active` 클래스를 추가합니다.
-    2.  `boss-management-screen`에서 화면을 이동할 경우, `window.isBossListDirty` 플래그를 확인하여 저장되지 않은 변경 사항이 있으면 사용자에게 확인 메시지를 표시하고, 이동을 강행할 경우 `updateBossListTextarea(DOM)`를 호출하여 UI를 저장된 데이터로 되돌립니다.
+    2.  `timetable-screen`에서 화면을 이동할 경우, `window.isBossListDirty` 플래그를 확인하여 저장되지 않은 변경 사항이 있으면 사용자에게 확인 메시지를 표시하고, 이동을 강행할 경우 `updateBossListTextarea(DOM)`를 호출하여 UI를 저장된 데이터로 되돌립니다.
     3.  내비게이션 링크의 `active` 상태를 동기화합니다.
     3.  `getRoute(screenId)`를 통해 화면 모듈을 가져와 `screen.init(DOM)` (최초 방문 시) 또는 `screen.onTransition(DOM)` (화면 전환 시)을 호출합니다.
     4.  대시보드 (`dashboard-screen`)로 전환될 경우, `renderDashboard(DOM)`를 즉시 호출하여 화면을 렌더링한 후, `setInterval(renderDashboard, 1000)`를 설정하여 1초마다 대시보드 UI를 갱신합니다. 다른 화면으로 전환 시에는 해당 `setInterval`을 해제합니다.
@@ -128,7 +128,7 @@
 *   `renderHelpScreen(DOM, helpData)`: '도움말' 탭의 콘텐츠(`feature_guide.json` 기반)를 아코디언 형태로 렌더링합니다.
 *   `renderFaqScreen(DOM, faqData)`: 'FAQ' 탭의 콘텐츠(`faq_guide.json` 기반)를 아코디언 형태로 렌더링합니다.
 *   `renderVersionInfo(DOM, versionData)`: '릴리즈 노트' 화면의 버전 기록을 렌더링합니다.
-*   `updateBossManagementUI(DOM, mode)`: 보스 관리 화면의 UI를 '뷰 모드' 또는 '편집 모드'에 맞게 업데이트합니다. 모드에 따라 텍스트 영역, 저장 버튼, 테이블 뷰 등을 표시하거나 숨깁니다.
+*   `updateTimetableUI(DOM, mode)`: 보스 시간표 화면의 UI를 '뷰 모드' 또는 '편집 모드'에 맞게 업데이트합니다. 모드에 따라 텍스트 영역, 저장 버튼, 테이블 뷰 등을 표시하거나 숨깁니다.
 *   `renderBossListTableView(DOM, filterNextBoss)`: 뷰 모드에서 보스 목록을 **날짜별 카드 리스트** 형태로 렌더링합니다. '다음 보스' 필터가 활성화된 경우 현재 시간 이후의 보스만 표시하며, `boss` 객체의 `timeFormat` 속성을 기반으로 시간 표시 형식을 동적으로 결정합니다.
 *   `updateBossListTextarea(DOM)`: `BossDataManager`의 데이터를 기반으로 보스 목록 텍스트 영역을 업데이트합니다. `bossSchedule` 배열을 순회하며 날짜 마커를 출력하고, 각 `boss` 객체에 저장된 `timeFormat` 속성('hm' 또는 'hms')에 따라 시간 형식을 동적으로 포맷팅하여 출력합니다.
 *   `renderFixedAlarms(DOM)`: 고정 알림 목록을 렌더링하고 이벤트 리스너를 등록합니다.
@@ -151,7 +151,8 @@
 ### 역할
 애플리케이션의 핵심 데이터(보스 스케줄) 및 영구 저장소(localStorage)에 저장되는 다양한 설정 및 데이터를 관리하는 싱글톤 모듈입니다.
 *   보스 메타데이터(젠 주기 등)는 `boss-presets.json`에서 비동기로 로드하며, `BossDataManager`에 주입하여 효율적인 실시간 조회를 지원합니다.
-*   데이터 로딩 실패 시 사용자에게 알림(`alert`)을 제공하고 빈 스케줄로 폴백(Fallback)하여 앱의 안정성을 보장합니다.
+*   **데이터 세탁기(Sanitization) 안전망**: 로컬 스토리지 로드 시 필수 필드 누락이나 날짜 값이 손상된 데이터(Invalid Date)를 자동으로 탐지하고 정제하여 시스템의 런타임 에러를 방지합니다.
+*   **48시간 자동 확장 엔진**: 모든 데이터 변경 및 초기화 시, 주입된 보스 아이템을 바탕으로 '오늘 00:00 ~ 내일 23:59'까지 총 48시간의 고정 일정을 자동으로 생성합니다. 이를 통해 사용자는 젠 주기에 따른 미래 일정을 수동 입력 없이 즉시 확인할 수 있습니다.
 *   모든 데이터 변경(입력, 수정, 업데이트) 시 **Reconstruction(재구성) 전략**을 사용하여 데이터를 날짜순/시간순으로 정렬하고, 일관된 규칙으로 날짜 마커를 삽입합니다.
 *   보스 객체는 고유 ID를 통해 식별되며, 이름 중복 시에도 안전하게 업데이트됩니다. 특히 고정 알림은 시간, 이름 외에 요일 정보(days)를 포함하며, 모든 시간 관련 계산은 사용자 로컬 시간대 기준으로 처리됩니다.
 
@@ -160,13 +161,13 @@
 #### `BossDataManager` (싱글톤 객체)
 - **설명:** 보스 스케줄(SSOT) 및 Draft(임시 스케줄)를 관리합니다. SSOT 변경 시 Draft와 localStorage가 즉시 동기화됩니다.
 - **주요 메소드:**
-    *   `initPresets(presets)`: `void`. 보스 프리셋 메타데이터(`boss-presets.json`)를 주입합니다. `initializeCoreServices()`에서 호출됩니다.
-    *   `getBossInterval(bossName, contextId)`: `number | null`. 특정 보스의 리젠 주기(분)를 프리셋에서 찾아 반환합니다. 보스 이름과 게임 컨텍스트를 기반으로 검색합니다.
-    *   `getBossSchedule()`: `Array`. 현재 파싱된 보스 일정 배열(Main SSOT)을 반환합니다.
-    *   `setBossSchedule(newSchedule)`: `void`. 새로운 보스 일정 배열로 교체하고, **Draft를 즉시 복사하여 동기화**하며, 모든 구독자에게 데이터 변경을 알립니다. Main과 Draft 모두 localStorage에 저장됩니다.
-    *   `getDraftSchedule()`: `Array`. 현재 편집 중인 Draft 스케줄을 반환합니다. Draft가 없으면 Main SSOT에서 복사하여 생성합니다.
+    *   `initPresets(presets)`: `void`. 보스 프리셋 메타데이터(`boss-presets.json`)를 주입합니다. **주입 즉시 기존 스케줄을 48시간 분량으로 자동 확장합니다.**
+    *   `getBossInterval(bossName, contextId)`: `number`. 특정 보스의 리젠 주기(분)를 프리셋에서 찾아 반환합니다. 보스 이름과 게임 컨텍스트를 기반으로 검색합니다.
+    *   `getBossSchedule()`: `Array`. 현재 파싱 및 확장된 보스 일정 배열(Main SSOT)을 반환합니다.
+    *   `setBossSchedule(newSchedule)`: `void`. 새로운 보스 일정 배열을 받고, **48시간 확장 엔진을 돌려 정규화한 뒤** Main SSOT에 저장하며, Draft를 동기화하고 구독자에게 알립니다.
+    *   `getDraftSchedule()`: `Array`. 현재 편집 중인 Draft 스케줄을 반환합니다.
     *   `setDraftSchedule(newDraft)`: `void`. Draft 스케줄을 설정하고 localStorage에 저장합니다.
-    *   `commitDraft()`: `void`. Draft 스케줄을 Main SSOT에 적용하고 Draft를 초기화합니다.
+    *   `commitDraft()`: `void`. Draft 데이터를 **48시간 분량으로 자동 확장 및 정규화하여** Main SSOT에 적용(Commit)합니다.
     *   `clearDraft()`: `void`. Draft 스케줄을 초기화합니다.
     *   `getNextBossInfo()`: `{ nextBoss, minTimeDiff }`. 현재 가장 가까운 다음 보스 정보와 남은 시간을 반환합니다.
     *   `setNextBossInfo(nextBoss, minTimeDiff)`: `void`. 다음 보스 정보를 설정하고, 모든 구독자에게 데이터 변경을 알립니다.
@@ -377,8 +378,8 @@
 | 모듈 파일 | 주요 `export` 함수 | 상세 역할 및 내부 로직 |
 |---|---|---|
 | **`alarm-log.js`** | `getScreen()` | `onTransition` 시 `initAlarmLogScreen(DOM)`을 호출하여 로그 화면을 초기화합니다. `initAlarmLogScreen`은 `LocalStorageManager`를 통해 "15개 보기" 토글 버튼의 상태를 로드/저장하고 관련 이벤트 리스너를 등록합니다. 로그의 실시간 갱신은 `global-event-listeners.js`에 중앙화된 `log-updated` 이벤트 리스너를 통해 자동으로 처리됩니다. `renderAlarmLog`는 토글 상태에 따라 최근 15개 또는 전체 로그를 렌더링합니다. |
-| **`boss-management.js`** | `getScreen()` | `init` 시 '뷰/편집' 모드 토글 버튼 및 '다음 보스' 필터 토글 버튼의 이벤트 리스너를 등록합니다. `LocalStorageManager`를 통해 마지막으로 사용된 모드를 로드하고, `updateBossManagementUI`를 호출하여 모드에 맞는 UI를 렌더링합니다. `onTransition` 시 `startAutoRefresh` 함수를 통해 1초 간격의 타이머를 시작하여, '뷰 모드'에서 '다음 보스' 필터가 활성화된 경우 목록을 실시간으로 자동 갱신합니다. 화면이 비활성화되면 타이머는 자동으로 중지됩니다. '편집 모드'에서는 기존의 텍스트 영역 기반 보스 목록 편집 및 "보스 설정 저장" 기능을 제공하며, '뷰 모드'에서는 보스 목록을 **카드 리스트 형태**로 표시하고 '다음 보스' 필터링 기능을 제공합니다. '편집 모드'에서만 "보스 설정 저장" 버튼의 클릭 이벤트가 처리됩니다. |
-| **`boss-scheduler.js`** | `getScreen()` | `init` 시 `EventBus.on('show-boss-scheduler-screen')` 및 `EventBus.on('rerender-boss-scheduler')` 리스너를 등록하고, UI를 렌더링합니다. `remaining-time-input` 필드에서 `input` 이벤트 발생 시, 사용자의 입력 형식을 감지(`hm` 또는 `hms`)하여 `dataset.timeFormat`에 저장하고, 이를 기반으로 젠 시간을 동적으로 표시합니다. `handleApplyBossSettings(DOM)` 함수는 "보스 설정 적용" 시 호출되며, 입력된 `data-id`와 계산된 시간, 그리고 `dataset.timeFormat`을 기반으로 `boss` 객체를 업데이트(또는 생성)하고, 전체 리스트를 재구성하여 `BossDataManager`에 저장합니다. 화면 전환 전 입력된 값은 임시로 저장됩니다. |
+| **`timetable.js`** | `getScreen()` | `init` 시 '뷰/편집' 모드 토글 버튼 및 '다음 보스' 필터 토글 버튼의 이벤트 리스너를 등록합니다. `LocalStorageManager`를 통해 마지막으로 사용된 모드를 로드하고, `updateTimetableUI`를 호출하여 모드에 맞는 UI를 렌더링합니다. `onTransition` 시 `startAutoRefresh` 함수를 통해 1초 간격의 타이머를 시작하여, '뷰 모드'에서 '다음 보스' 필터가 활성화된 경우 목록을 실시간으로 자동 갱신합니다. 화면이 비활성화되면 타이머는 자동으로 중지됩니다. '편집 모드'에서는 기존의 텍스트 영역 기반 보스 목록 편집 및 "보스 시간 업데이트" 기능을 제공하며, '뷰 모드'에서는 보스 목록을 **카드 리스트 형태**로 표시하고 '다음 보스' 필터링 기능을 제공합니다. '편집 모드'에서만 "보스 시간 업데이트" 버튼의 클릭 이벤트가 처리됩니다. |
+| **`boss-scheduler.js`** | `getScreen()` | `init` 시 `EventBus.on('show-boss-scheduler-screen')` 및 `EventBus.on('rerender-boss-scheduler')` 리스너를 등록하고, UI를 렌더링합니다. `remaining-time-input` 필드에서 `input` 이벤트 발생 시, 사용자의 입력 형식을 감지(`hm` 또는 `hms`)하여 `dataset.timeFormat`에 저장하고, 이를 기반으로 젠 시간을 동적으로 표시합니다. `handleApplyBossSettings(DOM)` 함수는 "보스 시간 업데이트" 시 호출되며, 입력된 `data-id`와 계산된 시간, 그리고 `dataset.timeFormat`을 기반으로 `boss` 객체를 업데이트(또는 생성)하고, 전체 리스트를 재구성하여 `BossDataManager`에 저장합니다. 화면 전환 전 입력된 값은 임시로 저장됩니다. |
 | **`calculator.js`** | `getScreen()` | `init` 시 `initCalculatorScreen(DOM)`이 호출되어 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 `handleCalculatorScreenTransition(DOM)`이 호출되어 `CrazyCalculator`의 상태를 초기화하고 `ui-renderer.js`의 `renderCalculatorScreen(DOM)`을 호출하여 화면을 렌더링합니다. `checkZenCalculatorUpdateButtonState(DOM)` 헬퍼 함수를 통해 '보스 시간 업데이트' 버튼의 활성화/비활성화 상태를 관리합니다. |
 | **`custom-list.js`** | `getScreen()` | `init` 시 `initCustomListScreen(DOM)`이 호출되어 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. `DOM.manageCustomListsButton` 클릭 시 모달이 열리며, 목록 변경 시 `EventBus.emit('rerender-boss-scheduler')`를 발행하여 보스 스케줄러의 드롭다운을 업데이트합니다. |
 | **`dashboard.js`** | `getScreen()` | `init` 시 `initDashboardScreen(DOM)`이 호출되어 `DOM.muteToggleButton` (음소거 버튼)과 `DOM.volumeSlider` (볼륨 슬라이더)에 대한 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링합니다. 음소거 버튼 클릭 시 `LocalStorageManager.setMuteState()`를 호출하여 음소거 상태를 토글하며, 볼륨 슬라이더 조작 시 `LocalStorageManager.setVolume()`을 통해 볼륨 값을 저장합니다. 두 UI 요소 모두 변경 시 `ui-renderer.js`의 `updateSoundControls(DOM)`를 호출하여 시각적 상태를 갱신합니다. `initDashboardScreen`은 `EventBus.on('log-updated', ...)` 리스너를 등록하여 새로운 로그 발생 시 `renderRecentAlarmLog(DOM)`를 호출하여 로그를 갱신합니다. |

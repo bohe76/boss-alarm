@@ -194,21 +194,30 @@ function showScreen(DOM, screenId) {
 
 function loadInitialData(DOM) {
     const params = new URLSearchParams(window.location.search);
+    const existingSchedule = BossDataManager.getBossSchedule();
     let loadSuccess = false;
 
+    // 1. URL 데이터 우선 로드
     if (params.has('data')) {
         DOM.schedulerBossListInput.value = decodeURIComponent(params.get('data'));
         const result = parseBossList(DOM.schedulerBossListInput);
         if (result.success) {
             BossDataManager.setBossSchedule(result.mergedSchedule);
+            BossDataManager.clearDraft(); // URL 로딩 시 기존 Draft 삭제 (혼선 방지)
             loadSuccess = true;
             log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
         } else {
-            alert("URL의 보스 설정 값이 올바르지 않습니다. 오류:\n" + result.errors.join('\n') + "\n\n기본값으로 초기화합니다.");
-            log("URL 데이터 파싱 실패. 기본값으로 복구합니다.", false);
+            alert("URL의 보스 설정 값이 올바르지 않습니다. 오류:\n" + result.errors.join('\n') + "\n\n현재 설정된 데이터를 유지합니다.");
+            log("URL 데이터 파싱 실패.", false);
+            loadSuccess = (existingSchedule && existingSchedule.length > 0);
         }
+    } else if (existingSchedule && existingSchedule.length > 0) {
+        // 2. 기존 사용자 데이터가 이미 있으면 그대로 유지 (이미 BossDataManager 내부에 로드됨)
+        loadSuccess = true;
+        console.log('[Debug] loadInitialData - Existing local schedule found, skipping default data');
     }
 
+    // 3. 로드된 데이터가 전혀 없는 경우에만 기본 샘플 데이터 로드
     if (!loadSuccess) {
         const initialData = getInitialDefaultData();
         if (initialData && initialData.items) {
@@ -220,10 +229,6 @@ function loadInitialData(DOM) {
             alert("기본 보스 목록 로드에 실패했습니다. 페이지를 새로고침해 주세요.");
         }
     }
-
-
-
-
 
     updateBossListTextarea(DOM); // Ensure UI reflects the parsed and normalized data
 }

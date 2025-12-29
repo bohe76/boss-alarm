@@ -2,9 +2,8 @@ import { BossDataManager, LocalStorageManager, BOSS_THRESHOLDS } from './data-ma
 import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRunning
 import { log, getLogs } from './logger.js'; // Import log and getLogs
 // import { loadJsonContent } from './api-service.js'; // loadJsonContent is no longer needed here
-import { CustomListManager } from './custom-list-manager.js';
-import { getGameNames, getBossNamesForGame } from './boss-scheduler-data.js'; // Import boss-scheduler-data functions
-import { formatTimeDifference, formatSpawnTime, getKoreanDayOfWeek } from './utils.js'; // New import
+import { getGameNames, getBossNamesForGame } from './boss-scheduler-data.js';
+import { formatMonthDay, getKoreanDayOfWeek, padNumber, formatTimeDifference, formatSpawnTime } from './utils.js';
 
 const MUTE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`;
 const UNMUTE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>`;
@@ -630,7 +629,7 @@ export function renderBossSchedulerScreen(DOM, remainingTimes = {}, memoInputs =
 
 /**
  * Renders the boss input fields for a selected game.
- * 입력 모드는 boss-presets.json의 보스 이름 목록으로 입력 폼을 생성합니다.
+ * 간편 입력 모드는 boss-presets.json의 보스 이름 목록으로 입력 폼을 생성합니다.
  */
 export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs = {}, scheduleData = null) {
     console.log('[Debug] renderBossInputs - gameName:', gameName);
@@ -657,12 +656,21 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
         const bossId = existingBoss ? existingBoss.id : '';
         const initialMemoValue = memoInputs[bossName] !== undefined ? memoInputs[bossName] : (existingBoss && existingBoss.memo ? existingBoss.memo : '');
 
+        // SSOT에 이미 저장된 데이터가 있다면 정밀한 시간을 직접 사용
+        let spawnTimeDisplay = '--:--:--';
+        let isoDateAttr = '';
+        if (existingBoss && existingBoss.scheduledDate) {
+            const sDate = new Date(existingBoss.scheduledDate);
+            spawnTimeDisplay = `${padNumber(sDate.getHours())}:${padNumber(sDate.getMinutes())}:${padNumber(sDate.getSeconds())}`;
+            isoDateAttr = `data-calculated-date="${sDate.toISOString()}"`;
+        }
+
         return `
             <div class="list-item boss-input-item">
                 <div class="boss-input-row-main">
                     <span class="boss-name">${bossName}</span>
-                    <input type="text" class="remaining-time-input" data-boss-name="${bossName}" data-id="${bossId}" value="${initialTimeValue}">
-                    <span class="calculated-spawn-time">--:--:--</span>
+                    <input type="text" class="remaining-time-input" data-boss-name="${bossName}" data-id="${bossId}" ${isoDateAttr} value="${initialTimeValue}">
+                    <span class="calculated-spawn-time">${spawnTimeDisplay}</span>
                 </div>
                 <div class="boss-input-row-memo">
                     <input type="text" class="memo-input" data-boss-name="${bossName}" value="${initialMemoValue}" placeholder="비고 (20자)" maxlength="20">
@@ -681,79 +689,79 @@ export function updateTimetableUI(DOM) {
 
 export function renderTimetableList(DOM, filterNextBoss) {
     if (!DOM.bossListCardsContainer) return;
-    let schedule = BossDataManager.getBossSchedule();
+
+    // 1. 원본 스케줄 데이터를 가져옴
+    const schedule = BossDataManager.getBossSchedule();
     const now = new Date();
-    if (filterNextBoss) {
-        // 날짜 필터링 로직: 
-        // 1. 현재 시간 이후의 보스만 남김
-        // 2. 단, 'date' 타입(날짜 마커)은 일단 모두 유지했다가, 
-        //    렌더링 단계에서 해당 날짜에 보스가 하나도 없으면 카드를 아예 안 그리는 방식으로 처리하는 것이 깔끔함.
-        //    하지만 여기서는 리스트 순회하며 동적으로 카드를 여닫는 구조이므로,
-        //    일단 보스만 필터링하고 날짜 마커는 살려둠.
-        schedule = schedule.filter(item => {
-            if (item.type === 'date') return true;
-            return item.scheduledDate && item.scheduledDate > now;
-        });
-    }
+
+    // 2. 보스 데이터만 추출 및 시간순 정렬
+    const bosses = schedule
+        .filter(item => item.type === 'boss')
+        .sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
+
+    // 3. '다음 보스' 필터 적용
+    const filteredBosses = filterNextBoss
+        ? bosses.filter(boss => boss.scheduledDate && new Date(boss.scheduledDate) > now)
+        : bosses;
 
     let html = '';
-    let currentCardHtml = ''; // 현재 처리 중인 날짜 카드의 내용
-    let hasBossInCurrentDate = false; // 현재 날짜에 보스가 하나라도 있는지 확인
+    let currentCardHtml = '';
+    let lastDateStr = '';
 
-    // 헬퍼: 현재 열려 있는 카드를 닫고 html에 추가하는 함수
+    // 헬퍼: 현재 카드의 HTML 구성을 마무리하고 전체 결과에 추가
     const closeCurrentCard = () => {
-        if (currentCardHtml && hasBossInCurrentDate) {
+        if (currentCardHtml) {
             html += `
                 <div class="card-standard card-size-list" style="margin-bottom: 16px;">
                     ${currentCardHtml}
-                    </div>
-                </div>
+                    </div> <!-- .card-list-content 닫기 -->
+                </div> <!-- .card-standard 닫기 -->
             `;
+            currentCardHtml = '';
         }
-        currentCardHtml = '';
-        hasBossInCurrentDate = false;
     };
 
-    schedule.forEach(item => {
-        if (item.type === 'date') {
-            // 이전 날짜 카드 닫기
+    filteredBosses.forEach(boss => {
+        const scheduledDate = new Date(boss.scheduledDate);
+        const dateStr = formatMonthDay(scheduledDate); // MM.DD 형식
+
+        // 날짜가 바뀌면 새로운 카드를 시작
+        if (dateStr !== lastDateStr) {
             closeCurrentCard();
 
-            // 새 날짜 카드 헤더 시작
-            const currentDate = item.value;
-            const currentYear = new Date().getFullYear();
-            const dateObj = new Date(`${currentYear}-${currentDate.replace('.', '-')}`);
-            const dayOfWeek = getKoreanDayOfWeek(dateObj);
-
+            const dayOfWeek = getKoreanDayOfWeek(scheduledDate);
             currentCardHtml = `
                 <div class="card-header">
-                    <h3>${currentDate} (${dayOfWeek})</h3>
+                    <h3>${dateStr} (${dayOfWeek})</h3>
                 </div>
                 <div class="card-list-content">
             `;
-        } else if (item.type === 'boss') {
-            let time;
-            if (item.timeFormat === 'hm') {
-                time = item.time.substring(0, 5); // HH:MM
-            } else { // 'hms' or undefined for backward compatibility
-                time = item.time; // HH:MM:SS
-            }
-            currentCardHtml += `
-                <div class="list-item list-item--dense" style="flex-direction: column; align-items: flex-start;">
-                    <div style="display: flex; width: 100%; align-items: center;">
-                        <span style="font-weight: bold; min-width: 60px;">${time}</span>
-                        <span style="margin-left: 16px; flex-grow: 1;">${item.name}</span>
-                    </div>
-                    ${item.memo ? `<div style="font-size: 0.85em; color: #888; margin-top: 4px; margin-left: 76px;">${item.memo}</div>` : ''}
-                </div>
-            `;
-            hasBossInCurrentDate = true;
+            lastDateStr = dateStr;
         }
+
+        // 시간 표시 형식 결정
+        let time;
+        if (boss.timeFormat === 'hm') {
+            time = boss.time.substring(0, 5); // HH:MM
+        } else {
+            time = boss.time; // HH:MM:SS
+        }
+
+        currentCardHtml += `
+            <div class="list-item list-item--dense" style="flex-direction: column; align-items: flex-start;">
+                <div style="display: flex; width: 100%; align-items: center;">
+                    <span style="font-weight: bold; min-width: 60px;">${time}</span>
+                    <span style="margin-left: 16px; flex-grow: 1;">${boss.name}</span>
+                </div>
+                ${boss.memo ? `<div style="font-size: 0.85em; color: #888; margin-top: 4px; margin-left: 76px;">${boss.memo}</div>` : ''}
+            </div>
+        `;
     });
 
-    // 마지막 날짜 카드 닫기
+    // 마지막으로 열려있던 카드 닫기
     closeCurrentCard();
 
+    // 결과가 없을 경우 메시지 표시
     if (!html) {
         html = '<p class="no-boss-message" style="text-align: center; color: #888; padding: 20px;">표시할 보스가 없습니다.</p>';
     }

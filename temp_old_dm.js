@@ -1,4 +1,4 @@
-import { calculateNextOccurrence, padNumber } from './utils.js';
+import { calculateNextOccurrence } from './utils.js';
 
 export const BOSS_THRESHOLDS = {
     IMMINENT: 5 * 60 * 1000,    // 5 minutes
@@ -11,50 +11,15 @@ export const BossDataManager = (() => {
     const STORAGE_KEY = 'bossSchedule';
     const DRAFT_STORAGE_KEY = 'bossSchedule_draft';
 
-    /**
-     * 초기 로드된 데이터의 유효성을 검사하고 손상된 데이터를 정제합니다.
-     */
-    const _sanitizeInitData = (items) => {
-        if (!items || !Array.isArray(items)) return [];
-        return items.filter(item => {
-            if (!item || typeof item !== 'object') return false;
-
-            if (item.type === 'date') {
-                return !!item.date;
-            }
-
-            if (item.type === 'boss') {
-                const hasName = !!item.name;
-                // scheduledDate가 문자열로 들어올 수도 있으므로 Date 객체로 변환 시도
-                const d = item.scheduledDate instanceof Date ? item.scheduledDate : new Date(item.scheduledDate);
-                const hasValidDate = !isNaN(d.getTime());
-
-                // ID가 없으면 생성 (영속성 식별을 위해 필요)
-                if (hasName && hasValidDate && !item.id) {
-                    item.id = `boss-${item.name}-${d.getTime()}`;
-                }
-
-                // Date 객체로 확실히 변환하여 저장
-                if (hasValidDate) {
-                    item.scheduledDate = d;
-                }
-
-                return hasName && hasValidDate;
-            }
-            return false;
-        });
-    };
-
-    // IIFE 선언 시점에 로컬 스토리지에서 SSOT(Main) 데이터를 즉시 로드 후 정제
+    // IIFE 선언 시점에 로컬 스토리지에서 SSOT(Main) 데이터를 즉시 로드
     let bossSchedule = (() => {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
             try {
-                const parsed = JSON.parse(saved, (key, value) => {
+                return JSON.parse(saved, (key, value) => {
                     if (key === 'scheduledDate') return new Date(value);
                     return value;
                 });
-                return _sanitizeInitData(parsed);
             } catch (e) {
                 console.error('Failed to parse initial bossSchedule', e);
                 return [];
@@ -69,101 +34,10 @@ export const BossDataManager = (() => {
     let _presets = {}; // 보스 프리셋 메타데이터 저장용
     const subscribers = []; // 구독자(콜백 함수) 목록
 
-    const _getInternalBossInterval = (bossName, contextId) => {
-        if (contextId && _presets[contextId] && _presets[contextId].bossMetadata && _presets[contextId].bossMetadata[bossName]) {
-            const val = _presets[contextId].bossMetadata[bossName];
-            return typeof val === 'number' ? val : (val.interval || 0);
-        }
-        for (const context of Object.values(_presets)) {
-            if (context.bossMetadata && context.bossMetadata[bossName]) {
-                const val = context.bossMetadata[bossName];
-                return typeof val === 'number' ? val : (val.interval || 0);
-            }
-        }
-        return 0;
-    };
-
     const notify = () => {
         for (const subscriber of subscribers) {
             subscriber();
         }
-    };
-
-    /**
-     * 보스 아이템 리스트를 48시간 분량(오늘~내일)으로 확장하고 날짜별로 재구성합니다.
-     */
-    const _expandAndReconstruct = (items) => {
-        if (!items || items.length === 0) return [];
-
-        const now = Date.now();
-        const todayStart = new Date(now);
-        todayStart.setHours(0, 0, 0, 0);
-        const startTime = todayStart.getTime();
-        const endTime = startTime + (48 * 60 * 60 * 1000); // 오늘 00:00 ~ 내일 24:00 (48시간)
-
-        const expandedBosses = [];
-        const processedNames = new Set();
-
-        // 1. 유효한 보스 아이템만 필터링 (중복 이름은 가장 가까운 시점 기준 1개만 앵커로 사용)
-        const anchors = items
-            .filter(item => item.type === 'boss' && item.scheduledDate)
-            .sort((a, b) => {
-                const diffA = Math.abs(new Date(a.scheduledDate).getTime() - now);
-                const diffB = Math.abs(new Date(b.scheduledDate).getTime() - now);
-                return diffA - diffB;
-            });
-
-        const uniqueAnchors = [];
-        anchors.forEach(boss => {
-            if (!processedNames.has(boss.name)) {
-                uniqueAnchors.push(boss);
-                processedNames.add(boss.name);
-            }
-        });
-
-        // 2. 각 보스별 젠 주기에 맞춰 확장
-        uniqueAnchors.forEach(anchor => {
-            const interval = _getInternalBossInterval(anchor.name) * 60 * 1000; // ms
-            const anchorTime = new Date(anchor.scheduledDate).getTime();
-
-            if (interval > 0) {
-                // 기준점으로부터 오늘 00:00까지 과거로 확장
-                let t = anchorTime;
-                while (t >= startTime) {
-                    expandedBosses.push({ ...anchor, id: `${anchor.id}-${t}`, scheduledDate: new Date(t), time: `${padNumber(new Date(t).getHours())}:${padNumber(new Date(t).getMinutes())}` });
-                    t -= interval;
-                }
-
-                // 기준점으로부터 내일 24:00까지 미래로 확장
-                t = anchorTime + interval;
-                while (t <= endTime) {
-                    expandedBosses.push({ ...anchor, id: `${anchor.id}-${t}`, scheduledDate: new Date(t), time: `${padNumber(new Date(t).getHours())}:${padNumber(new Date(t).getMinutes())}` });
-                    t += interval;
-                }
-            } else {
-                // 주기가 없는 경우 단일 항목 유지 (오늘 00:00 이후인 것만)
-                if (anchorTime >= startTime) {
-                    expandedBosses.push(anchor);
-                }
-            }
-        });
-
-        // 3. 시간순 정렬 및 날짜 마커 삽입
-        expandedBosses.sort((a, b) => a.scheduledDate - b.scheduledDate);
-
-        const reconstructed = [];
-        let lastDateStr = '';
-        expandedBosses.forEach(boss => {
-            const d = boss.scheduledDate;
-            const dateStr = `${padNumber(d.getMonth() + 1)}.${padNumber(d.getDate())}`;
-            if (dateStr !== lastDateStr) {
-                reconstructed.push({ type: 'date', date: dateStr });
-                lastDateStr = dateStr;
-            }
-            reconstructed.push(boss);
-        });
-
-        return reconstructed;
     };
 
     // Load Draft from LocalStorage helper
@@ -171,20 +45,10 @@ export const BossDataManager = (() => {
         if (!_draftSchedule) {
             const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
             if (savedDraft) {
-                try {
-                    const parsed = JSON.parse(savedDraft, (key, value) => {
-                        if (key === 'scheduledDate') return new Date(value);
-                        return value;
-                    });
-                    const sanitized = _sanitizeInitData(parsed);
-                    // 정제 후에도 데이터가 유효할 때만 적용
-                    if (sanitized && sanitized.length > 0) {
-                        _draftSchedule = sanitized;
-                    }
-                } catch (e) {
-                    console.error('Failed to parse draftSchedule', e);
-                    _draftSchedule = null;
-                }
+                _draftSchedule = JSON.parse(savedDraft, (key, value) => {
+                    if (key === 'scheduledDate') return new Date(value);
+                    return value;
+                });
             }
         }
     };
@@ -192,69 +56,18 @@ export const BossDataManager = (() => {
     return {
         initPresets: (presets) => {
             _presets = presets;
-
-            // 프리셋이 로드되면 기존 스케줄을 즉시 확장 및 정규화
-            if (bossSchedule && bossSchedule.length > 0) {
-                console.log('[Debug] BossDataManager - Expanding existing schedule after preset initialization');
-                bossSchedule = _expandAndReconstruct(bossSchedule);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(bossSchedule));
-
-                // Draft도 동기화
-                _draftSchedule = JSON.parse(JSON.stringify(bossSchedule), (key, value) => {
-                    if (key === 'scheduledDate') return new Date(value);
-                    return value;
-                });
-                localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(_draftSchedule));
-                notify();
-            }
         },
         getBossInterval: (bossName, contextId) => {
-            return _getInternalBossInterval(bossName, contextId);
-        },
-        /**
-         * 입력된 보스 스케줄의 논리적 일관성(젠 주기 준수 여부)을 검증합니다.
-         */
-        validateBossSchedule: (items) => {
-            if (!items || items.length === 0) return { isValid: true };
-
-            const bossGroups = {};
-            items.filter(item => item.type === 'boss').forEach(item => {
-                if (!bossGroups[item.name]) bossGroups[item.name] = [];
-                bossGroups[item.name].push(item);
-            });
-
-            for (const [name, instances] of Object.entries(bossGroups)) {
-                const interval = _getInternalBossInterval(name);
-                if (interval <= 0 || instances.length < 2) continue;
-
-                const intervalMs = interval * 60 * 1000;
-                // 시간순 정렬
-                const sorted = [...instances].sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
-
-                for (let i = 0; i < sorted.length - 1; i++) {
-                    const d1 = new Date(sorted[i].scheduledDate).getTime();
-                    const d2 = new Date(sorted[i + 1].scheduledDate).getTime();
-                    const diffMs = d2 - d1;
-
-                    if (diffMs < intervalMs) {
-                        return {
-                            isValid: false,
-                            message: `'${name}' 보스는 젠 주기가 ${interval}분입니다.\n입력된 시간(${sorted[i].time}, ${sorted[i + 1].time})이 주기보다 너무 가깝습니다. 중복 여부를 확인해 주세요.`
-                        };
-                    }
-
-                    if (diffMs % intervalMs !== 0) {
-                        const hours = Math.floor(diffMs / (60 * 60 * 1000));
-                        const mins = Math.round((diffMs % (60 * 60 * 1000)) / (60 * 1000));
-                        return {
-                            isValid: false,
-                            message: `'${name}' 보스의 젠 주기는 ${interval}분입니다.\n입력된 시간 사이의 간격(${hours}시간 ${mins}분)이 주기의 배수가 아닙니다. (입력 시점: ${sorted[i].time}, ${sorted[i + 1].time})`
-                        };
-                    }
+            if (contextId && _presets[contextId] && _presets[contextId].bossMetadata[bossName]) {
+                return _presets[contextId].bossMetadata[bossName].interval || 0;
+            }
+            // ID가 없는 경우 전체 프리셋에서 검색 (하위 호환성)
+            for (const context of Object.values(_presets)) {
+                if (context.bossMetadata[bossName]) {
+                    return context.bossMetadata[bossName].interval || 0;
                 }
             }
-
-            return { isValid: true };
+            return 0;
         },
         subscribe: (callback) => {
             subscribers.push(callback);
@@ -262,20 +75,33 @@ export const BossDataManager = (() => {
         getBossSchedule: () => bossSchedule,
         setBossSchedule: (newSchedule) => {
             console.log('[Debug] BossDataManager.setBossSchedule - incoming:', newSchedule);
-            // 들어온 리스트를 즉시 48시간(오늘~내일) 분량으로 확장하고 정규화함
-            bossSchedule = _expandAndReconstruct(newSchedule || []);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(bossSchedule)); // 원본 영구 저장
+            bossSchedule = newSchedule || [];
+
+            // [SSOT 즉시 동기화] 원본 데이터가 새롭게 주입되면, Draft도 즉시 새 원본으로 복사합니다.
+            // 삭제만 하면 빈 상태가 생기므로, 즉시 복사하여 항상 동기화된 상태를 유지합니다.
+            _draftSchedule = JSON.parse(JSON.stringify(bossSchedule), (key, value) => {
+                if (key === 'scheduledDate') return new Date(value);
+                return value;
+            });
+            localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(_draftSchedule));
+
+            // 원본 데이터 영구 저장
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(bossSchedule));
             notify();
         },
+
         // --- Draft Management ---
         getDraftSchedule: () => {
             loadDraft();
+            console.log('[Debug] BossDataManager.getDraftSchedule - Draft:', _draftSchedule, 'Main:', bossSchedule);
+
             // Draft 데이터가 없으면 원본(Main)에서 복제하여 생성
             if (!_draftSchedule) {
                 _draftSchedule = JSON.parse(JSON.stringify(bossSchedule), (key, value) => {
                     if (key === 'scheduledDate') return new Date(value);
                     return value;
                 });
+                console.log('[Debug] BossDataManager.getDraftSchedule - Draft created from Main');
             }
             return _draftSchedule;
         },
@@ -285,22 +111,19 @@ export const BossDataManager = (() => {
         },
         commitDraft: () => {
             if (_draftSchedule) {
-                // 커밋 시에도 48시간 확장 로직을 적용하여 스케줄을 완성함
-                bossSchedule = _expandAndReconstruct(_draftSchedule);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(bossSchedule));
-                localStorage.removeItem(DRAFT_STORAGE_KEY);
+                bossSchedule = _draftSchedule;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(bossSchedule)); // 원본 영구 저장
+                localStorage.removeItem(DRAFT_STORAGE_KEY); // Draft 삭제
                 _draftSchedule = null;
                 notify();
             }
-        },
-        expandSchedule: (items) => {
-            return _expandAndReconstruct(items);
         },
         clearDraft: () => {
             _draftSchedule = null;
             localStorage.removeItem(DRAFT_STORAGE_KEY);
         },
         // ------------------------
+
         setNextBossInfo: (nextBoss, minTimeDiff) => {
             _nextBoss = nextBoss;
             _minTimeDiff = minTimeDiff;
@@ -311,7 +134,7 @@ export const BossDataManager = (() => {
         getAllUpcomingBosses: (nowTime = Date.now()) => {
             const nowAsDate = new Date(nowTime);
             const manualBosses = bossSchedule
-                .filter(item => item.type === 'boss' && item.scheduledDate)
+                .filter(item => item.type === 'boss' && item.time)
                 .map(boss => ({
                     ...boss,
                     timestamp: new Date(boss.scheduledDate).getTime(),
@@ -347,10 +170,6 @@ export const BossDataManager = (() => {
         getUpcomingBosses: (count) => {
             return BossDataManager.getAllUpcomingBosses().slice(0, count);
         },
-
-        getImminentBosses: () => {
-            return BossDataManager.getBossStatusSummary().imminentBosses;
-        }
     };
 })();
 

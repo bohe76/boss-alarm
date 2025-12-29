@@ -24,10 +24,10 @@ function handleShowScreen(DOM) {
     renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs, draftSchedule);
     updateBossListTextarea(DOM, draftSchedule);
 
-    // 4. 입력 필드의 계산된 시간(스팬) 업데이트
-    updateCalculatedTimes(DOM);
+    // 4. 입력 필드의 계산된 시간(스팬) 업데이트는 초기 렌더링 시 UI-Renderer가 담당함
+    // updateCalculatedTimes(DOM); 제거
 
-    // 5. 탭 초기화 (기본: 입력 모드)
+    // 5. 탭 초기화 (기본: 간편 입력 모드)
     showSchedulerTab(DOM, 'input');
 }
 
@@ -40,36 +40,70 @@ function syncDraftToUIState(draftSchedule) {
     _memoInputs = {};
     const now = Date.now();
 
-    draftSchedule.forEach(item => {
-        if (item.type === 'boss' && item.time) {
-            // 남은 시간 계산
-            const targetDate = new Date(item.scheduledDate);
-            const [h, m, s] = item.time.split(':').map(Number);
-            targetDate.setHours(h, m, s || 0);
+    // 1. 보스 아이템만 추출
+    const allBosses = draftSchedule.filter(item => item.type === 'boss' && item.scheduledDate);
 
+    // 2. 이름별로 그룹화하여 가장 적절한(미래 우선) 보스 선택
+    const groupedByName = {};
+    allBosses.forEach(boss => {
+        if (!groupedByName[boss.name]) {
+            groupedByName[boss.name] = [];
+        }
+        groupedByName[boss.name].push(boss);
+    });
+
+    Object.keys(groupedByName).forEach(name => {
+        const instances = groupedByName[name];
+
+        // 미래 보스들 중 가장 빠른 것 찾기
+        const futureInstances = instances
+            .filter(b => new Date(b.scheduledDate).getTime() > now)
+            .sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
+
+        // 과거 보스들 중 가장 늦은(최근) 것 찾기
+        const pastInstances = instances
+            .filter(b => new Date(b.scheduledDate).getTime() <= now)
+            .sort((a, b) => new Date(b.scheduledDate) - new Date(a.scheduledDate));
+
+        // 우선순위: 미래 보스 > 과거 보스
+        const bestInstance = futureInstances.length > 0 ? futureInstances[0] : (pastInstances.length > 0 ? pastInstances[0] : null);
+
+        if (bestInstance) {
+            const targetDate = new Date(bestInstance.scheduledDate);
             const diffMs = targetDate.getTime() - now;
-
             const totalSeconds = Math.abs(Math.floor(diffMs / 1000));
             const hours = Math.floor(totalSeconds / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             const seconds = totalSeconds % 60;
 
             let timeStr;
-            if (item.timeFormat === 'hms') {
+            if (bestInstance.timeFormat === 'hms') {
                 timeStr = `${padNumber(hours)}:${padNumber(minutes)}:${padNumber(seconds)}`;
             } else {
                 timeStr = `${padNumber(hours)}:${padNumber(minutes)}`;
             }
 
-            // [ID 기반 관리] 이름이 겹쳐도 시간과 메모가 유실되지 않음
-            _remainingTimes[item.id] = (diffMs < 0 ? '-' : '') + timeStr;
-            _memoInputs[item.id] = item.memo || '';
+            _remainingTimes[name] = (diffMs < 0 ? '-' : '') + timeStr;
+            _memoInputs[name] = bestInstance.memo || '';
         }
     });
 }
 
 function showSchedulerTab(DOM, tabId) {
     if (!DOM.tabSchedulerInput || !DOM.tabSchedulerText || !DOM.schedulerInputModeSection || !DOM.schedulerTextModeSection) return;
+
+    // 1. 텍스트 모드에서 간편 모드로 전환 시 유효성 검사 수행
+    if (tabId === 'input' && DOM.schedulerBossListInput) {
+        // 전환 전 검증 (알럿 포함)
+        if (!syncTextToInput(DOM, false)) {
+            // 검증 실패 시 텍스트 모드 유지
+            DOM.tabSchedulerInput.classList.remove('active');
+            DOM.tabSchedulerText.classList.add('active');
+            DOM.schedulerInputModeSection.style.display = 'none';
+            DOM.schedulerTextModeSection.style.display = 'block';
+            return;
+        }
+    }
 
     // Toggle active state for tab buttons
     DOM.tabSchedulerInput.classList.toggle('active', tabId === 'input');
@@ -79,29 +113,25 @@ function showSchedulerTab(DOM, tabId) {
     DOM.schedulerInputModeSection.style.display = tabId === 'input' ? 'block' : 'none';
     DOM.schedulerTextModeSection.style.display = tabId === 'text' ? 'block' : 'none';
 
-    // 탭 전환 시에는 UI만 변경하고 데이터 동기화 동작은 최소화 (이미 Draft로 일원화됨)
-    // 단, 각 모드에서 "마지막으로 입력한 상태"를 확실히 반영하기 위해 동기화 호출
+    // 2. 탭 전환 후 데이터 동기화
     if (tabId === 'text' && DOM.bossInputsContainer && DOM.schedulerBossListInput) {
-        // 입력 모드에서 텍스트 모드로 갈 때: 입력 필드 값 -> Draft -> 텍스트
+        // 간편 입력 모드에서 텍스트 모드로 갈 때: 입력 필드 값 -> Draft -> 텍스트
         syncInputToText(DOM);
-    } else if (tabId === 'input' && DOM.schedulerBossListInput) {
-        // 텍스트 모드에서 입력 모드로 갈 때: 텍스트 값 -> Draft -> 입력 필드
-        syncTextToInput(DOM);
     }
 
-    trackEvent('Click Button', { event_category: 'Interaction', event_label: `스케줄러 탭 전환: ${tabId === 'input' ? '입력 모드' : '텍스트 모드'}` });
+    trackEvent('Click Button', { event_category: 'Interaction', event_label: `스케줄러 탭 전환: ${tabId === 'input' ? '간편 입력 모드' : '텍스트 모드'}` });
 }
 
 /**
- * 입력 모드의 정보를 Draft SSOT에 반영하고 텍스트 영역을 업데이트합니다.
+ * 간편 입력 모드의 정보를 Draft SSOT에 반영하고 텍스트 영역을 업데이트합니다.
  */
 /**
- * 입력 모드의 현재 값들을 바탕으로 Draft 스케줄을 완전히 재구성합니다.
+ * 간편 입력 모드의 현재 값들을 바탕으로 Draft 스케줄을 완전히 재구성합니다.
  * 날짜 마커를 자동으로 계산하여 포함합니다.
  */
 function syncInputToText(DOM) {
     const newBossItems = [];
-    // 1. 입력 모드 DOM에서 유효한 보스 정보 수집 (계산된 시간이 있는 것만)
+    // 1. 간편 입력 모드 DOM에서 유효한 보스 정보 수집 (계산된 시간이 있는 것만)
     DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
         const nameEl = item.querySelector('.boss-name');
         const timeEl = item.querySelector('.calculated-spawn-time');
@@ -139,46 +169,38 @@ function syncInputToText(DOM) {
         return;
     }
 
-    // 3. 시간순 정렬
-    newBossItems.sort((a, b) => a.scheduledDate - b.scheduledDate);
+    // 3. 24시간 자동 확장 및 정규화
+    const updatedDraft = BossDataManager.expandSchedule(newBossItems);
 
-    // 4. 날짜 마커 추가 및 최종 스케줄 구성
-    const updatedDraft = [];
-    let lastDateStr = '';
-
-    newBossItems.forEach(item => {
-        const itemDate = item.scheduledDate;
-        const itemDateStr = `${itemDate.getFullYear()}.${padNumber(itemDate.getMonth() + 1)}.${padNumber(itemDate.getDate())}`;
-
-        if (itemDateStr !== lastDateStr) {
-            updatedDraft.push({
-                type: 'date',
-                date: `${padNumber(itemDate.getMonth() + 1)}.${padNumber(itemDate.getDate())}`
-            });
-            lastDateStr = itemDateStr;
-        }
-        updatedDraft.push(item);
-    });
-
-    // 5. Draft 저장 및 텍스트 영역 갱신
+    // 4. Draft 저장 및 텍스트 영역 갱신
     BossDataManager.setDraftSchedule(updatedDraft);
     updateBossListTextarea(DOM, updatedDraft);
 }
 
 /**
  * 텍스트 모드의 내용을 분석하여 Draft SSOT를 업데이트하고 UI를 동기화합니다.
+ * @param {boolean} silent 유효성 검사 실패 시 알럿을 띄울지 여부
  */
-function syncTextToInput(DOM) {
-    if (!DOM.schedulerBossListInput) return;
+function syncTextToInput(DOM, silent = true) {
+    if (!DOM.schedulerBossListInput) return false;
 
     const result = parseBossList(DOM.schedulerBossListInput);
-    console.log('[Debug] syncTextToInput - parse result:', result);
-    if (!result.success) return;
+    if (!result.success) {
+        if (!silent) alert("텍스트 형식 오류:\n" + result.errors.join('\n'));
+        return false;
+    }
 
-    // 1. 파싱 결과를 Draft에 저장 (SSOT 업데이트)
     const newDraft = result.mergedSchedule;
+
+    // [신규] 논리적 유효성 검사 (젠 주기 준수 여부)
+    const validation = BossDataManager.validateBossSchedule(newDraft);
+    if (!validation.isValid) {
+        if (!silent) alert("보스 시간 설정 오류\n" + "------------------------\n" + validation.message);
+        return false;
+    }
+
+    // 1. 파싱 및 검증 결과를 Draft에 저장 (SSOT 업데이트)
     BossDataManager.setDraftSchedule(newDraft);
-    console.log('[Debug] syncTextToInput - newDraft set:', newDraft);
 
     // 2. Draft -> UI 상태 동기화
     syncDraftToUIState(newDraft);
@@ -186,46 +208,45 @@ function syncTextToInput(DOM) {
     // 3. 입력 필드 재렌더링 (현재 편집 중인 Draft를 명시적으로 전달)
     if (DOM.gameSelect && DOM.gameSelect.value) {
         renderBossInputs(DOM, DOM.gameSelect.value, _remainingTimes, _memoInputs, newDraft);
-        updateCalculatedTimes(DOM);
     }
+    return true;
 }
 
 export function handleApplyBossSettings(DOM) {
     const isTextMode = DOM.tabSchedulerText && DOM.tabSchedulerText.classList.contains('active');
 
-    // 현재 활성화된 탭의 데이터를 Draft에 최종 반영
+    // 현재 활성화된 탭의 데이터를 Draft에 최종 반영 (이 과정에서 유효성 검사 수행)
     if (isTextMode && DOM.schedulerBossListInput) {
-        syncTextToInput(DOM);
+        if (!syncTextToInput(DOM, false)) return;
     } else {
         syncInputToText(DOM);
     }
 
-    // Validation (Draft 기반)
+    // 최종 검증 (Draft 기반)
     const draftSchedule = BossDataManager.getDraftSchedule();
-    // 간단한 유효성 검사: 보스 데이터가 있는지
     const hasBosses = draftSchedule.some(item => item.type === 'boss');
 
     if (!hasBosses) {
-        alert("보스 설정에 내용이 전혀 없습니다.\n남은 시간을 1개 이상 입력 후 보스 설정 적용 버튼을 눌러 주세요.");
+        alert("보스 설정에 내용이 전혀 없습니다.\n남은 시간을 1개 이상 입력 후 보스 시간 업데이트 버튼을 눌러 주세요.");
         return;
     }
 
-    // Commit Draft to Main
+    // Commit Draft to Main (내부적으로 _expandAndReconstruct 호출됨)
     BossDataManager.commitDraft();
 
-    // UI 업데이트 (Main 기반으로 다시 로드)
-    updateBossListTextarea(DOM); // Main SSOT 반영
+    // UI 업데이트 (Main 기반으로 다시 로드 - 24시간 확장된 결과가 반영됨)
+    updateBossListTextarea(DOM);
 
-    // 입력 필드 초기화 (저장되었으므로 남은 시간 등은 재계산되어 표시됨)
+    // 입력 필드 초기화 및 화면 전환
     _remainingTimes = {};
     _memoInputs = {};
     renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs);
 
     EventBus.emit('navigate', 'timetable-screen');
-    log("보스 설정이 적용되었습니다.", true);
+    log("보스 시간이 업데이트되었습니다.", true);
     trackEvent('Click Button', {
         event_category: 'Interaction',
-        event_label: `보스 설정 적용(${isTextMode ? '텍스트 모드' : '입력 모드'})`
+        event_label: `보스 시간 업데이트(${isTextMode ? '텍스트 모드' : '간편 입력 모드'})`
     });
 }
 
@@ -236,7 +257,7 @@ export function initBossSchedulerScreen(DOM) {
     // 네비게이션 연동
     EventBus.on('show-boss-scheduler-screen', () => handleShowScreen(DOM));
 
-    // 1 & 2. 입력 모드 변경 감지 (Delegation)
+    // 1 & 2. 간편 입력 모드 변경 감지 (Delegation)
     DOM.bossSchedulerScreen.addEventListener('input', (event) => {
         const target = event.target;
 
@@ -246,7 +267,7 @@ export function initBossSchedulerScreen(DOM) {
             return;
         }
 
-        // 입력 모드인 경우 (남은 시간 입력 또는 메모 입력)
+        // 간편 입력 모드인 경우 (남은 시간 입력 또는 메모 입력)
         if (target.classList.contains('remaining-time-input')) {
             const inputField = target;
             const bossName = inputField.dataset.bossName;
@@ -287,7 +308,7 @@ export function initBossSchedulerScreen(DOM) {
 
     EventBus.on('rerender-boss-scheduler', () => {
         renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs);
-        updateCalculatedTimes(DOM);
+        // updateCalculatedTimes(DOM); 호출 삭제
     });
 
     DOM.bossSchedulerScreen.addEventListener('change', (event) => {
@@ -295,7 +316,7 @@ export function initBossSchedulerScreen(DOM) {
             const selectedGame = DOM.gameSelect.value;
             localStorage.setItem('lastSelectedGame', selectedGame); // 선택 정보 저장
             renderBossInputs(DOM, selectedGame, _remainingTimes, _memoInputs);
-            updateCalculatedTimes(DOM);
+            // updateCalculatedTimes(DOM); 호출 삭제
         }
     });
 
@@ -334,14 +355,8 @@ export function initBossSchedulerScreen(DOM) {
     DOM.bossSchedulerScreen.addEventListener('show-screen', () => handleShowScreen(DOM));
 }
 
-function updateCalculatedTimes(DOM) {
-    if (!DOM.bossInputsContainer) return;
-    DOM.bossInputsContainer.querySelectorAll('.remaining-time-input').forEach(input => {
-        if (input.value) {
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-    });
-}
+// updateCalculatedTimes 함수 완전 삭제 (SSOT 오염의 원인)
+
 
 export function getScreen() {
     return {

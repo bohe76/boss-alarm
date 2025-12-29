@@ -23,15 +23,21 @@
 2.  **`app.js: initApp()` 실행 (async):**
     *   `initDomElements()`를 호출하여 모든 DOM 요소 참조를 `DOM` 객체에 수집합니다.
     *   `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자, 그리고 핵심 데이터(`boss-presets.json`, `initial-default.json`)를 비동기로 로드합니다.
-    *   **로드된 프리셋 데이터를 `BossDataManager.initPresets()`를 통해 주입하여 연산 준비를 마칩니다.**
+    *   **데이터 정제**: `BossDataManager` 초기화 시 로컬 스토리지 데이터를 `_sanitizeInitData()`를 통해 검증하여 손상된 데이터를 제거합니다.
+    *   **로드된 프리셋 데이터를 `BossDataManager.initPresets()`를 통해 주입하며, 주입 즉시 기존 스케줄을 48시간 분량으로 자동 확장합니다.**
     *   `registerAllRoutes()`를 호출하여 `src/screens/*.js`의 모든 화면 모듈을 `src/router.js`에 등록합니다.
-*   `loadInitialData(DOM)`를 호출하여 URL 파라미터(`data`)가 있으면 `parseBossList`로, 없으면 로드된 프리셋 정보를 바탕으로 `processBossItems()`를 통해 `BossDataManager`를 초기화합니다.
-    *   **`renderFixedAlarms(DOM)`를 호출하여 '설정' 화면의 고정 알림 목록을 초기 렌더링합니다.**
-    *   `initGlobalEventListeners(DOM)`를 호출하여, `BossDataManager` 데이터 변경 감지나 로그 업데이트 같은 전역 이벤트 리스너를 중앙에서 활성화합니다.
+    *   `loadInitialData(DOM)`를 호출하여 초기 데이터를 로드합니다. 로딩 우선순위는 다음과 같습니다:
+        1. **URL 파라미터**: `data` 쿼리가 있으면 최우선으로 로드합니다.
+        2. **사용자 로컬 스토리지**: URL 데이터가 없고 기존에 저장된 데이터가 있다면 이를 유지합니다.
+        3. **기본 샘플 데이터**: 위 두 조건에 해당하지 않을 때만 `initial-default.json` 데이터를 로드합니다.
+    *   **자동 확장**: 위 과정에서 데이터가 설정될 때마다 `BossDataManager` 내부에서 `_expandAndReconstruct()`가 실행되어 '오늘~내일' 48시간 일정으로 정규화됩니다.
+    *   `initGlobalEventListeners(DOM)`를 호출하여 전역 이벤트 리스너를 활성화합니다.
     *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
     *   **`renderAlarmStatusSummary(DOM)`를 호출하여 알림 상태 요약을 초기 렌더링합니다.**
     *   `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링하며, 1초마다 주기적으로 갱신되도록 `setInterval`을 설정합니다.
-    *   `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.3.  **`app.js: showScreen(DOM, screenId)` 실행:**
+    *   `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.
+
+3.  **`app.js: showScreen(DOM, screenId)` 실행:**
     *   모든 화면 요소에서 `active` 클래스를 제거하고, 지정된 `screenId`에 해당하는 요소에 `active` 클래스를 추가하여 화면을 표시합니다.
     *   내비게이션 링크의 `active` 상태를 동기화합니다.
     *   `src/router.js`를 통해 해당 화면 모듈을 가져와 `screen.init(DOM)` (최초 방문 시) 또는 `screen.onTransition(DOM)` (화면 전환 시)을 호출하여 화면별 로직을 초기화/실행합니다.
@@ -67,13 +73,13 @@
 *   **렌더링:** `ui-renderer.js`의 `renderDashboard(DOM)` 함수가 호출되면, `BossDataManager`에서 다음 보스 정보 및 예정된 보스 목록을 가져와 `updateNextBossDisplay()` 및 `renderUpcomingBossList()`를 통해 표시하고, `LocalStorageManager` 및 `alarm-scheduler.js`에서 알람 상태 및 음소거 상태를 가져와 `renderAlarmStatusSummary()` 및 `updateSoundControls()`로 표시합니다. **특히 '다가오는 보스 목록'을 렌더링할 때는 `BossDataManager` 내부에서 `calculateNextOccurrence` 함수를 사용하여 고정 알림의 다음 발생 시간을 계산합니다.** `renderRecentAlarmLog(DOM)`는 `logger.js`의 `log-updated` 이벤트에 반응하여 갱신됩니다.
 *   **데이터 흐름 요약:** 대시보드는 `BossDataManager`의 구독 및 1초 `setInterval`을 통해 보스 데이터 및 타이머를 갱신하고, `logger.js`의 `log-updated` 이벤트에 반응하여 최근 알림 로그를 갱신하는 복합적인 반응형/주기적 갱신 메커니즘을 가집니다.
 
-### 3.2. 보스 관리 화면 (`src/screens/boss-management.js`)
+### 3.2. 보스 시간표 화면 (`src/screens/timetable.js`)
 
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initTimetableScreen(DOM)`이 호출됩니다. 이 함수는 `LocalStorageManager`에서 '다음 보스' 필터(`timetableNextBossFilter`) 상태를 로드하고, `ui-renderer.js`의 `updateTimetableUI(DOM)`를 호출하여 시간표 UI를 초기 렌더링합니다. '보스 시간표' 화면은 조회 전용이며, 수정을 위해 '보스 스케줄러'로 이동할 수 있는 버튼을 제공합니다.
 *   **이벤트 리스너:**
-    *   **'뷰/편집' 토글 버튼 (`DOM.viewEditModeToggleButton`):** 클릭 시 모드를 전환하고 `LocalStorageManager`에 저장합니다. `updateBossManagementUI`를 호출하여 UI를 갱신합니다.
-    *   **'다음 보스' 토글 버튼 (`DOM.nextBossToggleButton`):** 뷰 모드에서만 활성화되며, 클릭 시 필터 상태를 토글하고 저장합니다. 이후 `updateBossManagementUI` -> `renderBossListTableView`를 호출하여 **카드 리스트 형태**로 필터링된 목록을 다시 렌더링합니다.
-    *   **"보스 설정 저장" 버튼 (`DOM.sortBossListButton`):** 편집 모드에서만 활성화되며, 클릭 시 `boss-parser.js`의 `parseBossList()`를 호출하여 텍스트 영역의 내용을 파싱합니다. 이 과정에서 각 줄의 시간 형식을 감지하여 `timeFormat` 속성을 `boss` 객체에 포함시키고, 유효성을 검사합니다.
+    *   **'뷰/편집' 토글 버튼 (`DOM.viewEditModeToggleButton`):** 클릭 시 모드를 전환하고 `LocalStorageManager`에 저장합니다. `updateTimetableUI`를 호출하여 UI를 갱신합니다.
+    *   **'다음 보스' 토글 버튼 (`DOM.nextBossToggleButton`):** 뷰 모드에서만 활성화되며, 클릭 시 필터 상태를 토글하고 저장합니다. 이후 `updateTimetableUI` -> `renderBossListTableView`를 호출하여 **카드 리스트 형태**로 필터링된 목록을 다시 렌더링합니다.
+    *   **"보스 시간 업데이트" 버튼 (`DOM.sortBossListButton`):** 편집 모드에서만 활성화되며, 클릭 시 `boss-parser.js`의 `parseBossList()`를 호출하여 텍스트 영역의 내용을 파싱합니다. 이 과정에서 각 줄의 시간 형식을 감지하여 `timeFormat` 속성을 `boss` 객체에 포함시키고, 유효성을 검사합니다.
         *   **유효성 실패:** 에러 메시지를 담은 경고창(`alert`)을 띄우고 저장을 중단합니다.
         *   **유효성 성공:** 파싱된 결과를 `BossDataManager.setBossSchedule()`로 저장하고, `ui-renderer.js`의 `updateBossListTextarea(DOM)`를 호출하여 정렬 및 `timeFormat`에 따라 포맷팅된 텍스트로 갱신합니다. `window.isBossListDirty`를 `false`로 초기화합니다.
 *   **데이터 흐름 요약:** `LocalStorageManager`를 통해 모드 및 필터 상태를 관리합니다. **뷰 모드**에서는 `BossDataManager` 데이터를 기반으로 `ui-renderer.js`가 `timeFormat`을 존중하여 날짜별 카드 리스트를 생성하고, **편집 모드**에서는 사용자 입력을 파싱하여 `timeFormat`을 포함한 데이터를 `BossDataManager`에 저장하는 양방향 흐름을 가집니다.
@@ -81,20 +87,20 @@
 ### 3.3. 보스 스케줄러 화면 (`src/screens/boss-scheduler.js`)
 
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initBossSchedulerScreen(DOM)`이 호출됩니다. 화면 진입 시 `BossDataManager.getDraftSchedule()`을 통해 Draft를 확보하고, UI 상태를 동기화합니다.
-*   **SSOT 원칙:** 스케줄러는 **Draft(임시 SSOT)**를 기반으로 동작합니다. 모든 UI 출력은 Draft에서 읽어오고, 사용자 입력은 Draft에 반영됩니다. "보스 설정 적용" 버튼을 누르면 Draft가 Main SSOT에 커밋됩니다.
-*   **입력/텍스트 모드 전환:**
-    *   **입력 모드 → 텍스트 모드:** `syncInputToText()`가 입력 필드의 유효한 데이터를 Draft에 반영하고 텍스트 영역을 갱신합니다. 유효한 입력이 없으면 기존 Draft를 유지합니다.
-    *   **텍스트 모드 → 입력 모드:** `syncTextToInput()`이 텍스트 내용을 파싱하여 Draft에 반영하고 입력 필드를 갱신합니다.
+*   **SSOT 원칙:** 스케줄러는 **Draft(임시 SSOT)**를 기반으로 동작합니다. 모든 UI 출력은 Draft에서 읽어오고, 사용자 입력은 Draft에 반영됩니다. "보스 시간 업데이트" 버튼을 누르면 Draft가 Main SSOT에 커밋됩니다.
+*   **간편 입력 모드/텍스트 모드 전환:**
+    *   **간편 입력 모드 → 텍스트 모드:** `syncInputToText()`가 입력 필드의 유효한 데이터를 Draft에 반영하고 텍스트 영역을 갱신합니다. 유효한 입력이 없으면 기존 Draft를 유지합니다.
+    *   **텍스트 모드 → 간편 입력 모드:** `syncTextToInput()`이 텍스트 내용을 파싱하여 Draft에 반영하고 입력 필드를 갱신합니다.
 *   **이벤트 리스너 (DOM.bossSchedulerScreen에 위임):**
-    *   **게임 선택 변경 (`DOM.gameSelect`):** `ui-renderer.js`의 `renderBossInputs()`를 호출하여 선택된 게임에 맞는 보스 입력 필드를 렌더링합니다. 이때 기존 보스의 ID를 `data-id` 속성에 매핑합니다.
-    *   **남은 시간 입력 (`.remaining-time-input`):** `input` 이벤트 발생 시, 사용자의 입력 형식을('hm' 또는 'hms') 감지하여 `dataset.timeFormat`에 저장하고, `calculateBossAppearanceTime()`으로 계산된 젠 시간을 `timeFormat`에 맞춰 동적으로 표시합니다. 최종 시간은 `dataset.calculatedDate`에 ISO 형식으로 저장됩니다.
+    *   **입력 필드 렌더링:** `ui-renderer.js`의 `renderBossInputs()`를 호출하여 선택된 게임에 맞는 보스 입력 필드를 렌더링합니다. 이때 **SSOT의 정밀한 시간(scheduledDate)이 있다면 이를 직접 읽어 젠 시간과 남은 시간을 렌더링**하여 오차를 방지합니다.
+    *   **남은 시간 입력 (`.remaining-time-input`):** `input` 이벤트 발생 시, 사용자의 입력 형식을 감지(`hm` 또는 `hms`)하여 `dataset.timeFormat`에 저장하고, `calculateBossAppearanceTime()`으로 계산된 젠 시간을 실시간으로 표시합니다. **음수 입력(-) 시 과거 시간으로 자동 계산됩니다.** 최종 시간은 `dataset.calculatedDate`에 ISO 형식으로 저장됩니다.
     *   **"모든 남은 시간 지우기" 버튼 (`DOM.clearAllRemainingTimesButton`):** 모든 입력 필드를 초기화합니다.
-    *   **"보스 설정 적용" 버튼 (`DOM.moveToBossSettingsButton`):**
-        1.  현재 활성화된 모드(입력/텍스트)의 데이터를 Draft에 최종 반영합니다.
+    *   **"보스 시간 업데이트" 버튼 (`DOM.moveToBossSettingsButton`):**
+        1.  현재 활성화된 모드(간편 입력/텍스트)의 데이터를 Draft에 최종 반영합니다.
         2.  `BossDataManager.commitDraft()`를 호출하여 Draft를 Main SSOT에 적용합니다.
-        3.  `EventBus.emit('navigate', 'boss-management-screen')`을 발행하여 '보스 관리' 화면으로 전환을 요청합니다.
+        3.  `EventBus.emit('navigate', 'timetable-screen')`을 발행하여 '보스 시간표' 화면으로 전환을 요청합니다.
 *   **날짜 처리 (`boss-parser.js`):** 텍스트 파싱 시 **시간 역전 감지 로직**이 적용됩니다. 이전 보스보다 시간이 이른 보스가 나타나면 날짜를 다음 날로 자동 증가시켜 날짜 롤오버를 처리합니다. (예: 23:29 → 03:50은 다음 날)
-*   **데이터 흐름 요약:** 스케줄러는 Draft를 SSOT로 사용하며, UI 출력은 Draft에서 읽고 사용자 입력은 Draft에 반영합니다. "보스 설정 적용" 시 Draft가 Main SSOT에 커밋되어 영구 저장됩니다.
+*   **데이터 흐름 요약:** 스케줄러는 Draft를 SSOT로 사용하며, UI 출력은 Draft에서 읽고 사용자 입력은 Draft에 반영합니다. "보스 시간 업데이트" 시 Draft가 Main SSOT에 커밋되어 영구 저장됩니다.
 
 ### 3.4. 알림 로그 화면 (`src/screens/alarm-log.js`)
 
