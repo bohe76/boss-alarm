@@ -70,6 +70,21 @@
     /* Max-width for two small cards combination */
 }
 
+/* 초소형 모바일 화면 대응: 480px 이하에서 소형 카드 2단 배열 강제 */
+@media (max-width: 480px) {
+    .dashboard-small-cards-row {
+        flex-wrap: nowrap;
+    }
+
+    .dashboard-small-cards-row .card-size-small {
+        max-width: none;
+        flex: 1;
+        min-width: 0;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+}
+
 /* Dashboard Content Styles */
 .next-boss-highlight {
     margin-bottom: 10px;
