@@ -718,27 +718,44 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
     }).join('');
 }
 // --- Timetable Screen Rendering Functions ---
-export function updateTimetableUI(DOM) {
+export function updateTimetableUI(DOM, options = {}) {
     if (DOM.bossListCardsContainer) DOM.bossListCardsContainer.style.display = 'block';
 
-    let filterNextBoss = LocalStorageManager.get('timetableNextBossFilter');
-    renderTimetableList(DOM, filterNextBoss);
+    const filterNextBoss = options.nextBossOnly !== undefined
+        ? options.nextBossOnly
+        : LocalStorageManager.get('timetableNextBossFilter');
+
+    renderTimetableList(DOM, {
+        nextBossOnly: filterNextBoss,
+        dateRange: options.dateRange || 'all',
+        displayMode: options.displayMode || LocalStorageManager.get('timetableDisplayMode') || '표'
+    });
 }
 
-export function renderTimetableList(DOM, filterNextBoss) {
+export function renderTimetableList(DOM, options = {}) {
     if (!DOM.bossListCardsContainer) return;
+
+    const { nextBossOnly = false, dateRange = 'all', displayMode = '표' } = options;
 
     // 1. 원본 스케줄 데이터를 가져옴
     const schedule = BossDataManager.getBossSchedule();
     const now = new Date();
 
-    // 2. 보스 데이터만 추출 및 시간순 정렬
-    const bosses = schedule
-        .filter(item => item.type === 'boss')
-        .sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
+    // 2. 보스 데이터 추출 및 날짜 필터링
+    let bosses = schedule.filter(item => item.type === 'boss');
+
+    if (dateRange !== 'all') {
+        const targetDate = new Date();
+        if (dateRange === 'tomorrow') targetDate.setDate(targetDate.getDate() + 1);
+        const targetDateStr = targetDate.toDateString();
+        bosses = bosses.filter(boss => new Date(boss.scheduledDate).toDateString() === targetDateStr);
+    }
+
+    // 시간순 정렬
+    bosses.sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
 
     // 3. '다음 보스' 필터 적용
-    const filteredBosses = filterNextBoss
+    const filteredBosses = nextBossOnly
         ? bosses.filter(boss => boss.scheduledDate && new Date(boss.scheduledDate) > now)
         : bosses;
 
@@ -749,9 +766,6 @@ export function renderTimetableList(DOM, filterNextBoss) {
     }, 0);
     // 한글 비중이 높으므로 18px 배율 적용 및 최소 폭 확보
     const nameMinWidth = Math.max(110, maxNameLength * 18);
-
-    // [New] 보기 모드 확인 (기본값: '표')
-    const displayMode = LocalStorageManager.get('timetableDisplayMode') || '표';
 
     let html = '';
 
@@ -819,6 +833,9 @@ export function renderTimetableList(DOM, filterNextBoss) {
         DOM.bossListCardsContainer.classList.add('card-size-list');
         DOM.bossListCardsContainer.classList.remove('boss-card-grid');
 
+        // 전체를 감싸는 컨테이너 시작 (이미지 캡처용 ID 부여)
+        html = '<div id="boss-list-table" class="table-view-container">';
+
         let currentTableHtml = '';
         let lastDateStr = '';
 
@@ -879,11 +896,20 @@ export function renderTimetableList(DOM, filterNextBoss) {
 
         // 마지막으로 열려있던 테이블 카드 닫기
         closeCurrentTableCard();
+
+        // 전체 컨테이너 닫기
+        html += '</div>';
     }
 
     // 결과가 없을 경우 메시지 표시
-    if (!html) {
-        html = '<p class="no-boss-message" style="text-align: center; color: #888; padding: 20px;">표시할 보스가 없습니다.</p>';
+    if (!html || html === '<div id="boss-list-table" class="table-view-container"></div>') {
+        const noBossMsg = '<p class="no-boss-message" style="text-align: center; color: #888; padding: 20px;">표시할 보스가 없습니다.</p>';
+        if (displayMode === '카드') {
+            html = noBossMsg;
+        } else {
+            // 표 모드인 경우 컨테이너 내부에 메시지 삽입
+            html = `<div id="boss-list-table" class="table-view-container">${noBossMsg}</div>`;
+        }
     }
 
     DOM.bossListCardsContainer.innerHTML = html;

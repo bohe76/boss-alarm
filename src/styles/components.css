@@ -723,3 +723,90 @@ textarea {
     transform: scale(1);
     /* Scale to normal size */
 }
+
+/* --- Export Modal Specific --- */
+#export-modal .modal-content {
+    max-width: 450px;
+    /* PC에서는 좀 더 컴팩트하게 */
+    height: auto;
+    /* 내용에 맞게 조절 */
+    min-height: auto;
+    overflow: hidden;
+    /* 위쪽 헤더가 라운드를 가리지 않도록 추가 */
+}
+
+.export-type-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.export-type-container .button {
+    flex: 1;
+    padding: 12px;
+}
+
+.button-group-flat {
+    display: flex;
+    gap: 5px;
+    background: #eee;
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.button-group-flat button {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.2s;
+    color: #666;
+}
+
+.button-group-flat button.active {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* 스르륵 나타나는 효과를 위한 스타일 */
+.expandable-section {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    margin-bottom: 0 !important;
+    transition: all 0.2s cubic-bezier(0, 0, 0.3, 1);
+}
+
+.expandable-section.visible {
+    max-height: 120px;
+    opacity: 1;
+    margin-bottom: 13px !important;
+    /* 기존 control-group 여백 복구 */
+    padding-top: 5px;
+}
+
+.export-action-footer {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed #eee;
+}
+
+.button.full-width {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.05em;
+    font-weight: bold;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+    #export-modal .modal-content {
+        width: 92% !important;
+        margin: 0 auto;
+    }
+}

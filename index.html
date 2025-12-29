@@ -726,6 +726,7 @@
     </div> <!-- app-container 닫기 -->
 
     <div id="toast-container"></div>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script type="module">
         window.APP_VERSION = "v2.16.2"; // Define global app version
 
@@ -779,6 +780,59 @@
             <div class="modal-footer">
                 <button id="cancel-fixed-alarm-modal-button" class="button">취소</button>
                 <button id="save-fixed-alarm-button" class="button primary-button">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>시간표 내보내기</h2>
+                <button id="close-export-modal" class="close-button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- 1. 내보낼 날짜 -->
+                <div class="control-group">
+                    <label>내보낼 날짜</label>
+                    <div id="export-date-options" class="button-group-flat">
+                        <button class="export-date-btn active" data-date-range="today">오늘</button>
+                        <button class="export-date-btn" data-date-range="tomorrow">내일</button>
+                        <button class="export-date-btn" data-date-range="all">전체</button>
+                    </div>
+                </div>
+
+                <!-- 2. 포함 내용 -->
+                <div class="control-group">
+                    <label>포함 내용</label>
+                    <div id="export-content-options" class="button-group-flat">
+                        <button class="export-content-btn active" data-content-type="all">전체</button>
+                        <button class="export-content-btn" data-content-type="next">다음 보스</button>
+                    </div>
+                </div>
+
+                <!-- 3. 내보내기 형식 -->
+                <div class="control-group">
+                    <label>내보내기 형식</label>
+                    <div id="export-format-options" class="button-group-flat">
+                        <button class="export-format-btn active" data-format="text">텍스트 복사</button>
+                        <button class="export-format-btn" data-format="image">이미지 저장</button>
+                    </div>
+                </div>
+
+                <!-- 4. 이미지 스타일 (이미지 저장 시에만 '스르륵' 등장) -->
+                <div id="export-image-style-section" class="control-group expandable-section">
+                    <label>이미지 스타일</label>
+                    <div id="export-image-style-options" class="button-group-flat">
+                        <button class="export-style-btn active" data-style="card">카드 형태</button>
+                        <button class="export-style-btn" data-style="table">표 형태</button>
+                    </div>
+                </div>
+
+                <!-- 최종 내보내기 버튼 -->
+                <div class="export-action-footer">
+                    <button id="export-execute-btn" class="button primary-button full-width">내보내기</button>
+                </div>
             </div>
         </div>
     </div>

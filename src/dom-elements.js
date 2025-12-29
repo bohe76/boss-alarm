@@ -131,5 +131,16 @@ export function initDomElements() {
         tabManageCustomLists: document.getElementById('tab-manage-custom-lists'),
         customListAddSection: document.getElementById('custom-list-add-section'),
         customListManageSection: document.getElementById('custom-list-manage-section'),
+
+        // Export Modal Elements
+        exportTimetableButton: document.getElementById('exportTimetableButton'),
+        exportModal: document.getElementById('export-modal'),
+        closeExportModal: document.getElementById('close-export-modal'),
+        exportDateOptions: document.getElementById('export-date-options'),
+        exportContentOptions: document.getElementById('export-content-options'),
+        exportFormatOptions: document.getElementById('export-format-options'),
+        exportExecuteBtn: document.getElementById('export-execute-btn'),
+        exportImageStyleSection: document.getElementById('export-image-style-section'),
+        exportImageStyleOptions: document.getElementById('export-image-style-options'),
     };
 }

@@ -129,8 +129,8 @@
 *   `renderHelpScreen(DOM, helpData)`: '도움말' 탭의 콘텐츠(`feature_guide.json` 기반)를 아코디언 형태로 렌더링합니다.
 *   `renderFaqScreen(DOM, faqData)`: 'FAQ' 탭의 콘텐츠(`faq_guide.json` 기반)를 아코디언 형태로 렌더링합니다.
 *   `renderVersionInfo(DOM, versionData)`: '릴리즈 노트' 화면의 버전 기록을 렌더링합니다.
-*   `updateTimetableUI(DOM, mode)`: 보스 시간표 화면의 UI를 '뷰 모드' 또는 '편집 모드'에 맞게 업데이트합니다. 모드에 따라 텍스트 영역, 저장 버튼, 보기 모드 선택 버튼, 테이블 뷰 등을 표시하거나 숨깁니다.
-*   `renderBossListTableView(DOM, filterNextBoss)`: 뷰 모드에서 보스 목록을 **날짜별 카드 리스트** 또는 **테이블(표)** 형태로 렌더링합니다. '다음 보스' 필터가 활성화된 경우 현재 시간 이후의 보스만 표시하며, `boss` 객체의 `timeFormat` 속성을 기반으로 시간 표시 형식을 동적으로 결정합니다.
+*   `updateTimetableUI(DOM, options)`: 보스 시간표 화면의 UI를 '뷰 모드' 또는 '편집 모드'에 맞게 업데이트합니다. `options` 객체를 통해 일시적인 필터(날짜 범위, 다음 보스 전용 등) 조정을 지원하여 내보내기 프리뷰 기능을 구현합니다.
+*   `renderBossListTableView(DOM, filterNextBoss)`: 뷰 모드에서 보스 목록을 **날짜별 카드 리스트** 또는 **테이블(표)** 형태로 렌더링합니다. '표 형태' 렌더링 시 이미지 캡처를 위해 `boss-list-table` ID를 컨테이너에 명시적으로 부여합니다.
 *   `updateBossListTextarea(DOM)`: `BossDataManager`의 데이터를 기반으로 보스 목록 텍스트 영역을 업데이트합니다. `bossSchedule` 배열을 순회하며 날짜 마커를 출력하고, 각 `boss` 객체에 저장된 `timeFormat` 속성('hm' 또는 'hms')에 따라 시간 형식을 동적으로 포맷팅하여 출력합니다.
 *   `renderFixedAlarms(DOM)`: 고정 알림 목록을 렌더링하고 이벤트 리스너를 등록합니다.
 *   `updateFixedAlarmVisuals(DOM)`: 고정 알림의 활성화/비활성화 상태에 따라 시각적 효과를 업데이트합니다.
@@ -385,7 +385,7 @@
 | 모듈 파일 | 주요 `export` 함수 | 상세 역할 및 내부 로직 |
 |---|---|---|
 | **`alarm-log.js`** | `getScreen()` | `onTransition` 시 `initAlarmLogScreen(DOM)`을 호출하여 로그 화면을 초기화합니다. `initAlarmLogScreen`은 `LocalStorageManager`를 통해 "15개 보기" 토글 버튼의 상태를 로드/저장하고 관련 이벤트 리스너를 등록합니다. 로그의 실시간 갱신은 `global-event-listeners.js`에 중앙화된 `log-updated` 이벤트 리스너를 통해 자동으로 처리됩니다. `renderAlarmLog`는 토글 상태에 따라 최근 15개 또는 전체 로그를 렌더링합니다. |
-| **`timetable.js`** | `getScreen()` | `init` 시 '뷰/편집' 모드 토글 버튼, '표/카드' 보기 모드 전환 버튼, 그리고 '다음 보스' 필터 토글 버튼의 이벤트 리스너를 등록합니다. `LocalStorageManager`를 통해 마지막으로 사용된 모드와 보기 형식(`timetable-view-mode`)을 로드하고, `updateTimetableUI`를 호출하여 모드에 맞는 UI를 렌더링합니다. `onTransition` 시 `startAutoRefresh` 함수를 통해 1초 간격의 타이머를 시작하여, '뷰 모드'에서 '다음 보스' 필터가 활성화된 경우 목록을 실시간으로 자동 갱신합니다. 화면이 비활성화되면 타이머는 자동으로 중지됩니다. '편집 모드'에서는 기존의 텍스트 영역 기반 보스 목록 편집 및 "보스 시간 업데이트" 기능을 제공하며, '뷰 모드'에서는 보스 목록을 **카드 리스트 또는 테이블 형식**으로 표시하고 '다음 보스' 필터링 기능을 제공합니다. '편집 모드'에서만 "보스 시간 업데이트" 버튼의 클릭 이벤트가 처리됩니다. |
+| **`timetable.js`** | `getScreen()` | `init` 시 '뷰/편집' 모드 토글, '표/카드' 보기 모듈 전환 및 **내보내기(Export) 모달** 이벤트 리스너를 등록합니다. <br> - **내보내기 가드**: 모달이 열려 있는 동안 `startAutoRefresh`를 일시 중단하여 프리뷰 안전성을 확보합니다. <br> - **실시간 동기화**: `syncTimetablePreview`를 통해 옵션 변경 즉시 배경 UI를 갱신합니다. <br> - **상태 복원**: `restoreOriginalSettings`를 통해 내보내기 완료 후 이전 화면 상태(탭, 필터 등)를 완벽히 복구합니다. <br> - **이미지 내보내기**: `html2canvas`를 활용해 캡처 대상 ID(`boss-list-table` 등)를 고해상도로 저장합니다. |
 | **`boss-scheduler.js`** | `getScreen()` | `init` 시 `EventBus.on('show-boss-scheduler-screen')` 및 `EventBus.on('rerender-boss-scheduler')` 리스너를 등록하고, UI를 렌더링합니다. `remaining-time-input` 필드의 유효성 검사는 사용자 입력을 방해하지 않도록 **지연 검증(Deferred Validation)** 정책을 적용하여, 최종 "보스 시간 업데이트" 버튼 클릭 시점에 일괄 수행합니다. `handleApplyBossSettings(DOM)` 함수는 입력된 `data-id`와 계산된 시간, 그리고 `dataset.timeFormat`을 기반으로 `boss` 객체를 업데이트하고 리스트를 재구성하여 저장합니다. |
 | **`calculator.js`** | `getScreen()` | `init` 시 `initCalculatorScreen(DOM)`이 호출되어 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 `handleCalculatorScreenTransition(DOM)`이 호출되어 `CrazyCalculator`의 상태를 초기화하고 `ui-renderer.js`의 `renderCalculatorScreen(DOM)`을 호출하여 화면을 렌더링합니다. `checkZenCalculatorUpdateButtonState(DOM)` 헬퍼 함수를 통해 '보스 시간 업데이트' 버튼의 활성화/비활성화 상태를 관리합니다. |
 | **`custom-list.js`** | `getScreen()` | `init` 시 `initCustomListScreen(DOM)`이 호출되어 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. `DOM.manageCustomListsButton` 클릭 시 모달이 열리며, 목록 변경 시 `EventBus.emit('rerender-boss-scheduler')`를 발행하여 보스 스케줄러의 드롭다운을 업데이트합니다. |
