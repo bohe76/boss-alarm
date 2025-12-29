@@ -30,7 +30,7 @@
         1. **URL 파라미터**: `data` 쿼리가 있으면 최우선으로 로드합니다.
         2. **사용자 로컬 스토리지**: URL 데이터가 없고 기존에 저장된 데이터가 있다면 이를 유지합니다.
         3. **기본 샘플 데이터**: 위 두 조건에 해당하지 않을 때만 `initial-default.json` 데이터를 로드합니다.
-    *   **자동 확장**: 위 과정에서 데이터가 설정될 때마다 `BossDataManager` 내부에서 `_expandAndReconstruct()`가 실행되어 '오늘~내일' 48시간 일정으로 정규화됩니다.
+    *   **자동 확장 (UID 기반)**: 위 과정에서 데이터가 설정될 때마다 `BossDataManager` 내부에서 `_expandAndReconstruct()`가 실행되어 48시간 일정으로 정규화됩니다. 이때 사용자가 수정한 데이터(ID 일치)는 보호되며, 새로 생성되는 인스턴스는 고유한 UID를 부여받습니다.
     *   `initGlobalEventListeners(DOM)`를 호출하여 전역 이벤트 리스너를 활성화합니다.
     *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
     *   **`renderAlarmStatusSummary(DOM)`를 호출하여 알림 상태 요약을 초기 렌더링합니다.**
@@ -82,7 +82,7 @@
     *   **"보스 시간 업데이트" 버튼 (`DOM.sortBossListButton`):** 편집 모드에서만 활성화되며, 클릭 시 `boss-parser.js`의 `parseBossList()`를 호출하여 텍스트 영역의 내용을 파싱합니다. 이 과정에서 각 줄의 시간 형식을 감지하여 `timeFormat` 속성을 `boss` 객체에 포함시키고, 유효성을 검사합니다.
         *   **유효성 실패:** 에러 메시지를 담은 경고창(`alert`)을 띄우고 저장을 중단합니다.
         *   **유효성 성공:** 파싱된 결과를 `BossDataManager.setBossSchedule()`로 저장하고, `ui-renderer.js`의 `updateBossListTextarea(DOM)`를 호출하여 정렬 및 `timeFormat`에 따라 포맷팅된 텍스트로 갱신합니다. `window.isBossListDirty`를 `false`로 초기화합니다.
-*   **데이터 흐름 요약:** `LocalStorageManager`를 통해 모드 및 필터 상태를 관리합니다. **뷰 모드**에서는 `BossDataManager` 데이터를 기반으로 `ui-renderer.js`가 `timeFormat`을 존중하여 날짜별 카드 리스트를 생성하고, **편집 모드**에서는 사용자 입력을 파싱하여 `timeFormat`을 포함한 데이터를 `BossDataManager`에 저장하는 양방향 흐름을 가집니다.
+*   **데이터 흐름 요약:** `LocalStorageManager`를 통해 모드 및 필터 상태를 관리합니다. **뷰 모드**에서는 `BossDataManager` 데이터를 기반으로 `ui-renderer.js`가 **UID별 고유 비고(memo)를 포함하여** 날짜별 카드 리스트를 생성하고, **편집 모드**에서는 사용자 입력을 파싱하여 **표준 UID**를 포함한 데이터를 `BossDataManager`에 저장하는 양방향 흐름을 가집니다.
 
 ### 3.3. 보스 스케줄러 화면 (`src/screens/boss-scheduler.js`)
 
@@ -93,7 +93,7 @@
     *   **텍스트 모드 → 간편 입력 모드:** `syncTextToInput()`이 텍스트 내용을 파싱하여 Draft에 반영하고 입력 필드를 갱신합니다.
 *   **이벤트 리스너 (DOM.bossSchedulerScreen에 위임):**
     *   **입력 필드 렌더링:** `ui-renderer.js`의 `renderBossInputs()`를 호출하여 선택된 게임에 맞는 보스 입력 필드를 렌더링합니다. 이때 **SSOT의 정밀한 시간(scheduledDate)이 있다면 이를 직접 읽어 젠 시간과 남은 시간을 렌더링**하여 오차를 방지합니다.
-    *   **남은 시간 입력 (`.remaining-time-input`):** `input` 이벤트 발생 시, 사용자의 입력 형식을 감지(`hm` 또는 `hms`)하여 `dataset.timeFormat`에 저장하고, `calculateBossAppearanceTime()`으로 계산된 젠 시간을 실시간으로 표시합니다. **음수 입력(-) 시 과거 시간으로 자동 계산됩니다.** 최종 시간은 `dataset.calculatedDate`에 ISO 형식으로 저장됩니다.
+    *   **남은 시간 입력 (`.remaining-time-input`):** `input` 이벤트 발생 시 젠 시간을 실시간으로 표시합니다. **지능형 UI 동기화**를 통해 현재 시각 기준 가장 가까운 미래의 인스턴스 UID와 매핑되어 비고(memo) 및 데이터가 관리됩니다.
     *   **"모든 남은 시간 지우기" 버튼 (`DOM.clearAllRemainingTimesButton`):** 모든 입력 필드를 초기화합니다.
     *   **"보스 시간 업데이트" 버튼 (`DOM.moveToBossSettingsButton`):**
         1.  현재 활성화된 모드(간편 입력/텍스트)의 데이터를 Draft에 최종 반영합니다.

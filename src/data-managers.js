@@ -102,58 +102,87 @@ export const BossDataManager = (() => {
         const endTime = startTime + (48 * 60 * 60 * 1000); // 오늘 00:00 ~ 내일 24:00 (48시간)
 
         const expandedBosses = [];
-        const processedNames = new Set();
+        const userDefinedMap = new Map(); // 사용자 정의 인스턴스 저장 (Key: 이름_타임스탬프)
 
-        // 1. 유효한 보스 아이템만 필터링 (중복 이름은 가장 가까운 시점 기준 1개만 앵커로 사용)
-        const anchors = items
-            .filter(item => item.type === 'boss' && item.scheduledDate)
-            .sort((a, b) => {
-                const diffA = Math.abs(new Date(a.scheduledDate).getTime() - now);
-                const diffB = Math.abs(new Date(b.scheduledDate).getTime() - now);
-                return diffA - diffB;
-            });
-
-        const uniqueAnchors = [];
-        anchors.forEach(boss => {
-            if (!processedNames.has(boss.name)) {
-                uniqueAnchors.push(boss);
-                processedNames.add(boss.name);
-            }
+        // 1. 사용자 정의 인스턴스 수집 (텍스트 모드 등에서 넘어온 모든 인스턴스)
+        const bossItems = items.filter(item => item.type === 'boss' && item.scheduledDate);
+        bossItems.forEach(boss => {
+            const t = new Date(boss.scheduledDate).getTime();
+            const key = `${boss.name}_${t}`;
+            userDefinedMap.set(key, boss);
         });
 
-        // 2. 각 보스별 젠 주기에 맞춰 확장
-        uniqueAnchors.forEach(anchor => {
-            const interval = _getInternalBossInterval(anchor.name) * 60 * 1000; // ms
+        const bossNames = [...new Set(bossItems.map(b => b.name))];
+
+        // 2. 각 보스별 확장 로직
+        bossNames.forEach(bossName => {
+            const interval = _getInternalBossInterval(bossName) * 60 * 1000;
+            // 해당 보스의 사용자 입력 중 현재와 가장 가까운 것을 기준 앵커로 설정 (자동 확장을 위한 기준)
+            const sameBosses = bossItems.filter(b => b.name === bossName)
+                .sort((a, b) => Math.abs(new Date(a.scheduledDate).getTime() - now) - Math.abs(new Date(b.scheduledDate).getTime() - now));
+
+            const anchor = sameBosses[0];
+            if (!anchor) return;
+
             const anchorTime = new Date(anchor.scheduledDate).getTime();
 
+            const createInstance = (time) => {
+                const key = `${bossName}_${time}`;
+                if (userDefinedMap.has(key)) {
+                    // 보헤님이 직접 입력한 인스턴스가 있으면 그대로 사용 (UID 유지 및 메모 보존)
+                    return { ...userDefinedMap.get(key) };
+                } else {
+                    // 없으면 새 UID를 가진 인스턴스 생성 (복사가 아닌 새로운 인스턴스)
+                    return {
+                        ...anchor,
+                        id: `boss-${bossName}-${time}`,
+                        scheduledDate: new Date(time),
+                        time: `${padNumber(new Date(time).getHours())}:${padNumber(new Date(time).getMinutes())}`,
+                        memo: anchor.memo || "" // 앵커의 메모를 기본값으로 사용
+                    };
+                }
+            };
+
             if (interval > 0) {
-                // 기준점으로부터 오늘 00:00까지 과거로 확장
+                // 과거로 확장
                 let t = anchorTime;
                 while (t >= startTime) {
-                    expandedBosses.push({ ...anchor, id: `${anchor.id}-${t}`, scheduledDate: new Date(t), time: `${padNumber(new Date(t).getHours())}:${padNumber(new Date(t).getMinutes())}` });
+                    expandedBosses.push(createInstance(t));
                     t -= interval;
                 }
-
-                // 기준점으로부터 내일 24:00까지 미래로 확장
+                // 미래로 확장
                 t = anchorTime + interval;
                 while (t <= endTime) {
-                    expandedBosses.push({ ...anchor, id: `${anchor.id}-${t}`, scheduledDate: new Date(t), time: `${padNumber(new Date(t).getHours())}:${padNumber(new Date(t).getMinutes())}` });
+                    expandedBosses.push(createInstance(t));
                     t += interval;
                 }
             } else {
-                // 주기가 없는 경우 단일 항목 유지 (오늘 00:00 이후인 것만)
-                if (anchorTime >= startTime) {
-                    expandedBosses.push(anchor);
-                }
+                // 주기가 없는 경우 사용자 입력들만 유효 범위 내에서 유지
+                sameBosses.forEach(b => {
+                    const bt = new Date(b.scheduledDate).getTime();
+                    if (bt >= startTime && bt <= endTime) {
+                        expandedBosses.push({ ...b });
+                    }
+                });
             }
         });
 
-        // 3. 시간순 정렬 및 날짜 마커 삽입
-        expandedBosses.sort((a, b) => a.scheduledDate - b.scheduledDate);
+        // 중복 제거 (확장 과정에서 사용자가 입력한 시간과 겹칠 수 있음)
+        const finalUniqueItems = [];
+        const seenIds = new Set();
+        expandedBosses.forEach(boss => {
+            if (!seenIds.has(boss.id)) {
+                finalUniqueItems.push(boss);
+                seenIds.add(boss.id);
+            }
+        });
+
+        // 3. 시간순 정렬
+        finalUniqueItems.sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime());
 
         const reconstructed = [];
         let lastDateStr = '';
-        expandedBosses.forEach(boss => {
+        finalUniqueItems.forEach(boss => {
             const d = boss.scheduledDate;
             const dateStr = `${padNumber(d.getMonth() + 1)}.${padNumber(d.getDate())}`;
             if (dateStr !== lastDateStr) {

@@ -56,10 +56,10 @@
 | 모듈 | 주요 의존성 (간접적일 수 있음) | 목적 |
 | --- | --- | --- |
 | **`alarm-scheduler.js`** | `logger.js`, `speech.js`, `data-managers.js`, `ui-renderer.js`, `workers/timer-worker.js`, `utils.js` | 알림 조건 확인, 알림 발생(`log`, `speak`), 데이터 관리자 상태 업데이트, UI 갱신, 워커 통신. (`calculateNextOccurrence`를 사용하여 고정 알림의 다음 발생 시간 계산) |
-| **`ui-renderer.js`** | `data-managers.js`, `alarm-scheduler.js`, `logger.js`, `custom-list-manager.js`, `boss-scheduler-data.js`, `utils.js`, `pip-manager.js` | UI 렌더링에 필요한 각종 데이터 조회 및 효율적인 DOM 조작. (PiP 창 열림 여부 확인 및 콘텐츠 동기화 포함) (`renderFixedAlarms`에서 `LocalStorageManager.getFixedAlarms`를 통해 고정 알림 목록 조회) |
+| **`ui-renderer.js`** | `data-managers.js`, `alarm-scheduler.js`, `logger.js`, `custom-list-manager.js`, `boss-scheduler-data.js`, `utils.js`, `pip-manager.js` | UI 렌더링에 필요한 각종 데이터 조회 및 효율적인 DOM 조작. **지능형 UI 동기화**를 통해 현재 시각 기준 가장 적합한 데이터 인스턴스를 매핑하여 표시. |
 | **`BossDataManager`** | `LocalStorageManager.js`, `utils.js` | `getUpcomingBosses` 함수 내에서 고정 알림 데이터를 가져오고, `calculateNextOccurrence`를 사용하여 다음 발생 시간을 계산합니다. |
 | **`custom-list-manager.js`** | `data-managers.js`, `logger.js`, `boss-scheduler-data.js` | 커스텀 목록 영구 저장, 유효성 검사, 미리 정의된 게임 이름 조회 |
-| **`boss-parser.js`** | `logger.js`, `data-managers.js`, `utils.js` | 보스 목록 텍스트 파싱, 기존 데이터 병합, `BossDataManager` 상태 변경, 로깅. **시간 역전 감지 로직**을 통해 이전 보스보다 시간이 이른 보스는 다음 날로 처리. |
+| **`boss-parser.js`** | `logger.js`, `data-managers.js`, `utils.js` | 보스 목록 텍스트 파싱, 기존 데이터 병합, `BossDataManager` 상태 변경, 로깅. **표준 UID 생성**을 통해 개별 인스턴스의 고유성을 보전하고, 시간 역전 감지를 통해 날짜 롤오버 처리. |
 | **`global-event-listeners.js`** | `event-bus.js`, `data-managers.js`, `ui-renderer.js`, `screens/alarm-log.js` | 전역 EventBus 리스너를 정의하고, `BossDataManager`의 데이터 변경 및 `log-updated` 이벤트에 반응합니다. |
 | **`boss-scheduler-data.js`** | `logger.js`, `custom-list-manager.js`, `api-service.js` | 보스 프리셋 및 초기 데이터 JSON 로딩, 커스텀 목록과 조합하여 제공 |
 | **`speech.js`** | `data-managers.js` | 음소거 상태(`getMuteState`) 확인 |

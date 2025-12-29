@@ -386,7 +386,7 @@ export function updateBossListTextarea(DOM, scheduleData = null) {
                 formattedTime = item.time;
             }
 
-            const memoText = item.memo ? ` (${item.memo})` : "";
+            const memoText = item.memo ? ` #${item.memo}` : "";
             outputLines.push(`${formattedTime} ${item.name}${memoText}`);
         } else if (item.type === 'date') {
             // 명시적인 date 타입이 있는 경우 (하위 호환성)
@@ -639,12 +639,21 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
         DOM.bossInputsContainer.innerHTML = '<p>선택된 게임/목록에 보스가 없습니다.</p>';
         return;
     }
-    // SSOT에서 기존 입력값 복원용
+    // SSOT에서 기존 입력값 복원용 (현재 시각 기준 가장 가까운 미래 보스 선택)
+    const now = Date.now();
     const currentSchedule = scheduleData || BossDataManager.getDraftSchedule();
     const bossMap = new Map();
+
+    // 보스별로 가장 가까운 미래 항목을 찾기 위해 정렬된 리스트 활용
     currentSchedule.forEach(item => {
         if (item.type === 'boss') {
-            if (!bossMap.has(item.name)) {
+            const itemTime = new Date(item.scheduledDate).getTime();
+            const existing = bossMap.get(item.name);
+
+            // 아직 등록 안 됐거나, (아이템이 미래인데 (기존께 과거이거나 더 먼 미래라면))
+            if (!existing ||
+                (itemTime > now && (!existing.scheduledDate || new Date(existing.scheduledDate).getTime() < now || itemTime < new Date(existing.scheduledDate).getTime()))
+            ) {
                 bossMap.set(item.name, item);
             }
         }
@@ -704,6 +713,14 @@ export function renderTimetableList(DOM, filterNextBoss) {
         ? bosses.filter(boss => boss.scheduledDate && new Date(boss.scheduledDate) > now)
         : bosses;
 
+    // 4. 가장 긴 보스 이름을 찾아 최소 너비 계산 (한글 기준 1자당 18px 확보)
+    const maxNameLength = bosses.reduce((max, boss) => {
+        const len = (boss.name || '').length;
+        return len > max ? len : max;
+    }, 0);
+    // 한글 비중이 높으므로 18px 배율 적용 및 최소 폭 확보
+    const nameMinWidth = Math.max(110, maxNameLength * 18);
+
     let html = '';
     let currentCardHtml = '';
     let lastDateStr = '';
@@ -748,12 +765,10 @@ export function renderTimetableList(DOM, filterNextBoss) {
         }
 
         currentCardHtml += `
-            <div class="list-item list-item--dense" style="flex-direction: column; align-items: flex-start;">
-                <div style="display: flex; width: 100%; align-items: center;">
-                    <span style="font-weight: bold; min-width: 60px;">${time}</span>
-                    <span style="margin-left: 16px; flex-grow: 1;">${boss.name}</span>
-                </div>
-                ${boss.memo ? `<div style="font-size: 0.85em; color: #888; margin-top: 4px; margin-left: 76px;">${boss.memo}</div>` : ''}
+            <div class="list-item list-item--dense" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden; padding: 10px 0;">
+                <span style="font-weight: bold; min-width: 60px; flex-shrink: 0;">${time}</span>
+                <span style="display: inline-block; margin-left: 16px; min-width: ${nameMinWidth}px; flex-shrink: 0; white-space: nowrap;">${boss.name}</span>
+                ${boss.memo ? `<span style="font-size: 0.9em; color: #666; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${boss.memo}</span>` : ''}
             </div>
         `;
     });

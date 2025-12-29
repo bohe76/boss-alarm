@@ -298,6 +298,12 @@ export function initBossSchedulerScreen(DOM) {
             // UI 업데이트 후 Draft 동기화
             syncInputToText(DOM);
         } else if (target.classList.contains('memo-input')) {
+            // # 기호는 텍스트 모드 구분자이므로 입력 제한
+            if (target.value.includes('#')) {
+                log('비고에는 "#" 기호를 사용할 수 없습니다.', true);
+                target.value = target.value.replace(/#/g, '');
+            }
+
             const bossName = target.dataset.bossName;
             _memoInputs[bossName] = target.value;
 

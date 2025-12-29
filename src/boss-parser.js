@@ -86,7 +86,7 @@ export function parseBossList(inputElement) {
                 scheduledDate.setHours(hours, minutes, seconds, 0);
 
                 mergedSchedule.push({
-                    id: `boss-${Date.now()}-${index}`,
+                    id: `boss-${bossName}-${scheduledDate.getTime()}`,
                     name: bossName,
                     time: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}${timeMatch[3] ? ':' + String(seconds).padStart(2, '0') : ''}`,
                     timeFormat: timeMatch[3] ? 'hms' : 'hm',
