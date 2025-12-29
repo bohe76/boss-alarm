@@ -1,4 +1,5 @@
 import { BossDataManager, LocalStorageManager, BOSS_THRESHOLDS } from './data-managers.js'; // Import managers and thresholds
+import { CustomListManager } from './custom-list-manager.js'; // Import CustomListManager
 import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRunning
 import { log, getLogs } from './logger.js'; // Import log and getLogs
 // import { loadJsonContent } from './api-service.js'; // loadJsonContent is no longer needed here
@@ -749,60 +750,136 @@ export function renderTimetableList(DOM, filterNextBoss) {
     // 한글 비중이 높으므로 18px 배율 적용 및 최소 폭 확보
     const nameMinWidth = Math.max(110, maxNameLength * 18);
 
+    // [New] 보기 모드 확인 (기본값: '표')
+    const displayMode = LocalStorageManager.get('timetableDisplayMode') || '표';
+
     let html = '';
-    let currentCardHtml = '';
-    let lastDateStr = '';
 
-    // 헬퍼: 현재 카드의 HTML 구성을 마무리하고 전체 결과에 추가
-    const closeCurrentCard = () => {
-        if (currentCardHtml) {
-            html += `
-                <div class="card-standard card-size-list" style="margin-bottom: 16px;">
-                    ${currentCardHtml}
-                    </div> <!-- .card-list-content 닫기 -->
-                </div> <!-- .card-standard 닫기 -->
-            `;
-            currentCardHtml = '';
-        }
-    };
+    if (displayMode === '카드') {
+        // --- 카드 모드 렌더링 (기존 리스트 스타일 복구) ---
+        DOM.bossListCardsContainer.classList.add('card-size-list');
+        DOM.bossListCardsContainer.classList.remove('boss-card-grid');
 
-    filteredBosses.forEach(boss => {
-        const scheduledDate = new Date(boss.scheduledDate);
-        const dateStr = formatMonthDay(scheduledDate); // MM.DD 형식
+        let currentCardHtml = '';
+        let lastDateStr = '';
 
-        // 날짜가 바뀌면 새로운 카드를 시작
-        if (dateStr !== lastDateStr) {
-            closeCurrentCard();
+        // 헬퍼: 현재 카드의 HTML 구성을 마무리하고 전체 결과에 추가
+        const closeCurrentCard = () => {
+            if (currentCardHtml) {
+                html += `
+                    <div class="card-standard card-size-list" style="margin-bottom: 16px;">
+                        ${currentCardHtml}
+                        </div> <!-- .card-list-content 닫기 -->
+                    </div> <!-- .card-standard 닫기 -->
+                `;
+                currentCardHtml = '';
+            }
+        };
 
-            const dayOfWeek = getKoreanDayOfWeek(scheduledDate);
-            currentCardHtml = `
-                <div class="card-header">
-                    <h3>${dateStr} (${dayOfWeek})</h3>
+        filteredBosses.forEach(boss => {
+            const scheduledDate = new Date(boss.scheduledDate);
+            const dateStr = formatMonthDay(scheduledDate); // MM.DD 형식
+
+            // 날짜가 바뀌면 새로운 카드를 시작
+            if (dateStr !== lastDateStr) {
+                closeCurrentCard();
+
+                const dayOfWeek = getKoreanDayOfWeek(scheduledDate);
+                currentCardHtml = `
+                    <div class="card-header">
+                        <h3>${dateStr} (${dayOfWeek})</h3>
+                    </div>
+                    <div class="card-list-content">
+                `;
+                lastDateStr = dateStr;
+            }
+
+            // 시간 표시 형식 결정
+            let time;
+            if (boss.timeFormat === 'hm') {
+                time = boss.time.substring(0, 5); // HH:MM
+            } else {
+                time = boss.time; // HH:MM:SS
+            }
+
+            currentCardHtml += `
+                <div class="list-item list-item--dense" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden; padding: 10px 0;">
+                    <span style="font-weight: bold; min-width: 60px; flex-shrink: 0;">${time}</span>
+                    <span style="display: inline-block; margin-left: 16px; min-width: ${nameMinWidth}px; flex-shrink: 0; white-space: nowrap; font-weight: 500;">${boss.name}</span>
+                    ${boss.memo ? `<span style="font-size: 0.9em; color: #666; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${boss.memo}</span>` : ''}
                 </div>
-                <div class="card-list-content">
             `;
-            lastDateStr = dateStr;
-        }
+        });
 
-        // 시간 표시 형식 결정
-        let time;
-        if (boss.timeFormat === 'hm') {
-            time = boss.time.substring(0, 5); // HH:MM
-        } else {
-            time = boss.time; // HH:MM:SS
-        }
+        // 마지막으로 열려있던 카드 닫기
+        closeCurrentCard();
 
-        currentCardHtml += `
-            <div class="list-item list-item--dense" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden; padding: 10px 0;">
-                <span style="font-weight: bold; min-width: 60px; flex-shrink: 0;">${time}</span>
-                <span style="display: inline-block; margin-left: 16px; min-width: ${nameMinWidth}px; flex-shrink: 0; white-space: nowrap;">${boss.name}</span>
-                ${boss.memo ? `<span style="font-size: 0.9em; color: #666; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${boss.memo}</span>` : ''}
-            </div>
-        `;
-    });
+    } else {
+        // --- 표(Table) 모드 렌더링 (엑셀 스타일) ---
+        DOM.bossListCardsContainer.classList.add('card-size-list');
+        DOM.bossListCardsContainer.classList.remove('boss-card-grid');
 
-    // 마지막으로 열려있던 카드 닫기
-    closeCurrentCard();
+        let currentTableHtml = '';
+        let lastDateStr = '';
+
+        // 헬퍼: 현재 날짜의 테이블 카드를 마무리하고 전체 결과에 추가
+        const closeCurrentTableCard = () => {
+            if (currentTableHtml) {
+                html += `
+                    <div class="boss-table-card">
+                        <div class="boss-table-header">
+                            <h3>${lastDateStr}</h3>
+                        </div>
+                        <table class="boss-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px; text-align: center;">시간</th>
+                                    <th>보스 이름</th>
+                                    <th>비고</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${currentTableHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                currentTableHtml = '';
+            }
+        };
+
+        filteredBosses.forEach(boss => {
+            const scheduledDate = new Date(boss.scheduledDate);
+            const dateStr = formatMonthDay(scheduledDate); // MM.DD 형식
+            const dayOfWeek = getKoreanDayOfWeek(scheduledDate);
+            const fullDateStr = `${dateStr} (${dayOfWeek})`;
+
+            // 날짜가 바뀌면 새로운 테이블 카드를 시작
+            if (fullDateStr !== lastDateStr) {
+                closeCurrentTableCard();
+                lastDateStr = fullDateStr;
+            }
+
+            // 시간 표시 형식 결정
+            let time;
+            if (boss.timeFormat === 'hm') {
+                time = boss.time.substring(0, 5); // HH:MM
+            } else {
+                time = boss.time; // HH:MM:SS
+            }
+
+            currentTableHtml += `
+                <tr>
+                    <td class="boss-table-time">${time}</td>
+                    <td class="boss-table-name">${boss.name}</td>
+                    <td class="boss-table-memo">${boss.memo || ''}</td>
+                </tr>
+            `;
+        });
+
+        // 마지막으로 열려있던 테이블 카드 닫기
+        closeCurrentTableCard();
+    }
 
     // 결과가 없을 경우 메시지 표시
     if (!html) {

@@ -347,8 +347,6 @@ export function initBossSchedulerScreen(DOM) {
                 mmInput.value = padNumber(mm);
             }
 
-            const totalInterval = (hh * 60) + mm;
-
             // 동일한 보스 이름을 가진 모든 입력 필드 동기화 (Bohe 님 원칙)
             DOM.bossInputsContainer.querySelectorAll(`.interval-hh[data-boss-name="${bossName}"]`).forEach(el => {
                 if (el !== hhInput) el.value = hh;

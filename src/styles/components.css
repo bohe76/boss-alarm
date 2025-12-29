@@ -56,11 +56,53 @@
     color: #666;
     /* 비활성화 상태일 때의 글자색 */
     border-radius: 48px;
+
+    /* 수직 중앙 정렬 강제 */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    /* 높이에 영향을 주는 line-height 초기화 */
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 .toggle-button:hover:not(:disabled) {
     background-color: #e0e0e0;
     /* 호버 시 배경색 */
+}
+
+/* 액션형 토글 버튼 전용 스타일 */
+.action-toggle-button {
+    /* 레이아웃 및 폰트 */
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    height: 32px;
+    padding: 0 16px;
+    font-size: 0.9em;
+    border-radius: 48px;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    /* 수직 중앙 정렬 보정 */
+    line-height: 1;
+    padding-top: 0;
+    padding-bottom: 0;
+
+    /* 1. 크기 고정은 개별 요소에서 인라인 스타일로 처리 */
+
+    /* 2. 색상 고정 (표/카드 상태 무관하게 항상 프라이머리) */
+    background-color: var(--primary-color);
+    /* #AD1457 */
+    color: #ffffff;
+}
+
+/* 3. 호버 효과 (프라이머리 버튼과 동일: 1번 -> 2번 색상) */
+.action-toggle-button:hover:not(:disabled) {
+    background-color: var(--primary-dark);
+    /* #880E4F */
 }
 
 .toggle-button.active {
@@ -69,6 +111,10 @@
     color: #ffffff;
     /* 활성화 상태일 때의 글자색 */
     border-radius: 48px;
+}
+
+.toggle-button.primary-toggle.active {
+    background-color: var(--primary-color);
 }
 
 .toggle-button.active:hover:not(:disabled) {

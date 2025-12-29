@@ -482,9 +482,15 @@
             <section id="timetable-screen" class="screen">
                 <h2>보스 시간표</h2>
                 <div class="boss-management-controls">
-                    <button id="timetableNextBossFilterToggle" class="button toggle-button"
-                        style="height: 32px; font-size: 0.9em; padding: 0 16px;">다음보스</button>
-                    <button id="editTimetableButton" class="button primary-button">시간표 수정하기</button>
+                    <div class="filter-group" style="display: flex; gap: 8px;">
+                        <button id="timetableNextBossFilterToggle" class="button toggle-button"
+                            style="height: 32px; font-size: 0.9em; padding: 0 16px;">다음보스</button>
+                        <button id="timetableDisplayModeToggle" class="action-toggle-button">표</button>
+                    </div>
+                    <div class="action-group" style="display: flex; gap: 8px;">
+                        <button id="exportTimetableButton" class="button">내보내기</button>
+                        <button id="editTimetableButton" class="button primary-button">시간표 수정하기</button>
+                    </div>
                 </div>
                 <div id="bossListCardsContainer" class="card-size-list" style="display: none;">
                     <!-- Boss list cards will be rendered here in View Mode -->
@@ -717,23 +723,16 @@
 
             <!-- The help modal itself will be removed as its content is now part of the help screen -->
         </main>
+    </div> <!-- app-container 닫기 -->
 
-        <div id="toastContainer" class="toast-container"></div>
-
-
-
-    </div>
-
+    <div id="toast-container"></div>
     <script type="module">
         window.APP_VERSION = "v2.16.2"; // Define global app version
 
         import { initDomElements } from './src/dom-elements.js';
-
         import { initLogger, log } from './src/logger.js';
         import { BossDataManager, LocalStorageManager } from './src/data-managers.js';
-
         import { speak } from './src/speech.js'; // Import speak function
-
         import { parseBossList } from './src/boss-parser.js';
         import { startAlarm, stopAlarm, getIsAlarmRunning } from './src/alarm-scheduler.js';
         import { updateBossListTextarea, renderFixedAlarms, updateFixedAlarmVisuals } from './src/ui-renderer.js';
@@ -741,9 +740,7 @@
         import { initApp } from './src/app.js';
 
         // --- 11. 페이지가 처음 로드될 때 실행되는 함수 ---
-        window.addEventListener('load', () => {
-            initApp();
-        });
+        window.addEventListener('load', () => { initApp(); });
     </script>
     <!-- Fixed Alarm Add/Edit Modal -->
     <div id="fixed-alarm-modal" class="modal" style="display: none;">

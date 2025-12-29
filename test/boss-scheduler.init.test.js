@@ -106,7 +106,6 @@ describe('BossSchedulerScreen Initialization and UI State', () => {
     });
 
     it('should persist remaining times when navigating away', () => {
-        const expectedRemainingTimes = { 'Boss 1': '00:30:00', 'Boss A': '01:00:00', 'Boss B': '02:00:00' };
 
         // Simulate inputs
         DOM.bossInputsContainer.innerHTML = `

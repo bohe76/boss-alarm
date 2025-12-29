@@ -216,6 +216,10 @@
     margin-right: auto;
 }
 
+#timetableDisplayModeToggle {
+    min-width: 60px;
+}
+
 .toggle-buttons-wrapper {
     display: flex;
     gap: 10px;
@@ -1105,6 +1109,171 @@ section#settings-screen h3 {
     list-style-type: none;
     padding: 0;
     margin: 0;
+}
+
+/* --- Timetable Card Mode Styles --- */
+.boss-card-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.boss-card-item {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 12px;
+    width: calc(50% - 6px);
+    /* Mobile: 2 items per row */
+    min-width: 140px;
+    max-width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+    transition: transform 0.2s ease;
+}
+
+.boss-card-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.boss-card-header {
+    margin-bottom: 8px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 6px;
+    width: 100%;
+}
+
+.boss-card-time {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #AD1457;
+    /* Primary Color */
+    display: block;
+}
+
+.boss-card-date {
+    font-size: 0.85em;
+    color: #666;
+    display: block;
+}
+
+.boss-card-body {
+    width: 100%;
+}
+
+.boss-card-name {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #1D3557;
+    margin-bottom: 4px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.boss-card-memo {
+    font-size: 0.85em;
+    color: #888;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (min-width: 769px) {
+    .boss-card-grid {
+        justify-content: flex-start;
+        /* PC: align left or center depending on preference, center looks better for small amount */
+        justify-content: center;
+    }
+
+    .boss-card-item {
+        width: 160px;
+        /* Fixed width on PC for consistency */
+    }
+}
+
+/* --- Timetable Table Mode (Excel-like) Styles --- */
+.boss-table-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    overflow: hidden;
+    /* For rounded corners with table */
+}
+
+.boss-table-header {
+    background-color: #795548;
+    /* 요청하신 진한 브라운 */
+    padding: 12px 16px;
+    border-bottom: 1px solid #5D4037;
+    /* 배경색에 어울리는 짙은 테두리 */
+}
+
+.boss-table-header h3 {
+    margin: 0;
+    font-size: 1.1em;
+    color: #ffffff;
+    /* 흰색 글자 */
+    font-weight: 600;
+    text-align: center;
+    /* 날짜 중앙 정렬 */
+}
+
+.boss-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95em;
+}
+
+.boss-table th,
+.boss-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+.boss-table th {
+    background-color: #EFEBE9;
+    /* 요청하신 아주 연한 브라운 */
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.9em;
+    border-bottom: 1px solid #dee2e6;
+    /* 모든 테두리 1px로 통일 */
+    white-space: nowrap;
+}
+
+.boss-table tr:last-child td {
+    border-bottom: none;
+}
+
+.boss-table-time {
+    font-weight: bold;
+    color: #333;
+    white-space: nowrap;
+    width: 80px;
+    /* Fixed width for time column */
+    text-align: center !important;
+}
+
+.boss-table-name {
+    font-weight: 500;
+    color: #1D3557;
+}
+
+.boss-table-memo {
+    color: #666;
+    font-size: 0.9em;
 }
 
 .log-entry {

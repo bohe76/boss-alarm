@@ -1153,6 +1153,73 @@ textarea:-ms-input-placeholder {
     }
 }
 
+/* --- Timetable Card Mode Dark Styles --- */
+.boss-card-item {
+    background-color: #1e293b;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    border: 1px solid #334155;
+    color: #f1f5f9;
+}
+
+.boss-card-header {
+    border-bottom: 1px solid #334155;
+}
+
+.boss-card-time {
+    color: #f87171;
+    /* Red-ish for emphasis */
+}
+
+.boss-card-date {
+    color: #94a3b8;
+}
+
+.boss-card-name {
+    color: #f1f5f9;
+}
+
+.boss-card-memo {
+    color: #cbd5e1;
+}
+
+/* --- Timetable Table Mode Dark Styles --- */
+.boss-table-card {
+    background-color: #1e293b;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+.boss-table-header {
+    background-color: #334155;
+    border-bottom: 1px solid #475569;
+}
+
+.boss-table-header h3 {
+    color: #f1f5f9;
+}
+
+.boss-table th {
+    background-color: #334155;
+    color: #94a3b8;
+    border-bottom: 1px solid #475569;
+}
+
+.boss-table td {
+    border-bottom: 1px solid #334155;
+    color: #f1f5f9;
+}
+
+.boss-table-time {
+    color: #f1f5f9;
+}
+
+.boss-table-name {
+    color: #e2e8f0;
+}
+
+.boss-table-memo {
+    color: #cbd5e1;
+}
+
 /* --------------------------- */
 
 
@@ -2163,6 +2230,11 @@ footer p {
     color: #0f172a;
     /* 활성화 상태일 때의 글자색 */
     border-radius: 48px;
+}
+
+.toggle-button.primary-toggle.active {
+    background-color: var(--primary-color);
+    color: #ffffff;
 }
 
 .toggle-button.active:hover:not(:disabled) {
