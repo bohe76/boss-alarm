@@ -205,8 +205,8 @@
 /* --- Boss Management Screen --- */
 .boss-management-controls {
     display: flex;
-    justify-content: flex-end;
-    /* Right align content */
+    justify-content: space-between;
+    /* 변경: 다음보스 버튼은 왼쪽, 수정하기 버튼은 오른쪽 정렬 */
     align-items: center;
     margin-bottom: 20px;
     /* Space below the controls */

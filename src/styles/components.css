@@ -369,6 +369,15 @@ input:checked+.slider:before {
     margin-right: auto;
 }
 
+/* PC 환경에서 보스 리스트 카드를 컨텐츠 크기에 맞춰 축소 및 중앙 정렬 */
+@media (min-width: 769px) {
+    .card-size-list {
+        width: fit-content;
+        min-width: 400px;
+        /* PC에서 가독성을 위한 최소 너비 확보 */
+    }
+}
+
 /* --- Forms & Inputs --- */
 input::placeholder,
 textarea::placeholder {

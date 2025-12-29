@@ -1145,6 +1145,14 @@ textarea:-ms-input-placeholder {
     margin-right: auto;
 }
 
+/* PC 환경에서 보스 리스트 카드를 컨텐츠 크기에 맞춰 축소 및 중앙 정렬 */
+@media (min-width: 769px) {
+    .card-size-list {
+        width: fit-content;
+        min-width: 400px;
+    }
+}
+
 /* --------------------------- */
 
 
@@ -2161,11 +2169,3 @@ footer p {
     background-color: #ca8a04;
     /* 활성화 상태에서 호버 시 배경색 */
 }
-
-
-
-
-
-
-
-
