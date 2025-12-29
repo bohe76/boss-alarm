@@ -30,6 +30,7 @@ export function initDomElements() {
         bottomNavDashboard: document.getElementById('bottom-nav-dashboard'),
         bottomNavTimetable: document.getElementById('bottom-nav-timetable'),
         bottomNavCalculator: document.getElementById('bottom-nav-calculator'),
+        bottomNavBossScheduler: document.getElementById('bottom-nav-boss-scheduler'),
         bottomNavShare: document.getElementById('bottom-nav-share'),
 
         // Screen Specific Elements (initially all are present in index.html)

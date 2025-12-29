@@ -296,7 +296,8 @@ function initEventHandlers(DOM, globalTooltip) {
     });
 
     const bottomNavLinks = [
-        DOM.bottomNavDashboard, DOM.bottomNavTimetable, DOM.bottomNavCalculator, DOM.bottomNavShare
+        DOM.bottomNavDashboard, DOM.bottomNavTimetable, DOM.bottomNavBossScheduler,
+        DOM.bottomNavCalculator, DOM.bottomNavShare
     ];
 
     bottomNavLinks.forEach(link => {
