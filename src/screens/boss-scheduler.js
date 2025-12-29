@@ -149,6 +149,16 @@ function syncInputToText(DOM) {
                 const scheduledDate = new Date(calculatedDateStr);
                 const bossId = inputEl ? inputEl.dataset.id : `boss-${Date.now()}-${newBossItems.length}`;
 
+                // 젠 시간(interval) 수집 및 시/분 환산
+                const hhEl = item.querySelector('.interval-hh');
+                const mmEl = item.querySelector('.interval-mm');
+                let interval = 0;
+                if (hhEl && mmEl) {
+                    const hh = parseInt(hhEl.value, 10) || 0;
+                    const mm = parseInt(mmEl.value, 10) || 0;
+                    interval = (hh * 60) + mm;
+                }
+
                 newBossItems.push({
                     id: bossId,
                     type: 'boss',
@@ -156,6 +166,7 @@ function syncInputToText(DOM) {
                     time: timeText,
                     timeFormat: timeFormat,
                     memo: memoValue,
+                    interval: interval,
                     scheduledDate: scheduledDate
                 });
             }
@@ -220,6 +231,14 @@ export function handleApplyBossSettings(DOM) {
         if (!syncTextToInput(DOM, false)) return;
     } else {
         syncInputToText(DOM);
+
+        // [신규] 간편 입력 모드 최종 유효성 검사 (Bohe 님 지시)
+        const draftScheduleForValidation = BossDataManager.getDraftSchedule();
+        const validation = BossDataManager.validateBossSchedule(draftScheduleForValidation);
+        if (!validation.isValid) {
+            alert("보스 시간 설정 오류\n" + "------------------------\n" + validation.message);
+            return; // 검증 실패 시 중단
+        }
     }
 
     // 최종 검증 (Draft 기반)
@@ -309,6 +328,46 @@ export function initBossSchedulerScreen(DOM) {
 
             // 메모 변경 후 Draft 동기화
             syncInputToText(DOM);
+        } else if (target.classList.contains('interval-hh') || target.classList.contains('interval-mm')) {
+            // 젠 시간(interval) 입력 로직 (Bohe 님 방식)
+            const bossName = target.dataset.bossName;
+            const container = target.closest('.boss-input-item');
+            const hhInput = container.querySelector('.interval-hh');
+            const mmInput = container.querySelector('.interval-mm');
+
+            // 값 추출 및 보정
+            let hh = parseInt(hhInput.value, 10) || 0;
+            let mm = parseInt(mmInput.value, 10) || 0;
+
+            // mm이 60을 넘으면 hh로 올림 (지능형 보조)
+            if (mm >= 60) {
+                hh += Math.floor(mm / 60);
+                mm = mm % 60;
+                hhInput.value = hh;
+                mmInput.value = padNumber(mm);
+            }
+
+            const totalInterval = (hh * 60) + mm;
+
+            // 동일한 보스 이름을 가진 모든 입력 필드 동기화 (Bohe 님 원칙)
+            DOM.bossInputsContainer.querySelectorAll(`.interval-hh[data-boss-name="${bossName}"]`).forEach(el => {
+                if (el !== hhInput) el.value = hh;
+            });
+            DOM.bossInputsContainer.querySelectorAll(`.interval-mm[data-boss-name="${bossName}"]`).forEach(el => {
+                if (el !== mmInput) el.value = padNumber(mm);
+            });
+
+            // 내부 Draft 동기화 및 텍스트 영역 반영
+            syncInputToText(DOM);
+        }
+    });
+
+    // 젠 주기 입력 필드 포커스 아웃 시 보정 (유효성 검사는 버튼 클릭 시로 이동)
+    DOM.bossSchedulerScreen.addEventListener('focusout', (event) => {
+        const target = event.target;
+        if (target.classList.contains('interval-mm')) {
+            const val = parseInt(target.value, 10) || 0;
+            target.value = padNumber(val);
         }
     });
 

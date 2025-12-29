@@ -30,7 +30,7 @@
         1. **URL 파라미터**: `data` 쿼리가 있으면 최우선으로 로드합니다.
         2. **사용자 로컬 스토리지**: URL 데이터가 없고 기존에 저장된 데이터가 있다면 이를 유지합니다.
         3. **기본 샘플 데이터**: 위 두 조건에 해당하지 않을 때만 `initial-default.json` 데이터를 로드합니다.
-    *   **자동 확장 (UID 기반)**: 위 과정에서 데이터가 설정될 때마다 `BossDataManager` 내부에서 `_expandAndReconstruct()`가 실행되어 48시간 일정으로 정규화됩니다. 이때 사용자가 수정한 데이터(ID 일치)는 보호되며, 새로 생성되는 인스턴스는 고유한 UID를 부여받습니다.
+    *   **자동 확장 및 침공 보스 필터링**: 데이터가 설정될 때마다 `BossDataManager` 내부에서 `_expandAndReconstruct()`가 실행되어 48시간 일정으로 정규화됩니다. 이때 프리셋의 `isInvasion` 플래그를 확인하여 **당일이 아닌 침공 보스 인스턴스는 자동으로 제외**하여 정합성을 유지합니다. 사용자가 수정한 데이터(ID 일치)는 보호되며, 새로 생성되는 인스턴스는 고유한 UID를 부여받습니다.
     *   `initGlobalEventListeners(DOM)`를 호출하여 전역 이벤트 리스너를 활성화합니다.
     *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
     *   **`renderAlarmStatusSummary(DOM)`를 호출하여 알림 상태 요약을 초기 렌더링합니다.**
@@ -99,8 +99,12 @@
         1.  현재 활성화된 모드(간편 입력/텍스트)의 데이터를 Draft에 최종 반영합니다.
         2.  `BossDataManager.commitDraft()`를 호출하여 Draft를 Main SSOT에 적용합니다.
         3.  `EventBus.emit('navigate', 'timetable-screen')`을 발행하여 '보스 시간표' 화면으로 전환을 요청합니다.
-*   **날짜 처리 (`boss-parser.js`):** 텍스트 파싱 시 **시간 역전 감지 로직**이 적용됩니다. 이전 보스보다 시간이 이른 보스가 나타나면 날짜를 다음 날로 자동 증가시켜 날짜 롤오버를 처리합니다. (예: 23:29 → 03:50은 다음 날)
-*   **데이터 흐름 요약:** 스케줄러는 Draft를 SSOT로 사용하며, UI 출력은 Draft에서 읽고 사용자 입력은 Draft에 반영합니다. "보스 시간 업데이트" 시 Draft가 Main SSOT에 커밋되어 영구 저장됩니다.
+*   **에셋 바인딩 및 저장 흐름 (간편 입력 모드 기준):**
+    1.  **입력 단계**: 사용자가 `.remaining-time-input`에 '남은 시간'을 입력하거나 비고를 수정합니다.
+    2.  **임시 계산**: UI는 `calculatedDate`를 즉시 도출하여 젠 시간을 사용자에게 미리 보여주지만, SSOT는 아직 변경되지 않습니다.
+    3.  **최종 검증 및 커밋**: "보스 시간 업데이트" 버튼 클릭 시 `handleApplyBossSettings`가 호출되어 **모든 입력 필드에 대한 일괄 유효성 검사**를 수행합니다.
+    4.  **SSOT 동기화**: 검증 통과 시 Draft가 갱신되고, `BossDataManager.commitDraft()`를 통해 48시간 확장 및 정렬 과정을 거쳐 Main SSOT에 최종 반영됩니다.
+*   **날짜 처리 (`boss-parser.js`):** 텍스트 파싱 시 **엄격한 날짜 헤더(`MM.DD`)**를 기준으로 하며, 시간 역전 감지 로직을 통해 날짜 롤오버를 처리합니다.
 
 ### 3.4. 알림 로그 화면 (`src/screens/alarm-log.js`)
 

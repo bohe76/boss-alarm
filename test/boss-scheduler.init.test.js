@@ -126,7 +126,7 @@ describe('BossSchedulerScreen Initialization and UI State', () => {
 
         expect(UIRenderer.renderBossSchedulerScreen).toHaveBeenCalledWith(
             DOM,
-            expectedRemainingTimes,
+            {}, // handleApplyBossSettings 호출 후 초기화됨
             {} // expectedMemoInputs
         );
     });

@@ -752,53 +752,120 @@
     gap: 12px;
 }
 
-.boss-input-row-memo {
+.boss-input-row-details {
+    display: flex;
+    flex-direction: column;
+    /* 모바일 우선: 세로 배치 */
     width: 100%;
-    /* Mobile: full width */
     margin-top: 8px;
-    /* Spacing from main row */
+    gap: 8px;
+}
+
+.memo-input-group,
+.interval-input-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.mobile-label {
+    display: block;
+    /* 모바일 우선: 노출 */
+    width: 60px;
+    font-size: 0.85em;
+    font-weight: bold;
+    color: #888;
+    flex-shrink: 0;
 }
 
 .memo-input {
-    width: 100%;
+    flex-grow: 1;
     padding: 8px;
     border: 1px solid #ccc;
-    /* #ddd -> #ccc 로 변경 */
     border-radius: 4px;
     font-size: 0.9em;
     box-sizing: border-box;
+}
+
+.interval-inputs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.interval-hh,
+.interval-mm {
+    width: 45px;
+    padding: 8px 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9em;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* Remove arrows from number input */
+.interval-hh::-webkit-outer-spin-button,
+.interval-hh::-webkit-inner-spin-button,
+.interval-mm::-webkit-outer-spin-button,
+.interval-mm::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.interval-hh,
+.interval-mm {
+    -moz-appearance: textfield;
+}
+
+.interval-inputs .separator {
+    font-weight: bold;
+    color: #666;
 }
 
 /* PC Layout */
 @media (min-width: 769px) {
     .boss-input-item {
         flex-wrap: nowrap;
-        /* Single row on PC */
         gap: 12px;
     }
 
     .boss-input-row-main {
         width: auto;
         flex-grow: 0;
-        /* 기존 1에서 0으로 변경 */
     }
 
-    .boss-input-row-memo {
-        width: 240px;
-        /* Fixed width for memo on PC */
+    .boss-input-row-details {
+        flex-direction: row;
+        /* PC: 가로 배치 */
+        flex-grow: 1;
         margin-top: 0;
+        gap: 12px;
+    }
+
+    .mobile-label {
+        display: none;
+        /* PC: 라벨 숨김 */
+    }
+
+    .memo-input-group {
+        width: 240px;
+        flex-shrink: 0;
+    }
+
+    .interval-input-group {
+        width: 110px;
+        justify-content: center;
         flex-shrink: 0;
     }
 }
 
 .boss-name-header,
 .boss-name {
-    width: 150px;
-    /* 고정 너비로 설정 */
+    width: 140px;
     flex-shrink: 0;
-    /* 줄어들지 않음 */
     text-align: left;
-    /* Boss name은 항상 왼쪽 정렬 */
 }
 
 .boss-name {
@@ -811,7 +878,6 @@
     width: 80px;
     flex-shrink: 0;
     text-align: center;
-    /* Back to center as per user's correction */
 }
 
 .spawn-time-header,
@@ -819,7 +885,6 @@
     width: 80px;
     flex-shrink: 0;
     text-align: center;
-    /* Back to center as per user's correction */
 }
 
 .calculated-spawn-time {
@@ -837,17 +902,25 @@
 
 .memo-header {
     display: flex;
-    /* PC에서는 기본적으로 보이게 */
     align-items: center;
-    /* 텍스트 세로 중앙 정렬 */
     width: 240px;
     flex-shrink: 0;
     text-align: left;
 }
 
+.interval-header {
+    display: flex;
+    align-items: center;
+    width: 110px;
+    flex-shrink: 0;
+    justify-content: center;
+}
+
 /* Mobile-specific layout */
 @media (max-width: 768px) {
-    .memo-header {
+
+    .memo-header,
+    .interval-header {
         display: none;
         /* 모바일에서 숨김 */
     }

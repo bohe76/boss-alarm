@@ -387,7 +387,8 @@ export function updateBossListTextarea(DOM, scheduleData = null) {
             }
 
             const memoText = item.memo ? ` #${item.memo}` : "";
-            outputLines.push(`${formattedTime} ${item.name}${memoText}`);
+            const intervalText = (item.interval && item.interval > 0) ? ` @${item.interval}` : "";
+            outputLines.push(`${formattedTime} ${item.name}${memoText}${intervalText}`);
         } else if (item.type === 'date') {
             // 명시적인 date 타입이 있는 경우 (하위 호환성)
             const dateValue = item.value || item.date;
@@ -659,6 +660,16 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
         }
     });
 
+    // 커스텀 게임 여부 확인 (getGameNames() 활용)
+    const games = getGameNames();
+    const isCustomGame = games.find(g => g.id === gameName)?.isCustom || false;
+
+    // 헤더 노출 제어
+    const intervalHeader = DOM.bossSchedulerScreen.querySelector('.interval-header');
+    if (intervalHeader) {
+        intervalHeader.style.display = isCustomGame ? 'flex' : 'none';
+    }
+
     DOM.bossInputsContainer.innerHTML = bossNames.map(bossName => {
         const initialTimeValue = remainingTimes[bossName] || '';
         const existingBoss = bossMap.get(bossName);
@@ -674,6 +685,12 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
             isoDateAttr = `data-calculated-date="${sDate.toISOString()}"`;
         }
 
+        // 젠 주기(interval)를 시/분으로 환산 (0인 경우 입력창을 비워 플레이스홀더 노출)
+        const totalInterval = existingBoss && existingBoss.interval ? existingBoss.interval : 0;
+        const hh = totalInterval > 0 ? Math.floor(totalInterval / 60) : "";
+        const mm = totalInterval > 0 ? totalInterval % 60 : "";
+        const mmDisplay = (mm !== "" && mm !== 0) ? padNumber(mm) : "";
+
         return `
             <div class="list-item boss-input-item">
                 <div class="boss-input-row-main">
@@ -681,8 +698,19 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
                     <input type="text" class="remaining-time-input" data-boss-name="${bossName}" data-id="${bossId}" ${isoDateAttr} value="${initialTimeValue}">
                     <span class="calculated-spawn-time">${spawnTimeDisplay}</span>
                 </div>
-                <div class="boss-input-row-memo">
-                    <input type="text" class="memo-input" data-boss-name="${bossName}" value="${initialMemoValue}" placeholder="비고 (20자)" maxlength="20">
+                <div class="boss-input-row-details">
+                    <div class="memo-input-group">
+                        <span class="mobile-label">비고</span>
+                        <input type="text" class="memo-input" data-boss-name="${bossName}" value="${initialMemoValue}" placeholder="25자 내로 써주세요." maxlength="25">
+                    </div>
+                    <div class="interval-input-group" style="display: ${isCustomGame ? 'flex' : 'none'}">
+                        <span class="mobile-label">젠 주기</span>
+                        <div class="interval-inputs">
+                            <input type="number" class="interval-hh" data-boss-name="${bossName}" value="${hh}" min="0" max="99" placeholder="0">
+                            <span class="separator">:</span>
+                            <input type="number" class="interval-mm" data-boss-name="${bossName}" value="${mmDisplay}" min="0" max="59" placeholder="00">
+                        </div>
+                    </div>
                 </div>
             </div>
         `;

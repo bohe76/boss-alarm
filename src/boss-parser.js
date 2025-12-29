@@ -54,20 +54,28 @@ export function parseBossList(inputElement) {
                     return;
                 }
 
-                // 2. 이름 및 메모 분리 (# 구분자 우선)
-                let bossName = content;
+                // 2. 이름, 메모(#), 젠시간(@) 분리
+                let bossName = "";
                 let memo = "";
+                let interval = 0;
+
+                // @젠시간 추출
+                if (content.includes('@')) {
+                    const parts = content.split('@');
+                    content = parts[0].trim();
+                    const intervalVal = parseInt(parts[1].trim(), 10);
+                    if (!isNaN(intervalVal)) {
+                        interval = intervalVal;
+                    }
+                }
+
+                // #메모 추출
                 if (content.includes('#')) {
                     const parts = content.split('#');
                     bossName = parts[0].trim();
                     memo = parts[1].trim();
                 } else {
-                    // 기존 공백 하위 호환성 (단, 이름에 공백이 있을 수 있으므로 주의)
-                    const legacyMemoMatch = content.match(/^(.+?)\s+(.+)$/);
-                    if (legacyMemoMatch) {
-                        bossName = legacyMemoMatch[1].trim();
-                        memo = legacyMemoMatch[2].trim();
-                    }
+                    bossName = content.trim();
                 }
 
                 if (!bossName) {
@@ -91,11 +99,25 @@ export function parseBossList(inputElement) {
                     time: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}${timeMatch[3] ? ':' + String(seconds).padStart(2, '0') : ''}`,
                     timeFormat: timeMatch[3] ? 'hms' : 'hm',
                     memo: memo,
+                    interval: interval,
                     type: 'boss',
                     scheduledDate: scheduledDate
                 });
             } else {
                 errors.push(`형식 오류 (줄 ${index + 1}): "${line}" - (HH:MM 보스명) 형식이 아닙니다.`);
+            }
+        });
+
+        // 4. 보스명별 젠 시간 일관성 검증 (Bohe 님 원칙 적용)
+        const nameToInterval = new Map();
+        mergedSchedule.forEach(item => {
+            if (nameToInterval.has(item.name)) {
+                const existingInterval = nameToInterval.get(item.name);
+                if (existingInterval !== item.interval) {
+                    errors.push(`일관성 오류: "${item.name}"의 젠 주기가 일치하지 않습니다. (@${existingInterval} vs @${item.interval}). 하나로 통일해 주세요.`);
+                }
+            } else {
+                nameToInterval.set(item.name, item.interval);
             }
         });
 

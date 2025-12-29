@@ -156,7 +156,8 @@
 *   **48시간 자동 확장 엔진 (UID 기반)**: 모든 데이터 변경 및 초기화 시, 주입된 보스 아이템들을 바탕으로 48시간 일정을 자동 생성합니다. 
     *   **사용자 의도 보존 (User Intent Preservation)**: 사용자가 텍스트 모드 등에서 직접 수정한 인스턴스(ID 일치)는 '잠금' 상태로 간주하여 자동 생성 로직에 의해 덮어씌워지지 않고 메모 등의 필드가 철저히 보전됩니다. 
     *   **순수 UID 생성**: 주기가 돌아와 새롭게 생성되는 인스턴스는 기존 ID를 복제하지 않고, 해당 시점의 타임스탬프를 기반으로 새로운 유일 ID를 부여받습니다.
-*   모든 데이터 변경 시 **Reconstruction(재구성) 전략**을 사용하여 데이터를 날짜순/시간순으로 정렬하고 일관된 날짜 마커를 삽입합니다.
+*   **비즈니스 로직 기반 필터링 (Invasion filtering)**:
+    *   `_expandAndReconstruct` 함수는 프리셋의 `isInvasion` 플래그를 체크하여, 침공 보스로 분류된 항목은 현재 시각(`now`)과 동일한 날짜인 경우에만 스케줄에 포함시키고 이외의 날짜는 자동으로 필터링합니다.
 *   보스 객체는 고유 ID(`boss-이름-타임스탬프`)를 통해 식별됩니다.
 
 ### 주요 `export` 상수
@@ -300,9 +301,12 @@
 
 ## 13. `src/boss-parser.js`
 
-- **역할:** 사용자 입력 텍스트(보스 목록)를 파싱하여 구조화된 데이터로 변환합니다. **시간 역전 감지 로직**을 통해 날짜 롤오버를 자동 처리합니다.
+- **역할:** 사용자 입력 텍스트(보스 목록)를 파싱하여 구조화된 데이터로 변환합니다. **시간 역전 감지 로직**을 통해 날짜 롤오버를 자동 처리하며, **엄격한 날짜 헤더 규칙**과 **지능형 이름 추출**을 지원합니다.
 - **주요 `export` 함수:**
-    - `parseBossList(bossListInput)`: 텍스트 영역의 내용을 파싱하여 SSOT 형식의 배열로 변환합니다. 각 줄을 파싱할 때 보스 이름과 시간을 조합한 **표준 UID**를 생성하여 부여하며, 시간 역전 감지 로직을 통해 날짜 롤오버를 자동 처리합니다.
+    - `parseBossList(bossListInput)`:
+        *   **엄격한 날짜 헤더**: 첫 번째 줄은 반드시 `MM.DD` 형식의 날짜여야 하며, 이를 기준으로 전체 일정의 시작점을 정의합니다.
+        *   **지능형 이름 추출**: 명시적인 비고 구분자(`#`)가 없을 경우 시간 뒤의 텍스트 전체를 이름으로 간주하여 공백 포함 이름을 안전하게 보존합니다.
+        *   각 줄을 파싱할 때 보스 이름과 시간을 조합한 **표준 UID**를 생성하여 부여하며, 시간 역전 감지 로직을 통해 날짜 롤오버를 자동 처리합니다.
     - `getSortedBossListText(rawText)`: 원본 텍스트를 그대로 반환합니다 (하위 호환성).
 
 ## 14. `src/boss-scheduler-data.js`
@@ -382,7 +386,7 @@
 |---|---|---|
 | **`alarm-log.js`** | `getScreen()` | `onTransition` 시 `initAlarmLogScreen(DOM)`을 호출하여 로그 화면을 초기화합니다. `initAlarmLogScreen`은 `LocalStorageManager`를 통해 "15개 보기" 토글 버튼의 상태를 로드/저장하고 관련 이벤트 리스너를 등록합니다. 로그의 실시간 갱신은 `global-event-listeners.js`에 중앙화된 `log-updated` 이벤트 리스너를 통해 자동으로 처리됩니다. `renderAlarmLog`는 토글 상태에 따라 최근 15개 또는 전체 로그를 렌더링합니다. |
 | **`timetable.js`** | `getScreen()` | `init` 시 '뷰/편집' 모드 토글 버튼 및 '다음 보스' 필터 토글 버튼의 이벤트 리스너를 등록합니다. `LocalStorageManager`를 통해 마지막으로 사용된 모드를 로드하고, `updateTimetableUI`를 호출하여 모드에 맞는 UI를 렌더링합니다. `onTransition` 시 `startAutoRefresh` 함수를 통해 1초 간격의 타이머를 시작하여, '뷰 모드'에서 '다음 보스' 필터가 활성화된 경우 목록을 실시간으로 자동 갱신합니다. 화면이 비활성화되면 타이머는 자동으로 중지됩니다. '편집 모드'에서는 기존의 텍스트 영역 기반 보스 목록 편집 및 "보스 시간 업데이트" 기능을 제공하며, '뷰 모드'에서는 보스 목록을 **카드 리스트 형태**로 표시하고 '다음 보스' 필터링 기능을 제공합니다. '편집 모드'에서만 "보스 시간 업데이트" 버튼의 클릭 이벤트가 처리됩니다. |
-| **`boss-scheduler.js`** | `getScreen()` | `init` 시 `EventBus.on('show-boss-scheduler-screen')` 및 `EventBus.on('rerender-boss-scheduler')` 리스너를 등록하고, UI를 렌더링합니다. `remaining-time-input` 필드에서 `input` 이벤트 발생 시, 사용자의 입력 형식을 감지(`hm` 또는 `hms`)하여 `dataset.timeFormat`에 저장하고, 이를 기반으로 젠 시간을 동적으로 표시합니다. `handleApplyBossSettings(DOM)` 함수는 "보스 시간 업데이트" 시 호출되며, 입력된 `data-id`와 계산된 시간, 그리고 `dataset.timeFormat`을 기반으로 `boss` 객체를 업데이트(또는 생성)하고, 전체 리스트를 재구성하여 `BossDataManager`에 저장합니다. 화면 전환 전 입력된 값은 임시로 저장됩니다. |
+| **`boss-scheduler.js`** | `getScreen()` | `init` 시 `EventBus.on('show-boss-scheduler-screen')` 및 `EventBus.on('rerender-boss-scheduler')` 리스너를 등록하고, UI를 렌더링합니다. `remaining-time-input` 필드의 유효성 검사는 사용자 입력을 방해하지 않도록 **지연 검증(Deferred Validation)** 정책을 적용하여, 최종 "보스 시간 업데이트" 버튼 클릭 시점에 일괄 수행합니다. `handleApplyBossSettings(DOM)` 함수는 입력된 `data-id`와 계산된 시간, 그리고 `dataset.timeFormat`을 기반으로 `boss` 객체를 업데이트하고 리스트를 재구성하여 저장합니다. |
 | **`calculator.js`** | `getScreen()` | `init` 시 `initCalculatorScreen(DOM)`이 호출되어 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 `handleCalculatorScreenTransition(DOM)`이 호출되어 `CrazyCalculator`의 상태를 초기화하고 `ui-renderer.js`의 `renderCalculatorScreen(DOM)`을 호출하여 화면을 렌더링합니다. `checkZenCalculatorUpdateButtonState(DOM)` 헬퍼 함수를 통해 '보스 시간 업데이트' 버튼의 활성화/비활성화 상태를 관리합니다. |
 | **`custom-list.js`** | `getScreen()` | `init` 시 `initCustomListScreen(DOM)`이 호출되어 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. `DOM.manageCustomListsButton` 클릭 시 모달이 열리며, 목록 변경 시 `EventBus.emit('rerender-boss-scheduler')`를 발행하여 보스 스케줄러의 드롭다운을 업데이트합니다. |
 | **`dashboard.js`** | `getScreen()` | `init` 시 `initDashboardScreen(DOM)`이 호출되어 `DOM.muteToggleButton` (음소거 버튼)과 `DOM.volumeSlider` (볼륨 슬라이더)에 대한 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링합니다. 음소거 버튼 클릭 시 `LocalStorageManager.setMuteState()`를 호출하여 음소거 상태를 토글하며, 볼륨 슬라이더 조작 시 `LocalStorageManager.setVolume()`을 통해 볼륨 값을 저장합니다. 두 UI 요소 모두 변경 시 `ui-renderer.js`의 `updateSoundControls(DOM)`를 호출하여 시각적 상태를 갱신합니다. `initDashboardScreen`은 `EventBus.on('log-updated', ...)` 리스너를 등록하여 새로운 로그 발생 시 `renderRecentAlarmLog(DOM)`를 호출하여 로그를 갱신합니다. |

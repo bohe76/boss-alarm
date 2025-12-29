@@ -69,18 +69,25 @@ export const BossDataManager = (() => {
     let _presets = {}; // 보스 프리셋 메타데이터 저장용
     const subscribers = []; // 구독자(콜백 함수) 목록
 
-    const _getInternalBossInterval = (bossName, contextId) => {
+    const _getInternalBossMetadata = (bossName, contextId) => {
+        const getMeta = (val) => {
+            if (typeof val === 'number') return { interval: val, isInvasion: false };
+            return { interval: val.interval || 0, isInvasion: !!val.isInvasion };
+        };
+
         if (contextId && _presets[contextId] && _presets[contextId].bossMetadata && _presets[contextId].bossMetadata[bossName]) {
-            const val = _presets[contextId].bossMetadata[bossName];
-            return typeof val === 'number' ? val : (val.interval || 0);
+            return getMeta(_presets[contextId].bossMetadata[bossName]);
         }
         for (const context of Object.values(_presets)) {
             if (context.bossMetadata && context.bossMetadata[bossName]) {
-                const val = context.bossMetadata[bossName];
-                return typeof val === 'number' ? val : (val.interval || 0);
+                return getMeta(context.bossMetadata[bossName]);
             }
         }
-        return 0;
+        return { interval: 0, isInvasion: false };
+    };
+
+    const _getInternalBossInterval = (bossName, contextId) => {
+        return _getInternalBossMetadata(bossName, contextId).interval;
     };
 
     const notify = () => {
@@ -116,7 +123,16 @@ export const BossDataManager = (() => {
 
         // 2. 각 보스별 확장 로직
         bossNames.forEach(bossName => {
-            const interval = _getInternalBossInterval(bossName) * 60 * 1000;
+            // 해당 보스의 사용자 정의 데이터 중 interval 정보( @젠시간 )가 있는지 확인 (Bohe 님 우선순위 적용)
+            const userDefinedItems = bossItems.filter(b => b.name === bossName);
+            const customInterval = userDefinedItems.find(b => b.interval > 0)?.interval;
+
+            // 사용자 정의 값이 있으면 사용, 없으면 프리셋에서 가져옴
+            const intervalMinutes = (customInterval !== undefined && customInterval > 0)
+                ? customInterval
+                : _getInternalBossInterval(bossName);
+
+            const interval = intervalMinutes * 60 * 1000;
             // 해당 보스의 사용자 입력 중 현재와 가장 가까운 것을 기준 앵커로 설정 (자동 확장을 위한 기준)
             const sameBosses = bossItems.filter(b => b.name === bossName)
                 .sort((a, b) => Math.abs(new Date(a.scheduledDate).getTime() - now) - Math.abs(new Date(b.scheduledDate).getTime() - now));
@@ -143,25 +159,43 @@ export const BossDataManager = (() => {
                 }
             };
 
+            const isSameDay = (d1, d2) => {
+                return d1.getFullYear() === d2.getFullYear() &&
+                    d1.getMonth() === d2.getMonth() &&
+                    d1.getDate() === d2.getDate();
+            };
+
+            const meta = _getInternalBossMetadata(bossName);
+            const isTodayOnly = meta.isInvasion;
+
             if (interval > 0) {
                 // 과거로 확장
                 let t = anchorTime;
                 while (t >= startTime) {
-                    expandedBosses.push(createInstance(t));
+                    const inst = createInstance(t);
+                    if (!isTodayOnly || isSameDay(inst.scheduledDate, new Date(now))) {
+                        expandedBosses.push(inst);
+                    }
                     t -= interval;
                 }
                 // 미래로 확장
                 t = anchorTime + interval;
                 while (t <= endTime) {
-                    expandedBosses.push(createInstance(t));
+                    const inst = createInstance(t);
+                    if (!isTodayOnly || isSameDay(inst.scheduledDate, new Date(now))) {
+                        expandedBosses.push(inst);
+                    }
                     t += interval;
                 }
             } else {
                 // 주기가 없는 경우 사용자 입력들만 유효 범위 내에서 유지
                 sameBosses.forEach(b => {
-                    const bt = new Date(b.scheduledDate).getTime();
-                    if (bt >= startTime && bt <= endTime) {
-                        expandedBosses.push({ ...b });
+                    const bt = new Date(b.scheduledDate);
+                    const btime = bt.getTime();
+                    if (btime >= startTime && btime <= endTime) {
+                        if (!isTodayOnly || isSameDay(bt, new Date(now))) {
+                            expandedBosses.push({ ...b });
+                        }
                     }
                 });
             }

@@ -27,7 +27,8 @@ vi.mock('../src/logger.js', () => ({ log: vi.fn() }));
 vi.mock('../src/default-boss-list.js', () => ({
     DEFAULT_BOSS_LIST_KOR: [
         { "id": "boss1", "name": "보스1", "respawnTime": "01:00:00" },
-        { "id": "boss2", "name": "보스2", "respawnTime": "02:00:00" }
+        { "id": "boss2", "name": "보스2", "respawnTime": "02:00:00" },
+        { "id": "침공 셀로비아", "name": "침공 셀로비아", "respawnTime": "00:00:00", "isInvasion": true }
     ]
 }));
 
@@ -77,6 +78,20 @@ describe('BossSchedulerScreen Apply Logic', () => {
         DOM.bossSchedulerScreen.appendChild(DOM.tabSchedulerText); // Append new elements
 
         initBossSchedulerScreen(DOM);
+
+        // 프리셋 데이터 주입 (침공 보스 필터링 테스트용)
+        BossDataManager.initPresets({
+            'odin-main': {
+                bossMetadata: {
+                    '침공 셀로비아': { interval: 0, isInvasion: true },
+                    '일반 보스': { interval: 0, isInvasion: false },
+                    '우로보로스': 0,
+                    '파르바': 0,
+                    '셀로비아': 0,
+                    '페티': 0
+                }
+            }
+        });
     });
 
     afterEach(() => {
@@ -144,48 +159,64 @@ describe('BossSchedulerScreen Apply Logic', () => {
     });
 
     it('should filter out invasion bosses that are not today', () => {
+        // 명확한 테스트를 위해 이전 상태 영향 제거
+        mockBossSchedule = [];
+        mockDraftSchedule = [];
+        DOM.bossInputsContainer.innerHTML = '';
+
         DOM.bossInputsContainer.innerHTML = `
-            <div class="boss-input-item"><span class="boss-name">침공 셀로비아</span><input type="text" class="remaining-time-input" data-id="침공 셀로비아" value="09:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="침공 셀로비아"></div>
-            <div class="boss-input-item"><span class="boss-name">일반 보스</span><input type="text" class="remaining-time-input" data-id="id-일반보스" value="10:30:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="일반 보스"></div>
+            <div class="boss-input-item"><span class="boss-name">침공 셀로비아</span><input type="text" class="remaining-time-input" data-boss-name="침공 셀로비아" data-id="침공 셀로비아" value="09:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="침공 셀로비아"></div>
+            <div class="boss-input-item"><span class="boss-name">일반 보스</span><input type="text" class="remaining-time-input" data-boss-name="일반 보스" data-id="id-일반보스" value="10:30:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="일반 보스"></div>
         `;
+
         const inputInvade = DOM.bossInputsContainer.querySelector('input[data-id="침공 셀로비아"]');
-        // 침공 보스는 다음날로 계산되어 필터링되어야 함
-        calculateBossAppearanceTimeSpy.mockReturnValueOnce(new Date('2025-11-29T09:00:00+09:00'));
+        const dateInvade = new Date('2025-11-29T09:00:00+09:00');
+        calculateBossAppearanceTimeSpy.mockReturnValueOnce(dateInvade);
         inputInvade.dispatchEvent(new Event('input', { bubbles: true }));
+        inputInvade.dataset.calculatedDate = dateInvade.toISOString();
 
         const inputNormal = DOM.bossInputsContainer.querySelector('input[data-id="id-일반보스"]');
-        calculateBossAppearanceTimeSpy.mockReturnValueOnce(new Date('2025-11-28T22:30:00+09:00')); // 오늘로 계산
+        const dateNormal = new Date('2025-11-28T22:30:00+09:00');
+        calculateBossAppearanceTimeSpy.mockReturnValueOnce(dateNormal);
         inputNormal.dispatchEvent(new Event('input', { bubbles: true }));
+        inputNormal.dataset.calculatedDate = dateNormal.toISOString();
 
         handleApplyBossSettings(DOM);
 
         expect(commitDraftSpy).toHaveBeenCalled();
         const finalSchedule = mockBossSchedule;
 
-        expect(finalSchedule.filter(item => item.type === 'boss')).toHaveLength(1); // 일반 보스만 남아있어야 함
-        expect(finalSchedule.filter(item => item.type === 'boss')[0].name).toBe('일반 보스');
+        // 침공 보스는 필터링되고 일반 보스만 남아야 함 (+ 날짜 마커 1개)
+        const bossItems = finalSchedule.filter(item => item.type === 'boss');
+        expect(bossItems).toHaveLength(1);
+        expect(bossItems[0].name).toBe('일반 보스');
     });
 
     it('should apply "fresh start" logic', () => {
         mockBossSchedule = [{ type: 'boss', id: 'id-old', name: 'Old Boss' }];
-        DOM.bossInputsContainer.innerHTML = `<div class="boss-input-item"><span class="boss-name">New Boss</span><input type="text" class="remaining-time-input" value="00:15:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="New Boss"></div>`;
+        mockDraftSchedule = [];
+        DOM.bossInputsContainer.innerHTML = '';
+
+        DOM.bossInputsContainer.innerHTML = `<div class="boss-input-item"><span class="boss-name">New Boss</span><input type="text" class="remaining-time-input" data-boss-name="New Boss" value="00:15:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="New Boss"></div>`;
         const input = DOM.bossInputsContainer.querySelector('input');
-        calculateBossAppearanceTimeSpy.mockReturnValueOnce(new Date('2025-11-28T19:15:00+09:00'));
+        const newDate = new Date('2025-11-28T19:15:00+09:00');
+        calculateBossAppearanceTimeSpy.mockReturnValueOnce(newDate);
         input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dataset.calculatedDate = newDate.toISOString();
 
         handleApplyBossSettings(DOM);
 
         expect(commitDraftSpy).toHaveBeenCalled();
         const finalSchedule = mockBossSchedule;
-        expect(finalSchedule.some(item => item.name === 'Old Boss')).toBe(false); // Old Boss should be gone
-        expect(finalSchedule.some(item => item.name === 'New Boss')).toBe(true); // New Boss should be added
+        expect(finalSchedule.some(item => item.name === 'Old Boss')).toBe(false);
+        expect(finalSchedule.some(item => item.name === 'New Boss')).toBe(true);
     });
 
     it('should prevent saving if no valid inputs', () => {
         const alertSpy = vi.spyOn(window, 'alert');
-        DOM.bossInputsContainer.innerHTML = `<div class="boss-input-item"><input type="text" class="remaining-time-input" value=""><span class="calculated-spawn-time">--:--:--</span></div>`;
+        DOM.bossInputsContainer.innerHTML = `<div class="boss-input-item"><input type="text" class="remaining-time-input" data-boss-name="Invalid Boss" value=""><span class="calculated-spawn-time">--:--:--</span></div>`;
         handleApplyBossSettings(DOM);
         expect(setBossScheduleSpy).not.toHaveBeenCalled();
-        expect(alertSpy).toHaveBeenCalledWith("보스 설정에 내용이 전혀 없습니다.\n남은 시간을 1개 이상 입력 후 보스 설정 적용 버튼을 눌러 주세요.");
+        expect(alertSpy).toHaveBeenCalledWith("보스 설정에 내용이 전혀 없습니다.\n남은 시간을 1개 이상 입력 후 보스 시간 업데이트 버튼을 눌러 주세요.");
     });
 });
