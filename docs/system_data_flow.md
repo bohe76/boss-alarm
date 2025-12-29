@@ -78,11 +78,12 @@
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initTimetableScreen(DOM)`이 호출됩니다. 이 함수는 `LocalStorageManager`에서 '다음 보스' 필터(`timetableNextBossFilter`) 상태를 로드하고, `ui-renderer.js`의 `updateTimetableUI(DOM)`를 호출하여 시간표 UI를 초기 렌더링합니다. '보스 시간표' 화면은 조회 전용이며, 수정을 위해 '보스 스케줄러'로 이동할 수 있는 버튼을 제공합니다.
 *   **이벤트 리스너:**
     *   **'뷰/편집' 토글 버튼 (`DOM.viewEditModeToggleButton`):** 클릭 시 모드를 전환하고 `LocalStorageManager`에 저장합니다. `updateTimetableUI`를 호출하여 UI를 갱신합니다.
-    *   **'다음 보스' 토글 버튼 (`DOM.nextBossToggleButton`):** 뷰 모드에서만 활성화되며, 클릭 시 필터 상태를 토글하고 저장합니다. 이후 `updateTimetableUI` -> `renderBossListTableView`를 호출하여 **카드 리스트 형태**로 필터링된 목록을 다시 렌더링합니다.
+    *   **'표/카드' 보기 모드 버튼 (`DOM.tableViewModeButton`):** 뷰 모드에서 표시 형식을 '표' 또는 '카드'로 토글합니다. 상태는 `LocalStorageManager`의 `timetable-view-mode`에 저장되며, 즉시 `renderBossListTableView`를 통해 레이아웃이 변경됩니다.
+    *   **'다음 보스' 토글 버튼 (`DOM.nextBossToggleButton`):** 뷰 모드에서만 활성화되며, 클릭 시 필터 상태를 토글하고 저장합니다. 이후 `updateTimetableUI` -> `renderBossListTableView`를 호출하여 선택된 보기 형식(카드/표)으로 필터링된 목록을 다시 렌더링합니다.
     *   **"보스 시간 업데이트" 버튼 (`DOM.sortBossListButton`):** 편집 모드에서만 활성화되며, 클릭 시 `boss-parser.js`의 `parseBossList()`를 호출하여 텍스트 영역의 내용을 파싱합니다. 이 과정에서 각 줄의 시간 형식을 감지하여 `timeFormat` 속성을 `boss` 객체에 포함시키고, 유효성을 검사합니다.
         *   **유효성 실패:** 에러 메시지를 담은 경고창(`alert`)을 띄우고 저장을 중단합니다.
         *   **유효성 성공:** 파싱된 결과를 `BossDataManager.setBossSchedule()`로 저장하고, `ui-renderer.js`의 `updateBossListTextarea(DOM)`를 호출하여 정렬 및 `timeFormat`에 따라 포맷팅된 텍스트로 갱신합니다. `window.isBossListDirty`를 `false`로 초기화합니다.
-*   **데이터 흐름 요약:** `LocalStorageManager`를 통해 모드 및 필터 상태를 관리합니다. **뷰 모드**에서는 `BossDataManager` 데이터를 기반으로 `ui-renderer.js`가 **UID별 고유 비고(memo)를 포함하여** 날짜별 카드 리스트를 생성하고, **편집 모드**에서는 사용자 입력을 파싱하여 **표준 UID**를 포함한 데이터를 `BossDataManager`에 저장하는 양방향 흐름을 가집니다.
+*   **데이터 흐름 요약:** `LocalStorageManager`를 통해 모드 및 보기 형식, 필터 상태를 관리합니다. **뷰 모드**에서는 `BossDataManager` 데이터를 기반으로 `ui-renderer.js`가 **선택된 보기 형식(카드 리스트 또는 테이블)**으로 고유 비고를 포함하여 보스 목록을 생성합니다. **편집 모드**에서는 사용자 입력을 파싱하여 **표준 UID**를 포함한 데이터를 `BossDataManager`에 저장하는 양방향 흐름을 가집니다.
 
 ### 3.3. 보스 스케줄러 화면 (`src/screens/boss-scheduler.js`)
 
