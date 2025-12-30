@@ -6,7 +6,7 @@ import { renderFixedAlarms, renderAlarmStatusSummary, renderDashboard, updateBos
 import { log } from './logger.js';
 import { LocalStorageManager, BossDataManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
-import { getInitialDefaultData } from './boss-scheduler-data.js';
+import { getInitialDefaultData, getGameNames, getBossNamesForGame } from './boss-scheduler-data.js';
 import { EventBus } from './event-bus.js';
 import { getRoute, registerRoute } from './router.js';
 import { initializeCoreServices } from './services.js';
@@ -170,44 +170,81 @@ function showScreen(DOM, screenId) {
     if (screenId === 'boss-scheduler-screen') EventBus.emit('show-boss-scheduler-screen');
 }
 
+/**
+ * 보스 일정의 데이터 무결성을 검증합니다.
+ * 스케줄에 포함된 모든 보스의 이름이 현재 시스템 정의(프리셋/커스텀)에 존재하는지 확인합니다.
+ */
+function validateScheduleIntegrity(schedule) {
+    if (!schedule || !Array.isArray(schedule) || schedule.length === 0) return false;
+
+    // 현재 시스템의 모든 유효한 보스 이름 수집
+    const allValidBossNames = new Set();
+    const games = getGameNames();
+    games.forEach(game => {
+        const names = getBossNamesForGame(game.id);
+        names.forEach(name => allValidBossNames.add(name));
+    });
+
+    const bossItems = schedule.filter(item => item.type === 'boss');
+    if (bossItems.length === 0) return true; // 보스가 없는 일정(날짜 헤더만 등)은 일단 통과
+
+    // 단 하나라도 '유령 보스(정의가 사라진 보스)'가 있다면 오염된 것으로 간주
+    return !bossItems.some(item => !allValidBossNames.has(item.name));
+}
+
 function loadInitialData(DOM) {
     const params = new URLSearchParams(window.location.search);
-    const existingSchedule = BossDataManager.getBossSchedule();
     let loadSuccess = false;
 
     // 1. URL 데이터 우선 로드
     if (params.has('data')) {
         DOM.schedulerBossListInput.value = decodeURIComponent(params.get('data'));
         const result = parseBossList(DOM.schedulerBossListInput);
-        if (result.success) {
+
+        // URL 데이터가 존재하고 파싱에 성공했으며, 무결성 검사까지 통과한 경우만 승인
+        if (result.success && validateScheduleIntegrity(result.mergedSchedule)) {
             BossDataManager.setBossSchedule(result.mergedSchedule);
-            BossDataManager.clearDraft(); // URL 로딩 시 기존 Draft 삭제 (혼선 방지)
+            BossDataManager.clearDraft(); // URL 로딩 성공 시 기존 Draft 삭제
             loadSuccess = true;
             log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
         } else {
-            alert("URL의 보스 설정 값이 올바르지 않습니다. 오류:\n" + result.errors.join('\n') + "\n\n현재 설정된 데이터를 유지합니다.");
-            log("URL 데이터 파싱 실패.", false);
-            loadSuccess = (existingSchedule && existingSchedule.length > 0);
+            // URL 데이터 오염 시: 경고 후 무시(Proceed to Storage)
+            alert("URL의 보스 설정 데이터가 유효하지 않거나 오염되었습니다. 기존 설정 또는 기본 데이터를 사용합니다.");
+            log("URL 데이터 오염 또는 파싱 실패. 무시하고 진행합니다.", false);
         }
-    } else if (existingSchedule && existingSchedule.length > 0) {
-        // 2. 기존 사용자 데이터가 이미 있으면 그대로 유지 (이미 BossDataManager 내부에 로드됨)
-        loadSuccess = true;
     }
 
-    // 3. 로드된 데이터가 전혀 없는 경우에만 기본 샘플 데이터 로드
+    // 2. 기존 로컬 스토리지 데이터 검사 (URL 로드 실패 시에만 실행)
+    if (!loadSuccess) {
+        const existingSchedule = BossDataManager.getBossSchedule();
+
+        if (existingSchedule && existingSchedule.length > 0) {
+            if (validateScheduleIntegrity(existingSchedule)) {
+                loadSuccess = true;
+                log("로컬 스토리지에서 보스 일정을 로드했습니다.");
+            } else {
+                // 로컬 스토리지 데이터 오염 시: 강제 초기화하여 루프 방지
+                log("로컬 스토리지 데이터 오염 감지. 안전을 위해 초기화 후 기본 샘플 데이터를 로드합니다.", false);
+                BossDataManager.setBossSchedule([]); // 기존 오염 데이터 삭제
+                loadSuccess = false;
+            }
+        }
+    }
+
+    // 3. 최종 결계: 데이터 로드 실패 시(최초 방문 포함) 샘플 데이터 로드
     if (!loadSuccess) {
         const initialData = getInitialDefaultData();
         if (initialData && initialData.items) {
             const schedule = processBossItems(initialData.items);
             BossDataManager.setBossSchedule(schedule);
-            log("기본 보스 목록을 불러왔습니다.");
+            log("기본 샘플 보스 목록을 로드했습니다. (데이터 복구)");
         } else {
             console.error("Critical: Default boss data loading failed!");
             alert("기본 보스 목록 로드에 실패했습니다. 페이지를 새로고침해 주세요.");
         }
     }
 
-    updateBossListTextarea(DOM); // Ensure UI reflects the parsed and normalized data
+    updateBossListTextarea(DOM); // UI 동기화
 }
 
 // Function to initialize all event handlers

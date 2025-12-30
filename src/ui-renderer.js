@@ -354,48 +354,86 @@ export function renderCrazySavedList(DOM, records) {
     }
 }
 
-// --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 ---
-// bossSchedule 배열의 내용을 기반으로 텍스트 영역을 업데이트합니다.
-export function updateBossListTextarea(DOM, scheduleData = null) {
-    const bossSchedule = scheduleData || BossDataManager.getBossSchedule();
+// --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 (SSOT -> UI) ---
+export function updateBossListTextarea(DOM) {
+    if (!DOM.schedulerBossListInput) return;
+
+    // 1. 전체 스케줄 데이터 가져오기 (미래 앵커 포함, 필터링 없이)
+    const schedule = BossDataManager.getBossSchedule(false);
+    if (!schedule || schedule.length === 0) {
+        DOM.schedulerBossListInput.value = '';
+        return;
+    }
+
+    const now = Date.now();
+    const bossMap = new Map(); // 보스 이름 -> 가장 가까운 미래 데이터
+
+    // 2. 보스별로 "가장 가까운 미래 데이터 1개" 추출 (앵커 선정 로직)
+    // 데이터 구조상 bossSchedule에는 { type: 'date' } 객체도 있으나, 
+    // 여기서는 type: 'boss' 객체만 추출하여 재구성함.
+    schedule.forEach(item => {
+        if (item.type === 'boss') {
+            const itemTime = new Date(item.scheduledDate).getTime();
+            // 현재(now)보다 미래인 데이터만 고려
+            if (itemTime > now) {
+                const existing = bossMap.get(item.name);
+                // 아직 등록된 미래 데이터가 없거나, 현재 아이템이 더 가까운 미래라면 등록
+                // (기존 데이터보다 itemTime이 더 작으면 더 가까운 미래임)
+                if (!existing || itemTime < new Date(existing.scheduledDate).getTime()) {
+                    bossMap.set(item.name, item);
+                }
+            }
+        }
+    });
 
     const outputLines = [];
-    let lastDateStr = "";
-
+    let lastDateStr = '';
     const pad = (n) => String(n).padStart(2, '0');
 
-    for (let i = 0; i < bossSchedule.length; i++) {
-        const item = bossSchedule[i];
+    // 3. 추출된 앵커들을 시간순으로 정렬하여 출력
+    const sortedAnchors = Array.from(bossMap.values()).sort((a, b) =>
+        new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()
+    );
 
-        // 보스 데이터인 경우, 날짜가 바뀌었는지 체크하여 헤더 삽입
-        if (item.type === 'boss' && item.scheduledDate) {
-            const date = new Date(item.scheduledDate);
-            const currentDateStr = `${pad(date.getMonth() + 1)}.${pad(date.getDate())}`; // MM.DD 형식
+    sortedAnchors.forEach(item => {
+        const d = new Date(item.scheduledDate);
+        const dateStr = `${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
 
-            // 이전 보스와 날짜가 다르다면 날짜 헤더 삽입
-            if (currentDateStr !== lastDateStr) {
-                outputLines.push(currentDateStr);
-                lastDateStr = currentDateStr;
-            }
-
-            // 시간 포맷팅
-            let formattedTime;
-            if (item.timeFormat === 'hm') {
-                formattedTime = item.time.substring(0, 5);
-            } else {
-                formattedTime = item.time;
-            }
-
-            const memoText = item.memo ? ` #${item.memo}` : "";
-            const intervalText = (item.interval && item.interval > 0) ? ` @${item.interval}` : "";
-            outputLines.push(`${formattedTime} ${item.name}${memoText}${intervalText}`);
-        } else if (item.type === 'date') {
-            // 명시적인 date 타입이 있는 경우 (하위 호환성)
-            const dateValue = item.value || item.date;
-            outputLines.push(dateValue);
-            lastDateStr = dateValue;
+        // 날짜 헤더 추가
+        if (dateStr !== lastDateStr) {
+            outputLines.push(dateStr);
+            lastDateStr = dateStr;
         }
-    }
+
+        // 시간 포맷팅
+        let formattedTime;
+        if (item.timeFormat === 'hm') {
+            formattedTime = item.time.substring(0, 5);
+        } else {
+            formattedTime = item.time;
+        }
+
+        const memoText = item.memo ? ` #${item.memo}` : "";
+
+        // 젠 주기(@) 정보는 SSOT에 interval(ms) 또는 intervalMinutes가 있을 경우 출력
+        // 사용자가 입력한 @젠시간 정보를 보존하기 위함
+        let intervalText = "";
+        let intervalMin = 0;
+
+        if (item.intervalMinutes) {
+            intervalMin = item.intervalMinutes;
+        } else if (item.interval && item.interval > 0) {
+            // [Fix] interval은 분 단위로 저장되므로 나눗셈 없이 그대로 사용
+            intervalMin = item.interval;
+        }
+
+        if (intervalMin > 0) {
+            intervalText = ` @${intervalMin}`;
+        }
+
+        outputLines.push(`${formattedTime} ${item.name}${memoText}${intervalText}`);
+    });
+
     DOM.schedulerBossListInput.value = outputLines.join('\n');
 }
 
@@ -605,13 +643,13 @@ export function renderBossSchedulerScreen(DOM, remainingTimes = {}, memoInputs =
         ).join('');
 
         // 로컬 스토리지에서 마지막 선택한 게임 로드
-        const lastSelectedGame = localStorage.getItem('lastSelectedGame');
+        const lastSelectedGame = LocalStorageManager.get('lastSelectedGame');
         if (lastSelectedGame && gameNameObjects.some(g => g.id === lastSelectedGame)) {
             DOM.gameSelect.value = lastSelectedGame;
         } else if (gameNameObjects.length > 0) {
             // 저장된 값이 없거나 유효하지 않으면 첫 번째 항목 선택
             DOM.gameSelect.value = gameNameObjects[0].id;
-            localStorage.setItem('lastSelectedGame', gameNameObjects[0].id);
+            LocalStorageManager.set('lastSelectedGame', gameNameObjects[0].id);
         }
     }
 
@@ -646,13 +684,14 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
     currentSchedule.forEach(item => {
         if (item.type === 'boss') {
             const itemTime = new Date(item.scheduledDate).getTime();
-            const existing = bossMap.get(item.name);
 
-            // 아직 등록 안 됐거나, (아이템이 미래인데 (기존께 과거이거나 더 먼 미래라면))
-            if (!existing ||
-                (itemTime > now && (!existing.scheduledDate || new Date(existing.scheduledDate).getTime() < now || itemTime < new Date(existing.scheduledDate).getTime()))
-            ) {
-                bossMap.set(item.name, item);
+            // [수정된 로직] 철저하게 현재(now)보다 미래인 데이터만 고려
+            if (itemTime > now) {
+                const existing = bossMap.get(item.name);
+                // 아직 등록된 미래 데이터가 없거나, 현재 아이템이 더 가까운 미래라면 등록/갱신
+                if (!existing || itemTime < new Date(existing.scheduledDate).getTime()) {
+                    bossMap.set(item.name, item);
+                }
             }
         }
     });

@@ -4,7 +4,7 @@ import { parseBossList } from '../boss-parser.js';
 import { calculateBossAppearanceTime } from '../calculator.js';
 import { log } from '../logger.js';
 import { EventBus } from '../event-bus.js';
-import { BossDataManager } from '../data-managers.js';
+import { BossDataManager, LocalStorageManager } from '../data-managers.js';
 import { padNumber } from '../utils.js';
 import { trackEvent } from '../analytics.js';
 
@@ -12,8 +12,11 @@ let _remainingTimes = {}; // Encapsulated state for remaining times
 let _memoInputs = {}; // Encapsulated state for memo inputs
 
 function handleShowScreen(DOM) {
-    // 1. Draft 데이터 확보 (없으면 Main에서 자동 복사됨)
-    const draftSchedule = BossDataManager.getDraftSchedule();
+    // 0. 현재 선택된 게임 ID 확인
+    const currentListId = LocalStorageManager.get('lastSelectedGame') || 'default';
+
+    // 1. 해당 List의 Draft 데이터 확보
+    const draftSchedule = BossDataManager.getDraftSchedule(currentListId);
 
     // 2. Draft -> 내부 UI 상태(_remainingTimes, _memoInputs) 동기화
     syncDraftToUIState(draftSchedule);
@@ -75,9 +78,9 @@ function syncDraftToUIState(draftSchedule) {
 
             let timeStr;
             if (bestInstance.timeFormat === 'hms') {
-                timeStr = `${padNumber(hours)}:${padNumber(minutes)}:${padNumber(seconds)}`;
+                timeStr = padNumber(hours) + ':' + padNumber(minutes) + ':' + padNumber(seconds);
             } else {
-                timeStr = `${padNumber(hours)}:${padNumber(minutes)}`;
+                timeStr = padNumber(hours) + ':' + padNumber(minutes);
             }
 
             _remainingTimes[name] = (diffMs < 0 ? '-' : '') + timeStr;
@@ -116,73 +119,97 @@ function showSchedulerTab(DOM, tabId) {
         syncInputToText(DOM);
     }
 
-    trackEvent('Click Button', { event_category: 'Interaction', event_label: `스케줄러 탭 전환: ${tabId === 'input' ? '간편 입력 모드' : '텍스트 모드'}` });
+    const modeLabel = tabId === 'input' ? '간편 입력 모드' : '텍스트 모드';
+    trackEvent('Click Button', { event_category: 'Interaction', event_label: '스케줄러 탭 전환: ' + modeLabel });
 }
 
 /**
- * 간편 입력 모드의 정보를 Draft SSOT에 반영하고 텍스트 영역을 업데이트합니다.
+ * 간편 입력 모드의 값을 특정 List ID의 Draft에 저장하거나, 현재 선택된 모드에 맞게 처리함.
+ * listId 파라미터가 있으면 해당 ID로 저장, 없으면 현재 선택된 게임 ID 사용.
  */
-/**
- * 간편 입력 모드의 현재 값들을 바탕으로 Draft 스케줄을 완전히 재구성합니다.
- * 날짜 마커를 자동으로 계산하여 포함합니다.
- */
-function syncInputToText(DOM) {
-    const newBossItems = [];
-    // 1. 간편 입력 모드 DOM에서 유효한 보스 정보 수집 (계산된 시간이 있는 것만)
-    DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
-        const nameEl = item.querySelector('.boss-name');
-        const timeEl = item.querySelector('.calculated-spawn-time');
-        const memoEl = item.querySelector('.memo-input');
+function syncInputToText(DOM, isSilent = false, targetListId = null) {
+    const listId = targetListId || LocalStorageManager.get('lastSelectedGame') || 'default';
 
-        if (nameEl && timeEl && timeEl.textContent !== '--:--:--') {
-            const bossName = nameEl.textContent;
-            const timeText = timeEl.textContent;
-            const memoValue = memoEl ? memoEl.value.trim() : '';
-            const inputEl = item.querySelector('.remaining-time-input');
-            const calculatedDateStr = inputEl ? inputEl.dataset.calculatedDate : null;
-            const timeFormat = inputEl ? (inputEl.dataset.timeFormat || 'hm') : 'hm';
+    // 텍스트 모드에서 -> 간편 모드 전환 시 (또는 텍스트 모드 데이터 파싱)
+    const isTextMode = DOM.tabSchedulerText && DOM.tabSchedulerText.classList.contains('active');
 
-            if (calculatedDateStr) {
-                const scheduledDate = new Date(calculatedDateStr);
-                const bossId = inputEl ? inputEl.dataset.id : `boss-${Date.now()}-${newBossItems.length}`;
+    // 만약 호출자가 명시적으로 텍스트 모드 파싱을 원하지 않고(단순 저장용 등), 간편 모드 상태라면 간편 모드를 저장
+    // 하지만 탭 전환 로직에서는 현재 활성 탭 기준으로 동작해야 함.
 
-                // 젠 시간(interval) 수집 및 시/분 환산
-                const hhEl = item.querySelector('.interval-hh');
-                const mmEl = item.querySelector('.interval-mm');
-                let interval = 0;
-                if (hhEl && mmEl) {
-                    const hh = parseInt(hhEl.value, 10) || 0;
-                    const mm = parseInt(mmEl.value, 10) || 0;
-                    interval = (hh * 60) + mm;
-                }
+    // [탭 스위칭 시나리오]
+    // A탭(간편모드) -> B탭 클릭 -> syncInputToText(DOM, true, 'A') 호출 -> A의 간편 입력값 저장 -> OK
+    // A탭(텍스트모드) -> B탭 클릭 -> syncInputToText(DOM, true, 'A') 호출 -> A의 텍스트값 저장 -> OK
 
-                newBossItems.push({
-                    id: bossId,
-                    type: 'boss',
-                    name: bossName,
-                    time: timeText,
-                    timeFormat: timeFormat,
-                    memo: memoValue,
-                    interval: interval,
-                    scheduledDate: scheduledDate
-                });
-            }
+    if (isTextMode && !targetListId) { // targetListId가 없으면 현재 화면의 텍스트 모드
+        const parseResult = parseBossList(DOM.schedulerBossListInput);
+
+        if (!parseResult.success) {
+            if (!isSilent) alert('입력 오류:\n' + parseResult.errors.join('\n'));
+            return false;
         }
-    });
 
-    // 2. 유효한 입력이 없으면 기존 Draft 유지 (SSOT 바탕 출력 원칙)
-    if (newBossItems.length === 0) {
-        const existingDraft = BossDataManager.getDraftSchedule();
-        updateBossListTextarea(DOM, existingDraft);
-        return;
+        // 파싱된 결과를 Draft에 저장
+        BossDataManager.setDraftSchedule(listId, parseResult.mergedSchedule);
+
+        // 간편 모드 갱신 (선택적: 현재 화면이면 갱신해야 하지만, 떠나는 탭이면 굳이? 하지만 일관성 위해)
+        if (!targetListId) {
+            // 현재 화면을 위한 호출이었다면 UI 상태도 갱신
+            syncDraftToUIState(parseResult.mergedSchedule);
+        }
+        return true;
+    } else { // 간편 입력 모드 또는 targetListId가 있는 경우 (다른 탭의 데이터 저장)
+        // 간편 입력 모드 -> Draft (기존 로직)
+        const newBossItems = [];
+        // 1. 간편 입력 모드 DOM에서 유효한 보스 정보 수집
+        DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
+            const nameEl = item.querySelector('.boss-name');
+            const timeEl = item.querySelector('.calculated-spawn-time');
+            const memoEl = item.querySelector('.memo-input');
+
+            if (nameEl && timeEl && timeEl.textContent !== '--:--:--') {
+                const bossName = nameEl.textContent;
+                const timeText = timeEl.textContent;
+                const memoValue = memoEl ? memoEl.value.trim() : '';
+                const inputEl = item.querySelector('.remaining-time-input');
+                const calculatedDateStr = inputEl ? inputEl.dataset.calculatedDate : null;
+                const timeFormat = inputEl ? (inputEl.dataset.timeFormat || 'hm') : 'hm';
+
+                if (calculatedDateStr) {
+                    const scheduledDate = new Date(calculatedDateStr);
+                    const bossId = inputEl ? inputEl.dataset.id : 'boss-' + Date.now() + '-' + newBossItems.length;
+
+                    const hhEl = item.querySelector('.interval-hh');
+                    const mmEl = item.querySelector('.interval-mm');
+                    let interval = 0;
+                    if (hhEl && mmEl) {
+                        const hh = parseInt(hhEl.value, 10) || 0;
+                        const mm = parseInt(mmEl.value, 10) || 0;
+                        interval = (hh * 60) + mm;
+                    }
+
+                    newBossItems.push({
+                        id: bossId,
+                        type: 'boss',
+                        name: bossName,
+                        time: timeText,
+                        timeFormat: timeFormat,
+                        memo: memoValue,
+                        interval: interval,
+                        scheduledDate: scheduledDate
+                    });
+                }
+            }
+        });
+
+        // 2. Draft 저장 (빈 배열이라도 저장해야 함 - 삭제된 경우)
+        BossDataManager.setDraftSchedule(listId, newBossItems);
+
+        // 3. 텍스트 영역 업데이트 (현재 화면인 경우)
+        if (!targetListId) {
+            updateBossListTextarea(DOM, newBossItems);
+        }
+        return true;
     }
-
-    // 3. 24시간 자동 확장 및 정규화
-    const updatedDraft = BossDataManager.expandSchedule(newBossItems);
-
-    // 4. Draft 저장 및 텍스트 영역 갱신
-    BossDataManager.setDraftSchedule(updatedDraft);
-    updateBossListTextarea(DOM, updatedDraft);
 }
 
 /**
@@ -199,6 +226,7 @@ function syncTextToInput(DOM, silent = true) {
     }
 
     const newDraft = result.mergedSchedule;
+    const currentListId = LocalStorageManager.get('lastSelectedGame') || 'default';
 
     // [신규] 논리적 유효성 검사 (젠 주기 준수 여부)
     const validation = BossDataManager.validateBossSchedule(newDraft);
@@ -208,7 +236,7 @@ function syncTextToInput(DOM, silent = true) {
     }
 
     // 1. 파싱 및 검증 결과를 Draft에 저장 (SSOT 업데이트)
-    BossDataManager.setDraftSchedule(newDraft);
+    BossDataManager.setDraftSchedule(currentListId, newDraft);
 
     // 2. Draft -> UI 상태 동기화
     syncDraftToUIState(newDraft);
@@ -222,15 +250,16 @@ function syncTextToInput(DOM, silent = true) {
 
 export function handleApplyBossSettings(DOM) {
     const isTextMode = DOM.tabSchedulerText && DOM.tabSchedulerText.classList.contains('active');
+    const currentListId = LocalStorageManager.get('lastSelectedGame') || 'default';
 
     // 현재 활성화된 탭의 데이터를 Draft에 최종 반영 (이 과정에서 유효성 검사 수행)
     if (isTextMode && DOM.schedulerBossListInput) {
-        if (!syncTextToInput(DOM, false)) return;
+        if (!syncTextToInput(DOM, false)) return; // syncTextToInput 내부에서 currentListId 사용
     } else {
-        syncInputToText(DOM);
+        syncInputToText(DOM, false, currentListId);
 
         // [신규] 간편 입력 모드 최종 유효성 검사 (Bohe 님 지시)
-        const draftScheduleForValidation = BossDataManager.getDraftSchedule();
+        const draftScheduleForValidation = BossDataManager.getDraftSchedule(currentListId);
         const validation = BossDataManager.validateBossSchedule(draftScheduleForValidation);
         if (!validation.isValid) {
             alert("보스 시간 설정 오류\n" + "------------------------\n" + validation.message);
@@ -239,7 +268,7 @@ export function handleApplyBossSettings(DOM) {
     }
 
     // 최종 검증 (Draft 기반)
-    const draftSchedule = BossDataManager.getDraftSchedule();
+    const draftSchedule = BossDataManager.getDraftSchedule(currentListId);
     const hasBosses = draftSchedule.some(item => item.type === 'boss');
 
     if (!hasBosses) {
@@ -247,22 +276,26 @@ export function handleApplyBossSettings(DOM) {
         return;
     }
 
-    // Commit Draft to Main (내부적으로 _expandAndReconstruct 호출됨)
-    BossDataManager.commitDraft();
+    // Commit Draft to Main (List ID 전달)
+    BossDataManager.commitDraft(currentListId);
 
     // UI 업데이트 (Main 기반으로 다시 로드 - 24시간 확장된 결과가 반영됨)
-    updateBossListTextarea(DOM);
+    updateBossListTextarea(DOM, draftSchedule); // 여기서는 Main SSOT를 보여주는 게 맞음? 
+    // -> 아니오, 업데이트 후에도 여전히 '현재 탭'의 Draft(이자 Main)를 보여주면 됨.
+    // BossDataManager.commitDraft 내부에서 setBossSchedule을 하므로 SSOT는 갱신됨.
+    // UI는 어차피 navigate로 timetable 화면으로 넘어감.
 
     // 입력 필드 초기화 및 화면 전환
     _remainingTimes = {};
     _memoInputs = {};
-    renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs);
+    renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs); // 초기화된 상태로 렌더링
 
     EventBus.emit('navigate', 'timetable-screen');
     log("보스 시간이 업데이트되었습니다.", true);
+    const updateLabel = '보스 시간 업데이트(' + (isTextMode ? '텍스트 모드' : '간편 입력 모드') + ')';
     trackEvent('Click Button', {
         event_category: 'Interaction',
-        event_label: `보스 시간 업데이트(${isTextMode ? '텍스트 모드' : '간편 입력 모드'})`
+        event_label: updateLabel
     });
 }
 
@@ -301,8 +334,8 @@ export function initBossSchedulerScreen(DOM) {
 
             if (calculatedDate && calculatedTimeSpan) {
                 const timeFormat = inputField.dataset.timeFormat;
-                let timeString = `${padNumber(calculatedDate.getHours())}:${padNumber(calculatedDate.getMinutes())}`;
-                if (timeFormat === 'hms') timeString += `:${padNumber(calculatedDate.getSeconds())}`;
+                let timeString = padNumber(calculatedDate.getHours()) + ':' + padNumber(calculatedDate.getMinutes());
+                if (timeFormat === 'hms') timeString += ':' + padNumber(calculatedDate.getSeconds());
 
                 calculatedTimeSpan.textContent = timeString;
                 inputField.dataset.calculatedDate = calculatedDate.toISOString();
@@ -345,10 +378,11 @@ export function initBossSchedulerScreen(DOM) {
             }
 
             // 동일한 보스 이름을 가진 모든 입력 필드 동기화 (Bohe 님 원칙)
-            DOM.bossInputsContainer.querySelectorAll(`.interval-hh[data-boss-name="${bossName}"]`).forEach(el => {
+            // 동일한 보스 이름을 가진 모든 입력 필드 동기화 (Bohe 님 원칙)
+            DOM.bossInputsContainer.querySelectorAll('.interval-hh[data-boss-name="' + bossName + '"]').forEach(el => {
                 if (el !== hhInput) el.value = hh;
             });
-            DOM.bossInputsContainer.querySelectorAll(`.interval-mm[data-boss-name="${bossName}"]`).forEach(el => {
+            DOM.bossInputsContainer.querySelectorAll('.interval-mm[data-boss-name="' + bossName + '"]').forEach(el => {
                 if (el !== mmInput) el.value = padNumber(mm);
             });
 
@@ -374,7 +408,7 @@ export function initBossSchedulerScreen(DOM) {
     DOM.bossSchedulerScreen.addEventListener('change', (event) => {
         if (event.target === DOM.gameSelect) {
             const selectedGame = DOM.gameSelect.value;
-            localStorage.setItem('lastSelectedGame', selectedGame); // 선택 정보 저장
+            LocalStorageManager.set('lastSelectedGame', selectedGame); // 선택 정보 저장
             renderBossInputs(DOM, selectedGame, _remainingTimes, _memoInputs);
             // updateCalculatedTimes(DOM); 호출 삭제
         }

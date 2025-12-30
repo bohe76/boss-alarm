@@ -168,6 +168,7 @@ export const BossDataManager = (() => {
             const meta = _getInternalBossMetadata(bossName);
             const isTodayOnly = meta.isInvasion;
 
+
             if (interval > 0) {
                 // 과거로 확장
                 let t = anchorTime;
@@ -178,25 +179,56 @@ export const BossDataManager = (() => {
                     }
                     t -= interval;
                 }
-                // 미래로 확장
+                // 미래로 확장 (48시간 윈도우 내)
                 t = anchorTime + interval;
+                let generatedInWindow = false;
+
+                // 만약 anchorTime 자체가 현재 window 안에 있다면, 그것도 생성된 것으로 카운트
+                if (anchorTime >= startTime && anchorTime <= endTime) {
+                    generatedInWindow = true; // 앵커가 이미 윈도우 안에 있음
+                }
+
                 while (t <= endTime) {
                     const inst = createInstance(t);
                     if (!isTodayOnly || isSameDay(inst.scheduledDate, new Date(now))) {
                         expandedBosses.push(inst);
+                        generatedInWindow = true;
                     }
                     t += interval;
                 }
+
+                // [중요 로직] 윈도우 내에 생성된 것이 하나도 없다면, 가장 가까운 미래 1개를 강제 생성 (Anchor Keeper)
+                // 단, anchorTime이 이미 미래(윈도우 밖)라면 anchorTime을 사용하고,
+                // anchorTime이 과거라면 t(마지막 계산된 미래 시간)를 사용함.
+                if (!generatedInWindow) {
+                    let futureTime = anchorTime;
+                    // 앵커가 과거라면 현재 시점 이후가 될 때까지 interval을 더함
+                    while (futureTime < endTime) {
+                        futureTime += interval;
+                    }
+                    // futureTime은 이제 endTime보다 큰 가장 가까운 미래 시각
+                    const hiddenAnchor = createInstance(futureTime);
+                    // hiddenAnchor는 화면에는 안 보이지만 데이터 보존을 위해 추가됨
+                    expandedBosses.push(hiddenAnchor);
+                }
+
             } else {
-                // 주기가 없는 경우 사용자 입력들만 유효 범위 내에서 유지
+                // 주기가 없는 경우 (1회성 이벤트)
+                // 1. 48시간 윈도우(오늘+내일) 내에 있으면 표시 (당연함)
+                // 2. 윈도우보다 더 먼 미래라면? -> 사용자가 일부러 입력한 것이므로 SSOT에 보존 (UI에선 필터링됨)
+                // 3. 윈도우보다 과거라면? -> 이미 지난 1회 성 이벤트이므로 삭제 (SSOT에서 제거됨)
                 sameBosses.forEach(b => {
                     const bt = new Date(b.scheduledDate);
                     const btime = bt.getTime();
-                    if (btime >= startTime && btime <= endTime) {
+
+                    if (btime >= startTime) {
+                        // 현재(오늘 00:00) 이후의 데이터는 모두 보존
+                        // (오늘~내일은 UI 표출, 그 이후는 SSOT 보존)
                         if (!isTodayOnly || isSameDay(bt, new Date(now))) {
                             expandedBosses.push({ ...b });
                         }
                     }
+                    // 과거 데이터(startTime 이전)는 추가하지 않음 -> 자동 삭제됨
                 });
             }
         });
@@ -219,6 +251,10 @@ export const BossDataManager = (() => {
         finalUniqueItems.forEach(boss => {
             const d = boss.scheduledDate;
             const dateStr = `${padNumber(d.getMonth() + 1)}.${padNumber(d.getDate())}`;
+
+            // Reconstruct 시 날짜 헤더 추가 로직
+            // 단, 저장 로직에서는 헤더가 굳이 필요 없지만, 호환성을 위해 유지하거나
+            // 혹은 UI 렌더링 시에만 필터링하도록 함.
             if (dateStr !== lastDateStr) {
                 reconstructed.push({ type: 'date', date: dateStr });
                 lastDateStr = dateStr;
@@ -298,7 +334,6 @@ export const BossDataManager = (() => {
          */
         checkAndUpdateSchedule: (force = false) => {
             const now = new Date();
-            const currentHour = now.getHours();
 
             // 업데이트 기준점 설정 (0시 자정)
             const lastUpdate = LocalStorageManager.get('lastAutoUpdateTimestamp');
@@ -411,7 +446,27 @@ export const BossDataManager = (() => {
         subscribe: (callback) => {
             subscribers.push(callback);
         },
-        getBossSchedule: () => bossSchedule,
+        getBossSchedule: (uiFilter = true) => {
+            if (!bossSchedule) return [];
+
+            if (uiFilter) {
+                // UI 표출용: 오늘~내일(48시간 윈도우) 이내의 일정만 필터링하여 반환
+                const now = Date.now();
+                const todayStart = new Date(now);
+                todayStart.setHours(0, 0, 0, 0);
+                const startTime = todayStart.getTime();
+                const endTime = startTime + (48 * 60 * 60 * 1000);
+
+                return bossSchedule.filter(item => {
+                    if (item.type === 'date') return true; // 날짜 헤더는 유지 (단, 아래에서 빈 날짜 제거 필요할 수 있음)
+                    if (!item.scheduledDate) return false;
+                    const t = new Date(item.scheduledDate).getTime();
+                    return t <= endTime;
+                });
+            }
+            // 내부 로직용: 전체 데이터 반환 (미래 앵커 포함)
+            return bossSchedule;
+        },
         setBossSchedule: (newSchedule) => {
             // 들어온 리스트를 즉시 48시간(오늘~내일) 분량으로 확장하고 정규화함
             bossSchedule = _expandAndReconstruct(newSchedule || []);
@@ -419,43 +474,73 @@ export const BossDataManager = (() => {
             notify();
         },
         // --- Draft Management ---
-        getDraftSchedule: () => {
-            loadDraft();
-            // Draft 데이터가 없으면 원본(Main)에서 복제하여 생성
-            if (!_draftSchedule) {
-                _draftSchedule = JSON.parse(JSON.stringify(bossSchedule), (key, value) => {
-                    if (key === 'scheduledDate') return new Date(value);
-                    return value;
-                });
+        // --- Draft Management (List-based Isolation) ---
+        getDraftSchedule: (listId) => {
+            const draftKey = listId ? `${DRAFT_STORAGE_KEY}_${listId}` : DRAFT_STORAGE_KEY;
+
+            // 1. 해당 List ID의 Draft 로드 시도
+            const savedDraft = localStorage.getItem(draftKey);
+            let draft = null;
+
+            if (savedDraft) {
+                try {
+                    draft = JSON.parse(savedDraft, (key, value) => {
+                        if (key === 'scheduledDate') return new Date(value);
+                        return value;
+                    });
+                } catch (e) {
+                    console.error("Draft parsing error", e);
+                }
             }
-            return _draftSchedule;
+
+            // 2. Draft가 없으면 빈 배열(혹은 초기화 필요) 상태 반환
+            // (주의: 여기서는 원본 SSOT 복사를 하지 않음. SSOT는 '현재 선택된 게임'과 무관할 수 있으므로,
+            //  Draft가 없으면 호출 측에서 초기 데이터를 채워 넣어야 함.)
+            // -> 단, 현재 로직 호환성을 위해 draft가 없으면 빈 배열 리턴
+            if (!draft) {
+                draft = [];
+            }
+
+            return draft;
         },
-        setDraftSchedule: (newDraft) => {
-            _draftSchedule = newDraft;
-            localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(newDraft));
+
+        setDraftSchedule: (listId, newDraft) => {
+            const draftKey = listId ? `${DRAFT_STORAGE_KEY}_${listId}` : DRAFT_STORAGE_KEY;
+            localStorage.setItem(draftKey, JSON.stringify(newDraft));
         },
-        commitDraft: () => {
-            if (_draftSchedule) {
-                // 커밋 시에도 48시간 확장 로직을 적용하여 스케줄을 완성함
-                bossSchedule = _expandAndReconstruct(_draftSchedule);
+
+        // 특정 Draft 내용을 메인 SSOT로 승격(Commit)
+        commitDraft: (listId) => {
+            const draftKey = listId ? `${DRAFT_STORAGE_KEY}_${listId}` : DRAFT_STORAGE_KEY;
+            const savedDraft = localStorage.getItem(draftKey);
+
+            if (savedDraft) {
+                let draftSchedule;
+                try {
+                    draftSchedule = JSON.parse(savedDraft, (key, value) => {
+                        if (key === 'scheduledDate') return new Date(value);
+                        return value;
+                    });
+                } catch (e) { console.error(e); return; }
+
+                // 커밋 시 48시간 확장 로직 적용 -> SSOT 갱신
+                bossSchedule = _expandAndReconstruct(draftSchedule);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(bossSchedule));
 
-                // [Step 1] 커밋 후 즉시 Draft 동기화
-                _draftSchedule = JSON.parse(JSON.stringify(bossSchedule), (key, value) => {
-                    if (key === 'scheduledDate') return new Date(value);
-                    return value;
-                });
-                localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(_draftSchedule));
-
+                // 중요: Commit 후에는 현재 Draft가 SSOT와 동일해지므로 유지해도 됨.
+                // 또는 SSOT가 바뀌었으니 다른 알림 로직 트리거
                 notify();
             }
         },
+
         expandSchedule: (items) => {
             return _expandAndReconstruct(items);
         },
-        clearDraft: () => {
-            _draftSchedule = null;
-            localStorage.removeItem(DRAFT_STORAGE_KEY);
+
+        // 특정 리스트 Draft 삭제 (초기화)
+        clearDraft: (listId) => {
+            const draftKey = listId ? `${DRAFT_STORAGE_KEY}_${listId}` : DRAFT_STORAGE_KEY;
+            localStorage.removeItem(draftKey);
         },
         // ------------------------
         setNextBossInfo: (nextBoss, minTimeDiff) => {
@@ -651,7 +736,16 @@ export const LocalStorageManager = (() => {
     }
 
     return {
-        get: (key) => JSON.parse(localStorage.getItem(key)),
+        get: (key) => {
+            const value = localStorage.getItem(key);
+            if (value === null) return null;
+            try {
+                return JSON.parse(value);
+            } catch {
+                // If it's not valid JSON, it might be a raw string
+                return value;
+            }
+        },
         set: (key, value) => localStorage.setItem(key, JSON.stringify(value)),
         getFixedAlarms: () => fixedAlarms,
         getFixedAlarmById: (id) => fixedAlarms.find(alarm => alarm.id === id),
