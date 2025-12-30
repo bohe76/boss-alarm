@@ -7,15 +7,17 @@
 
 /* CSS Variables */
 :root {
-    --header-height: 64px; /* Approximate height of the header */
-    --app-max-width: 1200px; /* Define a consistent max-width for the app content */
-    
+    --header-height: 64px;
+    /* Approximate height of the header */
+    --app-max-width: 1200px;
+    /* Define a consistent max-width for the app content */
+
     /* Common Colors (can be expanded later) */
     --primary-color: #AD1457;
     --primary-dark: #880E4F;
     --secondary-color: #1D3557;
     --text-color: #333;
-    --background-color: #f4f7f6;
+    --background-color: #f8f8f8;
     --white: #ffffff;
     --grey-light: #f8f8f8;
     --grey-medium: #ccc;
@@ -28,22 +30,31 @@ body {
     line-height: 1.6;
     background-color: var(--background-color);
     color: var(--text-color);
-    margin: 0; /* Remove default body margin */
-    display: flex; /* Use flexbox for overall layout */
-    flex-direction: column; /* Stack header, main, footer vertically */
-    min-height: 100vh; /* Ensure body takes full viewport height */
-    padding-top: var(--header-height); /* Add padding to prevent content from being hidden by fixed header */
-    text-align: left; /* Ensure body text is left-aligned by default */
+    margin: 0;
+    /* Remove default body margin */
+    display: flex;
+    /* Use flexbox for overall layout */
+    flex-direction: column;
+    /* Stack header, main, footer vertically */
+    min-height: 100vh;
+    /* Ensure body takes full viewport height */
+    padding-top: var(--header-height);
+    /* Add padding to prevent content from being hidden by fixed header */
+    text-align: left;
+    /* Ensure body text is left-aligned by default */
 }
 
-h1, h2 {
+h1,
+h2 {
     color: #111;
     margin-top: 0px;
 }
 
 h2 {
-    max-width: 800px; /* Align with .card-size-list */
-    margin: 0 auto 20px auto; /* 20px margin-bottom */
+    max-width: 800px;
+    /* Align with .card-size-list */
+    margin: 0 auto 20px auto;
+    /* 20px margin-bottom */
 }
 
 h3 {
@@ -53,5 +64,6 @@ h3 {
 
 /* Utility Classes */
 .hidden {
-    display: none !important; /* Use !important to ensure it overrides other display properties */
+    display: none !important;
+    /* Use !important to ensure it overrides other display properties */
 }
