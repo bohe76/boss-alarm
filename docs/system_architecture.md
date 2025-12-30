@@ -1,4 +1,4 @@
-# 보스 알리미 시스템 아키텍처 문서 (v2.6 - 자가 복구 & 격리 저장소 적용)
+# 보스 알리미 시스템 아키텍처 문서 (v2.16.2 - 디자인 표준화 및 동적 레이아웃 적용)
 
 ## 1. 개요
 
@@ -21,7 +21,7 @@ UI는 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 �
 
 ## 3. 주요 기능
 
-*   **PiP 위젯 (Picture-in-Picture Widget):** 최신 크롬/엣지 브라우저의 Document Picture-in-Picture API를 활용하여, 대시보드의 '다음 보스' 정보(보스 이름, 남은 시간)를 브라우저 밖으로 꺼내어 게임 화면 위에 항상 떠 있는 미니 창으로 제공합니다. (초기 크기: 240x100px)
+*   **PiP 위젯 (Picture-in-Picture Widget):** 최신 크롬/엣지 브라우저의 Document Picture-in-Picture API를 활용하여, 대시보드의 '다음 보스' 정보(보스 이름, 남은 시간)를 브라우저 밖으로 꺼내어 게임 화면 위에 항상 떠 있는 미니 창으로 제공합니다. 보스 수에 따라 동적으로 높이가 조절됩니다 (v2.12+). (1개: 96px, 2개: 130px, N개: 130 + (N-2) * 25px)
 *   **보스 시간표:** '보스 시간표' 화면에 **뷰 모드**와 **편집 모드**를 제공합니다.
     *   **편집 모드:** 사용자는 텍스트 영역에 `HH:MM 보스이름` 형식으로 보스 출현 시간과 이름을 입력할 수 있습니다. 입력 후 "보스 시간 업데이트" 버튼을 클릭하여 명시적으로 저장해야 하며, 이때 데이터 파싱, 유효성 검사, 정렬이 수행되어 데이터 무결성을 보장합니다.
     *   **뷰 모드:** 보스 목록을 **카드 리스트** 또는 **테이블(표)** 형태로 선택하여 볼 수 있습니다.
@@ -50,7 +50,7 @@ UI는 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 �
 
 ## 4. 기술 스택 상세
 
-*   **HTML5 / CSS3:** 웹 표준 마크업 및 스타일링. CSS는 `src/styles/style.css`를 진입점으로 하여 `layout.css`, `components.css`, `screens.css`로 모듈화되어 관리됩니다.
+*   **HTML5 / CSS3:** 웹 표준 마크업 및 스타일링. CSS는 `src/styles/style.css`를 진입점으로 하여 `layout.css`, `components.css`, `screens.css`로 모듈화되어 관리됩니다. **모든 스타일은 인라인 스타일을 배제하고 전용 CSS 클래스를 사용하는 'Zero Inline Styles' 대원칙을 준수합니다.**
 *   **정적 자원:** 이미지 파일 등은 `src/assets/images` 경로에 관리됩니다.
 *   **바닐라 JavaScript (ES Modules):** 프레임워크 없이 순수 JavaScript를 사용하여 모듈화된 형태로 개발되었습니다. `src/` 폴더 내에서 기능별로 분리된 모듈들을 `import`하여 사용합니다. 특히 `utils.js`에는 `calculateNextOccurrence`와 같은 핵심 시간 계산 유틸리티가 포함되어 있습니다.
 *   **설정 및 데이터 파일:** `src/data/` 폴더에 `boss-presets.json`, `initial-default.json`, `update-notice.json`, `faq_guide.json`, `feature_guide.json`, `version_history.json`과 같은 설정 및 데이터 파일을 관리합니다.

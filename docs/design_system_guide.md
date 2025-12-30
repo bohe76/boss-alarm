@@ -11,6 +11,12 @@
 *   **`components.css`**: 버튼, 카드, 모달, 입력 필드 등 재사용 가능한 컴포넌트 스타일 정의.
 *   **`screens.css`**: 대시보드, 보스 관리 등 각 화면별 전용 스타일 정의.
 
+### 1.2. 인라인 스타일 절대 금지 (Zero Inline Styles - 대원칙)
+유지보수성과 스타일 우선순위 관리를 위해 다음과 같은 규칙을 엄격히 준수합니다.
+*   **HTML**: 태그 내에 `style="..."` 속성을 직접 사용하지 않습니다. 모든 스타일은 외부 CSS 파일에 정의된 클래스를 통해 적용해야 합니다.
+*   **JavaScript**: `element.style.property = value` 형태의 직접적인 CSS 조작을 금지합니다. 대신 `element.classList.add()` / `remove()` / `toggle()` 등을 사용하여 정의된 CSS 상태를 매핑합니다.
+*   **예외 사항**: 실시간 좌표 계산 등 기술적으로 불가피한 경우에 한해 최소한으로 허용하며, 반드시 주석으로 사유를 명시해야 합니다.
+
 ## 2. 색상 팔레트
 
 애플리케이션의 주요 색상을 정의하고 사용 목적을 명확히 합니다. 모든 색상은 `style.css`의 `:root` 변수로 관리하는 것을 권장합니다.
@@ -62,7 +68,7 @@
 
 *   **기본 스타일:** `display: flex`, `padding: 8px 16px`, `border-radius: 4px`, `background-color: #455A64`.
 *   **Primary Button (`.primary-button`):** `background-color: #AD1457` (강조).
-*   **Toggle Button (`.toggle-button`):** `border-radius: 48px`, 활성 시 `#FF8F00`.
+*   **Toggle Button (`.toggle-button`):** `border-radius: 48px`, `height: 32px`, `padding: 0 16px`, `font-size: 0.9em`, `box-sizing: border-box`. 활성 시 `#FF8F00`. (표준화된 토글 규격 준수)
 *   **Action Chip (`.action-chip`):** 아이콘이 포함된 둥근 버튼 (보스 설정 모드 전환용).
 
 ### 5.2. 카드 (`.card-standard`)
@@ -104,7 +110,7 @@
 
 *   **모바일:** 수직 컬럼 스택 (`flex-direction: column`).
     *   **초소형 모바일 특화 (480px 이하):** 알림 상태 및 소리 설정과 같은 소형 카드 세트는 `flex-wrap: nowrap` 및 `flex: 1`을 적용하여 화면 너비가 좁아져도 한 줄에 2단으로 표시되도록 유지합니다. 이때 카드 내부 패딩을 `10px`로 축소하여 공간을 확보합니다.
-*   **데스크탑 (769px+):** 2컬럼 가로 배치 (`flex-direction: row`), 중앙 정렬.
+*   **데스크탑 (920px+):** 2컬럼 가로 배치 (`flex-direction: row`), 중앙 정렬. **대시보드 및 계산기 화면의 카드는 380px 너비를 기본 규격으로 사용합니다.**
 *   **간격:** `gap: 16px` (모든 카드 및 컬럼 사이).
 
 ### 6.2. 모바일 내비게이션

@@ -769,7 +769,7 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
 }
 // --- Timetable Screen Rendering Functions ---
 export function updateTimetableUI(DOM, options = {}) {
-    if (DOM.bossListCardsContainer) DOM.bossListCardsContainer.style.display = 'block';
+    if (DOM.bossListCardsContainer) DOM.bossListCardsContainer.style.removeProperty('display');
 
     const filterNextBoss = options.nextBossOnly !== undefined
         ? options.nextBossOnly
@@ -821,8 +821,10 @@ export function renderTimetableList(DOM, options = {}) {
 
     if (displayMode === '카드') {
         // --- 카드 모드 렌더링 (기존 리스트 스타일 복구) ---
-        DOM.bossListCardsContainer.classList.add('card-size-list');
+        // 기존 클래스 제거 및 전용 그리드 클래스 추가
+        DOM.bossListCardsContainer.classList.remove('card-size-list');
         DOM.bossListCardsContainer.classList.remove('boss-card-grid');
+        DOM.bossListCardsContainer.classList.add('timetable-grid-container');
 
         let currentCardHtml = '';
         let lastDateStr = '';
@@ -831,7 +833,7 @@ export function renderTimetableList(DOM, options = {}) {
         const closeCurrentCard = () => {
             if (currentCardHtml) {
                 html += `
-                    <div class="card-standard card-size-list" style="margin-bottom: 16px;">
+                    <div class="card-standard" style="margin-bottom: 16px;">
                         ${currentCardHtml}
                         </div> <!-- .card-list-content 닫기 -->
                     </div> <!-- .card-standard 닫기 -->
@@ -880,11 +882,20 @@ export function renderTimetableList(DOM, options = {}) {
 
     } else {
         // --- 표(Table) 모드 렌더링 (엑셀 스타일) ---
-        DOM.bossListCardsContainer.classList.add('card-size-list');
+        // 기존 클래스 제거 및 전용 그리드 클래스 추가
+        DOM.bossListCardsContainer.classList.remove('card-size-list');
         DOM.bossListCardsContainer.classList.remove('boss-card-grid');
+        DOM.bossListCardsContainer.classList.add('timetable-grid-container');
 
-        // 전체를 감싸는 컨테이너 시작 (이미지 캡처용 ID 부여)
-        html = '<div id="boss-list-table" class="table-view-container">';
+        // 전체를 감싸는 컨테이너 시작
+        // 중요: 내부 컨테이너(boss-list-table)는 그리드 아이템이 아니라 그리드 그 자체가 되어야 할 수도 있고, 
+        // 혹은 부모인 bossListCardsContainer가 그리드가 되고 내부는 fragment처럼 동작해야 함.
+        // 현재 구조상 bossListCardsContainer 내부에 html 문자열을 넣으므로, 
+        // 2열 배치를 위해서는 bossListCardsContainer 자체가 Grid여야 하고, 자식들이 카드여야 함.
+        // 따라서 여기서 'div#boss-list-table'로 감싸버리면 1개의 자식이 되어 2열 배치가 안 됨.
+        // 해결책: 감싸는 div 없이 자식들을 바로 나열.
+        // 단, '내보내기'를 위해 ID가 필요하다면, bossListCardsContainer 자체를 캡처하면 됨.
+        html = ''; // 래퍼 제거
 
         let currentTableHtml = '';
         let lastDateStr = '';
@@ -897,10 +908,15 @@ export function renderTimetableList(DOM, options = {}) {
                         <div class="boss-table-header">
                             <h3>${lastDateStr}</h3>
                         </div>
-                        <table class="boss-table">
+                        <table class="boss-table" style="table-layout: fixed;">
+                            <colgroup>
+                                <col style="width: 80px;">
+                                <col>
+                                <col style="width: 30%;">
+                            </colgroup>
                             <thead>
                                 <tr>
-                                    <th style="width: 80px; text-align: center;">시간</th>
+                                    <th style="text-align: center;">시간</th>
                                     <th>보스 이름</th>
                                     <th>비고</th>
                                 </tr>

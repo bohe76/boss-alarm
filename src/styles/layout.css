@@ -85,7 +85,7 @@ nav.sidebar {
 }
 
 /* Sidebar expansion container (PC only) */
-@media (min-width: 769px) {
+@media (min-width: 920px) {
     .sidebar-menu {
         position: absolute;
         top: 0;
@@ -266,13 +266,13 @@ footer p {
 }
 
 /* Explicitly hide mobile-only elements on desktop */
-@media (min-width: 769px) {
+@media (min-width: 920px) {
     .more-menu-close-button {
         display: none;
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 919px) {
 
     /* --- Hide desktop sidebar and toggle --- */
     body.is-mobile-view nav.sidebar,

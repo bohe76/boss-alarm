@@ -1,4 +1,4 @@
-# 데이터 흐름 (v2.0 - 리팩토링 후)
+# 데이터 흐름 (v2.1 - 디자인 표준화 및 동적 레이아웃 적용)
 
 이 문서는 '보스 알리미' 애플리케이션의 주요 화면 및 기능에 대한 상세한 데이터 흐름을 설명합니다. 애플리케이션의 모든 동작은 `app.js`가 오케스트레이션하며, 모듈 간 통신은 주로 `EventBus` 및 데이터 관리자(`BossDataManager`, `LocalStorageManager`)의 구독 패턴을 통해 이루어지고, `ui-renderer.js`를 통해 UI가 업데이트됩니다.
 
@@ -30,7 +30,7 @@
         1. **URL 파라미터**: `data` 쿼리가 있고 **시스템 정의와 일치(Integrity Check)**하면 최우선 로드합니다. 오염된 경우 경고 후 무시합니다.
         2. **사용자 로컬 스토리지**: URL 데이터가 없거나 로드에 실패한 경우 확인합니다. 데이터가 존재하고 **무결성 검증을 통과**하면 로드하며, 오염(유령 보스 발견 등) 시 **강제 초기화**를 수행합니다.
         3. **기본 샘플 데이터**: 위 두 과정이 모두 실패(최초 방문 포함)하면 `initial-default.json` 데이터를 로드하고 즉시 로컬 스토리지에 기록하여 안정성을 보장합니다.
-    *   **자동 확장 및 침공 보스 필터링**: 데이터가 설정될 때마다 `BossDataManager` 내부에서 `_expandAndReconstruct()`가 실행되어 48시간 일정으로 정규화됩니다. 이때 프리셋의 `isInvasion` 플래그를 확인하여 **당일이 아닌 침공 보스 인스턴스는 자동으로 제외**하여 정합성을 유지합니다. 사용자가 수정한 데이터(ID 일치)는 보호되며, 새로 생성되는 인스턴스는 고유한 UID를 부여받습니다.
+    *   **자동 확장 및 침공 보스 필터링**: 데이터가 설정될 때마다 `BossDataManager` 내부에서 `_expandAndReconstruct()`가 실행되어 48시간 일정으로 정규화됩니다. 이때 프리셋의 `isInvasion` 플래그를 확인하여 **당일이 아닌 침공 보스 인스턴스는 자동으로 제외**하여 정합성을 유지합니다. 사용자가 수정한 데이터(ID 일치)는 보호되며, 새로 생성되는 인스턴스는 고유한 UID를 부여받습니다. **또한 Workspace Isolation 정책에 따라 각 게임별 Draft 데이터는 독립된 저장 키로 관리되어 데이터 충돌을 방지합니다.**
     *   `initGlobalEventListeners(DOM)`를 호출하여 전역 이벤트 리스너를 활성화합니다.
     *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
     *   **`renderAlarmStatusSummary(DOM)`를 호출하여 알림 상태 요약을 초기 렌더링합니다.**
@@ -74,7 +74,7 @@
     - **Step 3 (자동 수행)**: 수정 사항이 없을 경우 조용히 메인 SSOT와 Draft를 모두 48시간 윈도우로 확장 및 동기화.
     - **Step 4 (충돌 발생 및 선택)**: 수정 사항이 있을 경우 날짜(MM.DD)가 포함된 문구로 사용자에게 확인 요청.
         - **[확인]**: 현재 수정 내용을 버리고 최신 48시간 데이터로 갱신.
-        - **[취소]**: 사용자의 수정 내용을 유지(Draft 보존)하되, 백그라운드 서버용 메인 SSOT만 업데이트하여 알람 정확도 보장.
+        - **[취소]**: 사용자의 수정 내용을 유지(Draft 보존)하되, 백그라운드 서버용 메인 SSOT만 업데이트하여 알람 정확도 보장. **이때 Draft의 ID와 일치하는 수동 입력 데이터는 최신 48시간 데이터에 병합되어 사용자 의도(User Intent)가 보존됩니다.**
 
 6. **스켈레톤 해제 및 콘텐츠 노출**:
     - `app.js`에서 `document.body.classList.remove('loading')` 호출.
@@ -201,7 +201,7 @@
 *   **초기화:** `app.js`의 `initApp()` 함수에서 Document PiP API 지원 여부를 확인하고, 지원하는 경우 PiP 토글 버튼(`DOM.pipToggleButton`)을 표시합니다.
 *   **PiP 창 열기/닫기:**
     1.  사용자가 PiP 토글 버튼을 클릭하면 `app.js`의 `initEventHandlers`에 등록된 리스너가 `pip-manager.js`의 `togglePipWindow()` 함수를 호출합니다.
-    2.  `togglePipWindow()`는 현재 PiP 창이 열려 있는지 확인합니다. 열려 있으면 닫고, 닫혀 있으면 `documentPictureInPicture.requestWindow()`를 호출하여 가로 240px, 세로 100px 크기의 새 PiP 창을 엽니다.
+    2.  `togglePipWindow()`는 현재 PiP 창이 열려 있는지 확인합니다. 열려 있으면 닫고, 닫혀 있으면 `documentPictureInPicture.requestWindow()`를 호출하여 너비 240px의 새 PiP 창을 엽니다. **이때 높이는 보스 수에 따라 동적으로 계산(1개: 96px, 2개: 130px, N개: 130+(N-2)*25px)되어 최적의 크기로 열립니다.**
     3.  PiP 창이 성공적으로 열리면 `src/pip-content.html`의 HTML 콘텐츠를 가져와 삽입합니다.
     4.  PiP 창에 `pagehide` 이벤트 리스너를 등록하여, 사용자가 직접 창을 닫을 경우 `pip-manager.js`의 내부 상태(`pipWindow`, `isPipOpen`)를 재설정합니다.
 *   **콘텐츠 동기화:**

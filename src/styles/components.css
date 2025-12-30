@@ -57,14 +57,20 @@
     /* 비활성화 상태일 때의 글자색 */
     border-radius: 48px;
 
-    /* 수직 중앙 정렬 강제 */
+    /* 수직 중앙 정렬 및 공통 규격 강제 */
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    height: 32px;
+    /* 높이 고정 */
+    padding: 0 16px;
+    /* 좌우 패딩 확보 */
+    font-size: 0.9em;
+    /* 폰트 크기 살짝 축소 */
     line-height: 1;
     /* 높이에 영향을 주는 line-height 초기화 */
-    padding-top: 0;
-    padding-bottom: 0;
+    box-sizing: border-box;
+    /* 패딩을 높이에 포함 */
 }
 
 .toggle-button:hover:not(:disabled) {
@@ -416,10 +422,10 @@ input:checked+.slider:before {
 }
 
 /* PC 환경에서 보스 리스트 카드를 컨텐츠 크기에 맞춰 축소 및 중앙 정렬 */
-@media (min-width: 769px) {
+@media (min-width: 920px) {
     .card-size-list {
         width: fit-content;
-        min-width: 400px;
+        min-width: 452px;
         /* PC에서 가독성을 위한 최소 너비 확보 */
     }
 
@@ -832,7 +838,7 @@ textarea {
     /* 깊이감 있는 그림자 */
 }
 
-@media (max-width: 768px) {
+@media (max-width: 919px) {
     .version-modal-content {
         width: 90%;
     }

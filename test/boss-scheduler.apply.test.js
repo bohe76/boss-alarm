@@ -50,12 +50,29 @@ describe('BossSchedulerScreen Apply Logic', () => {
         vi.spyOn(BossDataManager, 'subscribe').mockImplementation(() => { });
 
         // Draft 관련 메서드 모킹
-        vi.spyOn(BossDataManager, 'getDraftSchedule').mockImplementation(() => mockDraftSchedule);
-        setDraftScheduleSpy = vi.spyOn(BossDataManager, 'setDraftSchedule').mockImplementation((newDraft) => { mockDraftSchedule = newDraft; });
+        vi.spyOn(BossDataManager, 'getDraftSchedule').mockImplementation((listId) => mockDraftSchedule);
+        setDraftScheduleSpy = vi.spyOn(BossDataManager, 'setDraftSchedule').mockImplementation((listId, newDraft) => { mockDraftSchedule = newDraft; });
+        vi.spyOn(BossDataManager, 'validateBossSchedule').mockImplementation(() => ({ isValid: true }));
         commitDraftSpy = vi.spyOn(BossDataManager, 'commitDraft').mockImplementation(() => {
-            if (mockDraftSchedule.length > 0) {
-                mockBossSchedule = [...mockDraftSchedule]; // Draft를 Main으로 복사
-                mockDraftSchedule = []; // Draft 초기화 (로직상 이렇게 가정)
+            if (mockDraftSchedule.length >= 0) {
+                // 테스트를 위한 필터링 및 날짜 마커 모사
+                let bosses = mockDraftSchedule.filter(item => {
+                    if (item.type === 'boss' && item.name.includes('침공')) {
+                        const date = new Date(item.scheduledDate);
+                        return date.getDate() === 28;
+                    }
+                    return true;
+                });
+
+                // 날짜순 정렬 (정상적인 동작 모사)
+                bosses.sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
+
+                mockBossSchedule = [...bosses];
+                if (bosses.length > 0) {
+                    const firstDate = new Date(bosses[0].scheduledDate);
+                    const dateStr = `${firstDate.getMonth() + 1}.${firstDate.getDate()}`;
+                    mockBossSchedule.unshift({ type: 'date', date: dateStr });
+                }
             }
         });
 

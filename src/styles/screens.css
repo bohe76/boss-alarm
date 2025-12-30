@@ -32,7 +32,7 @@
 }
 
 /* PC (wide screen) layout */
-@media (min-width: 769px) {
+@media (min-width: 920px) {
     .dashboard-layout {
         flex-direction: row;
         /* PC: arrange two columns horizontally */
@@ -46,11 +46,11 @@
 
     .dashboard-column-left,
     .dashboard-column-right {
-        width: 472px;
-        /* Fix column width to match card max width (960-16)/2 */
-        min-width: 472px;
+        width: 380px;
+        /* Fix column width to match card max width 380px */
+        min-width: 380px;
         /* Prevent shrinking */
-        max-width: 472px;
+        max-width: 380px;
     }
 }
 
@@ -82,6 +82,32 @@
         min-width: 0;
         padding-left: 10px;
         padding-right: 10px;
+    }
+
+    /* 보스 시간표 제어부 2단 배치 및 버튼 확장 */
+    .boss-management-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .boss-management-controls .filter-group {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .boss-management-controls .action-group {
+        width: 100%;
+        display: flex !important;
+        /* 인라인 스타일 덮어쓰기 */
+        gap: 8px;
+    }
+
+    .boss-management-controls .action-group .button {
+        flex: 1;
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
     }
 }
 
@@ -216,27 +242,31 @@
     margin-right: auto;
 }
 
-/* PC 환경에서 보스 시간표 (카드 및 표 모드) 2열 그리드 배치 */
-@media (min-width: 769px) {
+/* --- Timetable Grid Layout (New Clean Implementation) --- */
+.timetable-grid-container {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    /* Mobile First: Stack vertically (default block behavior is fine, or flex-column) */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
 
-    #bossListCardsContainer.card-size-list,
-    .table-view-container {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 16px !important;
-        align-items: start !important;
-        max-width: 960px !important;
-        width: 100% !important;
-        /* Force full width to enable grid columns */
-        margin: 0 auto !important;
+/* PC: 2-Column Grid */
+@media (min-width: 920px) {
+    .timetable-grid-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: start;
     }
 
-    /* 그리드 내의 개별 카드/표가 너비를 꽉 채우도록 설정 */
-    #bossListCardsContainer.card-size-list>div,
-    .table-view-container>.boss-table-card {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin-bottom: 0 !important;
+    /* Force children to fill grid cells */
+    .timetable-grid-container>div {
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 0;
     }
 }
 
@@ -593,7 +623,7 @@
     /* Match card padding for inner content alignment */
 }
 
-@media (min-width: 769px) {
+@media (min-width: 920px) {
     .scheduler-controls-header {
         display: flex;
         align-items: center;
@@ -614,7 +644,7 @@
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 919px) {
     .scheduler-controls-header {
         display: flex;
         flex-direction: column;
@@ -669,7 +699,7 @@
     /* Center with card */
 }
 
-@media (max-width: 768px) {
+@media (max-width: 919px) {
     .control-group-horizontal {
         justify-content: center;
         /* Center for mobile */
@@ -692,7 +722,7 @@
     /* Center with card */
 }
 
-@media (max-width: 768px) {
+@media (max-width: 919px) {
     .action-buttons {
         justify-content: center;
         /* Center for mobile */
@@ -853,7 +883,7 @@
 }
 
 /* PC Layout */
-@media (min-width: 769px) {
+@media (min-width: 920px) {
     .boss-input-item {
         flex-wrap: nowrap;
         gap: 12px;
@@ -945,7 +975,7 @@
 }
 
 /* Mobile-specific layout */
-@media (max-width: 768px) {
+@media (max-width: 919px) {
 
     .memo-header,
     .interval-header {
@@ -955,7 +985,7 @@
 }
 
 /* Mobile-specific layout with horizontal scroll */
-@media (max-width: 768px) {
+@media (max-width: 919px) {
     .boss-list-display-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
@@ -1021,6 +1051,7 @@
 section#settings-screen h3 {
     margin-top: 0;
 }
+
 
 .fixed-alarm-section {
     margin-bottom: 20px;
@@ -1212,7 +1243,7 @@ section#settings-screen h3 {
     text-overflow: ellipsis;
 }
 
-@media (min-width: 769px) {
+@media (min-width: 920px) {
     .boss-card-grid {
         justify-content: flex-start;
         /* PC: align left or center depending on preference, center looks better for small amount */
@@ -1293,11 +1324,17 @@ section#settings-screen h3 {
 .boss-table-name {
     font-weight: 500;
     color: #1D3557;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .boss-table-memo {
     color: #666;
     font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .log-entry {

@@ -1146,7 +1146,7 @@ textarea:-ms-input-placeholder {
 }
 
 /* PC 환경에서 보스 리스트 카드를 컨텐츠 크기에 맞춰 축소 및 중앙 정렬 */
-@media (min-width: 769px) {
+@media (min-width: 920px) {
     .card-size-list {
         width: fit-content;
         min-width: 400px;
@@ -1214,10 +1214,16 @@ textarea:-ms-input-placeholder {
 
 .boss-table-name {
     color: #e2e8f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .boss-table-memo {
     color: #cbd5e1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* --------------------------- */
@@ -1501,13 +1507,13 @@ textarea:-ms-input-placeholder {
     /* Center align cards within column */
     width: 100%;
     /* Occupy full parent width on mobile */
-    max-width: 472px;
+    max-width: 380px;
     /* Match max width of individual cards */
 }
 
 
 /* --- PC (wide screen) layout --- */
-@media (min-width: 769px) {
+@media (min-width: 920px) {
 
     /* Tablet/Desktop breakpoint */
     .dashboard-layout {
@@ -1523,11 +1529,11 @@ textarea:-ms-input-placeholder {
 
     .dashboard-column-left,
     .dashboard-column-right {
-        width: 472px;
+        width: 380px;
         /* Fix column width to match card max width */
-        min-width: 472px;
+        min-width: 380px;
         /* Prevent shrinking */
-        max-width: 472px;
+        max-width: 380px;
     }
 }
 
@@ -1544,7 +1550,7 @@ textarea:-ms-input-placeholder {
     /* Changed from 20px to 16px */
     width: 100%;
     /* Occupy full parent width */
-    max-width: 472px;
+    max-width: 380px;
     /* Max-width for two small cards combination */
 }
 
@@ -2015,7 +2021,7 @@ h3 {
 }
 
 /* Explicitly hide mobile-only elements on desktop */
-@media (min-width: 769px) {
+@media (min-width: 920px) {
     .more-menu-close-button {
         display: none;
     }
@@ -2033,7 +2039,7 @@ h3 {
     display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 919px) {
 
     /* --- Hide desktop sidebar and toggle --- */
     body.is-mobile-view nav.sidebar,

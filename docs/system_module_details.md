@@ -1,4 +1,4 @@
-# 모듈별 상세 설명 (v2.0 - 리팩토링 후)
+# 모듈별 상세 설명 (v2.1 - 디자인 표준화 및 동적 레이아웃 적용)
 
 이 문서는 '보스 알리미' 애플리케이션을 구성하는 각 JavaScript 모듈의 역할, `export`되는 모든 API의 상세 명세, 핵심 내부 로직, 그리고 다른 모듈과의 상호작용 방식을 코드 수준에서 상세히 기술합니다.
 
@@ -154,7 +154,7 @@
 *   `updateCrazyExpectedTimeDisplay(DOM, time, isOverTime)`: 광 계산기 예상 시간 디스플레이를 업데이트하고 초과 시간을 시각적으로 표시합니다.
 *   `renderCrazyTempResults(DOM, gwangTime, afterGwangTime, totalTime)`: 광 계산기의 최근 계산 결과를 임시로 렌더링합니다.
 *   `renderCrazySavedList(DOM, records)`: 광 계산기의 저장된 기록 목록을 렌더링합니다.
-*   `renderUpdateModal(DOM, noticeData)`: 앱 시작 시 버전 업데이트 안내 모달을 렌더링합니다. `update-notice.json`에서 로드된 `noticeData`를 인자로 받아 개발자 인사말과 가변적인 업데이트 요약 목록을 동적으로 구성합니다. 버전 번호는 `window.APP_VERSION`을 참조하여 제목에 표시합니다.
+*   `renderUpdateModal(DOM, noticeData)`: 앱 시작 시 버전 업데이트 안내 모달을 렌더링합니다. `update-notice.json`에서 로드된 `noticeData`를 인자로 받아 개발자 인사말과 가변적인 업데이트 요약 목록을 동적으로 구성합니다. 버전 번호는 `window.APP_VERSION`을 참조하여 제목에 표시합니다. **모든 렌더링은 인라인 스타일을 배제하고 표준화된 CSS 클래스를 사용하며, 버튼 등은 32px 높이의 공통 규격을 준수합니다.**
 *   그 외 상세 렌더링 함수들.
 
 ---
@@ -181,7 +181,7 @@
     *   `getBossInterval(bossName, contextId)`: `number`. 특정 보스의 리젠 주기(분)를 프리셋에서 찾아 반환합니다. 보스 이름과 게임 컨텍스트를 기반으로 검색합니다.
     *   `getBossSchedule()`: `Array`. 현재 파싱 및 확장된 보스 일정 배열(Main SSOT)을 반환합니다.
     *   `setBossSchedule(newSchedule)`: `void`. 새로운 보스 일정 배열을 받고, **48시간 확장 엔진을 돌려 정규화한 뒤** Main SSOT에 저장하며, Draft를 동기화하고 구독자에게 알립니다.
-    *   `getDraftSchedule()`: `Array`. **현재 선택된 보스 목록(listId)에 격리된** Draft 스케줄을 반환합니다.
+    *   `getDraftSchedule()`: `Array`. **현재 선택된 보스 목록(listId)에 격리된** Draft 스케줄을 반환합니다. 이를 통해 여러 게임(오딘, 리니지 등)을 번갈아 작업해도 사용자의 입력 데이터가 서로 섞이지 않는 **Workspace Isolation**을 실현합니다.
     *   `setDraftSchedule(newDraft)`: `void`. 현재 선택된 보스 목록 전용 키로 Draft를 설정하고 localStorage에 저장합니다.
     *   `commitDraft()`: `void`. Draft 데이터를 **48시간 분량으로 자동 확장 및 정규화하여** Main SSOT에 적용(Commit)합니다. Draft를 Main SSOT로 병합하고 즉시 다시 Draft를 동기화하여 연속성 확보.
     *   `clearDraft()`: `void`. 현재 보스 목록의 Draft 스케줄을 초기화합니다.
@@ -389,7 +389,7 @@
 - **역할:** 최신 브라우저의 Document Picture-in-Picture API를 활용하여 대시보드의 '다음 보스' 정보를 항상 위에 떠 있는 작은 창(PiP 위젯)으로 관리합니다. PiP 창의 열기/닫기, 콘텐츠 업데이트 및 상태 관리 로직을 담당합니다.
 
 - **주요 `export` 함수:**
-    - `togglePipWindow()`: PiP 창을 열거나 닫습니다. 호출 시 PiP API 지원 여부를 확인하고, 지원 시 `requestWindow()`를 통해 새 창을 생성합니다. `pip-content.html`의 HTML과 CSS를 로드하여 삽입하며, 사용자가 PiP 창을 닫을 경우 내부 상태를 재설정하기 위한 `pagehide` 이벤트 리스너를 등록합니다. 창의 초기 크기는 너비 240px, 높이 100px로 설정됩니다.
+    - `togglePipWindow()`: PiP 창을 열거나 닫습니다. 호출 시 PiP API 지원 여부를 확인하고, 지원 시 `requestWindow()`를 통해 새 창을 생성합니다. `pip-content.html`의 HTML과 CSS를 로드하여 삽입하며, 사용자가 PiP 창을 닫을 경우 내부 상태를 재설정하기 위한 `pagehide` 이벤트 리스너를 등록합니다. **창의 너비는 240px로 고정되나, 높이는 보스 수에 따라 동적으로 계산(1개: 96px, 2개: 130px, N개: 130+(N-2)*25px)되어 최적의 가독성을 제공합니다.**
     - `updatePipContent(nextBoss, minTimeDiff)`: 열려 있는 PiP 창의 내용을 '다음 보스' 정보로 업데이트합니다. 남은 시간에 따라 시간 표시의 색상을 동적으로 변경(5분 미만: 빨강, 10분 미만: 주황, 1시간 미만: 검정, 1시간 이상: 회색)합니다.
     - `isPipWindowOpen()`: PiP 창이 현재 열려 있는지 여부를 반환합니다.
 
@@ -403,7 +403,7 @@
 |---|---|---|
 | **`alarm-log.js`** | `getScreen()` | `onTransition` 시 `initAlarmLogScreen(DOM)`을 호출하여 로그 화면을 초기화합니다. `initAlarmLogScreen`은 `LocalStorageManager`를 통해 "15개 보기" 토글 버튼의 상태를 로드/저장하고 관련 이벤트 리스너를 등록합니다. 로그의 실시간 갱신은 `global-event-listeners.js`에 중앙화된 `log-updated` 이벤트 리스너를 통해 자동으로 처리됩니다. `renderAlarmLog`는 토글 상태에 따라 최근 15개 또는 전체 로그를 렌더링합니다. |
 | **`timetable.js`** | `getScreen()` | `init` 시 '뷰/편집' 모드 토글, '표/카드' 보기 모듈 전환 및 **내보내기(Export) 모달** 이벤트 리스너를 등록합니다. <br> - **내보내기 가드**: 모달이 열려 있는 동안 `startAutoRefresh`를 일시 중단하여 프리뷰 안전성을 확보합니다. <br> - **실시간 동기화**: `syncTimetablePreview`를 통해 옵션 변경 즉시 배경 UI를 갱신합니다. <br> - **상태 복원**: `restoreOriginalSettings`를 통해 내보내기 완료 후 이전 화면 상태(탭, 필터 등)를 완벽히 복구합니다. <br> - **이미지 내보내기**: `html2canvas`를 활용해 캡처 대상 ID(`boss-list-table` 등)를 고해상도로 저장합니다. |
-| **`boss-scheduler.js`** | `getScreen()` | `init` 시 `EventBus.on('show-boss-scheduler-screen')` 및 `EventBus.on('rerender-boss-scheduler')` 리스너를 등록하고, UI를 렌더링합니다. `remaining-time-input` 필드의 유효성 검사는 사용자 입력을 방해하지 않도록 **지연 검증(Deferred Validation)** 정책을 적용하여, 최종 "보스 시간 업데이트" 버튼 클릭 시점에 일괄 수행합니다. `handleApplyBossSettings(DOM)` 함수는 입력된 `data-id`와 계산된 시간, 그리고 `dataset.timeFormat`을 기반으로 `boss` 객체를 업데이트하고 리스트를 재구성하여 저장합니다. |
+| **`boss-scheduler.js`** | `getScreen()` | `init` 시 `EventBus.on('show-boss-scheduler-screen')` 및 `EventBus.on('rerender-boss-scheduler')` 리스너를 등록하고, UI를 렌더링합니다. `remaining-time-input` 필드의 유효성 검사는 사용자 입력을 방해하지 않도록 **지연 검증(Deferred Validation)** 정책을 적용하여, 최종 "보스 시간 업데이트" 버튼 클릭 시점에 일괄 수행합니다. `handleApplyBossSettings(DOM)` 함수는 입력된 `data-id`와 계산된 시간, 그리고 `dataset.timeFormat`을 기반으로 `boss` 객체를 업데이트하고 리스트를 재구성하여 저장합니다. **Workspace Isolation 적용으로 게임별로 작성 중인 입력 내용이 자동 저장 및 복원되어 사용자 작업 연속성을 보장합니다.** |
 | **`calculator.js`** | `getScreen()` | `init` 시 `initCalculatorScreen(DOM)`이 호출되어 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 `handleCalculatorScreenTransition(DOM)`이 호출되어 `CrazyCalculator`의 상태를 초기화하고 `ui-renderer.js`의 `renderCalculatorScreen(DOM)`을 호출하여 화면을 렌더링합니다. `checkZenCalculatorUpdateButtonState(DOM)` 헬퍼 함수를 통해 '보스 시간 업데이트' 버튼의 활성화/비활성화 상태를 관리합니다. |
 | **`custom-list.js`** | `getScreen()` | `init` 시 `initCustomListScreen(DOM)`이 호출되어 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. `DOM.manageCustomListsButton` 클릭 시 모달이 열리며, 목록 변경 시 `EventBus.emit('rerender-boss-scheduler')`를 발행하여 보스 스케줄러의 드롭다운을 업데이트합니다. |
 | **`dashboard.js`** | `getScreen()` | `init` 시 `initDashboardScreen(DOM)`이 호출되어 `DOM.muteToggleButton` (음소거 버튼)과 `DOM.volumeSlider` (볼륨 슬라이더)에 대한 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링합니다. 음소거 버튼 클릭 시 `LocalStorageManager.setMuteState()`를 호출하여 음소거 상태를 토글하며, 볼륨 슬라이더 조작 시 `LocalStorageManager.setVolume()`을 통해 볼륨 값을 저장합니다. 두 UI 요소 모두 변경 시 `ui-renderer.js`의 `updateSoundControls(DOM)`를 호출하여 시각적 상태를 갱신합니다. `initDashboardScreen`은 `EventBus.on('log-updated', ...)` 리스너를 등록하여 새로운 로그 발생 시 `renderRecentAlarmLog(DOM)`를 호출하여 로그를 갱신합니다. |
