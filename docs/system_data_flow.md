@@ -35,6 +35,7 @@
     *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
     *   **`renderAlarmStatusSummary(DOM)`를 호출하여 알림 상태 요약을 초기 렌더링합니다.**
     *   `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링하며, 1초마다 주기적으로 갱신되도록 `setInterval`을 설정합니다.
+    *   **스켈레톤 해제 및 콘텐츠 노출**: 모든 초기화 로직이 완료된 시점에 `body`에서 `loading` 클래스를 제거하여 스켈레톤 UI를 숨기고, 실제 대시보드 콘텐츠를 화면에 노출하여 로딩 시너지를 완결합니다.
     *   `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.
 
 3.  **`app.js: showScreen(DOM, screenId)` 실행:**
