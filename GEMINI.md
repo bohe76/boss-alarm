@@ -92,12 +92,13 @@
 
 ### 에이전트 업무 준비
 
-*   사용자님이 "업무준비"라고 지시하면, 다음 5개의 핵심 문서를 학습합니다.
+*   사용자님이 "업무준비"라고 지시하면, 다음 6개의 핵심 문서를 학습합니다.
     *   `docs/system_architecture.md`
     *   `docs/system_module_details.md`
     *   `docs/system_module_dependencies.md`
     *   `docs/system_data_flow.md`
     *   `docs/functional-specs/index.md`
+    *   `docs/critical_code_policy.md`
 *   학습을 마친 후에는 "업무 준비를 마쳤습니다."라고 사용자님께 알립니다.
 
 
