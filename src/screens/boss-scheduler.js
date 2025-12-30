@@ -14,11 +14,9 @@ let _memoInputs = {}; // Encapsulated state for memo inputs
 function handleShowScreen(DOM) {
     // 1. Draft 데이터 확보 (없으면 Main에서 자동 복사됨)
     const draftSchedule = BossDataManager.getDraftSchedule();
-    console.log('[Debug] handleShowScreen - draftSchedule:', draftSchedule);
 
     // 2. Draft -> 내부 UI 상태(_remainingTimes, _memoInputs) 동기화
     syncDraftToUIState(draftSchedule);
-    console.log('[Debug] handleShowScreen - after syncDraftToUIState:', { _remainingTimes, _memoInputs });
 
     // 3. UI 렌더링 (드롭다운, 입력 필드, 텍스트 영역)
     renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs, draftSchedule);
@@ -35,7 +33,6 @@ function handleShowScreen(DOM) {
  * Draft 스케줄 데이터를 기반으로 입력 필드용 로컬 상태(_remainingTimes, _memoInputs)를 구축합니다.
  */
 function syncDraftToUIState(draftSchedule) {
-    console.log('[Debug] syncDraftToUIState - incoming draftSchedule:', draftSchedule);
     _remainingTimes = {};
     _memoInputs = {};
     const now = Date.now();

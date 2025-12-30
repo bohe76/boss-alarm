@@ -32,7 +32,7 @@
         3. **기본 샘플 데이터**: 위 두 조건에 해당하지 않을 때만 `initial-default.json` 데이터를 로드합니다.
     *   **자동 확장 및 침공 보스 필터링**: 데이터가 설정될 때마다 `BossDataManager` 내부에서 `_expandAndReconstruct()`가 실행되어 48시간 일정으로 정규화됩니다. 이때 프리셋의 `isInvasion` 플래그를 확인하여 **당일이 아닌 침공 보스 인스턴스는 자동으로 제외**하여 정합성을 유지합니다. 사용자가 수정한 데이터(ID 일치)는 보호되며, 새로 생성되는 인스턴스는 고유한 UID를 부여받습니다.
     *   `initGlobalEventListeners(DOM)`를 호출하여 전역 이벤트 리스너를 활성화합니다.
-    *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
+    *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
     *   **`renderAlarmStatusSummary(DOM)`를 호출하여 알림 상태 요약을 초기 렌더링합니다.**
     *   `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링하며, 1초마다 주기적으로 갱신되도록 `setInterval`을 설정합니다.
     *   `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.
@@ -192,3 +192,14 @@
     3.  `updateNextBossDisplay(DOM)` 함수는 `pip-manager.js`의 `isPipWindowOpen()`을 통해 PiP 창이 열려 있는지 확인하고, 열려 있다면 `updatePipContent(nextBoss, minTimeDiff)`를 호출합니다.
     4.  `updatePipContent()`는 `BossDataManager`에서 현재 '다음 보스' 정보(`nextBoss`, `minTimeDiff`)를 가져와 PiP 창 내의 `#pip-boss-name` (보스 이름)과 `#pip-remaining-time` (남은 시간) 요소의 텍스트를 최신 정보로 업데이트합니다.
 *   **데이터 흐름 요약:** PiP 위젯은 `app.js`에서 초기화되고 `pip-manager.js`에서 창 생명주기를 관리하며, `ui-renderer.js`를 통해 `BossDataManager`의 데이터를 기반으로 콘텐츠가 실시간으로 동기화됩니다.
+
+### 3.12. 지능형 사이드바 및 내비게이션 UX (New in v2.2)
+
+*   **PC 슬라이딩 호버 오버레이**:
+    1.  **레이아웃 고정**: 사이드바의 물리적 너비는 64px(아이콘 레일)로 유지되어 본문 영역의 흔들림을 원천 차단합니다.
+    2.  **호버 트리거**: 사용자가 사이드바 영역에 마우스를 올리면 UI 엔진(CSS)이 즉시 반응하여 메뉴명이 포함된 레이어를 200px로 확장해 본문 위를 덮습니다.
+    3.  **즉각적 복귀**: 마우스가 영역을 벗어나면 지연 시간 없이 즉시 아이콘 레일로 복귀하여 최상의 가독성 영역을 확보합니다.
+    4.  **Stateless 설계**: 더 이상 사용자의 클릭 상태를 기억하지 않으며, 실시간 사용자의 의도(호버)에만 반응합니다.
+*   **모바일 5-메뉴 내비게이션**:
+    1.  하단 탭 바가 5개 핵심 메뉴(대시보드, 시간표, 스케줄러, 계산기, 공유) 체계로 운용됩니다.
+    2.  각 아이콘 클릭 시 `app.js`의 `showScreen`을 호출하여 화면을 즉시 전환하며, 활성 탭에 시각적 강조 효과(Active class)를 부여합니다.

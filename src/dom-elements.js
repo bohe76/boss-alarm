@@ -6,7 +6,6 @@ export function initDomElements() {
         alarmToggleButton: document.getElementById('alarmToggleButton'),
 
         sidebar: document.getElementById('sidebar'),
-        sidebarToggle: document.getElementById('sidebarToggle'), // New
         bottomNav: document.getElementById('bottom-nav'), // New for mobile
         sidebarBackdrop: document.getElementById('sidebar-backdrop'), // New for mobile
         moreMenuButton: document.getElementById('more-menu-button'), // New for mobile

@@ -36,7 +36,7 @@
     5.  `loadInitialData(DOM)`를 호출하여 URL 파라미터 또는 기본값으로부터 초기 보스 목록 및 고정 알림 데이터를 로드합니다.
     6.  **'설정' 화면의 고정 알림 목록을 초기 렌더링합니다 (`renderFixedAlarms(DOM)`).**
     7.  `initGlobalEventListeners(DOM)`를 호출하여, `BossDataManager` 데이터 변경 감지, 로그 업데이트 등 애플리케이션 전반의 핵심 이벤트 리스너를 중앙에서 등록하고 활성화합니다.
-    8.  `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 사이드바, 내비게이션 링크, **PiP 토글 버튼** 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
+    8.  `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 내비게이션 링크, **PiP 토글 버튼** 등 주요 UI 요소의 이벤트 핸들러를 등록합니다. (사이드바 토글 버튼은 제거됨)
     9.  `renderAlarmStatusSummary(DOM)`를 호출하여 초기 UI 상태를 설정합니다.
     10. `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링합니다.
     11. `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여, 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.
@@ -69,9 +69,9 @@
     *   **시간 역전 감지:** 이전 보스보다 시간이 이르면 날짜를 다음 날로 자동 증가시킵니다. (예: 23:29 → 03:50은 다음 날)
 
 #### `initEventHandlers(DOM, globalTooltip)` (내부 함수)
-- **설명:** 애플리케이션의 모든 주요 UI 요소(알람 토글, 사이드바 토글, 내비게이션 링크, 모바일 "더보기" 메뉴)에 대한 전역 이벤트 리스너를 등록합니다.
+- **설명:** 애플리케이션의 모든 주요 UI 요소(알람 토글, 내비게이션 링크, 모바일 "더보기" 메뉴)에 대한 전역 이벤트 리스너를 등록합니다.
 - **인자:** `DOM` (`Object`), `globalTooltip` (`HTMLElement`).
-- **핵심 내부 로직:** `DOM.alarmToggleButton`, `DOM.sidebarToggle`, `navLinks` (`DOM.navDashboard` 등), `bottomNavLinks` (`DOM.bottomNavDashboard` 등), `DOM.moreMenuButton`, `DOM.moreMenuCloseButton`, `DOM.sidebarBackdrop`에 이벤트 리스너를 등록합니다. 사이드바 메뉴 링크 클릭 시 모바일 "더보기" 메뉴를 닫는 로직도 포함됩니다.
+- **핵심 내부 로직:** `DOM.alarmToggleButton`, `navLinks` (`DOM.navDashboard` 등), `bottomNavLinks` (`DOM.bottomNavDashboard` 등), `DOM.moreMenuButton`, `DOM.moreMenuCloseButton`, `DOM.sidebarBackdrop`에 이벤트 리스너를 등록합니다. 사이드바 메뉴 링크 클릭 시 모바일 "더보기" 메뉴를 닫는 로직도 포함됩니다. PC 사이드바 토글 이벤트는 CSS 호버 방식으로 대체되어 제거되었습니다.
 
 ---
 
@@ -190,7 +190,7 @@
     *   `getMuteState()` / `setMuteState(state)`: `boolean` / `void`. 음소거 상태를 관리합니다.
     *   `getVolume()` / `setVolume(newVolume)`: `number` / `void`. 음성 알림 볼륨 레벨(0.0 ~ 1.0)을 관리하며, 기본값은 1입니다.
     *   `getPreMuteVolume()` / `setPreMuteVolume(newPreMuteVolume)`: `number` / `void`. 음소거 직전의 볼륨 레벨을 저장하고 복원하는 데 사용됩니다.
-    *   그 외 `logVisibilityState`, `alarmRunningState`, `sidebarExpandedState`, `crazyCalculatorRecords` 등에 대한 `get/set` 함수를 제공합니다.
+    *   그 외 `logVisibilityState`, `alarmRunningState`, `crazyCalculatorRecords` 등에 대한 `get/set` 함수를 제공합니다. (사이드바 확장 상태 영속성 로직은 UX 개편에 따라 제거되었습니다.)
     *   `getLogVisibilityState()` / `setLogVisibilityState(state)`: `boolean` / `void`. 로그 화면의 "15개 보기" 토글 상태를 관리합니다.
 
 ---

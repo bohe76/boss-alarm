@@ -258,7 +258,6 @@ export const BossDataManager = (() => {
 
             // 프리셋이 로드되면 기존 스케줄을 즉시 확장 및 정규화
             if (bossSchedule && bossSchedule.length > 0) {
-                console.log('[Debug] BossDataManager - Expanding existing schedule after preset initialization');
                 bossSchedule = _expandAndReconstruct(bossSchedule);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(bossSchedule));
 
@@ -324,7 +323,6 @@ export const BossDataManager = (() => {
         },
         getBossSchedule: () => bossSchedule,
         setBossSchedule: (newSchedule) => {
-            console.log('[Debug] BossDataManager.setBossSchedule - incoming:', newSchedule);
             // 들어온 리스트를 즉시 48시간(오늘~내일) 분량으로 확장하고 정규화함
             bossSchedule = _expandAndReconstruct(newSchedule || []);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(bossSchedule)); // 원본 영구 저장
@@ -421,7 +419,6 @@ export const LocalStorageManager = (() => {
     let fixedAlarms = [];
     let logVisibilityState = true;
     let alarmRunningState = false;
-    let sidebarExpandedState = false;
     let crazyCalculatorRecords = [];
     let muteState = false;
     let volume = 1;
@@ -504,18 +501,6 @@ export const LocalStorageManager = (() => {
         }
     }
 
-    function saveSidebarExpandedState() {
-        localStorage.setItem('sidebarExpandedState', JSON.stringify(sidebarExpandedState));
-    }
-
-    function loadSidebarExpandedState() {
-        const savedState = localStorage.getItem('sidebarExpandedState');
-        if (savedState !== null) {
-            sidebarExpandedState = JSON.parse(savedState);
-        } else {
-            sidebarExpandedState = false;
-        }
-    }
 
     function saveCrazyCalculatorRecords() {
         localStorage.setItem('crazyCalculatorRecords', JSON.stringify(crazyCalculatorRecords));
@@ -611,8 +596,6 @@ export const LocalStorageManager = (() => {
         setLogVisibilityState: (state) => { logVisibilityState = state; saveLogVisibilityState(); },
         getAlarmRunningState: () => alarmRunningState,
         setAlarmRunningState: (state) => { alarmRunningState = state; saveAlarmRunningState(); },
-        getSidebarExpandedState: () => sidebarExpandedState,
-        setSidebarExpandedState: (state) => { sidebarExpandedState = state; saveSidebarExpandedState(); },
         getMuteState: () => muteState,
         setMuteState: (state) => { muteState = state; saveMuteState(); },
         getVolume: () => volume,
@@ -626,7 +609,6 @@ export const LocalStorageManager = (() => {
             loadFixedAlarms();
             loadLogVisibilityState();
             loadAlarmRunningState();
-            loadSidebarExpandedState();
             loadCrazyCalculatorRecords();
             loadMuteState();
             loadVolume();

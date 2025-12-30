@@ -85,28 +85,6 @@ function registerAllRoutes() {
 }
 
 
-// Global tooltip functions
-function showTooltip(content, targetElement, globalTooltip) {
-    if (!globalTooltip) return;
-    globalTooltip.innerHTML = content;
-    const rect = targetElement.getBoundingClientRect();
-    const originalDisplay = globalTooltip.style.display;
-    globalTooltip.style.display = 'block';
-    const tooltipHeight = globalTooltip.offsetHeight;
-    globalTooltip.style.display = originalDisplay;
-    globalTooltip.style.top = `${rect.top + (rect.height / 2) - (tooltipHeight / 2)}px`;
-    globalTooltip.style.left = `${rect.right + 5}px`;
-    globalTooltip.style.opacity = '1';
-    globalTooltip.style.visibility = 'visible';
-    globalTooltip.style.display = 'block';
-}
-
-function hideTooltip(globalTooltip) {
-    if (!globalTooltip) return;
-    globalTooltip.style.display = 'none';
-    globalTooltip.style.opacity = '0';
-    globalTooltip.style.visibility = 'hidden';
-}
 
 // Function to show a specific screen and hide others
 function showScreen(DOM, screenId) {
@@ -214,7 +192,6 @@ function loadInitialData(DOM) {
     } else if (existingSchedule && existingSchedule.length > 0) {
         // 2. 기존 사용자 데이터가 이미 있으면 그대로 유지 (이미 BossDataManager 내부에 로드됨)
         loadSuccess = true;
-        console.log('[Debug] loadInitialData - Existing local schedule found, skipping default data');
     }
 
     // 3. 로드된 데이터가 전혀 없는 경우에만 기본 샘플 데이터 로드
@@ -234,7 +211,7 @@ function loadInitialData(DOM) {
 }
 
 // Function to initialize all event handlers
-function initEventHandlers(DOM, globalTooltip) {
+function initEventHandlers(DOM) {
     DOM.alarmToggleButton.addEventListener('click', () => {
         if (!getIsAlarmRunning()) {
             startAlarm(DOM);
@@ -258,11 +235,6 @@ function initEventHandlers(DOM, globalTooltip) {
         });
     }
 
-    DOM.sidebarToggle.addEventListener('click', () => {
-        const isExpanded = DOM.sidebar.classList.toggle('expanded');
-        LocalStorageManager.setSidebarExpandedState(isExpanded);
-        hideTooltip(globalTooltip);
-    });
 
     const navLinks = [
         DOM.navDashboard, DOM.navTimetable, DOM.navCalculator, DOM.navBossScheduler,
@@ -279,19 +251,6 @@ function initEventHandlers(DOM, globalTooltip) {
                 showScreen(DOM, screenId);
             });
 
-            const menuTextSpan = link.querySelector('.menu-text');
-            if (menuTextSpan) {
-                link.addEventListener('mouseenter', () => {
-                    if (!DOM.sidebar.classList.contains('expanded')) {
-                        showTooltip(menuTextSpan.textContent, link, globalTooltip);
-                    }
-                });
-                link.addEventListener('mouseleave', () => {
-                    if (!DOM.sidebar.classList.contains('expanded')) {
-                        hideTooltip(globalTooltip);
-                    }
-                });
-            }
         }
     });
 
@@ -394,7 +353,6 @@ export async function initApp() {
     window.isBossListDirty = false; // Initialize dirty flag
     document.body.classList.add('loading'); // Activate skeleton UI
     const DOM = initDomElements();
-    const globalTooltip = document.getElementById('global-tooltip');
 
     if (DOM.footerVersion) DOM.footerVersion.textContent = window.APP_VERSION;
     if (DOM.footerContactButton && window.APP_VERSION) {
@@ -442,24 +400,19 @@ export async function initApp() {
         LocalStorageManager.set('hasVisitedAlarmPolicy', 'true');
     }
 
-    if (LocalStorageManager.getSidebarExpandedState()) {
-        DOM.sidebar.classList.add('expanded');
-    } else {
-        DOM.sidebar.classList.remove('expanded');
-    }
 
     showScreen(DOM, 'dashboard-screen');
     DOM.navDashboard.classList.add('active');
 
     EventBus.on('navigate', (screenId) => showScreen(DOM, screenId));
     initGlobalEventListeners(DOM);
-    initEventHandlers(DOM, globalTooltip);
+    initEventHandlers(DOM);
 
     const handleResize = () => {
         const isMobileView = window.innerWidth <= 768;
         document.body.classList.toggle('is-mobile-view', isMobileView);
         if (isMobileView && DOM.sidebar.classList.contains('more-menu-open')) {
-            DOM.sidebar.classList.remove('expanded');
+            // Mobile more-menu logic remains
         }
     };
 

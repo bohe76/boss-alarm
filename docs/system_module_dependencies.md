@@ -14,7 +14,7 @@
 | `pip-manager.js` | `togglePipWindow()`: PiP 창 열기/닫기 (PiP API 지원 확인 포함) |
 | `router.js` | `registerAllRoutes()`, `getRoute()`: 화면 모듈 등록 및 검색 |
 | `global-event-listeners.js` | `initGlobalEventListeners()`: 중앙화된 전역 이벤트 리스너 초기화 |
-| `data-managers.js` | `LocalStorageManager.*`, `BossDataManager.*`: 데이터 로딩 및 관리 |
+| `data-managers.js` | `LocalStorageManager.*`, `BossDataManager.*`: 데이터 로딩 및 관리 (사이드바 상태 제외) |
 | `boss-parser.js` | `parseBossList()`: 보스 목록 텍스트 파싱 (초기 로드 시) |
 | `ui-renderer.js` | `renderFixedAlarms()`, `renderAlarmStatusSummary()`, `renderDashboard()`, `updateBossListTextarea()`: UI 초기 렌더링 및 갱신 |
 | `event-bus.js` | `EventBus.on('navigate', ...)`: 화면 전환 이벤트 구독 |

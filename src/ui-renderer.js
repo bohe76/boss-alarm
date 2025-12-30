@@ -358,7 +358,6 @@ export function renderCrazySavedList(DOM, records) {
 // bossSchedule 배열의 내용을 기반으로 텍스트 영역을 업데이트합니다.
 export function updateBossListTextarea(DOM, scheduleData = null) {
     const bossSchedule = scheduleData || BossDataManager.getBossSchedule();
-    console.log('[Debug] updateBossListTextarea - bossSchedule:', bossSchedule);
 
     const outputLines = [];
     let lastDateStr = "";
@@ -597,7 +596,6 @@ export function showCustomListTab(DOM, tabId) {
 
 // --- Boss Scheduler Screen Rendering Functions ---
 export function renderBossSchedulerScreen(DOM, remainingTimes = {}, memoInputs = {}, scheduleData = null) {
-    console.log('[Debug] renderBossSchedulerScreen - data:', { remainingTimes, memoInputs, scheduleData });
     if (!DOM.bossSchedulerScreen) return;
     // Populate game selection dropdown
     const gameNameObjects = getGameNames();
@@ -634,9 +632,7 @@ export function renderBossSchedulerScreen(DOM, remainingTimes = {}, memoInputs =
  * 간편 입력 모드는 boss-presets.json의 보스 이름 목록으로 입력 폼을 생성합니다.
  */
 export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs = {}, scheduleData = null) {
-    console.log('[Debug] renderBossInputs - gameName:', gameName);
     const bossNames = getBossNamesForGame(gameName);
-    console.log('[Debug] renderBossInputs - bossNames for game:', bossNames);
     if (!bossNames || bossNames.length === 0) {
         DOM.bossInputsContainer.innerHTML = '<p>선택된 게임/목록에 보스가 없습니다.</p>';
         return;
