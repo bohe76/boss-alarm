@@ -484,8 +484,19 @@ export function renderFixedAlarms(DOM) {
         }).join('')}
                 </div>
                 <div class="button-group">
-                    <button class="button edit-fixed-alarm-button" data-id="${alarm.id}">편집</button>
-                    <button class="button delete-fixed-alarm-button" data-id="${alarm.id}">삭제</button>
+                    <button class="button edit-fixed-alarm-button icon-button" data-id="${alarm.id}" title="편집">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .642.642l3.155-1.262a2 2 0 0 0 .733-.503l11.04-11.04a2 2 0 0 0 0-2.828l-1.414-1.414a2 2 0 0 0-2.828 0L2.192 12.602a2 2 0 0 0-.503.733Z" />
+                            <path d="M11.695 3.332 14.668 6.305 16.546 4.427a1 1 0 0 0 0-1.414l-1.414-1.414a1 1 0 0 0-1.414 0l-1.878 1.878Z" />
+                        </svg>
+                        <span class="btn-text">편집</span>
+                    </button>
+                    <button class="button delete-fixed-alarm-button icon-button" data-id="${alarm.id}" title="삭제">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="btn-text">삭제</span>
+                    </button>
                 </div>
             </div>
         `;
