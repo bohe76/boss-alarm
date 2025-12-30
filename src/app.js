@@ -280,7 +280,7 @@ function initEventHandlers(DOM) {
     }
 
     // --- 11. VERSION UPDATE MODAL (v2.6) ---
-    const versionKey = `hide_update_modal_${window.APP_VERSION || 'v2.16.2'}`;
+    const versionKey = `hide_update_modal_v${window.APP_VERSION || '2.16.2'}`;
 
     const closeUpdateModal = () => {
         DOM.versionUpdateModal.style.display = 'none';
@@ -430,7 +430,7 @@ export async function initApp() {
 
     if (DOM.footerVersion) DOM.footerVersion.textContent = window.APP_VERSION;
     if (DOM.footerContactButton && window.APP_VERSION) {
-        DOM.footerContactButton.href = `https://tally.so/r/vGMYND?appVersion=${window.APP_VERSION}`;
+        DOM.footerContactButton.href = `https://tally.so/r/vGMYND?appVersion=v${window.APP_VERSION}`;
         DOM.footerContactButton.addEventListener('click', () => {
             trackEvent('Click Button', { event_category: 'Interaction', event_label: '푸터 문의하기' });
         });

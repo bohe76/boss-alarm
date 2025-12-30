@@ -1134,8 +1134,8 @@ export function renderExportCapture(DOM, options = {}) {
 export function renderUpdateModal(DOM, noticeData) {
     if (!DOM.versionUpdateModal || !noticeData) return;
 
-    const version = window.APP_VERSION || "v2.16.2";
-    DOM.versionModalTitle.textContent = `${version} 업데이트 안내`;
+    const version = window.APP_VERSION || "2.16.2";
+    DOM.versionModalTitle.textContent = `v${version} 업데이트 안내`;
 
     // 개발자 한마디
     DOM.devMessageContent.textContent = noticeData.developerMessage || "";

@@ -105,9 +105,12 @@
 ### 버전 관리
 - 모든 커밋은 버전 관리를 포함할 수 있다.
 - 버전은 사용자가 명시적으로 지정하며, `vX.X.X` 형식을 따른다.
+- **버전 데이터 표준화 원칙**: 
+  - `window.APP_VERSION` 값은 **숫자로만 관리**한다 (예: `"2.16.2"`).
+  - 'v'와 같은 접두사나 추가 텍스트가 필요한 경우, 이를 변수값에 포함하지 않고 출력 시점(UI Renderer 등)에서 **별도로 처리**한다.
 - 버전이 업데이트되면 아래 4가지 작업을 반드시 수행한다. (SSOT 유지)
   1. `index.html`의 CSS 링크 버전을 수정한다. (`href="src/style.css?v=X.X.X"`)
-  2. `index.html`의 스크립트 내 `window.APP_VERSION` 변수를 수정한다.
+  2. `index.html`의 스크립트 내 `window.APP_VERSION` 변수를 수정한다. (숫자만 입력)
   3. `data/version_history.json` 파일에 해당 버전의 변경 내역을 추가한다.
   4. **`src/data/update-notice.json` 파일을 사용하여 앱 시작 시 노출될 업데이트 안내 모달의 내용을 갱신한다.** (가변적 요약 및 인사말 반영)
 
