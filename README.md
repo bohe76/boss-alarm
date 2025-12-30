@@ -1,66 +1,66 @@
-# Boss Alarm (보스 알리미)
+# 🔔 보스 알리미 (Boss Alarm)
+### "보스 알림을 자동으로 해주는 그런 서비스 없어?" - 보스 알리미가 그 정답입니다.
 
 ![Boss Alarm Screenshot](https://i.postimg.cc/gcZddxqV/screencapture-127-0-0-1-5500-index-html-2025-12-01-15-48-11.png)
 
-## 🚀 프로젝트 소개 (Project Introduction)
+보스 알리미는 오딘, 리니지 등 모든 MMORPG 유저를 위한 **가장 스마트한 자동 보스 알림 및 보탐 매니저**입니다. 복잡한 설치나 회원가입 없이 브라우저에서 바로 사용 가능한 강력한 게임 보조 도구입니다.
 
-"보스 알리미"는 게임 보스 출현 시간에 대한 알림을 제공하는 클라이언트 측 웹 애플리케이션입니다. 기존 단일 화면 구성에서 메뉴 기반의 다중 화면 레이아웃으로 전환하여 사용자 경험을 개선하고 기능별 분리를 강화했습니다. 사용자는 텍스트 영역에 보스 출현 시간 목록을 입력할 수 있으며, 보스 출현 5분 전, 1분 전, 그리고 정확한 출현 시간에 오디오 및 시각적(로그) 알림을 받습니다. 또한, 현재 보스 목록을 인코딩하여 공유 가능한 짧은 URL(TinyURL API 사용)을 생성하는 기능을 제공하여 사용자가 자신의 설정을 쉽게 공유할 수 있도록 합니다.
+---
 
-This project is a client-side web application designed to provide notifications for game boss appearances. It has transitioned from a single-screen setup to a menu-driven, multi-screen layout to enhance user experience and improve functional separation. Users can input a list of boss spawn times into a text area, and receive audio and visual (log) notifications 5 minutes before, 1 minute before, and at the exact boss appearance time. Additionally, it offers a feature to generate shareable short URLs (using the TinyURL API) by encoding the current boss list, allowing users to easily share their settings.
+## ✨ 5가지 핵심 강점 (Key Highlights)
 
-## ✨ 주요 기능 (Key Features)
+*   **🚀 자동 보스 알림 시스템**: 젠 주기만 설정하면 다음 출현 시간을 자동으로 추적하고, 배너와 음성(TTS)으로 정확한 타이밍에 알려줍니다. (5분 전/1분 전/정시 알림)
+*   **🖥️ PIP 미니 타이머 (Picture-in-Picture)**: 게임 화면 위에 작은 위젯 창으로 띄워두세요. 창을 최소화해도 보스 남은 시간을 실시간으로 확인할 수 있습니다.
+*   **🔗 실시간 시간표 공유**: 클릭 한 번으로 고유 짧은 URL을 생성하여 우리 팀이나 길드원에게 현재 보스 시간표를 즉시 공유할 수 있습니다.
+*   **⏱️ 스마트 젠 계산기 & 광 계산기**: 복잡한 암산 없이 **남은 시간만 입력**하면 즉시 다음 젠 시간이 계산됩니다. 필드 보스 '광' 타이밍도 완벽하게 추적합니다.
+*   **🛠️ 커스텀 보스 관리**: 기본 제공 보스 외에도 나만의 보스 이름과 젠 주기를 자유롭게 추가하고 서버별로 독립된 작업 공간을 유지할 수 있습니다.
 
-*   **메뉴 기반 다중 화면 레이아웃 (Menu-Driven Multi-Screen Layout):**
-    *   **대시보드:** 다음 보스 정보 및 알림 상태 요약.
-    *   **보스 관리:** 보스 목록 입력 및 프리셋 관리.
-    *   **알림 설정:** 고정 알림 추가, 편집, 삭제 및 활성화/비활성화.
-    *   **젠 계산기:** 남은 시간을 기준으로 보스 출현 시간 계산.
-    *   **보스 스케줄러:** 게임별 보스 목록에서 남은 시간을 설정하여 보스 목록 자동 생성. **(정확한 시간 계산과 안정성 강화)**
-    *   **공유:** 현재 보스 목록을 공유 가능한 짧은 URL로 생성.
-    *   **알림 로그:** 모든 알림 및 시스템 메시지 기록. "15개 보기" 토글을 통해 최근 15개 또는 전체 로그를 볼 수 있으며, 이 설정은 로컬 스토리지에 유지됩니다.
-    *   **도움말:** 애플리케이션 사용법 및 기능 설명.
-    *   **릴리즈 노트:** 버전별 업데이트 내역 확인.
+---
 
-*   **시간 기반 알림 (Time-Based Notifications):** 보스 출현 5분 전, 1분 전, 0분 전에 알림이 트리거됩니다. **(자정(00:00:00) 시간 처리 및 전체적인 시간 계산 정확성, 안정성 향상)**
-*   **오디오 알림 (Audio Notifications):** 웹 음성 API (`window.speechSynthesis`)를 활용하여 음성 알림을 제공합니다.
-*   **로깅 (Logging):** 트리거된 모든 알림 및 시스템 메시지 로그를 UI에 표시합니다.
-*   **공유 가능한 URL (Shareable URLs):** 현재 보스 목록을 인코딩하여 다른 사용자를 위해 미리 채워주는 짧은 URL(TinyURL API를 통해)을 생성합니다.
-*   **고정 알림 (Fixed Alarms):** 특정 보스에 대한 고정된 알림을 설정하고 개별적으로 ON/OFF 할 수 있으며, 로컬 스토리지에 저장됩니다.
-*   **로컬 스토리지 저장 (Local Storage Persistence):** 사용자 설정(고정 알림, 로그 가시성, 사이드바 상태, 활성 화면 등)이 브라우저에 저장되어 재접속 시에도 유지됩니다.
-*   **자정 넘김 시간 처리 (Cross-Midnight Time Handling):** 자정을 넘어가는 보스 시간도 정확하게 처리합니다.
-*   **스켈레톤 UI (Skeleton UI):** 애플리케이션 초기 로딩 시 사용자에게 시각적인 피드백을 제공하여 로딩 경험을 개선합니다.
+## 📱 기기별 최적화 경험 (Device Specifics)
 
-## 🛠️ 사용 방법 (How to Use)
+*   **💻 PC 환경**: 사이드바 기반의 넓은 레이아웃과 PIP 미니 위젯, 시스템 배너 알림으로 멀티태스킹에 최적화되어 있습니다.
+*   **📱 모바일 환경**: 하단 탭 내비게이션 바를 통해 대시보드와 스케줄러를 한 손으로 쉽게 조작할 수 있습니다.
+*   **💬 카카오톡 탈출 지원**: 인앱 브라우저의 알림 제한을 극복하기 위해 크롬/사파리 등 외부 브라우저로의 자동 이동 기능을 제공합니다.
 
-1.  **애플리케이션 실행:** `index.html` 파일을 웹 브라우저에서 엽니다. (로컬 웹 서버 사용 권장)
-2.  **보스 목록 입력:** "보스 관리" 메뉴에서 텍스트 영역에 `HH:MM 보스이름` 형식으로 보스 출현 시간을 입력합니다.
-3.  **보스 스케줄러 활용:** "보스 스케줄러" 메뉴에서 게임을 선택하고 각 보스별 남은 시간을 입력하여 보스 목록을 자동으로 생성할 수 있습니다.
-4.  **알림 시작:** "알림 시작" 버튼을 클릭하여 알림 시스템을 활성화합니다.
-5.  **고정 알림 설정:** "알림 설정" 메뉴에서 고정 알림을 추가, 편집, 삭제하고 활성화/비활성화할 수 있습니다.
-6.  **공유 링크 생성:** "공유" 메뉴에서 현재 보스 목록이 포함된 짧은 URL을 생성하고 공유할 수 있습니다.
-7.  **알림 로그 확인:** "알림 로그" 메뉴에서 시스템 메시지 및 트리거된 알림을 모니터링합니다.
+---
+
+## 🛠️ 주요 기능 상세 (Feature Details)
+
+1.  **대시보드**: 다음 보스 일정을 한눈에 확인하고 PIP 모드를 실행합니다.
+2.  **보스 시간표**: 등록된 보스 목록을 테이블이나 카드 형태로 깔끔하게 조회합니다.
+3.  **보스 스케줄러**: 텍스트 모드 일괄 입력 또는 간편 입력 모드를 통해 수십 개의 보스 시간을 순식간에 업데이트합니다.
+4.  **계산기**: 젠 계산기와 광 계산기 기능을 통해 보스 젠 타임을 1초의 오차 없이 산출합니다.
+5.  **설정**: 요일별 반복되는 고정 알림(월드 보스 등)을 관리하고 사운드 볼륨을 세밀하게 조절합니다.
+6.  **릴리즈 노트**: 최신 업데이트 내용을 데이터 기반의 알림 모달을 통해 빠르게 안내받습니다.
+
+---
 
 ## ⚙️ 기술 스택 (Tech Stack)
 
-*   **HTML5**
-*   **CSS3** (외부 파일 `src/styles/style.css`로 링크)
-*   **정적 자원:** 이미지 파일 등은 `src/assets/images` 경로에 관리됩니다.
-*   **데이터 파일:** `data/` 폴더에 설정 및 데이터 파일 (예: `boss_lists.json`, `faq_guide.json`)을 관리합니다.
-*   **바닐라 자바스크립트** (모듈화된 파일 `src/` 폴더 내에서 import하여 사용)
-*   **Web Speech API** (`window.speechSynthesis`를 통한 음성 알림)
-*   **TinyURL API** (URL 단축용)
+*   **Core**: Vanilla JavaScript (ES Module), HTML5, CSS3
+*   **APIs**: Web Speech API (Voice), Document Picture-in-Picture API, TinyURL API, Web Worker (Background process)
+*   **Quality**: ESLint, Vitest (TDD 적용), Semantic HTML & JSON-LD (SEO/AEO Optimized)
 
-## 🚦 코드 품질 및 검증 (Code Quality & Verification)
+---
 
-본 프로젝트는 높은 코드 품질을 유지하고 잠재적인 오류를 사전에 방지하기 위해 다음과 같은 도구를 활용합니다.
+## 🚦 서비스 시작하기 (Getting Started)
 
-*   **ESLint:** 코드의 문법 오류, 잠재적인 버그, 스타일 규칙 위반 등을 코드를 실행하기 전에 찾아냅니다. (`npm run lint`로 실행)
-*   **Vitest:** 핵심 로직의 정확성을 검증하고, 회귀를 방지하며, 코드의 안정성을 보장하기 위한 유닛 테스트 프레임워크입니다. (`npm test`로 실행)
+별도의 다운로드 없이 아래 주소에서 바로 시작하세요:
+👉 **[보스 알리미 바로가기](https://bohe76.github.io/boss-alarm)**
 
-## 🤝 기여 (Contributing)
+---
 
-버그 보고, 기능 제안 등 모든 기여를 환영합니다. GitHub Issues를 통해 의견을 남겨주세요.
+## 🤝 기기 및 브라우저 지원 (Support)
+
+본 서비스는 최신 웹 표준을 준수하며, **Chrome**, **Edge**, **Safari** 브라우저에 최적화되어 있습니다.
+(카카오톡 인앱 브라우저보다는 시스템 브라우저 사용을 권장합니다.)
+
+문의사항이나 건의사항은 서비스 내 [문의하기] 버튼 또는 [오픈 채팅방](https://open.kakao.com/o/sVnWix5h)을 이용해 주세요.
+
+---
 
 ## 📄 라이선스 (License)
 
-이 프로젝트는 MIT 라이선스(MIT License)를 따릅니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
+이 프로젝트는 MIT 라이선스(MIT License)를 따릅니다.
+Copyright (c) 2024-2025 bohe.

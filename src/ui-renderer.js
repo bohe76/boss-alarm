@@ -188,20 +188,24 @@ export function renderHelpScreen(DOM, helpData) {
             // Expand the first accordion item by default.
             const isOpen = index === 0 ? 'open' : '';
             html += `
-                <details class="help-section" ${isOpen}>
-                    <summary class="help-summary">${convertBoldMarkdownToHtml(section.title)}</summary>
-                    <div class="help-content">
-                        ${section.content.map(p => `<p>${convertBoldMarkdownToHtml(p)}</p>`).join('')}
-                        ${section.sub_sections ? section.sub_sections.map(sub => `
-                            <details class="help-sub-section">
-                                <summary class="help-sub-summary">${convertBoldMarkdownToHtml(sub.title)}</summary>
-                                <div class="help-sub-content">
-                                    ${sub.content.map(p => `<p>${convertBoldMarkdownToHtml(p)}</p>`).join('')}
-                                </div>
-                            </details>
-                        `).join('') : ''}
-                    </div>
-                </details>
+                <section class="help-section-wrapper">
+                    <details class="help-section" ${isOpen}>
+                        <summary class="help-summary"><h3>${convertBoldMarkdownToHtml(section.title)}</h3></summary>
+                        <div class="help-content">
+                            ${section.content.map(p => `<p>${convertBoldMarkdownToHtml(p)}</p>`).join('')}
+                            ${section.sub_sections ? section.sub_sections.map(sub => `
+                                <article class="help-sub-section-wrapper">
+                                    <details class="help-sub-section">
+                                        <summary class="help-sub-summary"><h4>${convertBoldMarkdownToHtml(sub.title)}</h4></summary>
+                                        <div class="help-sub-content">
+                                            ${sub.content.map(p => `<p>${convertBoldMarkdownToHtml(p)}</p>`).join('')}
+                                        </div>
+                                    </details>
+                                </article>
+                            `).join('') : ''}
+                        </div>
+                    </details>
+                </section>
             `;
         });
         helpContentContainer.innerHTML = html;
@@ -217,20 +221,24 @@ export function renderFaqScreen(DOM, faqData) {
         faqData.forEach((section, index) => {
             const isOpen = index === 0 ? 'open' : '';
             html += `
-                <details class="help-section" ${isOpen}>
-                    <summary class="help-summary">${convertBoldMarkdownToHtml(section.title)}</summary>
-                    <div class="help-content">
-                        ${section.content.map(p => `<p>${convertBoldMarkdownToHtml(p)}</p>`).join('')}
-                        ${section.sub_sections ? section.sub_sections.map(sub => `
-                            <details class="help-sub-section">
-                                <summary class="help-sub-summary">${convertBoldMarkdownToHtml(sub.title)}</summary>
-                                <div class="help-sub-content">
-                                    ${sub.content.map(p => `<p>${convertBoldMarkdownToHtml(p)}</p>`).join('')}
-                                </div>
-                            </details>
-                        `).join('') : ''}
-                    </div>
-                </details>
+                <section class="help-section-wrapper">
+                    <details class="help-section" ${isOpen}>
+                        <summary class="help-summary"><h3>${convertBoldMarkdownToHtml(section.title)}</h3></summary>
+                        <div class="help-content">
+                            ${section.content.map(p => `<p>${convertBoldMarkdownToHtml(p)}</p>`).join('')}
+                            ${section.sub_sections ? section.sub_sections.map(sub => `
+                                <article class="help-sub-section-wrapper">
+                                    <details class="help-sub-section">
+                                        <summary class="help-sub-summary"><h4>${convertBoldMarkdownToHtml(sub.title)}</h4></summary>
+                                        <div class="help-sub-content">
+                                            ${sub.content.map(p => `<p>${convertBoldMarkdownToHtml(p)}</p>`).join('')}
+                                        </div>
+                                    </details>
+                                </article>
+                            `).join('') : ''}
+                        </div>
+                    </details>
+                </section>
             `;
         });
         faqContentContainer.innerHTML = html;
@@ -506,9 +514,9 @@ export function renderVersionInfo(DOM, versionData) {
     // Check if versionData is an array and process accordingly
     if (Array.isArray(versionData)) {
         versionData.forEach(item => {
-            if (item && item.fullVersion) { // This is a direct version entry like v2.7.0
+            if (item && item.fullVersion) {
                 versionEntries.push(item);
-            } else if (item && item.value && Array.isArray(item.value)) { // This is the object containing 'value' array
+            } else if (item && item.value && Array.isArray(item.value)) {
                 versionEntries = versionEntries.concat(item.value);
             }
         });
@@ -522,27 +530,34 @@ export function renderVersionInfo(DOM, versionData) {
     if (DOM.versionHistoryContent && versionEntries.length > 0) {
         let html = '';
         versionEntries.forEach((versionEntry, index) => {
-            const isOpen = index === 0 ? 'open' : ''; // Add 'open' attribute to the first item
+            const isOpen = index === 0 ? 'open' : '';
+            // Extract date part from fullVersion if possible
+            const dateMatch = versionEntry.fullVersion.match(/\((.*?)\)/);
+            const dateStr = dateMatch ? dateMatch[1] : versionEntry.date || '';
+            const versionStr = versionEntry.fullVersion.split(' ')[0];
+
             html += `
-                <details class="version-accordion" ${isOpen}>
-                    <summary class="version-summary">
-                        <span class="version-number">${versionEntry.fullVersion}</span>
-                    </summary>
-                    <div class="version-details">
-                        <ul>
-                            ${versionEntry.changes.map(change => `
-                                <li>
-                                    <strong>${change.type}:</strong> ${convertBoldMarkdownToHtml(change.description)}
-                                    ${change.details && change.details.length > 0 ? `
-                                        <ul>
-                                            ${change.details.map(detail => `<li>${convertBoldMarkdownToHtml(detail)}</li>`).join('')}
-                                        </ul>
-                                    ` : ''}
-                                </li>
-                            `).join('')}
-                        </ul>
-                    </div>
-                </details>
+                <article class="version-entry">
+                    <details class="version-accordion" ${isOpen}>
+                        <summary class="version-summary">
+                            <h3 class="version-number">${versionStr} ${dateStr ? `<time datetime="${dateStr}">(${dateStr})</time>` : ''}</h3>
+                        </summary>
+                        <div class="version-details">
+                            <ul>
+                                ${versionEntry.changes.map(change => `
+                                    <li>
+                                        <strong>${change.type}:</strong> ${convertBoldMarkdownToHtml(change.description)}
+                                        ${change.details && change.details.length > 0 ? `
+                                            <ul>
+                                                ${change.details.map(detail => `<li>${convertBoldMarkdownToHtml(detail)}</li>`).join('')}
+                                            </ul>
+                                        ` : ''}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    </details>
+                </article>
             `;
         });
         DOM.versionHistoryContent.innerHTML = html;
