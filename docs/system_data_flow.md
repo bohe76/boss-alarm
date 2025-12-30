@@ -221,3 +221,16 @@
 *   **모바일 5-메뉴 내비게이션**:
     1.  하단 탭 바가 5개 핵심 메뉴(대시보드, 시간표, 스케줄러, 계산기, 공유) 체계로 운용됩니다.
     2.  각 아이콘 클릭 시 `app.js`의 `showScreen`을 호출하여 화면을 즉시 전환하며, 활성 탭에 시각적 강조 효과(Active class)를 부여합니다.
+
+## 4. 버전 업데이트 안내 모달 흐름 (Issue-026)
+
+이 흐름은 애플리케이션 초기 로드(`initApp`)가 거의 마무리되는 시점에 발생하여, 사용자에게 주요 업데이트 환경을 안내합니다.
+
+1.  **노출 여부 판단**: `app.js: initEventHandlers`에서 현재 `window.APP_VERSION`(예: v2.16.2)을 기준으로 `hide_update_modal_v2.16.2` 키가 로컬 스토리지에 존재하는지 확인합니다.
+2.  **데이터 로드 및 렌더링**: 키가 없는 경우, `boss-scheduler-data.js`의 `getUpdateNoticeData()`를 통해 미리 로드된 `update-notice.json` 데이터를 가져와 `ui-renderer.js: renderUpdateModal(DOM, noticeData)`를 호출합니다.
+3.  **동적 리스트 생성**: `renderUpdateModal`은 JSON의 `summaryItems` 배열을 순회하며 이번 버전의 변경 사항을 굵은 소제목과 함께 렌더링합니다.
+4.  **사용자 상호작용 및 데이터 저장**:
+    *   **[다시 보지 않기] 클릭**: 로컬 스토리지에 차단 키(`true`)를 즉시 저장하고 모달을 닫습니다.
+    *   **[자세히 보기] 클릭**: 차단 키를 저장한 후, `EventBus.emit('navigate', 'version-info-screen')`을 발행하여 릴리즈 노트 화면으로 즉시 이동시킵니다.
+    *   **[X] 또는 배경 클릭**: 데이터를 저장하지 않고 단순히 모달 창만 닫아, 다음 접속 시 다시 안내를 받을 수 있도록 합니다.
+4.  **스타일 격리**: 전용 버튼 클래스(`.version-footer-btn`)와 구조를 사용하여 전역 스타일과의 충돌을 방지하고 픽셀 퍼펙트한 UI를 유지합니다.

@@ -6,7 +6,7 @@ import { renderFixedAlarms, renderAlarmStatusSummary, renderDashboard, updateBos
 import { log } from './logger.js';
 import { LocalStorageManager, BossDataManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
-import { getInitialDefaultData, getGameNames, getBossNamesForGame } from './boss-scheduler-data.js';
+import { getInitialDefaultData, getGameNames, getBossNamesForGame, getUpdateNoticeData } from './boss-scheduler-data.js';
 import { EventBus } from './event-bus.js';
 import { getRoute, registerRoute } from './router.js';
 import { initializeCoreServices } from './services.js';
@@ -298,7 +298,8 @@ function initEventHandlers(DOM) {
 
     // 앱 시작 시 노출 여부 판단
     if (!LocalStorageManager.get(versionKey)) {
-        renderUpdateModal(DOM);
+        const noticeData = getUpdateNoticeData();
+        renderUpdateModal(DOM, noticeData);
     }
 
 

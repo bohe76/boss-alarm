@@ -17,11 +17,11 @@
 | `data-managers.js` | `LocalStorageManager.*`, `BossDataManager.*`: 데이터 로딩 및 관리 (사이드바 상태 제외) |
 | `index.html` | `#dashboard-skeleton` 제어: 초기 로딩 시 스켈레톤 UI 노출 및 해제 관리 |
 | `boss-parser.js` | `parseBossList()`: 보스 목록 텍스트 파싱 (초기 로드 시) |
-| `ui-renderer.js` | `renderFixedAlarms()`, `renderAlarmStatusSummary()`, `renderDashboard()`, `updateBossListTextarea()`: UI 초기 렌더링 및 갱신 |
-| `event-bus.js` | `EventBus.on('navigate', ...)`: 화면 전환 이벤트 구독 |
+| `ui-renderer.js` | `renderFixedAlarms()`, `renderAlarmStatusSummary()`, `renderDashboard()`, `updateBossListTextarea()`, **`renderUpdateModal()`**: UI 초기 렌더링 및 **버전 안내 모달 생성** |
+| `event-bus.js` | `EventBus.on('navigate', ...)`, **`EventBus.emit('navigate', ...)`**: 화면 전환 이벤트 구독 및 **릴리즈 노트 이동 트리거** |
 | `alarm-scheduler.js` | `getIsAlarmRunning()`, `startAlarm()`: 알람 상태 확인 및 시작 |
 | `utils.js` | `formatMonthDay()`: 날짜 포맷팅 (loadInitialData 내부) |
-| `boss-scheduler-data.js` | `getInitialDefaultData()`, `getGameNames()`, `getBossNamesForGame()`: 초기 데이터 및 무결성 검증용 데이터 조회 |
+| `boss-scheduler-data.js` | `getInitialDefaultData()`, `getGameNames()`, `getBossNamesForGame()`, **`getUpdateNoticeData()`**: 초기 데이터, 무결성 검증 및 **업데이트 공지 데이터 조회** |
 | `screens/settings.js` | `getScreen()`: '설정' 화면의 메타 정보 가져오기 (이전 `notifications.js`) |
 
 ## 2. `src/global-event-listeners.js` (전역 EventBus 리스너 관리)

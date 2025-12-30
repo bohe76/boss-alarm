@@ -42,6 +42,10 @@ UI는 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 �
 *   **젠/광 계산기:** 보스 리젠 시간을 계산하는 유틸리티 기능을 제공합니다.
 *   **도움말 및 FAQ:** 탭 기반 인터페이스를 통해 애플리케이션 기능 사용법을 안내하는 '도움말'과 자주 묻는 질문에 대한 답변을 제공하는 'FAQ' 섹션을 제공합니다.
 *   **고정 알림 (Fixed Alarms):** 사용자가 설정한 요일에 따라 반복되는 알림을 제공합니다. 모달을 통해 추가/편집할 수 있으며, 활성/비활성 상태를 개별적으로 관리합니다.
+*   **버전 업데이트 안내 모달 (Update Notification):** 대규모 기능 업데이트 시 앱 시작 단계에서 변경 사항을 안내합니다. 
+    *   **지능형 노출 제어**: 로컬 스토리지를 통해 버전별 최초 1회 노출을 보장하며, 사용자가 '다시 보지 않기' 클릭 시 해당 버전에 대한 알림을 영구히 종료합니다.
+    *   **심플 액션 바**: '자세히 보기'와 '다시 보지 않기' 두 가지 핵심 클릭 요소를 하단 바 스타일로 제공하여 시각적 인지 부하를 최소화했습니다.
+    *   **데이터 주도 관리 (Data-driven)**: 공지 내용(인사말, 요약 목록)을 외부 JSON(`update-notice.json`)으로 분리하여 로직 수정 없이 콘텐츠만 유연하게 변경할 수 있는 구조를 갖추었습니다.
 *   **카카오톡 인앱 브라우저 회피:** 카카오톡 인앱 브라우저에서 발생하는 기능 제한 및 오작동 문제를 해결하기 위해, 인앱 브라우저 환경을 감지하고 사용자에게 외부 브라우저(Android는 자동 리디렉션, iOS는 수동 전환 안내)로 이동하도록 유도합니다.
 
 ## 4. 기술 스택 상세
@@ -49,8 +53,8 @@ UI는 핵심적으로 **헤더, 내비게이션 메뉴 (사이드바), 메인 �
 *   **HTML5 / CSS3:** 웹 표준 마크업 및 스타일링. CSS는 `src/styles/style.css`를 진입점으로 하여 `layout.css`, `components.css`, `screens.css`로 모듈화되어 관리됩니다.
 *   **정적 자원:** 이미지 파일 등은 `src/assets/images` 경로에 관리됩니다.
 *   **바닐라 JavaScript (ES Modules):** 프레임워크 없이 순수 JavaScript를 사용하여 모듈화된 형태로 개발되었습니다. `src/` 폴더 내에서 기능별로 분리된 모듈들을 `import`하여 사용합니다. 특히 `utils.js`에는 `calculateNextOccurrence`와 같은 핵심 시간 계산 유틸리티가 포함되어 있습니다.
-*   **설정 및 데이터 파일:** `src/data/` 폴더에 `boss-presets.json` (보스별 젠 주기 및 프리셋), `initial-default.json` (초기 표시 목록), `faq_guide.json`, `feature_guide.json`, `version_history.json`과 같은 설정 및 데이터 파일을 관리합니다.
-    *   **JS → JSON 데이터 관리 체계 전환:** 기존에 JavaScript 코드 내에 하드코딩되어 있던 보스 데이터를 외부 JSON 파일(`boss-presets.json`, `initial-default.json`)로 분리하였습니다. 이를 통해 데이터 수정 시 코드 변경 없이 JSON 파일만 수정하면 되며, 유지보수성과 확장성이 향상되었습니다.
+*   **설정 및 데이터 파일:** `src/data/` 폴더에 `boss-presets.json`, `initial-default.json`, `update-notice.json`, `faq_guide.json`, `feature_guide.json`, `version_history.json`과 같은 설정 및 데이터 파일을 관리합니다.
+    *   **JS → JSON 데이터 관리 체계 전환:** 기존에 JavaScript 코드 내에 하드코딩되어 있던 보스 데이터 및 공지 사항 등을 외부 JSON 파일로 분리하였습니다. 이를 통해 데이터 수정 시 코드 변경 없이 JSON 파일만 수정하면 되며, 유지보수성과 확장성이 향상되었습니다.
     *   **데이터 관리 (SSOT & Draft 패턴):**
         *   보스 메타데이터(젠 주기 등)는 `boss-presets.json`에서 비동기로 로드하며, `BossDataManager`에 주입하여 효율적인 실시간 조회를 지원합니다.
         *   **Main SSOT와 Draft 패턴:** `BossDataManager`는 Main SSOT(확정 데이터)와 Draft(임시 편집 데이터)를 분리하여 관리합니다. SSOT 변경 시 Draft가 즉시 동기화되며, 모두 localStorage에 영구 저장됩니다.

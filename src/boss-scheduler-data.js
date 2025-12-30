@@ -5,26 +5,29 @@ import { CustomListManager } from './custom-list-manager.js';
 
 let bossMetadata = {}; //From boss-presets.json
 let initialDefaultData = null; // From initial-default.json
+let updateNoticeData = null; // From update-notice.json
 
 /**
  * 보스 프리셋 및 초기 데이터를 로드합니다.
  */
 export async function loadBossSchedulerData() {
     try {
-        const [presetsRes, defaultRes] = await Promise.all([
+        const [presetsRes, defaultRes, noticeRes] = await Promise.all([
             fetch('src/data/boss-presets.json'),
-            fetch('src/data/initial-default.json')
+            fetch('src/data/initial-default.json'),
+            fetch('src/data/update-notice.json')
         ]);
 
-        if (!presetsRes.ok || !defaultRes.ok) {
+        if (!presetsRes.ok || !defaultRes.ok || !noticeRes.ok) {
             throw new Error('데이터 파일을 불러오는 데 실패했습니다.');
         }
 
         bossMetadata = await presetsRes.json();
         initialDefaultData = await defaultRes.json();
+        updateNoticeData = await noticeRes.json();
 
         log(`보스 프리셋 및 초기 데이터를 성공적으로 로드했습니다.`);
-        return { bossMetadata, initialDefaultData };
+        return { bossMetadata, initialDefaultData, updateNoticeData };
     } catch (error) {
         log(`데이터 로드 실패: ${error.message}.`);
         // 에러 발생 시 사용자에게 확인창 표시
@@ -81,4 +84,11 @@ export function getInitialDefaultData() {
  */
 export function getBossMetadata() {
     return bossMetadata;
+}
+
+/**
+ * 업데이트 공지 데이터를 반환합니다.
+ */
+export function getUpdateNoticeData() {
+    return updateNoticeData;
 }

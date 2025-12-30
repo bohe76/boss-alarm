@@ -37,7 +37,7 @@
     5.  `loadInitialData(DOM)`를 호출하여 URL 파라미터 또는 기본값으로부터 초기 보스 목록 및 고정 알림 데이터를 로드합니다.
     6.  **'설정' 화면의 고정 알림 목록을 초기 렌더링합니다 (`renderFixedAlarms(DOM)`).**
     7.  `initGlobalEventListeners(DOM)`를 호출하여, `BossDataManager` 데이터 변경 감지, 로그 업데이트 등 애플리케이션 전반의 핵심 이벤트 리스너를 중앙에서 등록하고 활성화합니다.
-    8.  `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 내비게이션 링크, **PiP 토글 버튼** 등 주요 UI 요소의 이벤트 핸들러를 등록합니다. (사이드바 토글 버튼은 제거됨)
+    8.  `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 내비게이션 링크, **PiP 토글 버튼, 버전 업데이트 모달 이벤트** 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
     9.  `renderAlarmStatusSummary(DOM)`를 호출하여 초기 UI 상태를 설정합니다.
     10. `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링합니다.
     11. `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여, 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.
@@ -154,6 +154,7 @@
 *   `updateCrazyExpectedTimeDisplay(DOM, time, isOverTime)`: 광 계산기 예상 시간 디스플레이를 업데이트하고 초과 시간을 시각적으로 표시합니다.
 *   `renderCrazyTempResults(DOM, gwangTime, afterGwangTime, totalTime)`: 광 계산기의 최근 계산 결과를 임시로 렌더링합니다.
 *   `renderCrazySavedList(DOM, records)`: 광 계산기의 저장된 기록 목록을 렌더링합니다.
+*   `renderUpdateModal(DOM, noticeData)`: 앱 시작 시 버전 업데이트 안내 모달을 렌더링합니다. `update-notice.json`에서 로드된 `noticeData`를 인자로 받아 개발자 인사말과 가변적인 업데이트 요약 목록을 동적으로 구성합니다. 버전 번호는 `window.APP_VERSION`을 참조하여 제목에 표시합니다.
 *   그 외 상세 렌더링 함수들.
 
 ---
@@ -326,11 +327,12 @@
 
 ## 14. `src/boss-scheduler-data.js`
 
-- **역할:** 보스 프리셋 메타데이터(`boss-presets.json`) 및 초기 기본 데이터(`initial-default.json`)를 비동기 로드하고 제공합니다. `CustomListManager`와 연동하여 사용자 지정 목록도 통합 관리합니다.
+- **역할:** 보스 프리셋 메타데이터(`boss-presets.json`), 초기 기본 데이터(`initial-default.json`) 및 **업데이트 공지 데이터(`update-notice.json`)**를 비동기 로드하고 제공합니다. `CustomListManager`와 연동하여 사용자 지정 목록도 통합 관리합니다.
 - **주요 `export` 함수:**
-    - `loadBossSchedulerData()`: `boss-presets.json`과 `initial-default.json`을 `fetch`로 비동기 로드합니다. 로드 실패 시 사용자에게 알림(`alert`)을 표시하고 빈 데이터로 폴백합니다.
+    - `loadBossSchedulerData()`: `boss-presets.json`, `initial-default.json`, `update-notice.json`을 `fetch`로 비동기 로드합니다. 로드 실패 시 사용자에게 알림(`alert`)을 표시하고 빈 데이터로 폴백합니다.
     - `getInitialDefaultData()`: 앱 초기 구동 시 사용할 기본 보스 목록 데이터(`{ items: [...] }`)를 반환합니다.
     - `getBossMetadata()`: 전체 보스 프리셋 메타데이터 객체를 반환합니다.
+    - `getUpdateNoticeData()`: 로드된 업데이트 안내 공지 데이터 객체를 반환합니다.
     - `getGameNames()`: 프리셋 게임 목록과 사용자 커스텀 목록을 통합하여 `{ id, name, isCustom }` 형태의 배열로 반환합니다.
     - `getBossNamesForGame(gameIdOrName)`: 특정 게임/목록의 보스 이름 배열을 반환합니다. 프리셋 ID, 게임 이름, 커스텀 목록 순서로 검색합니다.
 
