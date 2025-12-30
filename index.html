@@ -97,10 +97,7 @@
         gtag('config', 'G-ER8HQ4HQMW');
     </script>
     <style>
-        body {
-            /* Initially set to loading for skeleton display */
-        }
-
+        /* --- Skeleton UI Styles (v2.2) --- */
         body.loading #dashboard-real-content {
             display: none;
         }
@@ -111,146 +108,105 @@
 
         #dashboard-skeleton {
             display: none;
-            /* Hidden by default when not loading */
-            padding-top: 20px;
-            /* Main padding like main content */
-            padding-left: 20px;
-            /* Main padding like main content */
-            padding-right: 20px;
-            /* Main padding like main content */
+            width: 100%;
+            animation: fadeIn 0.3s ease-out;
         }
 
-        /* Base styles for skeleton elements */
-        .skeleton-content>div {
-            background-color: #e0e0e0;
+        /* Base skeleton element style */
+        .skeleton-item {
+            background-color: #eee;
+            background-image: linear-gradient(90deg,
+                    #eee 25%,
+                    #f5f5f5 50%,
+                    #eee 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite linear;
             border-radius: 4px;
-            margin-bottom: 10px;
         }
 
-        /* 1. 상단 타이틀 영역 */
-        .skeleton-title {
-            height: 28px;
-            /* Approximate height for titles */
-            margin-bottom: 15px;
+        @keyframes skeleton-loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
         }
 
-        .skeleton-title.h2-like {
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Structure Mirroring */
+        #dashboard-skeleton h2.skeleton-item {
             width: 150px;
-            /* Width for '대시보드' h2 */
-            margin-top: 5px;
-            margin-bottom: 25px;
+            height: 32px;
+            margin-bottom: 24px;
         }
 
-        .skeleton-title.h3-like {
-            width: 120px;
-            /* Width for '다음 보스' h3 */
-            height: 20px;
-            /* Slightly smaller for h3 */
-            margin-top: 20px;
-            /* Space from previous section */
-        }
-
-        /* 2. 메인 하이라이트 영역 */
-        .skeleton-highlight-line {
-            width: 75%;
-            /* Long width */
-            height: 30px;
-            /* Taller height for highlight */
-            margin-top: 10px;
-            margin-bottom: 25px;
-            /* Space from next section */
-        }
-
-        /* 3. 보스 리스트 영역 */
-        .skeleton-card {
-            background-color: #f0f0f0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-            margin-bottom: 15px;
+        #dashboard-skeleton .card-standard {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            gap: 12px;
         }
 
-        /* Specific heights for skeleton cards to match real content sections */
-        #dashboard-skeleton .skeleton-card:nth-child(4) {
-            /* Corresponds to alarmStatusSummary */
-            height: 220px;
+        /* Card Header Skeleton */
+        .skeleton-card-header {
+            width: 100px;
+            height: 20px;
+            margin-bottom: 8px;
         }
 
+        /* Line Variants */
         .skeleton-line {
-            background-color: #e0e0e0;
-            border-radius: 4px;
-            height: 15px;
-            margin-bottom: 10px;
-        }
-
-        .skeleton-line:last-child {
-            margin-bottom: 0;
-            /* No margin for the last line in a card */
+            height: 16px;
+            width: 100%;
         }
 
         .skeleton-line.short {
-            width: 30%;
+            width: 40%;
         }
 
         .skeleton-line.medium {
-            width: 60%;
+            width: 70%;
         }
 
-        .skeleton-line.long {
-            width: 90%;
-        }
-
-
-        /* 4. 하단 상태 및 설정 영역 */
-        .skeleton-section-title {
-            height: 20px;
-            /* h3-like */
-            width: 100px;
-            /* '알림 상태', '소리 설정' h3 */
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
-
-        .skeleton-text-line.short {
-            width: 30%;
-            /* For '짧은 텍스트 바' */
-            height: 15px;
-            margin-top: 20px;
-            margin-bottom: 25px;
-        }
-
-        .skeleton-circle {
-            width: 40px;
-            /* Approximate icon size */
+        .skeleton-line.large {
             height: 40px;
+            margin-top: 8px;
+        }
+
+        /* Specific Adjustments for Dashboard Elements */
+        #dashboard-skeleton .dashboard-small-cards-row .card-standard {
+            height: 110px;
+            justify-content: center;
+        }
+
+        #dashboard-skeleton .skeleton-circle {
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background-color: #e0e0e0;
-            margin-top: 15px;
-            margin-bottom: 20px;
         }
 
-        /* Shimmer effect for skeleton */
-        #dashboard-skeleton {
-            position: relative;
-            overflow: hidden;
+        #dashboard-skeleton .mute-control-skeleton {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        #dashboard-skeleton::after {
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            transform: translateX(-100%);
-            background-image: linear-gradient(90deg,
-                    rgba(255, 255, 255, 0) 0,
-                    rgba(255, 255, 255, 0.2) 20%,
-                    rgba(255, 255, 255, 0.5) 60%,
-                    rgba(255, 255, 255, 0) 100%);
-            content: '';
+        #dashboard-skeleton .volume-slider-skeleton {
+            flex: 1;
+            height: 8px;
         }
     </style>
     <link rel="icon" href="src/assets/images/favicon.svg" type="image/svg+xml">
@@ -377,25 +333,43 @@
             <!-- All existing content will be moved here, and then dynamically loaded per screen -->
             <!-- For now, we'll put a placeholder or move existing content here temporarily -->
             <section id="dashboard-screen" class="screen active">
-                <div id="dashboard-skeleton" class="skeleton-content">
-                    <!-- 1. 상단 타이틀 영역 -->
-                    <div class="skeleton-title h2-like"></div> <!-- '대시보드' h2 -->
-                    <div class="skeleton-title h3-like next-boss-title"></div> <!-- '다음 보스' h3 -->
-
-                    <!-- 2. 메인 하이라이트 영역 (중요) -->
-                    <div class="skeleton-highlight-line"></div>
-
-                    <!-- 3. 보스 리스트 영역 -->
-                    <div class="skeleton-card">
-                        <div class="skeleton-line long"></div>
+                <div id="dashboard-skeleton">
+                    <h2 class="skeleton-item"></h2>
+                    <div class="dashboard-layout">
+                        <div class="dashboard-column-left">
+                            <div class="card-standard card-size-standard">
+                                <div class="skeleton-card-header skeleton-item"></div>
+                                <div class="skeleton-line skeleton-item medium"></div>
+                                <div class="skeleton-line skeleton-item large"></div>
+                            </div>
+                            <div class="card-standard card-size-standard">
+                                <div class="skeleton-card-header skeleton-item"></div>
+                                <div class="skeleton-line skeleton-item"></div>
+                                <div class="skeleton-line skeleton-item"></div>
+                                <div class="skeleton-line skeleton-item"></div>
+                            </div>
+                        </div>
+                        <div class="dashboard-column-right">
+                            <div class="dashboard-small-cards-row">
+                                <div class="card-standard card-size-small">
+                                    <div class="skeleton-card-header skeleton-item"></div>
+                                    <div class="skeleton-line skeleton-item short"></div>
+                                </div>
+                                <div class="card-standard card-size-small">
+                                    <div class="skeleton-card-header skeleton-item"></div>
+                                    <div class="mute-control-skeleton">
+                                        <div class="skeleton-circle skeleton-item"></div>
+                                        <div class="volume-slider-skeleton skeleton-item"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-standard card-size-standard">
+                                <div class="skeleton-card-header skeleton-item"></div>
+                                <div class="skeleton-line skeleton-item"></div>
+                                <div class="skeleton-line skeleton-item"></div>
+                            </div>
+                        </div>
                     </div>
-
-                    <!-- 4. 하단 상태 및 설정 영역 -->
-                    <div class="skeleton-section-title status-title"></div> <!-- '알림 상태' h3 -->
-                    <div class="skeleton-text-line short"></div> <!-- 짧은 텍스트 바 -->
-
-                    <div class="skeleton-section-title settings-title"></div> <!-- '소리 설정' h3 -->
-                    <div class="skeleton-circle"></div> <!-- 아이콘 대체 원형 -->
                 </div>
                 <div id="dashboard-real-content" class="real-content hidden">
                     <h2>대시보드</h2>
