@@ -424,9 +424,8 @@ input:checked+.slider:before {
 /* PC 환경에서 보스 리스트 카드를 컨텐츠 크기에 맞춰 축소 및 중앙 정렬 */
 @media (min-width: 920px) {
     .card-size-list {
-        width: fit-content;
-        min-width: 452px;
-        /* PC에서 가독성을 위한 최소 너비 확보 */
+        width: 100%;
+        /* fit-content 제거하여 레이아웃 요동 방지 */
     }
 
     /* 보스 스케줄러 화면의 카드는 입력 필드가 많으므로 기본 영역(960px)을 가득 채우도록 함 */

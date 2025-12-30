@@ -1439,20 +1439,23 @@ section#settings-screen h3 {
 .help-summary,
 .help-sub-summary {
     display: flex;
-    padding: 12px 16px;
+    align-items: center;
+    padding: 6px 16px;
+    /* 12px에서 6px로 축소하여 세로 폭 압축 */
     cursor: pointer;
     background-color: #f0f0f0;
     border-bottom: 1px solid #eee;
     position: relative;
-    list-style: none;
+    list-style: none !important;
     font-weight: bold;
     color: #333;
+    min-height: 36px;
+    /* 최소 높이 보장 */
 }
 
 .help-summary,
 .help-sub-summary {
     padding-left: 40px;
-    align-items: center;
 }
 
 .help-sub-summary {
@@ -1502,9 +1505,20 @@ section#settings-screen h3 {
     transform: translateY(-50%) rotate(90deg);
 }
 
+.help-summary h3,
+.help-sub-summary h4,
 .version-summary .version-number {
-    margin-left: 20px;
+    margin: 0 !important;
+    /* 마진 완전 제거 */
+    padding: 0 !important;
     color: #333;
+    line-height: normal;
+    /* 수직 정렬 안정화 */
+    font-size: 1.05em;
+}
+
+.version-summary .version-number {
+    margin-left: 20px !important;
 }
 
 .version-details,
@@ -1518,15 +1532,10 @@ section#settings-screen h3 {
 .version-details ul,
 .help-content ul,
 .help-sub-content ul {
-    list-style: none;
+    list-style: none !important;
+    /* 불릿 제거 */
     padding-left: 0;
     margin: 0;
-}
-
-.help-content ul,
-.help-sub-content ul {
-    list-style: disc;
-    padding-left: 20px;
 }
 
 .version-details li,
