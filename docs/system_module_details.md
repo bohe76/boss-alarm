@@ -181,7 +181,7 @@
     *   `getBossStatusSummary(nowTime)`: `Object`. 다음 보스, 남은 시간, 임박한 보스 목록 등 현재 상태 요약을 반환합니다.
     *   `getUpcomingBosses(count)`: `Array`. 현재 시간 이후 예정된 보스 목록을 `count`만큼 정확히 반환합니다.
     *   `subscribe(callback)`: `void`. `BossDataManager`의 데이터 변경을 감지할 콜백 함수를 등록합니다. **반응형 상태 관리 패턴(Observer Pattern)**을 구현합니다.
-    *   `checkAndUpdateSchedule(force)`: `void`. 00:00/12:00 기준점 통과 및 앱 시작 시 48시간 윈도우 최신화 여부를 판단하고 실행하는 핵심 엔진.
+    *   `checkAndUpdateSchedule(force)`: `void`. 자정(00:00) 기준점 통과 및 앱 시작 시 48시간 윈도우 최신화 여부를 판단하고 실행하는 핵심 엔진.
     *   `isDraftDirty()`: `boolean`. 현재 편집 중인 데이터가 있는지 판단.
     *   `syncDraftWithMain()`: `void`. Main SSOT의 최신 상태를 Draft로 강제 복제.
     *   `_expandAndReconstruct(items)`: `Array`. [Critical] 모든 보스 데이터를 오늘~내일 기준 48시간으로 확장하는 핵심 내부 로직.
