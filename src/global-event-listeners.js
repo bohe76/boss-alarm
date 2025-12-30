@@ -13,6 +13,11 @@ export function initGlobalEventListeners(DOM) {
     // Subscribe to BossDataManager changes to automatically refresh the dashboard
     BossDataManager.subscribe(() => {
         renderDashboard(DOM);
+        // [New] Also refresh timetable UI if it's active
+        if (DOM.timetableScreen && DOM.timetableScreen.classList.contains('active')) {
+            const { updateTimetableUI } = import('./ui-renderer.js');
+            updateTimetableUI(DOM);
+        }
     });
 
     // Listener for updating the alarm log screen (if it's active)

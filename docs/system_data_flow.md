@@ -61,7 +61,24 @@
     *   매초 메인 스레드로 `TICK` 메시지를 보냅니다.
 5.  **`alarm-scheduler.js: worker.onmessage` (메인 스레드):**
     *   **`ALARM` 수신 시:** `handleAlarm` 함수가 실행되어 소리(`speak`), 로그(`log`), 시스템 알림(`Notification`)을 출력하고, 데이터 상태(`alerted_*`)를 업데이트합니다. 데이터가 변경되었으므로 `syncScheduleToWorker`를 호출하여 워커의 데이터를 최신화합니다.
-    *   **`TICK` 수신 시:** `updateAppState` 함수가 실행되어 자정 초기화 로직을 수행하고, `BossDataManager.setNextBossInfo`를 호출하여 대시보드 UI를 갱신합니다. 이때 `BossDataManager`는 `calculateNextBoss` 함수를 통해 고정 알림의 요일 정보를 고려한 '다음 보스'를 계산합니다.
+4. **정기적인 앱 상태 업데이트 (Timer-Worker Integration)**:
+    - 타이머 워커가 매초 `TICK` 메시지를 브라우저 메인 스레드로 전송합니다.
+    - `alarm-scheduler.js`의 `updateAppState`가 이를 수신하여 다음 동작을 매초 수행합니다:
+        - `BossDataManager.checkAndUpdateSchedule()`를 호출하여 **자정(00:00) 및 정오(12:00)** 기준점 통과 여부를 감시합니다.
+        - 기준점 통과 시 "오늘+내일"의 48시간 윈도우를 재구성하는 **지능형 SSOT 자동 업데이트** 프로세스를 시작합니다.
+        - `BossDataManager.getBossStatusSummary()`를 통해 실시간 남은 시간을 계산하고 `setNextBossInfo`로 전역 상태를 업데이트합니다.
+
+5. **지능형 SSOT 자동 업데이트 및 충돌 해결 흐름**:
+    - **Step 1 (감지)**: `checkAndUpdateSchedule`이 현재 시각과 `lastAutoUpdateTimestamp`를 비교하여 업데이트 필요 여부 판단.
+    - **Step 2 (Dirty 검사)**: 사용자가 수정 중인 Draft가 있는지 `isDraftDirty`로 확인.
+    - **Step 3 (자동 수행)**: 수정 사항이 없을 경우 조용히 메인 SSOT와 Draft를 모두 48시간 윈도우로 확장 및 동기화.
+    - **Step 4 (충돌 발생 및 선택)**: 수정 사항이 있을 경우 날짜(MM.DD)가 포함된 문구로 사용자에게 확인 요청.
+        - **[확인]**: 현재 수정 내용을 버리고 최신 48시간 데이터로 갱신.
+        - **[취소]**: 사용자의 수정 내용을 유지(Draft 보존)하되, 백그라운드 서버용 메인 SSOT만 업데이트하여 알람 정확도 보장.
+
+6. **스켈레톤 해제 및 콘텐츠 노출**:
+    - `app.js`에서 `document.body.classList.remove('loading')` 호출.
+    - 스켈레톤 UI 요소들이 페이드 아웃되며 실제 대시보드 인터페이스가 사용자에게 노출됩니다.
 
 ## 3. 화면별 데이터 흐름 상세
 

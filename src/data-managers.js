@@ -1,4 +1,4 @@
-import { calculateNextOccurrence, padNumber } from './utils.js';
+import { calculateNextOccurrence, padNumber, formatMonthDay } from './utils.js';
 
 export const BOSS_THRESHOLDS = {
     IMMINENT: 5 * 60 * 1000,    // 5 minutes
@@ -270,6 +270,101 @@ export const BossDataManager = (() => {
                 notify();
             }
         },
+        /**
+         * 메인 SSOT와 임시 Draft가 다른지(사용자가 수정 중인지) 확인합니다.
+         */
+        isDraftDirty: () => {
+            loadDraft();
+            if (!_draftSchedule) return false;
+
+            // JSON 문자열 비교로 간편하게 수정 여부 판단
+            const mainStr = JSON.stringify(bossSchedule);
+            const draftStr = JSON.stringify(_draftSchedule);
+            return mainStr !== draftStr;
+        },
+        /**
+         * 임시 Draft를 현재 메인 SSOT의 최신 상태로 강제 동기화합니다.
+         */
+        syncDraftWithMain: () => {
+            _draftSchedule = JSON.parse(JSON.stringify(bossSchedule), (key, value) => {
+                if (key === 'scheduledDate') return new Date(value);
+                return value;
+            });
+            localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(_draftSchedule));
+            notify();
+        },
+        /**
+         * 정기적인 업데이트(00:00, 12:00)가 필요한지 확인하고 수행합니다.
+         */
+        checkAndUpdateSchedule: (force = false) => {
+            const now = new Date();
+            const currentHour = now.getHours();
+
+            // 업데이트 기준점 설정 (0시 또는 12시)
+            let baseHour = currentHour < 12 ? 0 : 12;
+            const lastUpdate = LocalStorageManager.get('lastAutoUpdateTimestamp');
+            const lastUpdateDate = lastUpdate ? new Date(lastUpdate) : null;
+
+            let needsUpdate = force;
+
+            if (!needsUpdate && lastUpdateDate) {
+                const lastUpdateHour = lastUpdateDate.getHours();
+                const lastBaseHour = lastUpdateHour < 12 ? 0 : 12;
+
+                // 날짜가 다르거나, 같은 날이라도 기준점(0/12)이 바뀌었으면 업데이트 필요
+                const isDifferentDay = now.toDateString() !== lastUpdateDate.toDateString();
+                const isCrossedBase = baseHour !== lastBaseHour;
+
+                if (isDifferentDay || isCrossedBase) {
+                    needsUpdate = true;
+                }
+            } else if (!lastUpdateDate) {
+                needsUpdate = true; // 최초 실행 시
+            }
+
+            if (needsUpdate) {
+                const performUpdate = () => {
+                    // 1. 메인 SSOT 업데이트 (Reconstruct)
+                    bossSchedule = _expandAndReconstruct(bossSchedule);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(bossSchedule));
+                    LocalStorageManager.set('lastAutoUpdateTimestamp', now.getTime());
+
+                    // 2. Draft 동기화 로직
+                    if (!BossDataManager.isDraftDirty()) {
+                        // 수정 사항이 없으면 즉시 동기화 (Step 3)
+                        BossDataManager.syncDraftWithMain();
+                    } else {
+                        // 수정 사항이 있는 경우 (Step 4)
+                        // 취소 시에도 원본 SSOT는 이미 위에서 업데이트됨. 
+                        // Draft는 그대로 유지되어 사용자의 편집권을 보호함.
+                    }
+                    notify();
+                };
+
+                // 사용자가 스케줄러에서 수정 중인지 확인
+                if (BossDataManager.isDraftDirty()) {
+                    const todayStr = formatMonthDay(now);
+                    const tomorrow = new Date(now);
+                    tomorrow.setDate(now.getDate() + 1);
+                    const tomorrowStr = formatMonthDay(tomorrow);
+
+                    const msg = `오늘(${todayStr})과 내일(${tomorrowStr})의 최신 일정으로 업데이트 하시겠습니까?\n\n(확인: 새 일정 로드, 취소: 현재 수정 내용 유지)`;
+                    if (confirm(msg)) {
+                        performUpdate();
+                        BossDataManager.syncDraftWithMain(); // 확인 시 Draft도 덮어씌움
+                    } else {
+                        // 취소 시 원본 SSOT만 업데이트하여 알람 정확도 유지 (Draft는 보존)
+                        bossSchedule = _expandAndReconstruct(bossSchedule);
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(bossSchedule));
+                        LocalStorageManager.set('lastAutoUpdateTimestamp', now.getTime());
+                        notify();
+                    }
+                } else {
+                    // 수정 중이 아니면 조용히 업데이트
+                    performUpdate();
+                }
+            }
+        },
         getBossInterval: (bossName, contextId) => {
             return _getInternalBossInterval(bossName, contextId);
         },
@@ -349,8 +444,14 @@ export const BossDataManager = (() => {
                 // 커밋 시에도 48시간 확장 로직을 적용하여 스케줄을 완성함
                 bossSchedule = _expandAndReconstruct(_draftSchedule);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(bossSchedule));
-                localStorage.removeItem(DRAFT_STORAGE_KEY);
-                _draftSchedule = null;
+
+                // [Step 1] 커밋 후 즉시 Draft 동기화
+                _draftSchedule = JSON.parse(JSON.stringify(bossSchedule), (key, value) => {
+                    if (key === 'scheduledDate') return new Date(value);
+                    return value;
+                });
+                localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(_draftSchedule));
+
                 notify();
             }
         },

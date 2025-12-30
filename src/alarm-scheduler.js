@@ -138,6 +138,9 @@ function handleAlarm({ id, name, type, isFixed, targetTime }) {
 }
 
 function updateAppState() {
+    // [Step 3/4] Periodic Update Check (Triggered via Timer Worker TICK)
+    BossDataManager.checkAndUpdateSchedule();
+
     // Use the centralized summary engine
     const { nextBoss, minTimeDiff } = BossDataManager.getBossStatusSummary();
     BossDataManager.setNextBossInfo(nextBoss, minTimeDiff);

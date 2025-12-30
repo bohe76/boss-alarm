@@ -379,6 +379,7 @@ export async function initApp() {
     }
 
     loadInitialData(DOM);
+    BossDataManager.checkAndUpdateSchedule(); // [Step 2] Fresh Start Update Check
 
 
     renderFixedAlarms(DOM);
