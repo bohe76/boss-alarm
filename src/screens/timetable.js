@@ -1,31 +1,43 @@
 // src/screens/timetable.js
 import { updateTimetableUI } from '../ui-renderer.js';
-import { LocalStorageManager } from '../data-managers.js';
-import { getIsAlarmRunning } from '../alarm-scheduler.js';
+import { LocalStorageManager, BossDataManager } from '../data-managers.js';
 import { trackEvent } from '../analytics.js';
 
 let autoRefreshInterval = null;
+let lastFirstBossId = null; // 이전 상태 저장 (다음 보스 변경 감지용)
 
 function startAutoRefresh(DOM) {
     if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+    lastFirstBossId = null; // 인터벌 시작 시 초기화
 
     autoRefreshInterval = setInterval(() => {
-        // Stop timer if screen is not active or export modal is open
-        const isModalOpen = DOM.exportModal && DOM.exportModal.style.display === 'flex';
-        if (!DOM.timetableScreen.classList.contains('active') || isModalOpen) {
-            // If screen is inactive, clear interval. If modal is open, just skip this tick.
-            if (!DOM.timetableScreen.classList.contains('active')) {
-                clearInterval(autoRefreshInterval);
-                autoRefreshInterval = null;
-            }
+        // 화면이 비활성화되면 인터벌 해제
+        if (!DOM.timetableScreen.classList.contains('active')) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
             return;
         }
 
-        const filterNextBoss = LocalStorageManager.get('timetableNextBossFilter');
-        const isAlarmRunning = getIsAlarmRunning();
+        // 모달이 열려 있으면 완전 스킵 (내보내기 프리뷰 보호)
+        const isModalOpen = DOM.exportModal &&
+            window.getComputedStyle(DOM.exportModal).display === 'flex';
+        if (isModalOpen) return;
 
-        // Only refresh if Next Boss Filter is ON AND Alarm is Running
-        if (filterNextBoss && isAlarmRunning) {
+        // 다음 보스 필터가 꺼져 있으면 갱신 불필요 (정적 데이터)
+        const filterNextBoss = LocalStorageManager.get('timetableNextBossFilter');
+        if (!filterNextBoss) return;
+
+        // 현재 시간 기준 첫 번째 보스 확인
+        const schedule = BossDataManager.getBossSchedule();
+        const now = new Date();
+        const firstUpcoming = schedule.find(b =>
+            b.type === 'boss' && new Date(b.scheduledDate) > now
+        );
+        const currentFirstId = firstUpcoming ? firstUpcoming.id : null;
+
+        // 다음 보스가 변경되었을 때만 화면 갱신
+        if (currentFirstId !== lastFirstBossId) {
+            lastFirstBossId = currentFirstId;
             updateTimetableUI(DOM);
         }
     }, 1000);
@@ -362,42 +374,38 @@ async function handleExportText(DOM) {
 
 /**
  * html2canvas를 사용하여 시간표 영역 캡처 및 다운로드
+ * 시간표 화면과 분리된 전용 숨김 컨테이너를 사용하여 1단 레이아웃으로 캡처
  */
 async function handleExportImage(DOM) {
-    // [중요] 내보내기 직전에 프리뷰 동기화를 명시적으로 실행하고 완료를 기다림
-    await syncTimetablePreview(DOM); // 명시적으로 await 추가 및 DOM 전달
-
-    const { updateTimetableUI } = await import('../ui-renderer.js');
+    const { renderExportCapture } = await import('../ui-renderer.js');
     const style = LocalStorageManager.get('export-image-style') || 'card';
     const dateRange = LocalStorageManager.get('export-date-range') || 'today';
     const contentType = LocalStorageManager.get('export-content-type') || 'all';
 
-    await updateTimetableUI(DOM, {
+    // 전용 컨테이너에 1단 레이아웃으로 렌더링
+    renderExportCapture(DOM, {
         dateRange: dateRange,
         nextBossOnly: contentType === 'next',
         displayMode: style === 'table' ? '표' : '카드'
     });
 
-    // 2. 캡처 대상 ID 결정
-    const targetId = style === 'table' ? 'boss-list-table' : 'bossListCardsContainer';
-    const targetElement = document.getElementById(targetId);
+    // 캡처 대상은 항상 전용 컨테이너
+    const targetElement = DOM.exportCaptureContainer;
 
     if (!targetElement) {
-        alert(`${style === 'table' ? '표' : '카드'} 형태의 영역을 찾을 수 없습니다. (ID: ${targetId})\n화면이 정상적으로 렌더링되었는지 확인해주세요.`);
+        alert("내보내기 영역을 찾을 수 없습니다.\n페이지를 새로고침 후 다시 시도해주세요.");
         return;
     }
 
     try {
-        // 이미 syncTimetablePreview에 의해 화면이 구성되어 있으므로 바로 캡처 진행
-
-        // 브라우저 렌더링 완료를 위해 다음 프레임까지 대기 (전문가적인 렌더링 보장 방식)
+        // 브라우저 렌더링 완료를 위해 다음 프레임까지 대기
         await new Promise(resolve => {
             requestAnimationFrame(() => {
                 requestAnimationFrame(resolve);
             });
         });
 
-        // 3. 캡처 시각 기준 파일명 생성 (YYYYMMDD-HHMMSS)
+        // 캡처 시각 기준 파일명 생성 (YYYYMMDD-HHMMSS)
         const now = new Date();
         const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-` +
             `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
@@ -414,7 +422,7 @@ async function handleExportImage(DOM) {
         link.href = canvas.toDataURL('image/png');
         link.click();
 
-        // [중요] 다운로드 완료 알림 후 확인을 누르면 그때 원래 상태로 복원
+        // 다운로드 완료 알림 후 모달 닫기
         alert("이미지가 저장되었습니다.");
 
         if (DOM.exportModal._restore) {

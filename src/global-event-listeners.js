@@ -2,7 +2,7 @@
 
 import { EventBus } from './event-bus.js';
 import { BossDataManager } from './data-managers.js';
-import { renderDashboard, updateTimetableUI } from './ui-renderer.js';
+import { renderDashboard } from './ui-renderer.js';
 import { renderAlarmLog } from './screens/alarm-log.js'; // Assuming renderAlarmLog will be exported
 
 /**
@@ -13,10 +13,6 @@ export function initGlobalEventListeners(DOM) {
     // Subscribe to BossDataManager changes to automatically refresh the dashboard
     BossDataManager.subscribe(() => {
         renderDashboard(DOM);
-        // [New] Also refresh timetable UI if it's active
-        if (DOM.timetableScreen && DOM.timetableScreen.classList.contains('active')) {
-            updateTimetableUI(DOM);
-        }
     });
 
     // Listener for updating the alarm log screen (if it's active)

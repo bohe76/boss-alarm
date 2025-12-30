@@ -898,15 +898,8 @@ export function renderTimetableList(DOM, options = {}) {
         DOM.bossListCardsContainer.classList.remove('boss-card-grid');
         DOM.bossListCardsContainer.classList.add('timetable-grid-container');
 
-        // 전체를 감싸는 컨테이너 시작
-        // 중요: 내부 컨테이너(boss-list-table)는 그리드 아이템이 아니라 그리드 그 자체가 되어야 할 수도 있고, 
-        // 혹은 부모인 bossListCardsContainer가 그리드가 되고 내부는 fragment처럼 동작해야 함.
-        // 현재 구조상 bossListCardsContainer 내부에 html 문자열을 넣으므로, 
-        // 2열 배치를 위해서는 bossListCardsContainer 자체가 Grid여야 하고, 자식들이 카드여야 함.
-        // 따라서 여기서 'div#boss-list-table'로 감싸버리면 1개의 자식이 되어 2열 배치가 안 됨.
-        // 해결책: 감싸는 div 없이 자식들을 바로 나열.
-        // 단, '내보내기'를 위해 ID가 필요하다면, bossListCardsContainer 자체를 캡처하면 됨.
-        html = ''; // 래퍼 제거
+        // 래퍼 없이 직접 카드들을 나열 (2단 Grid 배치를 위해)
+        html = '';
 
         let currentTableHtml = '';
         let lastDateStr = '';
@@ -974,23 +967,169 @@ export function renderTimetableList(DOM, options = {}) {
         // 마지막으로 열려있던 테이블 카드 닫기
         closeCurrentTableCard();
 
-        // 전체 컨테이너 닫기
-        html += '</div>';
+        // 래퍼 없음 (2단 배치 유지)
     }
 
     // 결과가 없을 경우 메시지 표시
-    if (!html || html === '<div id="boss-list-table" class="table-view-container"></div>') {
+    if (!html) {
         const noBossMsg = '<p class="no-boss-message" style="text-align: center; color: #888; padding: 20px;">표시할 보스가 없습니다.</p>';
-        if (displayMode === '카드') {
-            html = noBossMsg;
-        } else {
-            // 표 모드인 경우 컨테이너 내부에 메시지 삽입
-            html = `<div id="boss-list-table" class="table-view-container">${noBossMsg}</div>`;
-        }
+        html = noBossMsg;
     }
 
     DOM.bossListCardsContainer.innerHTML = html;
 }
+
+/**
+ * 내보내기 이미지 전용 렌더링 함수 (항상 1단 레이아웃)
+ * 시간표 화면과 동일한 HTML 구조 및 CSS 클래스를 사용하여 완벽히 동일한 스타일 보장
+ */
+export function renderExportCapture(DOM, options = {}) {
+    if (!DOM.exportCaptureContainer) return;
+
+    const { nextBossOnly = false, dateRange = 'all', displayMode = '카드' } = options;
+
+    const schedule = BossDataManager.getBossSchedule();
+    const now = new Date();
+
+    // 데이터 필터링
+    let bosses = schedule.filter(item => item.type === 'boss');
+
+    if (dateRange !== 'all') {
+        const targetDate = new Date();
+        if (dateRange === 'tomorrow') targetDate.setDate(targetDate.getDate() + 1);
+        const targetDateStr = targetDate.toDateString();
+        bosses = bosses.filter(boss => {
+            const bossDate = new Date(boss.scheduledDate);
+            return bossDate.toDateString() === targetDateStr;
+        });
+    }
+
+    if (nextBossOnly) {
+        bosses = bosses.filter(boss => new Date(boss.scheduledDate) > now);
+    }
+
+    // 이름 최대 길이 계산 (카드 모드용)
+    const maxNameLength = bosses.length > 0
+        ? Math.max(...bosses.map(b => b.name ? b.name.length : 0))
+        : 0;
+    const nameMinWidth = Math.max(maxNameLength * 14, 80);
+
+    let html = '';
+
+    if (displayMode === '카드') {
+        // --- 카드 모드 (기존 renderTimetableList와 동일한 구조) ---
+        let currentCardHtml = '';
+        let lastDateStr = '';
+
+        const closeCurrentCard = () => {
+            if (currentCardHtml) {
+                html += `
+                    <div class="card-standard" style="margin-bottom: 16px;">
+                        ${currentCardHtml}
+                        </div> <!-- .card-list-content 닫기 -->
+                    </div> <!-- .card-standard 닫기 -->
+                `;
+                currentCardHtml = '';
+            }
+        };
+
+        bosses.forEach(boss => {
+            const scheduledDate = new Date(boss.scheduledDate);
+            const dateStr = formatMonthDay(scheduledDate);
+
+            if (dateStr !== lastDateStr) {
+                closeCurrentCard();
+
+                const dayOfWeek = getKoreanDayOfWeek(scheduledDate);
+                currentCardHtml = `
+                    <div class="card-header">
+                        <h3>${dateStr} (${dayOfWeek})</h3>
+                    </div>
+                    <div class="card-list-content">
+                `;
+                lastDateStr = dateStr;
+            }
+
+            const time = boss.timeFormat === 'hm' ? boss.time.substring(0, 5) : boss.time;
+
+            currentCardHtml += `
+                <div class="list-item list-item--dense" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden; padding: 10px 0;">
+                    <span style="font-weight: bold; min-width: 60px; flex-shrink: 0;">${time}</span>
+                    <span style="display: inline-block; margin-left: 16px; min-width: ${nameMinWidth}px; flex-shrink: 0; white-space: nowrap; font-weight: 500;">${boss.name}</span>
+                    ${boss.memo ? `<span style="font-size: 0.9em; color: #666; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${boss.memo}</span>` : ''}
+                </div>
+            `;
+        });
+
+        closeCurrentCard();
+
+    } else {
+        // --- 표 모드 (기존 renderTimetableList와 동일한 구조) ---
+        let currentTableHtml = '';
+        let lastDateStr = '';
+
+        const closeCurrentTableCard = () => {
+            if (currentTableHtml) {
+                html += `
+                    <div class="boss-table-card">
+                        <div class="boss-table-header">
+                            <h3>${lastDateStr}</h3>
+                        </div>
+                        <table class="boss-table" style="table-layout: fixed;">
+                            <colgroup>
+                                <col style="width: 80px;">
+                                <col>
+                                <col style="width: 30%;">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center;">시간</th>
+                                    <th>보스 이름</th>
+                                    <th>비고</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${currentTableHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                currentTableHtml = '';
+            }
+        };
+
+        bosses.forEach(boss => {
+            const scheduledDate = new Date(boss.scheduledDate);
+            const dateStr = formatMonthDay(scheduledDate);
+            const dayOfWeek = getKoreanDayOfWeek(scheduledDate);
+            const fullDateStr = `${dateStr} (${dayOfWeek})`;
+
+            if (fullDateStr !== lastDateStr) {
+                closeCurrentTableCard();
+                lastDateStr = fullDateStr;
+            }
+
+            const time = boss.timeFormat === 'hm' ? boss.time.substring(0, 5) : boss.time;
+
+            currentTableHtml += `
+                <tr>
+                    <td class="boss-table-time">${time}</td>
+                    <td class="boss-table-name">${boss.name}</td>
+                    <td class="boss-table-memo">${boss.memo || ''}</td>
+                </tr>
+            `;
+        });
+
+        closeCurrentTableCard();
+    }
+
+    if (!html) {
+        html = '<p class="no-boss-message" style="text-align: center; color: #888; padding: 20px;">표시할 보스가 없습니다.</p>';
+    }
+
+    DOM.exportCaptureContainer.innerHTML = html;
+}
+
 // --- Version Update Modal Rendering (v2.6) ---
 export function renderUpdateModal(DOM, noticeData) {
     if (!DOM.versionUpdateModal || !noticeData) return;

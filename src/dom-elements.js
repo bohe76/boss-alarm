@@ -142,6 +142,7 @@ export function initDomElements() {
         exportExecuteBtn: document.getElementById('export-execute-btn'),
         exportImageStyleSection: document.getElementById('export-image-style-section'),
         exportImageStyleOptions: document.getElementById('export-image-style-options'),
+        exportCaptureContainer: document.getElementById('export-capture-container'),
 
         // Version Update Modal Elements (v2.6)
         versionUpdateModal: document.getElementById('version-update-modal'),

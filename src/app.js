@@ -163,7 +163,14 @@ function showScreen(DOM, screenId) {
 
     if (screenId === 'dashboard-screen') {
         renderDashboard(DOM); // Immediate render
-        dashboardRefreshInterval = setInterval(() => renderDashboard(DOM), 1000);
+        dashboardRefreshInterval = setInterval(() => {
+            // 모달이 열려 있으면 렌더링 생략 (내보내기 프리뷰 보호)
+            const isAnyModalOpen = Array.from(document.querySelectorAll('.modal'))
+                .some(modal => window.getComputedStyle(modal).display === 'flex');
+            if (isAnyModalOpen) return;
+
+            renderDashboard(DOM);
+        }, 1000);
     }
     // End manage dashboard refresh interval
 
