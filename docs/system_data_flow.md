@@ -103,13 +103,14 @@
         *   **유효성 성공:** 파싱된 결과를 `BossDataManager.setBossSchedule()`로 저장하고, `ui-renderer.js`의 `updateBossListTextarea(DOM)`를 호출하여 정렬 및 `timeFormat`에 따라 포맷팅된 텍스트로 갱신합니다. `window.isBossListDirty`를 `false`로 초기화합니다.
 *   **데이터 흐름 요약:** `LocalStorageManager`를 통해 모드 및 보기 형식, 필터 상태를 관리합니다. **뷰 모드**에서는 `BossDataManager` 데이터를 기반으로 `ui-renderer.js`가 **선택된 보기 형식(카드 리스트 또는 테이블)**으로 고유 비고를 포함하여 보스 목록을 생성합니다. **편집 모드**에서는 사용자 입력을 파싱하여 **표준 UID**를 포함한 데이터를 `BossDataManager`에 저장하는 양방향 흐름을 가집니다.
 
-#### 3.2.1. 시간표 내보내기(Export) 데이터 흐름 (Issue-022)
-
+#### 3.2.1. 시간표 내보내기(Export) 데이터 흐름 (Issue-022, UI 격리 적용)
 1.  **백업 및 환경 설정**: 사용자가 내보내기 버튼 클릭 시, 현재 활성 화면 정보를 `originalSettings`에 백업하고 프리뷰를 위해 시간표 화면을 활성화합니다.
-2.  **실시간 프리뷰**: 모달 내 옵션 변경 시 `syncTimetablePreview`가 호출되어 `LocalStorageManager`의 내보내기 설정을 읽고, `ui-renderer.js`의 `updateTimetableUI`를 통해 배경 UI를 즉시 갱신합니다.
-3.  **내보내기 실행**: 
-    *   **텍스트**: 현재 프리뷰된 필터 조건에 맞춰 텍스트를 생성하여 클립보드에 복사합니다.
-    *   **이미지**: `html2canvas`가 지정된 영역(`boss-list-table` 등)을 캡처하여 PNG로 저장합니다. 실행 중에는 버튼 연타가 방지됩니다.
+2.  **실시간 프리뷰 (배경 UI)**: 모달 내 옵션 변경 시 `syncTimetablePreview`가 호출되어 `LocalStorageManager`의 내보내기 설정을 읽고, `ui-renderer.js`의 `updateTimetableUI`를 통해 메인 화면(배경)을 즉시 갱신합니다.
+3.  **내보내기 실행 (이미지 캡처)**:
+    *   **UI 격리 렌더링**: 이미지 저장 요청 시, `ui-renderer.js`의 `renderExportCapture`를 호출하여 **숨겨진 전용 컨테이너(`export-capture-container`)**에 1단 레이아웃으로 시간표를 새로 그립니다.
+    *   **스타일 동기화**: `renderTimetableList`와 동일한 CSS 클래스를 강제 사용하여, 메인 화면의 디자인(색상, 폰트)을 100% 반영합니다.
+    *   **고해상도 캡처**: `html2canvas`가 격리된 컨테이너 영역만 타겟팅하여 PNG 이미지를 생성합니다.
+    *   **1단 고정 정책**: 사용자가 PC에서 2단 그리드로 보고 있더라도, 이미지는 모바일 가독성을 위해 **항상 1단 리스트**로 출력됩니다.
 4.  **자동 새로고침 제어**: 내보내기 프로세스 중에는 `startAutoRefresh` 타이머가 건너뛰어지며, 프리뷰가 원래 메인 설정으로 롤백되는 것을 방지합니다.
 5.  **상태 완벽 복원**: 내보내기 완료(성공 알림 확인 후) 또는 모달 닫기 시, `restoreOriginalSettings`가 실행되어 백업된 원래 화면과 필터 상태로 완벽하게 되돌립니다.
 

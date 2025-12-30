@@ -14,6 +14,7 @@
 *   **안드로이드 자동 리디렉션:** 안드로이드 기기에서 카카오톡 인앱 브라우저가 감지되면, `intent://` URL 스킴을 사용하여 자동으로 사용자의 기본 외부 브라우저(예: Chrome, 삼성 인터넷)로 페이지를 리디렉션합니다.
 *   **iOS 사용자 안내:** iOS 기기에서는 애플의 보안 정책으로 인해 자동 리디렉션이 불가능합니다. 대신, 전체 화면 오버레이를 표시하여 사용자에게 수동으로 Safari와 같은 외부 브라우저로 페이지를 열도록 명확한 시각적 지침을 제공합니다. 이 오버레이는 인라인 스타일 및 SVG를 사용하여 자체 포함되어 있으며, 외부 리소스에 의존하지 않습니다.
 *   **차세대 스켈레톤 UI 구조 정의:** 실제 대시보드와 동일한 `.dashboard-layout`, `.dashboard-column-left`, `.dashboard-column-right` 구조를 `#dashboard-skeleton` 내부에 미리 정의하여 로딩 시 레이아웃 시프트를 방지하고, CSS Shimmer 애니메이션을 통해 로딩 상태를 시각화합니다.
+*   **내보내기 전용 캡처 컨테이너 (`#export-capture-container`):** 시간표 이미지 생성 시에만 사용되는 숨겨진(hidden) 컨테이너입니다. 메인 UI(`boosListCardsContainer`)와 물리적으로 분리되어 있어, 내보내기 작업이 메인 화면의 레이아웃(PC 2단 등)을 깨뜨리는 것을 방지하며, 항상 모바일 최적화된 1단 레이아웃을 렌더링합니다.
 
 ---
 
@@ -155,7 +156,13 @@
 *   `renderCrazyTempResults(DOM, gwangTime, afterGwangTime, totalTime)`: 광 계산기의 최근 계산 결과를 임시로 렌더링합니다.
 *   `renderCrazySavedList(DOM, records)`: 광 계산기의 저장된 기록 목록을 렌더링합니다.
 *   `renderUpdateModal(DOM, noticeData)`: 앱 시작 시 버전 업데이트 안내 모달을 렌더링합니다. `update-notice.json`에서 로드된 `noticeData`를 인자로 받아 개발자 인사말과 가변적인 업데이트 요약 목록을 동적으로 구성합니다. 버전 번호는 `window.APP_VERSION`을 참조하여 제목에 표시합니다. **모든 렌더링은 인라인 스타일을 배제하고 표준화된 CSS 클래스를 사용하며, 버튼 등은 32px 높이의 공통 규격을 준수합니다.**
+*   `renderExportCapture(DOM, options)`: **[Critical]** 내보내기 이미지를 생성하기 위해 `#export-capture-container`에 시간표를 렌더링합니다.
+    *   **스타일 동기화 (Strict Style Enforcement):** 이 함수는 반드시 `renderTimetableList`(메인 화면 렌더링)와 **동일한 HTML 구조 및 CSS 클래스**를 사용해야 합니다. 인라인 스타일을 사용하여 디자인을 흉내 내는 것은 **절대 금지**되며, 디자인 변경 시 두 함수를 동시에 업데이트해야 합니다.
+    *   **레이아웃 고정:** 옵션과 무관하게 항상 **1단 레이아웃**으로 렌더링됩니다.
 *   그 외 상세 렌더링 함수들.
+
+### ⚠️ [CRITICAL WARNING] 중요 수정 금지 사항
+*   **`renderTimetableList` 표 모드 래퍼 금지**: 표 모드(`renderBossListTableView`) 렌더링 시, 전체를 감싸는 wrapper `div`를 추가하면 CSS Grid(`timetable-grid-container`)의 **2단 컬럼 배치가 깨집니다.** Grid의 직계 자식은 반드시 개별 카드여야 하므로, wrapper를 절대 추가하지 마십시오. (Issue-022 재발 방지)
 
 ---
 
@@ -292,6 +299,11 @@
     1.  `BossDataManager.subscribe`: 데이터 변경 시 대시보드 UI(`renderDashboard`)를 자동으로 갱신하는 리스너를 등록합니다.
     2.  `EventBus.on('log-updated')`: 새로운 로그가 발생했을 때, 현재 '알림 로그' 화면이 활성화 상태이면 로그 목록(`renderAlarmLog`)을 실시간으로 갱신하는 리스너를 등록합니다.
 
+### ⚠️ [CRITICAL WARNING] 중요 수정 금지 사항
+*   **구독 내 UI 직접 제어 금지**: `BossDataManager.subscribe` 콜백 내에서 `updateTimetableUI`와 같은 특정 화면 렌더링 함수를 직접 호출하지 마십시오.
+    *   **이유**: 내보내기 모달에서 프리뷰를 위해 데이터를 임시 조작할 때, 구독 콜백이 트리거되어 메인 화면 설정으로 강제 리셋되는 **간섭 현상(Interference)**이 발생합니다.
+    *   **해결**: 화면 갱신은 각 화면(`timetable.js` 등)의 `onTransition`이나 자체 이벤트 루프에서 처리하고, 전역 구독은 대시보드와 같은 공용 요소 갱신에만 집중해야 합니다.
+
 
 
 ## 9. `src/logger.js`
@@ -402,7 +414,7 @@
 | 모듈 파일 | 주요 `export` 함수 | 상세 역할 및 내부 로직 |
 |---|---|---|
 | **`alarm-log.js`** | `getScreen()` | `onTransition` 시 `initAlarmLogScreen(DOM)`을 호출하여 로그 화면을 초기화합니다. `initAlarmLogScreen`은 `LocalStorageManager`를 통해 "15개 보기" 토글 버튼의 상태를 로드/저장하고 관련 이벤트 리스너를 등록합니다. 로그의 실시간 갱신은 `global-event-listeners.js`에 중앙화된 `log-updated` 이벤트 리스너를 통해 자동으로 처리됩니다. `renderAlarmLog`는 토글 상태에 따라 최근 15개 또는 전체 로그를 렌더링합니다. |
-| **`timetable.js`** | `getScreen()` | `init` 시 '뷰/편집' 모드 토글, '표/카드' 보기 모듈 전환 및 **내보내기(Export) 모달** 이벤트 리스너를 등록합니다. <br> - **내보내기 가드**: 모달이 열려 있는 동안 `startAutoRefresh`를 일시 중단하여 프리뷰 안전성을 확보합니다. <br> - **실시간 동기화**: `syncTimetablePreview`를 통해 옵션 변경 즉시 배경 UI를 갱신합니다. <br> - **상태 복원**: `restoreOriginalSettings`를 통해 내보내기 완료 후 이전 화면 상태(탭, 필터 등)를 완벽히 복구합니다. <br> - **이미지 내보내기**: `html2canvas`를 활용해 캡처 대상 ID(`boss-list-table` 등)를 고해상도로 저장합니다. |
+| **`timetable.js`** | `getScreen()` | `init` 시 '뷰/편집' 모드 토글, '표/카드' 보기 모듈 전환 및 **내보내기(Export) 모달** 이벤트 리스너를 등록합니다. <br> - **내보내기 가드**: 모달이 열려 있는 동안 `startAutoRefresh`를 일시 중단하여 프리뷰 안전성을 확보합니다. <br> - **실시간 동기화**: `syncTimetablePreview`를 통해 옵션 변경 즉시 배경 UI를 갱신합니다. <br> - **상태 복원**: `restoreOriginalSettings`를 통해 내보내기 완료 후 이전 화면 상태(탭, 필터 등)를 완벽히 복구합니다. <br> - **이미지 내보내기**: `handleExportImage`는 메인 화면이 아닌 **전용 컨테이너(`exportCaptureContainer`)**를 사용하여 1단 레이아웃 이미지를 생성하고 `html2canvas`로 캡처합니다. <br><br> **⚠️ [WARNING]**: 내보내기 로직 수정 시 `ui-renderer.js`의 `renderExportCapture`와 함께 확인해야 하며, 메인 화면 DOM(`bossListCardsContainer`)을 캡처 대상으로 지정하면 안 됩니다. |
 | **`boss-scheduler.js`** | `getScreen()` | `init` 시 `EventBus.on('show-boss-scheduler-screen')` 및 `EventBus.on('rerender-boss-scheduler')` 리스너를 등록하고, UI를 렌더링합니다. `remaining-time-input` 필드의 유효성 검사는 사용자 입력을 방해하지 않도록 **지연 검증(Deferred Validation)** 정책을 적용하여, 최종 "보스 시간 업데이트" 버튼 클릭 시점에 일괄 수행합니다. `handleApplyBossSettings(DOM)` 함수는 입력된 `data-id`와 계산된 시간, 그리고 `dataset.timeFormat`을 기반으로 `boss` 객체를 업데이트하고 리스트를 재구성하여 저장합니다. **Workspace Isolation 적용으로 게임별로 작성 중인 입력 내용이 자동 저장 및 복원되어 사용자 작업 연속성을 보장합니다.** |
 | **`calculator.js`** | `getScreen()` | `init` 시 `initCalculatorScreen(DOM)`이 호출되어 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 `handleCalculatorScreenTransition(DOM)`이 호출되어 `CrazyCalculator`의 상태를 초기화하고 `ui-renderer.js`의 `renderCalculatorScreen(DOM)`을 호출하여 화면을 렌더링합니다. `checkZenCalculatorUpdateButtonState(DOM)` 헬퍼 함수를 통해 '보스 시간 업데이트' 버튼의 활성화/비활성화 상태를 관리합니다. |
 | **`custom-list.js`** | `getScreen()` | `init` 시 `initCustomListScreen(DOM)`이 호출되어 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. `DOM.manageCustomListsButton` 클릭 시 모달이 열리며, 목록 변경 시 `EventBus.emit('rerender-boss-scheduler')`를 발행하여 보스 스케줄러의 드롭다운을 업데이트합니다. |

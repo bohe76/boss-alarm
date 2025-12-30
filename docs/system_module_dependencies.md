@@ -34,6 +34,7 @@
 | `data-managers.js` | `BossDataManager.subscribe()`: 보스 데이터 변경 구독 |
 | `ui-renderer.js` | `renderDashboard()`: 대시보드 UI 갱신 |
 | `screens/alarm-log.js` | `renderAlarmLog()`: 알림 로그 화면 UI 갱신 |
+| **(Anti-Pattern)** | **[금지]** `timetable.js` / `ui-renderer.js` (`updateTimetableUI`): 전역 구독 내에서 특정 화면의 렌더링 함수를 직접 호출하면, 내보내기 모달 등 로컬 상태를 가진 기능과 충돌합니다. |
 
 ## 3. `src/screens/*.js` (화면별 UI 및 이벤트 핸들러)
 
@@ -42,7 +43,7 @@
 | 화면 모듈 | 의존하는 모듈 | 호출하는 함수 / 발행하는 이벤트 |
 |---|---|---|
 | **`alarm-log.js`** | `logger.js`, `data-managers.js`, `ui-renderer.js` | `getLogs()`, `renderAlarmLog()` (조건부 렌더링), `LocalStorageManager.get/set()` |
-| **`timetable.js`**| `boss-parser.js`, `ui-renderer.js`, `data-managers.js`, `logger.js`, `html2canvas (External)` | '뷰/편집' 모드 토글, '표/카드' 보기 모드 전환, '다음 보스' 필터 토글, `parseBossList()`, `updateTimetableUI()`, `renderBossListTableView()`, `updateBossListTextarea()`, `BossDataManager.setBossSchedule()`, `LocalStorageManager.get/set('timetable-view-mode')`, `log()`, `html2canvas` 캡처 |
+| **`timetable.js`**| `boss-parser.js`, `ui-renderer.js`, `data-managers.js`, `logger.js`, `html2canvas (External)` | '뷰/편집' 모드 토글, '표/카드' 보기 모드 전환, '다음 보스' 필터 토글, `parseBossList()`, `updateTimetableUI()`, `renderBossListTableView()`, **`renderExportCapture()`**, `updateBossListTextarea()`, `BossDataManager.setBossSchedule()`, `LocalStorageManager.get/set('timetable-view-mode')`, `log()`, `html2canvas` 캡처. <br> **[주의]** `ui-renderer.js`의 DOM 조작 함수와 긴밀하게 결합되어 있어, 레이아웃 변경 시 반드시 `timetable.js`의 내보내기 로직을 함께 검토해야 합니다. |
 | **`calculator.js`** | `calculator.js`, `crazy-calculator.js`, `data-managers.js`, `ui-renderer.js`, `utils.js`, `logger.js` | `initCalculatorScreen()`, `handleCalculatorScreenTransition()`, `calculateAppearanceTimeFromMinutes()`, `CrazyCalculator.*`, `LocalStorageManager.*`, `BossDataManager.*`, `updateBossManagementUI()`, `showToast()`, `log()` |
 | **`boss-scheduler.js`**| `ui-renderer.js`, `calculator.js`, `logger.js`, `event-bus.js`, `data-managers.js`, `utils.js` | `renderBossSchedulerScreen()`, `handleApplyBossSettings()`, `calculateBossAppearanceTime()`, `log()`, `EventBus.emit()`, `BossDataManager.setBossSchedule()`, `generateUniqueId()`, `padNumber()` |
 | **`custom-list.js`** | `ui-renderer.js`, `custom-list-manager.js`, `event-bus.js` | `showCustomListTab()`, `renderCustomListManagementModalContent()`, `showToast()`, `CustomListManager.*`, `EventBus.emit('rerender-boss-scheduler')` |
