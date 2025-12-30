@@ -2,7 +2,7 @@
 
 import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning } from './alarm-scheduler.js';
-import { renderFixedAlarms, renderAlarmStatusSummary, renderDashboard, updateBossListTextarea } from './ui-renderer.js';
+import { renderFixedAlarms, renderAlarmStatusSummary, renderDashboard, updateBossListTextarea, renderUpdateModal } from './ui-renderer.js';
 import { log } from './logger.js';
 import { LocalStorageManager, BossDataManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
@@ -267,9 +267,38 @@ function initEventHandlers(DOM) {
 
     if (DOM.pipToggleButton) {
         DOM.pipToggleButton.addEventListener('click', () => {
-            togglePipWindow();
+            togglePipWindow(DOM);
             trackEvent('Click Button', { event_category: 'Feature Usage', event_label: 'PiP 토글' });
         });
+    }
+
+    // --- 11. VERSION UPDATE MODAL (v2.6) ---
+    const versionKey = `hide_update_modal_${window.APP_VERSION || 'v2.16.2'}`;
+
+    const closeUpdateModal = () => {
+        DOM.versionUpdateModal.style.display = 'none';
+    };
+
+    DOM.closeVersionModal.addEventListener('click', closeUpdateModal);
+
+    DOM.versionUpdateModal.addEventListener('click', (e) => {
+        if (e.target === DOM.versionUpdateModal) closeUpdateModal();
+    });
+
+    DOM.viewReleaseNotesBtn.addEventListener('click', () => {
+        LocalStorageManager.set(versionKey, true);
+        EventBus.emit('navigate', 'version-info-screen');
+        closeUpdateModal();
+    });
+
+    DOM.hideVersionModalBtn.addEventListener('click', () => {
+        LocalStorageManager.set(versionKey, true);
+        closeUpdateModal();
+    });
+
+    // 앱 시작 시 노출 여부 판단
+    if (!LocalStorageManager.get(versionKey)) {
+        renderUpdateModal(DOM);
     }
 
 

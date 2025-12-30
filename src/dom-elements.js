@@ -142,5 +142,14 @@ export function initDomElements() {
         exportExecuteBtn: document.getElementById('export-execute-btn'),
         exportImageStyleSection: document.getElementById('export-image-style-section'),
         exportImageStyleOptions: document.getElementById('export-image-style-options'),
+
+        // Version Update Modal Elements (v2.6)
+        versionUpdateModal: document.getElementById('version-update-modal'),
+        versionModalTitle: document.getElementById('version-modal-title'),
+        closeVersionModal: document.getElementById('close-version-modal'),
+        devMessageContent: document.getElementById('dev-message-content'),
+        updateSummaryList: document.getElementById('update-summary-list'),
+        viewReleaseNotesBtn: document.getElementById('view-release-notes-btn'),
+        hideVersionModalBtn: document.getElementById('hide-version-modal-btn'),
     };
 }

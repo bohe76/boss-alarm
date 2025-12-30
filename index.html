@@ -805,6 +805,31 @@
         </div>
     </div>
 
+    <!-- Version Update Modal (v2.6) -->
+    <div id="version-update-modal" class="modal" style="display: none;">
+        <div class="modal-content version-modal-content">
+            <div class="modal-header">
+                <h2 id="version-modal-title">v0.0.0 업데이트 안내</h2>
+                <button id="close-version-modal" class="close-button">&times;</button>
+            </div>
+            <div class="modal-body version-modal-body">
+                <div class="dev-message-section">
+                    <p id="dev-message-content" class="dev-message-text"></p>
+                </div>
+                <div class="update-summary-section">
+                    <h3>업데이트 내용 요약</h3>
+                    <ul id="update-summary-list" class="update-summary-list">
+                        <!-- 요약 내용이 자바스크립트로 동적으로 삽입됨 -->
+                    </ul>
+                </div>
+            </div>
+            <div class="version-update-footer">
+                <button id="view-release-notes-btn" class="version-footer-btn secondary">자세히 보기</button>
+                <button id="hide-version-modal-btn" class="version-footer-btn primary">다시 보지 않기</button>
+            </div>
+        </div>
+    </div>
+
     <div id="global-tooltip"></div>
     <nav id="bottom-nav" class="bottom-nav">
         <a href="#" id="bottom-nav-dashboard" data-screen="dashboard-screen" class="bottom-nav-item active"
