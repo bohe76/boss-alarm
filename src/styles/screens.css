@@ -10,7 +10,7 @@
     gap: 16px;
     /* Changed from 20px to 16px */
     width: 100%;
-    max-width: 800px;
+    max-width: 960px;
     /* Limit overall dashboard max width */
     margin: 0 auto;
     /* Center align the entire dashboard */
@@ -46,11 +46,11 @@
 
     .dashboard-column-left,
     .dashboard-column-right {
-        width: 380px;
-        /* Fix column width to match card max width */
-        min-width: 380px;
+        width: 472px;
+        /* Fix column width to match card max width (960-16)/2 */
+        min-width: 472px;
         /* Prevent shrinking */
-        max-width: 380px;
+        max-width: 472px;
     }
 }
 
@@ -210,10 +210,34 @@
     align-items: center;
     margin-bottom: 20px;
     /* Space below the controls */
-    max-width: 800px;
+    max-width: 960px;
     /* Match with h2 and card-size-list */
     margin-left: auto;
     margin-right: auto;
+}
+
+/* PC 환경에서 보스 시간표 (카드 및 표 모드) 2열 그리드 배치 */
+@media (min-width: 769px) {
+
+    #bossListCardsContainer.card-size-list,
+    .table-view-container {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 16px !important;
+        align-items: start !important;
+        max-width: 960px !important;
+        width: 100% !important;
+        /* Force full width to enable grid columns */
+        margin: 0 auto !important;
+    }
+
+    /* 그리드 내의 개별 카드/표가 너비를 꽉 채우도록 설정 */
+    #bossListCardsContainer.card-size-list>div,
+    .table-view-container>.boss-table-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-bottom: 0 !important;
+    }
 }
 
 #timetableDisplayModeToggle {
@@ -558,7 +582,7 @@
 }
 
 .scheduler-controls-header {
-    max-width: 800px;
+    max-width: 960px;
     /* Match card width */
     width: 100%;
     margin: 0 auto 16px auto;
@@ -636,7 +660,7 @@
     gap: 12px;
     margin-bottom: 0;
     /* Changed from 16px to 0 */
-    max-width: 800px;
+    max-width: 960px;
     /* Match card width */
     width: 100%;
     margin-left: auto;
@@ -659,7 +683,7 @@
     gap: 12px;
     margin-top: 0;
     margin-bottom: 20px;
-    max-width: 800px;
+    max-width: 960px;
     /* Match card width */
     width: 100%;
     margin-left: auto;

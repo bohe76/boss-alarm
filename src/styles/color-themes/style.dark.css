@@ -1139,7 +1139,7 @@ textarea:-ms-input-placeholder {
 }
 
 .card-size-list {
-    max-width: 800px;
+    max-width: 960px;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
@@ -1483,7 +1483,7 @@ textarea:-ms-input-placeholder {
     gap: 16px;
     /* Changed from 20px to 16px */
     width: 100%;
-    max-width: 800px;
+    max-width: 960px;
     /* Limit overall dashboard max width */
     margin: 0 auto;
     /* Center align the entire dashboard */
@@ -1501,7 +1501,7 @@ textarea:-ms-input-placeholder {
     /* Center align cards within column */
     width: 100%;
     /* Occupy full parent width on mobile */
-    max-width: 380px;
+    max-width: 472px;
     /* Match max width of individual cards */
 }
 
@@ -1523,11 +1523,11 @@ textarea:-ms-input-placeholder {
 
     .dashboard-column-left,
     .dashboard-column-right {
-        width: 380px;
+        width: 472px;
         /* Fix column width to match card max width */
-        min-width: 380px;
+        min-width: 472px;
         /* Prevent shrinking */
-        max-width: 380px;
+        max-width: 472px;
     }
 }
 
@@ -1544,7 +1544,7 @@ textarea:-ms-input-placeholder {
     /* Changed from 20px to 16px */
     width: 100%;
     /* Occupy full parent width */
-    max-width: 380px;
+    max-width: 472px;
     /* Max-width for two small cards combination */
 }
 

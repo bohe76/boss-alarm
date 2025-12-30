@@ -341,7 +341,7 @@ function initEventHandlers(DOM) {
     if (DOM.editTimetableButton) {
         DOM.editTimetableButton.addEventListener('click', () => {
             EventBus.emit('navigate', 'boss-scheduler-screen');
-            trackEvent('Click Button', { event_category: 'Navigation', event_label: '시간표 수정하기 버튼 클릭' });
+            trackEvent('Click Button', { event_category: 'Navigation', event_label: '시간표 수정 버튼 클릭' });
         });
     }
 

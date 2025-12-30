@@ -409,7 +409,7 @@ input:checked+.slider:before {
 }
 
 .card-size-list {
-    max-width: 800px;
+    max-width: 960px;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
@@ -423,10 +423,10 @@ input:checked+.slider:before {
         /* PC에서 가독성을 위한 최소 너비 확보 */
     }
 
-    /* 보스 스케줄러 화면의 카드는 입력 필드가 많으므로 기본 영역(800px)을 가득 채우도록 함 */
+    /* 보스 스케줄러 화면의 카드는 입력 필드가 많으므로 기본 영역(960px)을 가득 채우도록 함 */
     #boss-scheduler-screen .card-size-list {
         width: 100%;
-        max-width: 800px;
+        max-width: 960px;
     }
 }
 

@@ -2,7 +2,7 @@
 
 import { EventBus } from './event-bus.js';
 import { BossDataManager } from './data-managers.js';
-import { renderDashboard } from './ui-renderer.js';
+import { renderDashboard, updateTimetableUI } from './ui-renderer.js';
 import { renderAlarmLog } from './screens/alarm-log.js'; // Assuming renderAlarmLog will be exported
 
 /**
@@ -15,7 +15,6 @@ export function initGlobalEventListeners(DOM) {
         renderDashboard(DOM);
         // [New] Also refresh timetable UI if it's active
         if (DOM.timetableScreen && DOM.timetableScreen.classList.contains('active')) {
-            const { updateTimetableUI } = import('./ui-renderer.js');
             updateTimetableUI(DOM);
         }
     });
