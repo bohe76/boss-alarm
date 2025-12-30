@@ -57,9 +57,18 @@
     4.  대시보드 (`dashboard-screen`)로 전환될 경우, `renderDashboard(DOM)`를 즉시 호출하여 화면을 렌더링한 후, `setInterval(renderDashboard, 1000)`를 설정하여 1초마다 대시보드 UI를 갱신합니다. 다른 화면으로 전환 시에는 해당 `setInterval`을 해제합니다.
 
 #### `loadInitialData(DOM)` (내부 함수)
-- **설명:** 애플리케이션 시작 시 URL 쿼리 파라미터(`data`) 또는 초기화 과정에서 로드된 `initial-default.json` 데이터로부터 초기 보스 목록을 설정합니다.
+- **설명:** 애플리케이션 시작 시 데이터 무결성을 검증하며 초기 일정을 설정합니다. URL -> 로컬 스토리지 -> 샘플 데이터 순으로 우선순위를 가집니다.
 - **인자:** `DOM` (`Object`)
-- **핵심 내부 로직:** URL `data` 파라미터가 있으면 `parseBossList`를 통해 파싱하고, 없으면 `getInitialDefaultData()`로 가져온 구조화된 데이터를 `processBossItems()`로 처리하여 `BossDataManager.setBossSchedule()`으로 저장합니다. `setBossSchedule()`호출 시 Draft와 localStorage도 즉시 동기화됩니다.
+- **핵심 내부 로직:** 
+    1.  **URL 파라미터 검사**: `data` 쿼리가 있고 무결성 검증(`validateScheduleIntegrity`)을 통과하면 최우선 로드합니다. 오염된 경우 무시하고 다음 단계로 진행합니다.
+    2.  **로컬 스토리지 검사**: URL 데이터가 없을 때만 실행됩니다. 무결성 검증 통과 시 로드하며, 오염(커스텀 삭제 등 보스 정합성 깨짐) 감지 시 로컬 데이터를 강제 초기화하여 루프를 방지합니다.
+    3.  **샘플 데이터 복구**: 위 과정이 모두 실패하면 `initial-default.json` 데이터를 로드하여 깨끗한 상태를 즉시 로컬 스토리지에 기록합니다.
+
+#### `validateScheduleIntegrity(schedule)` (내부 함수)
+- **설명:** 주어진 일정 내 모든 보스가 현재 시스템(프리셋/커스텀)에 정의되어 있는지 확인합니다.
+- **인자:** `schedule` (`Array`)
+- **반환값:** `boolean` (유효성 여부)
+- **핵심 로직:** `getBossNamesForGame`을 통해 수집된 모든 유효한 보스 이름 셋에 스케줄의 보스가 포함되지 않으면 `false`를 반환하여 데이터 오염을 경고합니다.
 
 #### `processBossItems(items)` (내부 함수)
 - **설명:** `initial-default.json`에서 로드한 보스 아이템 배열을 SSOT 형식의 스케줄 배열로 변환합니다.
@@ -171,10 +180,10 @@
     *   `getBossInterval(bossName, contextId)`: `number`. 특정 보스의 리젠 주기(분)를 프리셋에서 찾아 반환합니다. 보스 이름과 게임 컨텍스트를 기반으로 검색합니다.
     *   `getBossSchedule()`: `Array`. 현재 파싱 및 확장된 보스 일정 배열(Main SSOT)을 반환합니다.
     *   `setBossSchedule(newSchedule)`: `void`. 새로운 보스 일정 배열을 받고, **48시간 확장 엔진을 돌려 정규화한 뒤** Main SSOT에 저장하며, Draft를 동기화하고 구독자에게 알립니다.
-    *   `getDraftSchedule()`: `Array`. 현재 편집 중인 Draft 스케줄을 반환합니다.
-    *   `setDraftSchedule(newDraft)`: `void`. Draft 스케줄을 설정하고 localStorage에 저장합니다.
+    *   `getDraftSchedule()`: `Array`. **현재 선택된 보스 목록(listId)에 격리된** Draft 스케줄을 반환합니다.
+    *   `setDraftSchedule(newDraft)`: `void`. 현재 선택된 보스 목록 전용 키로 Draft를 설정하고 localStorage에 저장합니다.
     *   `commitDraft()`: `void`. Draft 데이터를 **48시간 분량으로 자동 확장 및 정규화하여** Main SSOT에 적용(Commit)합니다. Draft를 Main SSOT로 병합하고 즉시 다시 Draft를 동기화하여 연속성 확보.
-    *   `clearDraft()`: `void`. Draft 스케줄을 초기화합니다.
+    *   `clearDraft()`: `void`. 현재 보스 목록의 Draft 스케줄을 초기화합니다.
     *   `getNextBossInfo()`: `{ nextBoss, minTimeDiff }`. 현재 가장 가까운 다음 보스 정보와 남은 시간을 반환합니다.
     *   `setNextBossInfo(nextBoss, minTimeDiff)`: `void`. 다음 보스 정보를 설정하고, 모든 구독자에게 데이터 변경을 알립니다.
     *   `getAllUpcomingBosses(nowTime)`: `Array`. 동적 보스와 고정 알림을 통합하여 시간순으로 정렬된 모든 예정된 보스 목록을 반환합니다.
@@ -190,7 +199,7 @@
 - **설명:** 웹 브라우저의 `localStorage`를 통해 다양한 애플리케이션 설정(예: 음소거 상태, 알람 실행 상태, 사이드바 확장 상태) 및 사용자 데이터(고정 알림, 광 계산기 기록 등)를 영구적으로 저장하고 로드합니다. 특히 고정 알림 데이터는 `days` 속성(요일 정보)을 포함하도록 확장되었으며, 기존 데이터 로드 시 마이그레이션 로직이 자동 적용됩니다.
 - **주요 메소드:**
     *   `init()`: `void`. 애플리케이션 시작 시 `localStorage`의 모든 관리 데이터를 로드합니다.
-    *   `get(key)` / `set(key, value)`: `any` / `void`. 임의의 키-값 쌍을 `localStorage`에 저장하고 로드하는 일반적인 인터페이스입니다.
+    *   `get(key)` / `set(key, value)`: `any` / `void`. 임의의 키-값 쌍을 저장하고 로드합니다. **`get` 시 런타임 JSON 파싱 예외 처리(`try-catch`)를 적용하여 잘못된 값이 저장되어 있어도 앱이 크래시되지 않고 `null`을 반환하도록 보호합니다.**
     *   `getFixedAlarms()` / `getFixedAlarmById(id)` / `addFixedAlarm()` / `updateFixedAlarm()` / `deleteFixedAlarm()`: 고정 알림 데이터에 대한 CRUD(생성, 읽기, 업데이트, 삭제) 작업을 제공합니다.
     *   `exportFixedAlarms()` / `importFixedAlarms(encodedData)`: 고정 알림 데이터를 인코딩/디코딩하여 공유 가능하게 합니다.
     *   `getMuteState()` / `setMuteState(state)`: `boolean` / `void`. 음소거 상태를 관리합니다.

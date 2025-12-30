@@ -21,7 +21,7 @@
 | `event-bus.js` | `EventBus.on('navigate', ...)`: 화면 전환 이벤트 구독 |
 | `alarm-scheduler.js` | `getIsAlarmRunning()`, `startAlarm()`: 알람 상태 확인 및 시작 |
 | `utils.js` | `formatMonthDay()`: 날짜 포맷팅 (loadInitialData 내부) |
-| `boss-scheduler-data.js` | `getInitialDefaultData()`: 초기 기본 보스 목록 데이터 조회 |
+| `boss-scheduler-data.js` | `getInitialDefaultData()`, `getGameNames()`, `getBossNamesForGame()`: 초기 데이터 및 무결성 검증용 데이터 조회 |
 | `screens/settings.js` | `getScreen()`: '설정' 화면의 메타 정보 가져오기 (이전 `notifications.js`) |
 
 ## 2. `src/global-event-listeners.js` (전역 EventBus 리스너 관리)
