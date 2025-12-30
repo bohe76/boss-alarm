@@ -64,7 +64,7 @@
 4. **정기적인 앱 상태 업데이트 (Timer-Worker Integration)**:
     - 타이머 워커가 매초 `TICK` 메시지를 브라우저 메인 스레드로 전송합니다.
     - `alarm-scheduler.js`의 `updateAppState`가 이를 수신하여 다음 동작을 매초 수행합니다:
-        - `BossDataManager.checkAndUpdateSchedule()`를 호출하여 **자정(00:00) 및 정오(12:00)** 기준점 통과 여부를 감시합니다.
+        - `BossDataManager.checkAndUpdateSchedule()`를 호출하여 **자정(00:00)** 기준점 통과 여부를 감시합니다.
         - 기준점 통과 시 "오늘+내일"의 48시간 윈도우를 재구성하는 **지능형 SSOT 자동 업데이트** 프로세스를 시작합니다.
         - `BossDataManager.getBossStatusSummary()`를 통해 실시간 남은 시간을 계산하고 `setNextBossInfo`로 전역 상태를 업데이트합니다.
 

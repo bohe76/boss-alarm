@@ -294,28 +294,23 @@ export const BossDataManager = (() => {
             notify();
         },
         /**
-         * 정기적인 업데이트(00:00, 12:00)가 필요한지 확인하고 수행합니다.
+         * 정기적인 업데이트(자정 00:00)가 필요한지 확인하고 수행합니다.
          */
         checkAndUpdateSchedule: (force = false) => {
             const now = new Date();
             const currentHour = now.getHours();
 
-            // 업데이트 기준점 설정 (0시 또는 12시)
-            let baseHour = currentHour < 12 ? 0 : 12;
+            // 업데이트 기준점 설정 (0시 자정)
             const lastUpdate = LocalStorageManager.get('lastAutoUpdateTimestamp');
             const lastUpdateDate = lastUpdate ? new Date(lastUpdate) : null;
 
             let needsUpdate = force;
 
             if (!needsUpdate && lastUpdateDate) {
-                const lastUpdateHour = lastUpdateDate.getHours();
-                const lastBaseHour = lastUpdateHour < 12 ? 0 : 12;
-
-                // 날짜가 다르거나, 같은 날이라도 기준점(0/12)이 바뀌었으면 업데이트 필요
+                // 날짜가 바뀌었으면 업데이트 필요 (자정 업데이트)
                 const isDifferentDay = now.toDateString() !== lastUpdateDate.toDateString();
-                const isCrossedBase = baseHour !== lastBaseHour;
 
-                if (isDifferentDay || isCrossedBase) {
+                if (isDifferentDay) {
                     needsUpdate = true;
                 }
             } else if (!lastUpdateDate) {
