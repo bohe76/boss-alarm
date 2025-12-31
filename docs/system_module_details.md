@@ -168,7 +168,7 @@
 *   `updateTimetableUI(DOM, options)`: 보스 시간표 화면의 UI를 '뷰 모드' 또는 '편집 모드'에 맞게 업데이트합니다. `options` 객체를 통해 일시적인 필터(날짜 범위, 다음 보스 전용 등) 조정을 지원하여 내보내기 프리뷰 기능을 구현합니다.
 *   `renderBossListTableView(DOM, filterNextBoss)`: 뷰 모드에서 보스 목록을 **날짜별 카드 리스트** 또는 **테이블(표)** 형태로 렌더링합니다. '표 형태' 렌더링 시 이미지 캡처를 위해 `boss-list-table` ID를 컨테이너에 명시적으로 부여합니다.
 *   `updateBossListTextarea(DOM)`: `BossDataManager`의 데이터를 기반으로 보스 목록 텍스트 영역을 업데이트합니다. `bossSchedule` 배열을 순회하며 날짜 마커를 출력하고, 각 `boss` 객체에 저장된 `timeFormat` 속성('hm' 또는 'hms')에 따라 시간 형식을 동적으로 포맷팅하여 출력합니다.
-*   `renderFixedAlarms(DOM)`: 고정 알림 목록을 렌더링하고 이벤트 리스너를 등록합니다.
+*   **`renderFixedAlarms(DOM)`**: 고정 알림 목록을 렌더링합니다. 각 아이템은 2줄 구조로 구성되며, 특히 2행에서 요일 버튼과 기능 버튼이 시각적으로 일직선상에 위치하도록 **수직 중앙 정렬 및 개별 마진 제거**를 통한 정밀 보정 로직이 적용되어 있습니다.
 *   `updateFixedAlarmVisuals(DOM)`: 고정 알림의 활성화/비활성화 상태에 따라 시각적 효과를 업데이트합니다.
 *   `renderCalculatorScreen(DOM)`: 계산기 화면(젠 계산기 및 광 계산기)의 초기 상태를 렌더링합니다.
 *   `renderBossSchedulerScreen(DOM, remainingTimes)`: 보스 스케줄러 화면을 초기화하고 게임 선택 드롭다운 및 보스 입력 필드를 렌더링합니다.

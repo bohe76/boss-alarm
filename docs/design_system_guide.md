@@ -11,7 +11,13 @@
 *   **`components.css`**: 버튼, 카드, 모달, 입력 필드 등 재사용 가능한 컴포넌트 스타일 정의.
 *   **`screens.css`**: 대시보드, 보스 관리 등 각 화면별 전용 스타일 정의.
 
-### 1.2. 인라인 스타일 절대 금지 (Zero Inline Styles - 대원칙)
+### 1.2. 미디어 쿼리 통합 및 파편화 방지 (v2.2 New)
+유지보수 효율을 위해 **반응형 미디어 쿼리는 각 CSS 파일의 가장 하단에 섹션별로 통합**하여 관리합니다. 코드가 기능별로 파편화되는 것을 방지합니다.
+*   **Small Mobile 섹션 (`max-width: 480px`)**: 초소형 기기 최적화.
+*   **Tablet/Mobile 섹션 (`max-width: 919px`)**: 모바일 전용 레이아웃 전환.
+*   **PC 섹션 (`min-width: 920px`)**: 데스크탑 고해상도 최적화.
+
+### 1.3. 인라인 스타일 절대 금지 (Zero Inline Styles - 대원칙)
 유지보수성과 스타일 우선순위 관리를 위해 다음과 같은 규칙을 엄격히 준수합니다.
 *   **HTML**: 태그 내에 `style="..."` 속성을 직접 사용하지 않습니다. 모든 스타일은 외부 CSS 파일에 정의된 클래스를 통해 적용해야 합니다.
 *   **JavaScript**: `element.style.property = value` 형태의 직접적인 CSS 조작을 금지합니다. 대신 `element.classList.add()` / `remove()` / `toggle()` 등을 사용하여 정의된 CSS 상태를 매핑합니다.
@@ -23,7 +29,7 @@
 
 ### 2.1. 기본 색상
 
-*   **Primary Action (버튼 기본):** `#455A64` (어두운 청록색)
+*   **Primary Action (버튼 기본):** `#455A64` (어두운 청록색 - `var(--button-bg)`)
 *   **Primary Action Hover:** `#263238`
 *   **Secondary Action (버튼 강조/활성):** `#AD1457` (진한 핑크색 - `var(--primary-color)`)
 *   **Secondary Action Dark:** `#880E4F` (`var(--primary-dark)`) - 호버, 슬라이더 배경
@@ -42,6 +48,7 @@
 *   **Text Default:** `#333` - 일반 텍스트
 *   **Text Light:** `#666` - 보조 텍스트, 비활성 아이콘
 *   **Text Placeholder:** `#999` - 입력 필드 플레이스홀더
+*   **UI Utility:** `-webkit-tap-highlight-color: transparent` - 모바일 터치 시 발생하는 파란색 반전 효과 제거 (글로벌 적용).
 
 ## 3. 타이포그래피
 
@@ -70,6 +77,9 @@
 *   **Primary Button (`.primary-button`):** `background-color: #AD1457` (강조).
 *   **Toggle Button (`.toggle-button`):** `border-radius: 48px`, `height: 32px`, `padding: 0 16px`, `font-size: 0.9em`, `box-sizing: border-box`. 활성 시 `#FF8F00`. (표준화된 토글 규격 준수)
 *   **Action Chip (`.action-chip`):** 아이콘이 포함된 둥근 버튼 (보스 설정 모드 전환용).
+*   **편집/삭제 아이콘 버튼 (v2.2 이원화 디자인):**
+    *   **PC (Base):** 솔리드 배경(`#455A64`), 텍스트 포함, 사각형(`border-radius: 4px`), **클릭 영역 확장(60x36px)**.
+    *   **Mobile (<=480px):** 화이트 배경 원형(`50%`), 브라운 아웃라인(`1px solid`), 아이콘만 표시(`36x36px`).
 
 ### 5.2. 카드 (`.card-standard`)
 
@@ -102,6 +112,11 @@
 ### 5.6. 모달 (`.modal`)
 
 *   **스타일:** 화면 중앙 정렬, 반투명 배경(`backdrop-filter`), `border-radius: 12px`, `box-shadow` 적용.
+*   **높이 전략 (Dynamic Height):** 고정 높이(740px)를 배제하고 내용물에 맞게 자동 조절(`height: auto`). 단, 화면 이탈 방지를 위해 `max-height: 90vh` 및 내부 스크롤 적용.
+*   **너비 전략 (Standardized Width):**
+    *   **Default:** `width: 90%`, `max-width: 460px` (대부분의 입력/설정용 모달).
+    *   **Wide (`.modal-content--wide`):** `max-width: 800px` (커스텀 보스 목록 관리 등 데이터량이 많은 경우).
+*   **내부 대칭:** 고정 알림 모달 등에서 요일 버튼 그룹(`.alarm-days`)은 반드시 `justify-content: center`와 패딩 보정을 통해 시각적 좌우 대칭을 완성함.
 *   **탭 UI:** 모달 내부에서 화면 전환을 위한 탭 버튼(`tab-button`) 제공.
 
 ## 6. 레이아웃 시스템
