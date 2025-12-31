@@ -280,7 +280,7 @@ function initEventHandlers(DOM) {
     }
 
     // --- 11. VERSION UPDATE MODAL (v2.6) ---
-    const versionKey = `hide_update_modal_v${window.APP_VERSION || '2.16.2'}`;
+    const versionKey = `hide_update_modal_v${window.APP_VERSION || '2.17.0'}`;
 
     const closeUpdateModal = () => {
         DOM.versionUpdateModal.style.display = 'none';
