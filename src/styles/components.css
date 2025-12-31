@@ -824,13 +824,7 @@ textarea {
     font-weight: bold;
 }
 
-/* Mobile Responsive */
-@media (max-width: 480px) {
-    #export-modal .modal-content {
-        width: 92% !important;
-        margin: 0 auto;
-    }
-}
+
 
 /* --- Version Update Modal Specific --- */
 .version-modal-content {
@@ -930,4 +924,14 @@ textarea {
 
 .version-footer-btn.primary:hover {
     background-color: #880E4F;
+}
+
+/* ==========================================================================
+   Responsive Adjustments (Mobile 480px)
+   ========================================================================== */
+@media (max-width: 480px) {
+    #export-modal .modal-content {
+        width: 92% !important;
+        margin: 0 auto;
+    }
 }

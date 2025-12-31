@@ -31,28 +31,6 @@
     /* Match max width of individual cards */
 }
 
-/* PC (wide screen) layout */
-@media (min-width: 920px) {
-    .dashboard-layout {
-        flex-direction: row;
-        /* PC: arrange two columns horizontally */
-        justify-content: center;
-        /* Center align the two columns themselves */
-        align-items: flex-start;
-        /* Align columns from the top */
-        gap: 16px;
-        /* Changed from 40px to 16px */
-    }
-
-    .dashboard-column-left,
-    .dashboard-column-right {
-        width: 380px;
-        /* Fix column width to match card max width 380px */
-        min-width: 380px;
-        /* Prevent shrinking */
-        max-width: 380px;
-    }
-}
 
 .dashboard-small-cards-row {
     display: flex;
@@ -70,46 +48,7 @@
     /* Max-width for two small cards combination */
 }
 
-/* 초소형 모바일 화면 대응: 480px 이하에서 소형 카드 2단 배열 강제 */
-@media (max-width: 480px) {
-    .dashboard-small-cards-row {
-        flex-wrap: nowrap;
-    }
 
-    .dashboard-small-cards-row .card-size-small {
-        max-width: none;
-        flex: 1;
-        min-width: 0;
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-
-    /* 보스 시간표 제어부 2단 배치 및 버튼 확장 */
-    .boss-management-controls {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .boss-management-controls .filter-group {
-        width: 100%;
-        justify-content: flex-start;
-    }
-
-    .boss-management-controls .action-group {
-        width: 100%;
-        display: flex !important;
-        /* 인라인 스타일 덮어쓰기 */
-        gap: 8px;
-    }
-
-    .boss-management-controls .action-group .button {
-        flex: 1;
-        justify-content: center;
-        padding-left: 0;
-        padding-right: 0;
-    }
-}
 
 /* Dashboard Content Styles */
 .next-boss-highlight {
@@ -253,22 +192,6 @@
     gap: 16px;
 }
 
-/* PC: 2-Column Grid */
-@media (min-width: 920px) {
-    .timetable-grid-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        align-items: start;
-    }
-
-    /* Force children to fill grid cells */
-    .timetable-grid-container>div {
-        width: 100%;
-        max-width: 100%;
-        margin-bottom: 0;
-    }
-}
 
 #timetableDisplayModeToggle {
     min-width: 60px;
@@ -623,42 +546,7 @@
     /* Match card padding for inner content alignment */
 }
 
-@media (min-width: 920px) {
-    .scheduler-controls-header {
-        display: flex;
-        align-items: center;
-        /* Align items vertically in center */
-        justify-content: flex-start;
-        /* Left align content */
-        gap: 12px;
-        /* Gap between h3 and control group */
-    }
 
-    .scheduler-controls-header h3 {
-        white-space: nowrap;
-        /* Prevent "보스 목록" from wrapping */
-        margin-top: 0;
-        /* Ensure vertical alignment in flex container */
-        margin-bottom: 0;
-        /* Ensure vertical alignment in flex container */
-    }
-}
-
-@media (max-width: 919px) {
-    .scheduler-controls-header {
-        display: flex;
-        flex-direction: column;
-        /* Stack items vertically */
-        align-items: center;
-        /* Center items horizontally */
-        justify-content: center;
-        /* Center items vertically if space allows */
-        gap: 10px;
-        /* Gap between h3 and control group */
-        padding: 0 10px;
-        /* Adjust padding for mobile */
-    }
-}
 
 .boss-scheduler-layout {
     display: flex;
@@ -699,12 +587,6 @@
     /* Center with card */
 }
 
-@media (max-width: 919px) {
-    .control-group-horizontal {
-        justify-content: center;
-        /* Center for mobile */
-    }
-}
 
 .action-buttons {
     display: flex;
@@ -722,12 +604,6 @@
     /* Center with card */
 }
 
-@media (max-width: 919px) {
-    .action-buttons {
-        justify-content: center;
-        /* Center for mobile */
-    }
-}
 
 .boss-list-display-container {
     margin-bottom: 16px;
@@ -882,42 +758,6 @@
     color: #666;
 }
 
-/* PC Layout */
-@media (min-width: 920px) {
-    .boss-input-item {
-        flex-wrap: nowrap;
-        gap: 12px;
-    }
-
-    .boss-input-row-main {
-        width: auto;
-        flex-grow: 0;
-    }
-
-    .boss-input-row-details {
-        flex-direction: row;
-        /* PC: 가로 배치 */
-        flex-grow: 1;
-        margin-top: 0;
-        gap: 12px;
-    }
-
-    .mobile-label {
-        display: none;
-        /* PC: 라벨 숨김 */
-    }
-
-    .memo-input-group {
-        width: 240px;
-        flex-shrink: 0;
-    }
-
-    .interval-input-group {
-        width: 110px;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-}
 
 .boss-name-header,
 .boss-name {
@@ -975,41 +815,8 @@
 }
 
 /* Mobile-specific layout */
-@media (max-width: 919px) {
-
-    .memo-header,
-    .interval-header {
-        display: none;
-        /* 모바일에서 숨김 */
-    }
-}
 
 /* Mobile-specific layout with horizontal scroll */
-@media (max-width: 919px) {
-    .boss-list-display-container {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .boss-list-display-container::-webkit-scrollbar {
-        height: 8px;
-    }
-
-    .boss-list-display-container::-webkit-scrollbar-track {
-        background: #f0f0f0;
-    }
-
-    .boss-list-display-container::-webkit-scrollbar-thumb {
-        background-color: #ccc;
-        border-radius: 4px;
-    }
-
-    .boss-input-header,
-    .boss-input-item {
-        min-width: 360px;
-        /* Force a minimum width to ensure scrolling */
-    }
-}
 
 /* --- Custom List Modal Specifics --- */
 .custom-list-tab-content {
@@ -1152,40 +959,7 @@ section#settings-screen h3 {
     /* 기본적으로 아이콘 숨김 (PC) */
 }
 
-@media (max-width: 480px) {
-    .fixed-alarm-item .button-group .icon-button {
-        width: 36px;
-        height: 36px;
-        min-width: 36px;
-        padding: 0;
-        border-radius: 50%;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #ffffff;
-        /* White background for mobile circle */
-        border: 1px solid var(--button-bg);
-        color: var(--button-bg);
-    }
 
-    .fixed-alarm-item .button-group .icon-button:hover {
-        background-color: var(--button-bg);
-        color: #fff;
-    }
-
-    .fixed-alarm-item .button-group .icon-button svg {
-        display: block;
-        /* 모바일에서 아이콘 노출 */
-        width: 18px;
-        height: 18px;
-    }
-
-    .fixed-alarm-item .button-group .icon-button .btn-text {
-        display: none;
-        /* 모바일에서 텍스트 숨김 */
-    }
-}
 
 .empty-list-message {
     text-align: center;
@@ -1297,18 +1071,6 @@ section#settings-screen h3 {
     text-overflow: ellipsis;
 }
 
-@media (min-width: 920px) {
-    .boss-card-grid {
-        justify-content: flex-start;
-        /* PC: align left or center depending on preference, center looks better for small amount */
-        justify-content: center;
-    }
-
-    .boss-card-item {
-        width: 160px;
-        /* Fixed width on PC for consistency */
-    }
-}
 
 /* --- Timetable Table Mode (Excel-like) Styles --- */
 .boss-table-card {
@@ -1584,4 +1346,227 @@ section#settings-screen h3 {
     margin-bottom: 2px;
     font-size: 0.95em;
     color: #666;
+}
+
+/* ==========================================================================
+   Tablet/Mobile Adjustments (max-width: 919px)
+   ========================================================================== */
+@media (max-width: 919px) {
+
+    /* 1. Scheduler Header & Controls */
+    .scheduler-controls-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 0 10px;
+    }
+
+    .control-group-horizontal {
+        justify-content: center;
+    }
+
+    .action-buttons {
+        justify-content: center;
+    }
+
+    /* 2. Scheduler Boss List Table */
+    .memo-header,
+    .interval-header {
+        display: none;
+    }
+
+    .boss-list-display-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .boss-list-display-container::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .boss-list-display-container::-webkit-scrollbar-track {
+        background: #f0f0f0;
+    }
+
+    .boss-list-display-container::-webkit-scrollbar-thumb {
+        background-color: #ccc;
+        border-radius: 4px;
+    }
+
+    .boss-input-header,
+    .boss-input-item {
+        min-width: 360px;
+    }
+}
+
+/* ==========================================================================
+   Small Mobile Adjustments (max-width: 480px)
+   ========================================================================== */
+@media (max-width: 480px) {
+
+    /* 1. Dashboard Layout */
+    .dashboard-small-cards-row {
+        flex-wrap: nowrap;
+    }
+
+    .dashboard-small-cards-row .card-size-small {
+        max-width: none;
+        flex: 1;
+        min-width: 0;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    /* 2. Boss Timetable Controls */
+    .boss-management-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .boss-management-controls .filter-group {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .boss-management-controls .action-group {
+        width: 100%;
+        display: flex !important;
+        /* Force flex for action buttons */
+        gap: 8px;
+    }
+
+    .boss-management-controls .action-group .button {
+        flex: 1;
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    /* 3. Fixed Alarms (Settings) */
+    .fixed-alarm-item .button-group .icon-button {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        padding: 0;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffffff;
+        /* White background for mobile circle */
+        border: 1px solid var(--button-bg);
+        color: var(--button-bg);
+    }
+
+    .fixed-alarm-item .button-group .icon-button:hover {
+        background-color: var(--button-bg);
+        color: #fff;
+    }
+
+    .fixed-alarm-item .button-group .icon-button svg {
+        display: block;
+        /* Show icon on mobile */
+        width: 18px;
+        height: 18px;
+    }
+
+    .fixed-alarm-item .button-group .icon-button .btn-text {
+        display: none;
+        /* Hide text on mobile */
+    }
+}
+
+/* ==========================================================================
+   PC (Wide Screen) Adjustments (min-width: 920px)
+   ========================================================================== */
+@media (min-width: 920px) {
+
+    /* 1. Dashboard Layout */
+    .dashboard-layout {
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .dashboard-column-left,
+    .dashboard-column-right {
+        width: 380px;
+        min-width: 380px;
+        max-width: 380px;
+    }
+
+    /* 2. Timetable Grid Layout */
+    .timetable-grid-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: start;
+    }
+
+    .timetable-grid-container>div {
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 0;
+    }
+
+    /* 3. Scheduler Controls Header */
+    .scheduler-controls-header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 12px;
+    }
+
+    .scheduler-controls-header h3 {
+        white-space: nowrap;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    /* 4. Scheduler Boss Input Item */
+    .boss-input-item {
+        flex-wrap: nowrap;
+        gap: 12px;
+    }
+
+    .boss-input-row-main {
+        width: auto;
+        flex-grow: 0;
+    }
+
+    .boss-input-row-details {
+        flex-direction: row;
+        flex-grow: 1;
+        margin-top: 0;
+        gap: 12px;
+    }
+
+    .mobile-label {
+        display: none;
+    }
+
+    .memo-input-group {
+        width: 240px;
+        flex-shrink: 0;
+    }
+
+    .interval-input-group {
+        width: 110px;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    /* 5. Boss Card Grid (Timetable View Mode) */
+    .boss-card-grid {
+        justify-content: center;
+    }
+
+    .boss-card-item {
+        width: 160px;
+    }
 }
