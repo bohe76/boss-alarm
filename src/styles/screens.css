@@ -1075,6 +1075,8 @@ section#settings-screen h3 {
     justify-content: space-between;
     align-items: center;
     gap: 10px;
+    margin-top: 10px;
+    /* Provide space between line1 and line2 */
 }
 
 .alarm-info {
@@ -1096,7 +1098,9 @@ section#settings-screen h3 {
 
 .alarm-days {
     display: flex;
-    gap: 4px;
+    justify-content: center;
+    gap: 8px;
+    /* Slightly increased gap for better touch and symmetry */
     font-size: 0.9em;
     color: #666;
     letter-spacing: 1.5px;
