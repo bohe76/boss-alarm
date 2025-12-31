@@ -50,8 +50,8 @@ describe('BossSchedulerScreen Apply Logic', () => {
         vi.spyOn(BossDataManager, 'subscribe').mockImplementation(() => { });
 
         // Draft 관련 메서드 모킹
-        vi.spyOn(BossDataManager, 'getDraftSchedule').mockImplementation((listId) => mockDraftSchedule);
-        setDraftScheduleSpy = vi.spyOn(BossDataManager, 'setDraftSchedule').mockImplementation((listId, newDraft) => { mockDraftSchedule = newDraft; });
+        vi.spyOn(BossDataManager, 'getDraftSchedule').mockImplementation(() => mockDraftSchedule);
+        setDraftScheduleSpy = vi.spyOn(BossDataManager, 'setDraftSchedule').mockImplementation((_listId, newDraft) => { mockDraftSchedule = newDraft; });
         vi.spyOn(BossDataManager, 'validateBossSchedule').mockImplementation(() => ({ isValid: true }));
         commitDraftSpy = vi.spyOn(BossDataManager, 'commitDraft').mockImplementation(() => {
             if (mockDraftSchedule.length >= 0) {

@@ -414,6 +414,31 @@ export function initBossSchedulerScreen(DOM) {
         }
     });
 
+    // Enter 키로 다음 보람 입력창 점프 (v2.17 복구)
+    DOM.bossSchedulerScreen.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && event.target.classList.contains('remaining-time-input')) {
+            event.preventDefault();
+
+            const currentItem = event.target.closest('.boss-input-item');
+            const allItems = Array.from(DOM.bossInputsContainer.querySelectorAll('.boss-input-item'));
+            const currentIndex = allItems.indexOf(currentItem);
+
+            if (currentIndex < allItems.length - 1) {
+                // 다음 보스의 남은 시간 입력창으로 포커스 이동
+                const nextInput = allItems[currentIndex + 1].querySelector('.remaining-time-input');
+                if (nextInput) {
+                    nextInput.focus();
+                    nextInput.select(); // 기존 값 선택 (바로 수정 가능하도록)
+                }
+            } else {
+                // 마지막 보스인 경우 업데이트 버튼으로 포커스 이동하여 입력을 마무리
+                if (DOM.moveToBossSettingsButton) {
+                    DOM.moveToBossSettingsButton.focus();
+                }
+            }
+        }
+    });
+
     DOM.bossSchedulerScreen.addEventListener('click', (event) => {
         if (event.target === DOM.clearAllRemainingTimesButton) {
             if (confirm("모든 남은 시간과 메모를 삭제하시겠습니까?")) {
