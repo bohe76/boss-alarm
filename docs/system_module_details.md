@@ -103,7 +103,11 @@
 #### `initEventHandlers(DOM, globalTooltip)` (내부 함수)
 - **설명:** 애플리케이션의 모든 주요 UI 요소(알람 토글, 내비게이션 링크, 모바일 "더보기" 메뉴)에 대한 전역 이벤트 리스너를 등록합니다.
 - **인자:** `DOM` (`Object`), `globalTooltip` (`HTMLElement`).
-- **핵심 내부 로직:** `DOM.alarmToggleButton`, `navLinks` (`DOM.navDashboard` 등), `bottomNavLinks` (`DOM.bottomNavDashboard` 등), `DOM.moreMenuButton`, `DOM.moreMenuCloseButton`, `DOM.sidebarBackdrop`에 이벤트 리스너를 등록합니다. 사이드바 메뉴 링크 클릭 시 모바일 "더보기" 메뉴를 닫는 로직도 포함됩니다. PC 사이드바 토글 이벤트는 CSS 호버 방식으로 대체되어 제거되었습니다.
+- **핵심 내부 로직:** 
+    *   `DOM.alarmToggleButton`, 내비게이션 링크 등에 이벤트 리스너 등록.
+    *   **PC 사이드바 (Floating Interface):** 별도의 스크립트 제어 없이 CSS `:hover`와 `transition`을 통해 확장/축소를 처리합니다. 
+    *   **정밀 정렬 로직:** 아이콘마다 다른 자체 여백에 대응하기 위해 `layout.css`에서 특정 ID(`nav-dashboard` 등)에 개별 패딩 보정치를 부여하여 시각적 수평/수직 정렬을 픽셀 단위로 완성합니다.
+    *   사이드바 메뉴 링크 클릭 시 모바일 "더보기" 메뉴를 자동 폐쇄합니다.
 
 ---
 
