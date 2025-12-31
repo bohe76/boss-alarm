@@ -70,5 +70,20 @@
 | **`logger.js`** | `event-bus.js` | `EventBus.emit()`을 통해 로그 업데이트 이벤트 발행 |
 | **`router.js`** | 없음 | 화면 라우팅 시스템 제공 |
 | **`event-bus.js`** | 없음 | 모듈 간 이벤트 통신 제공 |
+| **`Agentic Workflow`** | `GEMINI.md`, `docs/*.md`, `npm scripts`, `git` | 기준 문서 학습, 코드 품질 검증, 버전 관리 및 배포 자동화 수행 |
 | **`services.js`** | `logger.js`, `boss-scheduler-data.js`, `data-managers.js`, `custom-list-manager.js` | 핵심 서비스 초기화 및 데이터 로드 후 `BossDataManager.initPresets()` 호출 |
 | **`utils.js`** | `logger.js` | 유효성 검사 시 로깅. (`calculateNextOccurrence` 함수를 통해 고정 알림의 다음 발생 시간을 계산) |
+
+---
+
+## 5. 에이전틱 워크플로우 엔진 의존성
+
+에이전틱 워크플로우 엔진은 애플리케이션의 런타임에 영향을 주지 않는 **운영 및 개발 자동화 계층**으로 존재합니다.
+
+| 워크플로우 엔진이 의존하는 요소 | 상호작용 방식 / 목적 |
+|---|---|
+| `GEMINI.md` | **Source of Truth**: 모든 작업의 기술적 기준 및 스타일 가이드라인을 참조 |
+| `docs/session_handoff.md`| **Context Recovery**: 세션 간 업무 연속성을 위한 인수인계 데이터 로드 |
+| `npm run lint / test` | **Quality Guard**: 코드 수정 후 자동으로 검증 명령을 수행하여 무결성 보장 |
+| `git CLI` | **History Management**: 변경 사항 분석 및 규정된 커밋 메시지 형식으로 기록 |
+| `docs/*.md` (6개 문서) | **Self-Documentation**: 코드 변경 시 `/문서업데이트`를 통해 자동으로 문서 최신화 |
