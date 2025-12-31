@@ -1133,6 +1133,16 @@ section#settings-screen h3 {
     gap: 8px;
 }
 
+.fixed-alarm-item .button-group .icon-button {
+    min-width: 60px;
+    /* Expand click area on PC */
+    height: 36px;
+    /* Ensure consistent height and larger target area */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .fixed-alarm-item .button-group .icon-button svg {
     display: none;
     /* 기본적으로 아이콘 숨김 (PC) */
@@ -1140,21 +1150,31 @@ section#settings-screen h3 {
 
 @media (max-width: 480px) {
     .fixed-alarm-item .button-group .icon-button {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
         padding: 0;
         border-radius: 50%;
         flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: center;
+        background-color: #ffffff;
+        /* White background for mobile circle */
+        border: 1px solid var(--button-bg);
+        color: var(--button-bg);
+    }
+
+    .fixed-alarm-item .button-group .icon-button:hover {
+        background-color: var(--button-bg);
+        color: #fff;
     }
 
     .fixed-alarm-item .button-group .icon-button svg {
         display: block;
         /* 모바일에서 아이콘 노출 */
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
     }
 
     .fixed-alarm-item .button-group .icon-button .btn-text {

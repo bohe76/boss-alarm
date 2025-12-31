@@ -26,6 +26,11 @@
     /* Prevent text wrapping */
 }
 
+.button>* {
+    pointer-events: none;
+    /* Ensure entire button area is consistently clickable */
+}
+
 .button:hover:not(:disabled) {
     background-color: #263238;
     /* Changed to #263238 as requested */
