@@ -92,15 +92,10 @@
 
 ### 에이전트 업무 준비 (관련 워크플로우: `/업무준비`)
 
-사용자님이 `/업무준비`라고 지시하면, 다음 6개의 핵심 문서를 학습하고 `session_handoff.md`를 통해 문맥을 복구합니다.
-    *   `docs/system_architecture.md`
-    *   `docs/system_module_details.md`
-    *   `docs/system_module_dependencies.md`
-    *   `docs/system_data_flow.md`
-    *   `docs/functional-specs/index.md`
-    *   `docs/critical_code_policy.md`
-    *   `docs/session_handoff.md` (세션 인수인계)
-*   학습을 마친 후에는 "업무 준비를 마쳤습니다."라고 사용자님께 알립니다.
+사용자님이 `/업무준비`라고 지시하면, 다음 작업을 수행하여 세션의 연속성을 보장합니다.
+- **핵심 문서 학습:** 프로젝트의 아키텍처, 기능 명세, 데이터 흐름, 핵심 로직 수정 정책을 담은 6개 핵심 문서를 최신 상태로 로드합니다.
+- **문맥 복구:** `docs/session_handoff.md`를 학습하여 지난 세션의 성과와 남은 과제(Next Steps)를 즉시 파악하고 흐름을 이어갑니다.
+- **보고:** 학습을 마친 후에는 "업무 준비를 마쳤습니다."라고 사용자님께 알리고 작업을 대기합니다.
 
 
 ### 버전 관리 (관련 워크플로우: `/배포`)
