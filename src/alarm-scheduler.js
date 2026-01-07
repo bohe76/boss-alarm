@@ -139,7 +139,9 @@ function handleAlarm({ id, name, type, isFixed, targetTime }) {
 
 function updateAppState() {
     // [Step 3/4] Periodic Update Check (Triggered via Timer Worker TICK)
-    BossDataManager.checkAndUpdateSchedule();
+    const activeScreen = document.querySelector('.screen.active');
+    const isSchedulerActive = activeScreen && activeScreen.id === 'boss-scheduler-screen';
+    BossDataManager.checkAndUpdateSchedule(false, isSchedulerActive);
 
     // Use the centralized summary engine
     const { nextBoss, minTimeDiff } = BossDataManager.getBossStatusSummary();

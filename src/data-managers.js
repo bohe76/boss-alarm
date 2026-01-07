@@ -169,6 +169,12 @@ export const BossDataManager = (() => {
             const isTodayOnly = meta.isInvasion;
 
 
+            // [수정] 젠 주기에 상관없이 사용자가 직접 입력한 데이터(앵커)는 무조건 보존
+            // (UI에서는 48시간 필터에 의해 안 보일 수 있으나 SSOT에는 남음)
+            sameBosses.forEach(b => {
+                expandedBosses.push({ ...b });
+            });
+
             if (interval > 0) {
                 // 과거로 확장
                 let t = anchorTime;
@@ -198,39 +204,16 @@ export const BossDataManager = (() => {
                 }
 
                 // [중요 로직] 윈도우 내에 생성된 것이 하나도 없다면, 가장 가까운 미래 1개를 강제 생성 (Anchor Keeper)
-                // 단, anchorTime이 이미 미래(윈도우 밖)라면 anchorTime을 사용하고,
-                // anchorTime이 과거라면 t(마지막 계산된 미래 시간)를 사용함.
                 if (!generatedInWindow) {
                     let futureTime = anchorTime;
-                    // 앵커가 과거라면 현재 시점 이후가 될 때까지 interval을 더함
                     while (futureTime < endTime) {
                         futureTime += interval;
                     }
-                    // futureTime은 이제 endTime보다 큰 가장 가까운 미래 시각
                     const hiddenAnchor = createInstance(futureTime);
-                    // hiddenAnchor는 화면에는 안 보이지만 데이터 보존을 위해 추가됨
                     expandedBosses.push(hiddenAnchor);
                 }
-
-            } else {
-                // 주기가 없는 경우 (1회성 이벤트)
-                // 1. 48시간 윈도우(오늘+내일) 내에 있으면 표시 (당연함)
-                // 2. 윈도우보다 더 먼 미래라면? -> 사용자가 일부러 입력한 것이므로 SSOT에 보존 (UI에선 필터링됨)
-                // 3. 윈도우보다 과거라면? -> 이미 지난 1회 성 이벤트이므로 삭제 (SSOT에서 제거됨)
-                sameBosses.forEach(b => {
-                    const bt = new Date(b.scheduledDate);
-                    const btime = bt.getTime();
-
-                    if (btime >= startTime) {
-                        // 현재(오늘 00:00) 이후의 데이터는 모두 보존
-                        // (오늘~내일은 UI 표출, 그 이후는 SSOT 보존)
-                        if (!isTodayOnly || isSameDay(bt, new Date(now))) {
-                            expandedBosses.push({ ...b });
-                        }
-                    }
-                    // 과거 데이터(startTime 이전)는 추가하지 않음 -> 자동 삭제됨
-                });
             }
+            // else 블록(1회성 이벤트)은 이미 위에서 sameBosses.forEach로 처리됨
         });
 
         // 중복 제거 (확장 과정에서 사용자가 입력한 시간과 겹칠 수 있음)
@@ -313,10 +296,25 @@ export const BossDataManager = (() => {
             loadDraft();
             if (!_draftSchedule) return false;
 
-            // JSON 문자열 비교로 간편하게 수정 여부 판단
-            const mainStr = JSON.stringify(bossSchedule);
-            const draftStr = JSON.stringify(_draftSchedule);
-            return mainStr !== draftStr;
+            // 단순 JSON 비교가 아닌, '사용자 입력 필드' 위주로 비교
+            // (알림 상태(alerted_*) 변경 등 시스템적인 차이는 무시)
+            const simplify = (list) => {
+                if (!Array.isArray(list)) return [];
+                return list
+                    .filter(item => item.type === 'boss') // 날짜 헤더 등 제외
+                    .map(item => ({
+                        id: item.id,
+                        scheduledDate: item.scheduledDate ? item.scheduledDate.getTime() : 0,
+                        memo: item.memo || ""
+                        // time, name 등은 어차피 id나 scheduledDate에 종속적이거나 불변
+                    }))
+                    .sort((a, b) => a.id.localeCompare(b.id)); // ID 순 정렬 후 비교
+            };
+
+            const mainSimple = JSON.stringify(simplify(bossSchedule));
+            const draftSimple = JSON.stringify(simplify(_draftSchedule));
+
+            return mainSimple !== draftSimple;
         },
         /**
          * 임시 Draft를 현재 메인 SSOT의 최신 상태로 강제 동기화합니다.
@@ -331,8 +329,10 @@ export const BossDataManager = (() => {
         },
         /**
          * 정기적인 업데이트(자정 00:00)가 필요한지 확인하고 수행합니다.
+         * @param {boolean} force - 강제 업데이트 여부
+         * @param {boolean} isSchedulerActive - 현재 보스 스케줄러 화면이 활성화되어 있는지 여부
          */
-        checkAndUpdateSchedule: (force = false) => {
+        checkAndUpdateSchedule: (force = false, isSchedulerActive = false) => {
             const now = new Date();
 
             // 업데이트 기준점 설정 (0시 자정)
@@ -372,7 +372,8 @@ export const BossDataManager = (() => {
                 };
 
                 // 사용자가 스케줄러에서 수정 중인지 확인
-                if (BossDataManager.isDraftDirty()) {
+                // [v2.17.1 수정] 스케줄러 화면을 보고 있지 않다면(딴짓 중이라면) 묻지도 따지지도 않고 업데이트
+                if (isSchedulerActive && BossDataManager.isDraftDirty()) {
                     const todayStr = formatMonthDay(now);
                     const tomorrow = new Date(now);
                     tomorrow.setDate(now.getDate() + 1);
@@ -390,8 +391,12 @@ export const BossDataManager = (() => {
                         notify();
                     }
                 } else {
-                    // 수정 중이 아니면 조용히 업데이트
+                    // 수정 중이 아니거나, 딴 화면 보고 있으면 조용히 업데이트
                     performUpdate();
+                    // 스케줄러 화면이 아니라면 Draft도 굳이 유지할 필요 없으므로 최신화
+                    if (!isSchedulerActive) {
+                        BossDataManager.syncDraftWithMain();
+                    }
                 }
             }
         },
@@ -399,48 +404,10 @@ export const BossDataManager = (() => {
             return _getInternalBossInterval(bossName, contextId);
         },
         /**
-         * 입력된 보스 스케줄의 논리적 일관성(젠 주기 준수 여부)을 검증합니다.
+         * 입력된 보스 스케줄의 논리적 일관성을 검증합니다.
+         * (v3.0.1 수정: 사용자의 입력은 절대적이므로 젠 주기 배수 체크 등 시스템 개입을 제거하고 무조건 허용합니다.)
          */
-        validateBossSchedule: (items) => {
-            if (!items || items.length === 0) return { isValid: true };
-
-            const bossGroups = {};
-            items.filter(item => item.type === 'boss').forEach(item => {
-                if (!bossGroups[item.name]) bossGroups[item.name] = [];
-                bossGroups[item.name].push(item);
-            });
-
-            for (const [name, instances] of Object.entries(bossGroups)) {
-                const interval = _getInternalBossInterval(name);
-                if (interval <= 0 || instances.length < 2) continue;
-
-                const intervalMs = interval * 60 * 1000;
-                // 시간순 정렬
-                const sorted = [...instances].sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
-
-                for (let i = 0; i < sorted.length - 1; i++) {
-                    const d1 = new Date(sorted[i].scheduledDate).getTime();
-                    const d2 = new Date(sorted[i + 1].scheduledDate).getTime();
-                    const diffMs = d2 - d1;
-
-                    if (diffMs < intervalMs) {
-                        return {
-                            isValid: false,
-                            message: `'${name}' 보스는 젠 주기가 ${interval}분입니다.\n입력된 시간(${sorted[i].time}, ${sorted[i + 1].time})이 주기보다 너무 가깝습니다. 중복 여부를 확인해 주세요.`
-                        };
-                    }
-
-                    if (diffMs % intervalMs !== 0) {
-                        const hours = Math.floor(diffMs / (60 * 60 * 1000));
-                        const mins = Math.round((diffMs % (60 * 60 * 1000)) / (60 * 1000));
-                        return {
-                            isValid: false,
-                            message: `'${name}' 보스의 젠 주기는 ${interval}분입니다.\n입력된 시간 사이의 간격(${hours}시간 ${mins}분)이 주기의 배수가 아닙니다. (입력 시점: ${sorted[i].time}, ${sorted[i + 1].time})`
-                        };
-                    }
-                }
-            }
-
+        validateBossSchedule: () => {
             return { isValid: true };
         },
         subscribe: (callback) => {

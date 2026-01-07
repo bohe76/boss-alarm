@@ -231,8 +231,12 @@ function syncTextToInput(DOM, silent = true) {
     // [신규] 논리적 유효성 검사 (젠 주기 준수 여부)
     const validation = BossDataManager.validateBossSchedule(newDraft);
     if (!validation.isValid) {
-        if (!silent) alert("보스 시간 설정 오류\n" + "------------------------\n" + validation.message);
-        return false;
+        if (!silent) {
+            const forceApply = confirm("보스 시간 설정 경고\n" + "------------------------\n" + validation.message + "\n\n이대로 강제 저장하시겠습니까?");
+            if (!forceApply) return false;
+        } else {
+            return false;
+        }
     }
 
     // 1. 파싱 및 검증 결과를 Draft에 저장 (SSOT 업데이트)
@@ -262,8 +266,8 @@ export function handleApplyBossSettings(DOM) {
         const draftScheduleForValidation = BossDataManager.getDraftSchedule(currentListId);
         const validation = BossDataManager.validateBossSchedule(draftScheduleForValidation);
         if (!validation.isValid) {
-            alert("보스 시간 설정 오류\n" + "------------------------\n" + validation.message);
-            return; // 검증 실패 시 중단
+            const forceApply = confirm("보스 시간 설정 경고\n" + "------------------------\n" + validation.message + "\n\n이대로 강제 저장하시겠습니까?");
+            if (!forceApply) return; // 사용자가 취소하면 중단
         }
     }
 
