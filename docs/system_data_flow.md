@@ -64,15 +64,18 @@
 4. **정기적인 앱 상태 업데이트 (Timer-Worker Integration)**:
     - 타이머 워커가 매초 `TICK` 메시지를 브라우저 메인 스레드로 전송합니다.
     - `alarm-scheduler.js`의 `updateAppState`가 이를 수신하여 다음 동작을 매초 수행합니다:
-        - `BossDataManager.checkAndUpdateSchedule()`를 호출하여 **자정(00:00)** 기준점 통과 여부를 감시합니다.
+        - `BossDataManager.checkAndUpdateSchedule(false, isSchedulerActive)`를 호출하여 **자정(00:00)** 기준점 통과 여부를 감시합니다.
+        - 이때 `isSchedulerActive` 플래그를 전달하여 현재 스케줄러 화면을 보고 있는지 여부에 따라 **스마트한 팝업 제어**를 수행합니다.
         - 기준점 통과 시 "오늘+내일"의 48시간 윈도우를 재구성하는 **지능형 SSOT 자동 업데이트** 프로세스를 시작합니다.
         - `BossDataManager.getBossStatusSummary()`를 통해 실시간 남은 시간을 계산하고 `setNextBossInfo`로 전역 상태를 업데이트합니다.
 
 5. **지능형 SSOT 자동 업데이트 및 충돌 해결 흐름**:
     - **Step 1 (감지)**: `checkAndUpdateSchedule`이 현재 시각과 `lastAutoUpdateTimestamp`를 비교하여 업데이트 필요 여부 판단.
     - **Step 2 (Dirty 검사)**: 사용자가 수정 중인 Draft가 있는지 `isDraftDirty`로 확인.
-    - **Step 3 (자동 수행)**: 수정 사항이 없을 경우 조용히 메인 SSOT와 Draft를 모두 48시간 윈도우로 확장 및 동기화.
-    - **Step 4 (충돌 발생 및 선택)**: 수정 사항이 있을 경우 날짜(MM.DD)가 포함된 문구로 사용자에게 확인 요청.
+    - **Step 3 (스마트 자동 수행)**: 
+        - **수정 사항이 없을 경우**: 조용히 메인 SSOT와 Draft를 모두 48시간 윈도우로 확장 및 동기화.
+        - **수정 사항이 있지만 스케줄러 화면이 아닐 경우(중요)**: 다른 화면 작업 방해를 막기 위해 팝업 없이 Main SSOT만 백그라운드 업데이트하여 알람 연속성 확보. Draft는 건드리지 않음.
+    - **Step 4 (충돌 발생 및 선택)**: 수정 사항이 있고 **현재 스케줄러 화면을 보고 있을 경우에만** 팝업으로 사용자에게 확인 요청.
         - **[확인]**: 현재 수정 내용을 버리고 최신 48시간 데이터로 갱신.
         - **[취소]**: 사용자의 수정 내용을 유지(Draft 보존)하되, 백그라운드 서버용 메인 SSOT만 업데이트하여 알람 정확도 보장. **이때 Draft의 ID와 일치하는 수동 입력 데이터는 최신 48시간 데이터에 병합되어 사용자 의도(User Intent)가 보존됩니다.**
 
@@ -132,8 +135,9 @@
 *   **에셋 바인딩 및 저장 흐름 (간편 입력 모드 기준):**
     1.  **입력 단계**: 사용자가 `.remaining-time-input`에 '남은 시간'을 입력하거나 비고를 수정합니다.
     2.  **임시 계산**: UI는 `calculatedDate`를 즉시 도출하여 젠 시간을 사용자에게 미리 보여주지만, SSOT는 아직 변경되지 않습니다.
-    3.  **최종 검증 및 커밋**: "보스 시간 업데이트" 버튼 클릭 시 `handleApplyBossSettings`가 호출되어 **모든 입력 필드에 대한 일괄 유효성 검사**를 수행합니다.
-    4.  **SSOT 동기화**: 검증 통과 시 Draft가 갱신되고, `BossDataManager.commitDraft()`를 통해 48시간 확장 및 정렬 과정을 거쳐 Main SSOT에 최종 반영됩니다.
+    3.  **최종 커밋 및 보존**: "보스 시간 업데이트" 버튼 클릭 시 `handleApplyBossSettings`가 호출됩니다. 
+        - **과거의 엄격한 유효성 검사 제거**: 시스템 계산 주기와 맞지 않아도 사용자가 입력한 시간을 **절대적 진실(Absolute Truth)**로 간주하여 무조건 저장합니다.
+    4.  **SSOT 동기화**: `BossDataManager.commitDraft()`를 통해 48시간 확장 및 정렬 과정을 거쳐 Main SSOT에 최종 반영됩니다. **이때 36시간 이상 긴 주기의 보스라 하더라도 사용자가 지정한 시간은 48시간 윈도우 밖이라도 필터링되지 않고 영구 보존됩니다.**
 *   **날짜 처리 (`boss-parser.js`):** 텍스트 파싱 시 **엄격한 날짜 헤더(`MM.DD`)**를 기준으로 하며, 시간 역전 감지 로직을 통해 날짜 롤오버를 처리합니다.
 
 ### 3.4. 알림 로그 화면 (`src/screens/alarm-log.js`)

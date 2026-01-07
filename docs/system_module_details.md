@@ -214,7 +214,7 @@
     *   `setBossSchedule(newSchedule)`: `void`. 새로운 보스 일정 배열을 받고, **48시간 확장 엔진을 돌려 정규화한 뒤** Main SSOT에 저장하며, Draft를 동기화하고 구독자에게 알립니다.
     *   `getDraftSchedule()`: `Array`. **현재 선택된 보스 목록(listId)에 격리된** Draft 스케줄을 반환합니다. 이를 통해 여러 게임(오딘, 리니지 등)을 번갈아 작업해도 사용자의 입력 데이터가 서로 섞이지 않는 **Workspace Isolation**을 실현합니다.
     *   `setDraftSchedule(newDraft)`: `void`. 현재 선택된 보스 목록 전용 키로 Draft를 설정하고 localStorage에 저장합니다.
-    *   `commitDraft()`: `void`. Draft 데이터를 **48시간 분량으로 자동 확장 및 정규화하여** Main SSOT에 적용(Commit)합니다. Draft를 Main SSOT로 병합하고 즉시 다시 Draft를 동기화하여 연속성 확보.
+    *   `commitDraft()`: `void`. Draft 데이터를 **48시간 분량으로 자동 확장 및 정규화하여** Main SSOT에 적용(Commit)합니다. Draft를 Main SSOT로 병합하고 즉시 다시 Draft를 동기화하여 연속성 확보. **이 과정에서 'validateBossSchedule'은 더 이상 검증 오류를 반환하지 않으며 사용자 입력을 신뢰합니다.**
     *   `clearDraft()`: `void`. 현재 보스 목록의 Draft 스케줄을 초기화합니다.
     *   `getNextBossInfo()`: `{ nextBoss, minTimeDiff }`. 현재 가장 가까운 다음 보스 정보와 남은 시간을 반환합니다.
     *   `setNextBossInfo(nextBoss, minTimeDiff)`: `void`. 다음 보스 정보를 설정하고, 모든 구독자에게 데이터 변경을 알립니다.
@@ -222,10 +222,10 @@
     *   `getBossStatusSummary(nowTime)`: `Object`. 다음 보스, 남은 시간, 임박한 보스 목록 등 현재 상태 요약을 반환합니다.
     *   `getUpcomingBosses(count)`: `Array`. 현재 시간 이후 예정된 보스 목록을 `count`만큼 정확히 반환합니다.
     *   `subscribe(callback)`: `void`. `BossDataManager`의 데이터 변경을 감지할 콜백 함수를 등록합니다. **반응형 상태 관리 패턴(Observer Pattern)**을 구현합니다.
-    *   `checkAndUpdateSchedule(force)`: `void`. 자정(00:00) 기준점 통과 및 앱 시작 시 48시간 윈도우 최신화 여부를 판단하고 실행하는 핵심 엔진.
+    *   `checkAndUpdateSchedule(force, isSchedulerActive)`: `void`. 자정(00:00) 기준점 통과 및 앱 시작 시 48시간 윈도우 최신화 여부를 판단하고 실행하는 핵심 엔진. **`isSchedulerActive`가 `false`이면 팝업 없이 조용히 업데이트를 수행합니다.**
     *   `isDraftDirty()`: `boolean`. 현재 편집 중인 데이터가 있는지 판단.
     *   `syncDraftWithMain()`: `void`. Main SSOT의 최신 상태를 Draft로 강제 복제.
-    *   `_expandAndReconstruct(items)`: `Array`. [Critical] 모든 보스 데이터를 오늘~내일 기준 48시간으로 확장하는 핵심 내부 로직.
+    *   `_expandAndReconstruct(items)`: `Array`. [Critical] 모든 보스 데이터를 오늘~내일 기준 48시간으로 확장하는 핵심 내부 로직. **36시간 이상의 긴 주기 보스라도 사용자가 직접 입력한 시간은 48시간 윈도우 밖이라도 무조건 보존하여 데이터 유실을 방지합니다.**
 
 #### `LocalStorageManager` (싱글톤 객체)
 - **설명:** 웹 브라우저의 `localStorage`를 통해 다양한 애플리케이션 설정(예: 음소거 상태, 알람 실행 상태, 사이드바 확장 상태) 및 사용자 데이터(고정 알림, 광 계산기 기록 등)를 영구적으로 저장하고 로드합니다. 특히 고정 알림 데이터는 `days` 속성(요일 정보)을 포함하도록 확장되었으며, 기존 데이터 로드 시 마이그레이션 로직이 자동 적용됩니다.
