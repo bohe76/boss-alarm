@@ -1,20 +1,26 @@
-# 세션 인수인계 (Session Handoff)
-마지막 업데이트: 2025-12-31 (23:10)
+# Session Handoff Document
 
-## 1. 지난 세션 요약 (Achievements)
-*   **CSS 미디어 쿼리 대청소 (Refactoring)**: `screens.css` 및 `components.css`에 흩어져 있던 반응형 미디어 쿼리(480px, 919px, 920px)를 파일 하단으로 통합하여 코드 파편화 제거 및 유지보수성 극대화.
-*   **공통 모달 UI 최적화**: 고정 높이를 제거하고 가변 높이 전략을 채택하였으며, 너비 이원화(460px/800px)를 통해 컨텐츠 기반의 유연한 레이아웃 구축.
-*   **기기별 버튼 디자인 이원화**: PC(60x36px 사각형)와 모바일(36x36px 원형 아웃라인)의 조작 환경 차이를 반영한 정밀 스타일링 적용.
-*   **고정 알림 정밀 정렬**: 설정 리스트 내 요일 버튼과 기능 버튼의 완벽한 수직 중앙 정렬(`align-items: center`)을 완성하여 시각적 안정성 확보.
-*   **에이전트 안전 가드레일 정립**: `GEMINI.md`에 이슈 관리 수동성 원칙 및 오토파일럿 선 보고 의무를 명시하여 AI의 자율 폭주를 원천 차단.
-*   **세션 종료 프로세스 자동화**: 인수인계 문서 작성 후 자동 커밋 기능을 추가하여 사용자의 반복 컨펌 부하를 줄임.
+## 1. Current Session Summary
+- **Date:** 2026-01-08 / v2.17.1 Release
+- **Focus:** Critical Bug Fixes (Long cycle boss save failure, Midnight update popup) & Deployment
+- **Wait:** **N/A** (All tasks completed and deployed)
 
-## 2. 현재 상태 (Current Status)
-*   **코드 구조**: 반응형 스타일이 레이아웃 섹션별로 명확히 그룹화되어 구조가 한결 투명해짐.
-*   **문서 무결성**: 최신 리팩토링 및 안전 가이드라인 사항이 6개 핵심 문서(`design_system_guide.md` 등)에 100% 동기화됨.
-*   **안정성**: 모든 변경 사항은 `lint` 검증을 통과하였으며, `GEMINI.md` 수정을 통해 향후 오토파일럿 작업의 안정성 확보.
+## 2. Key Changes & Achievements
+- **[Fix] Long Cycle Boss Data Loss Resolved:**
+  - Modified `checks and balances` in `_expandAndReconstruct` to **unconditionally preserve user-inputted anchor data**, solving the issue where 36h+ bosses were filtered out.
+  - Removed strict interval validation in `validateBossSchedule` to prioritize user intent over system calculation.
+- **[Fix] Silent Midnight Update:**
+  - Improved `checkAndUpdateSchedule` to accept `isSchedulerActive` flag.
+  - Now, the "Update Schedule?" popup **only appears if the user is actively on the Boss Scheduler screen**. Otherwise, it updates silently in the background.
+- **[Docs] Documentation Synchronization:**
+  - Updated `system_module_details.md` and `system_data_flow.md` to reflect the relaxed validation policy and conditional update logic.
+- **[Release] v2.17.1 Deployed:**
+  - Updated `index.html`, `version_history.json`, and `update-notice.json`.
+  - Merged `fix/emergency-bug-fix` into `main` and pushed to origin.
 
-## 3. 다음 작업 제의 (Next Steps)
-*   **이슈 해결 시도**: 안정성이 강화된 `/오토파일럿`을 사용하여 `Issue-013` (광 계산기 리셋 기능 누락) 해결 시도. (사용자님과의 충분한 대화 선행 필수)
-*   **반응형 검증**: 통합된 미디어 쿼리가 다양한 실기기 브라우저 환경에서 의도대로 작동하는지 최종 확인.
-*   **버전 배포**: 현재까지의 대규모 리팩토링 성과를 묶어 정식 버전 배포(`/배포`) 진행 검토.
+## 3. Unresolved Issues & Technical Debts
+- **No immediate technical debt.** Recent fixes were implemented cleanly with documentation updates.
+
+## 4. Next Steps (Prioritized)
+1. **[Feature] PIP 5-Minute Blinking Icon:** Implement visual cue (blinking icon) in PIP window when boss spawn is imminent (< 5 mins).
+2. **[Refactor] Continue V3 SSOT Architecture:** Resume the roadmap execution for UID-centric architecture migration.
