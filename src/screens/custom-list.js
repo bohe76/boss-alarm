@@ -158,6 +158,28 @@ export function initCustomListScreen(DOM) {
     }
 }
 
+export function openCustomListModalForMigration(DOM, currentListId, content) {
+    if (!DOM || !DOM.customBossListModal) return;
+
+    // 1. 모달 열기 및 '추가' 탭 활성화
+    showCustomListTab(DOM, 'add');
+    DOM.customBossListModal.style.display = 'flex';
+
+    // 2. 데이터 주입
+    // 목록 이름 제안: 기존 리스트 이름 + "(수정본)"
+    const suggestedName = `${currentListId}(수정본)`;
+    DOM.customListNameInput.value = suggestedName;
+    DOM.customListContentTextarea.value = content;
+
+    // 3. 사용자 안내 및 포커스
+    DOM.customListNameInput.focus();
+    trackEvent('Open Modal Migration', {
+        event_category: 'Interaction',
+        event_label: '커스텀 목록 관리 모달(이관용)',
+        from_list: currentListId
+    });
+}
+
 export function getScreen() {
     return {
         id: 'custom-list-screen', // This screen doesn't have a direct navigation link

@@ -6,7 +6,7 @@ import { renderFixedAlarms, renderAlarmStatusSummary, renderDashboard, updateBos
 import { log } from './logger.js';
 import { LocalStorageManager, BossDataManager } from './data-managers.js';
 import { initDomElements } from './dom-elements.js';
-import { getInitialDefaultData, getGameNames, getBossNamesForGame, getUpdateNoticeData } from './boss-scheduler-data.js';
+import { getInitialDefaultData, getUpdateNoticeData } from './boss-scheduler-data.js';
 import { EventBus } from './event-bus.js';
 import { getRoute, registerRoute } from './router.js';
 import { initializeCoreServices } from './services.js';
@@ -179,61 +179,92 @@ function showScreen(DOM, screenId) {
 
 /**
  * 보스 일정의 데이터 무결성을 검증합니다.
- * 스케줄에 포함된 모든 보스의 이름이 현재 시스템 정의(프리셋/커스텀)에 존재하는지 확인합니다.
+ * 프리셋의 경우 보스 이름이 공식 정의와 1:1로 일치하는지 확인하며, 
+ * 커스텀 리스트의 경우 해당 리스트가 존재하는지 확인합니다.
  */
-function validateScheduleIntegrity(schedule) {
+async function validateScheduleIntegrity(listId, schedule) {
     if (!schedule || !Array.isArray(schedule) || schedule.length === 0) return false;
 
-    // 현재 시스템의 모든 유효한 보스 이름 수집
-    const allValidBossNames = new Set();
-    const games = getGameNames();
-    games.forEach(game => {
-        const names = getBossNamesForGame(game.id);
-        names.forEach(name => allValidBossNames.add(name));
-    });
+    // 프리셋 이름 매칭 검사
+    const isNamesMatching = await BossDataManager.isPresetNamesMatching(listId, schedule);
+    if (!isNamesMatching) return false;
 
-    const bossItems = schedule.filter(item => item.type === 'boss');
-    if (bossItems.length === 0) return true; // 보스가 없는 일정(날짜 헤더만 등)은 일단 통과
+    // 만약 커스텀 리스트라면 해당 리스트가 존재하는지 확인
+    const { isPresetList } = await import('./boss-scheduler-data.js');
+    if (!isPresetList(listId)) {
+        const { CustomListManager } = await import('./custom-list-manager.js');
+        const customLists = CustomListManager.getCustomLists();
+        if (!customLists.some(l => l.name === listId)) return false;
+    }
 
-    // 단 하나라도 '유령 보스(정의가 사라진 보스)'가 있다면 오염된 것으로 간주
-    return !bossItems.some(item => !allValidBossNames.has(item.name));
+    return true;
 }
 
-function loadInitialData(DOM) {
+async function performSilentMigration(DOM, schedule) {
+    const { CustomListManager } = await import('./custom-list-manager.js');
+    const MIGRATION_SLOT_NAME = '커스텀 보스_001';
+
+    // 1. 보스 이름 목록 추출 (커스텀 리스트 레이아웃용)
+    const bossNamesText = BossDataManager.extractBossNamesText(schedule);
+
+    // 2. 커스텀 리스트 슬롯 확보 (Upsert)
+    const existingList = CustomListManager.getCustomLists().find(l => l.name === MIGRATION_SLOT_NAME);
+    if (existingList) {
+        CustomListManager.updateCustomList(MIGRATION_SLOT_NAME, bossNamesText);
+    } else {
+        CustomListManager.addCustomList(MIGRATION_SLOT_NAME, bossNamesText);
+    }
+
+    // 3. 상태 전환 및 영구 저장
+    LocalStorageManager.set('lastSelectedGame', MIGRATION_SLOT_NAME);
+
+    // 4. Draft 및 SSOT 동시 업데이트 (무인 자동화 핵심)
+    BossDataManager.setDraftSchedule(MIGRATION_SLOT_NAME, schedule);
+    BossDataManager.setBossSchedule(schedule);
+
+    log(`[지능형 자가 치유] 데이터를 '${MIGRATION_SLOT_NAME}' 슬롯으로 안전하게 보존/이관했습니다.`, true);
+    return true;
+}
+
+async function loadInitialData(DOM) {
     const params = new URLSearchParams(window.location.search);
     let loadSuccess = false;
 
     // 1. URL 데이터 우선 로드
     if (params.has('data')) {
+        const currentListId = params.get('game') || LocalStorageManager.get('lastSelectedGame') || 'default';
         DOM.schedulerBossListInput.value = decodeURIComponent(params.get('data'));
         const result = parseBossList(DOM.schedulerBossListInput);
 
-        // URL 데이터가 존재하고 파싱에 성공했으며, 무결성 검사까지 통과한 경우만 승인
-        if (result.success && validateScheduleIntegrity(result.mergedSchedule)) {
-            BossDataManager.setBossSchedule(result.mergedSchedule);
-            BossDataManager.clearDraft(); // URL 로딩 성공 시 기존 Draft 삭제
-            loadSuccess = true;
-            log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
-        } else {
-            // URL 데이터 오염 시: 경고 후 무시(Proceed to Storage)
-            alert("URL의 보스 설정 데이터가 유효하지 않거나 오염되었습니다. 기존 설정 또는 기본 데이터를 사용합니다.");
-            log("URL 데이터 오염 또는 파싱 실패. 무시하고 진행합니다.", false);
+        if (result.success) {
+            const integrity = await validateScheduleIntegrity(currentListId, result.mergedSchedule);
+            if (integrity) {
+                BossDataManager.setBossSchedule(result.mergedSchedule);
+                BossDataManager.clearDraft(currentListId);
+                loadSuccess = true;
+                log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
+            } else {
+                // 이름 불일치 시: 자동 마이그레이션 실행
+                log("URL 데이터 이름 불일치 감지. 자동으로 커스텀 리스트로 이관합니다.");
+                loadSuccess = await performSilentMigration(DOM, result.mergedSchedule);
+            }
         }
     }
 
     // 2. 기존 로컬 스토리지 데이터 검사 (URL 로드 실패 시에만 실행)
     if (!loadSuccess) {
+        const currentListId = LocalStorageManager.get('lastSelectedGame') || 'default';
         const existingSchedule = BossDataManager.getBossSchedule();
 
         if (existingSchedule && existingSchedule.length > 0) {
-            if (validateScheduleIntegrity(existingSchedule)) {
+            const integrity = await validateScheduleIntegrity(currentListId, existingSchedule);
+            if (integrity) {
                 loadSuccess = true;
                 log("로컬 스토리지에서 보스 일정을 로드했습니다.");
             } else {
-                // 로컬 스토리지 데이터 오염 시: 강제 초기화하여 루프 방지
-                log("로컬 스토리지 데이터 오염 감지. 안전을 위해 초기화 후 기본 샘플 데이터를 로드합니다.", false);
-                BossDataManager.setBossSchedule([]); // 기존 오염 데이터 삭제
-                loadSuccess = false;
+                // 로컬 데이터 오염 시: 자동 마이그레이션 실행
+                log("로컬 스토리지 데이터 정합성 불일치 감지. 자가 치유 기능을 동작합니다.");
+                loadSuccess = await performSilentMigration(DOM, existingSchedule);
             }
         }
     }
@@ -452,7 +483,14 @@ export async function initApp() {
         customListScreen.init(DOM);
     }
 
-    loadInitialData(DOM);
+    loadInitialData(DOM); // loadInitialData를 비동기로 호출해야 하지만, 여기서는 await를 쓰기 어려우므로 내부에서 처리하거나 체이닝 고려
+    // 하지만 app.js 상단에서 await initializeCoreServices를 하므로, 
+    // loadInitialData 내부의 동적 import들은 정상적으로 작동할 것임.
+    // 다만 loadInitialData 자체가 async가 되었으므로 호출 시 주의 필요.
+
+    // [중요] loadInitialData가 async가 되었으므로, 이후 로직을 위해 await를 붙이거나 순서 보정 필요.
+    // 하지만 initApp 전체를 async로 바꿀 수 있음 (이미 async/await 구조임)
+    await loadInitialData(DOM);
     BossDataManager.checkAndUpdateSchedule(); // [Step 2] Fresh Start Update Check
 
 

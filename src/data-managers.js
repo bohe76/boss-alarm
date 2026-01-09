@@ -169,15 +169,18 @@ export const BossDataManager = (() => {
             const isTodayOnly = meta.isInvasion;
 
 
-            // [수정] 젠 주기에 상관없이 사용자가 직접 입력한 데이터(앵커)는 무조건 보존
-            // (UI에서는 48시간 필터에 의해 안 보일 수 있으나 SSOT에는 남음)
+            // [수정] 젠 주기에 상관없이 사용자가 직접 입력한 데이터(앵커) 중 '오늘 00:00 이후' 데이터만 보존
+            // (데이터 다이어트 및 과거 흔적 제거)
             sameBosses.forEach(b => {
-                expandedBosses.push({ ...b });
+                const bTime = new Date(b.scheduledDate).getTime();
+                if (bTime >= startTime) {
+                    expandedBosses.push({ ...b });
+                }
             });
 
             if (interval > 0) {
-                // 과거로 확장
-                let t = anchorTime;
+                // 과거로 확장 (오늘 00:00까지만)
+                let t = anchorTime - interval;
                 while (t >= startTime) {
                     const inst = createInstance(t);
                     if (!isTodayOnly || isSameDay(inst.scheduledDate, new Date(now))) {
@@ -189,9 +192,9 @@ export const BossDataManager = (() => {
                 t = anchorTime + interval;
                 let generatedInWindow = false;
 
-                // 만약 anchorTime 자체가 현재 window 안에 있다면, 그것도 생성된 것으로 카운트
+                // 앵커가 윈도우 안에 있는지 확인
                 if (anchorTime >= startTime && anchorTime <= endTime) {
-                    generatedInWindow = true; // 앵커가 이미 윈도우 안에 있음
+                    generatedInWindow = true;
                 }
 
                 while (t <= endTime) {
@@ -424,12 +427,34 @@ export const BossDataManager = (() => {
                 const startTime = todayStart.getTime();
                 const endTime = startTime + (48 * 60 * 60 * 1000);
 
-                return bossSchedule.filter(item => {
-                    if (item.type === 'date') return true; // 날짜 헤더는 유지 (단, 아래에서 빈 날짜 제거 필요할 수 있음)
+                const filtered = bossSchedule.filter(item => {
+                    if (item.type === 'date') return true;
                     if (!item.scheduledDate) return false;
                     const t = new Date(item.scheduledDate).getTime();
-                    return t <= endTime;
+                    return t >= startTime && t <= endTime; // 오늘 00:00 ~ 내일 24:00
                 });
+
+                // 빈 날짜 헤더 제거 로직 추가
+                const result = [];
+                for (let i = 0; i < filtered.length; i++) {
+                    const item = filtered[i];
+                    if (item.type === 'date') {
+                        // 다음 아이템이 보스이고, 그 보스의 날짜가 이 헤더와 일치하는 동안만 유지
+                        const nextBoss = filtered.slice(i + 1).find(f => f.type === 'boss');
+                        if (nextBoss) {
+                            const d = new Date(nextBoss.scheduledDate);
+                            const nextBossDateStr = `${padNumber(d.getMonth() + 1)}.${padNumber(d.getDate())}`;
+                            if (nextBossDateStr === item.date) {
+                                result.push(item);
+                                continue;
+                            }
+                        }
+                        // 보여줄 보스가 없는 헤더는 버림
+                        continue;
+                    }
+                    result.push(item);
+                }
+                return result;
             }
             // 내부 로직용: 전체 데이터 반환 (미래 앵커 포함)
             return bossSchedule;
@@ -474,6 +499,33 @@ export const BossDataManager = (() => {
         setDraftSchedule: (listId, newDraft) => {
             const draftKey = listId ? `${DRAFT_STORAGE_KEY}_${listId}` : DRAFT_STORAGE_KEY;
             localStorage.setItem(draftKey, JSON.stringify(newDraft));
+        },
+
+        /**
+         * 특정 프리셋 리스트 ID와 전달된 스케줄의 보스 이름들이 1:1로 일치하는지 확인합니다.
+         */
+        isPresetNamesMatching: async (listId, schedule) => {
+            const { getBossNamesForGame, isPresetList } = await import('./boss-scheduler-data.js');
+
+            if (!isPresetList(listId)) return true; // 프리셋이 아니면 검증할 필요 없음
+
+            const officialNames = getBossNamesForGame(listId);
+            const currentNames = [...new Set(schedule.filter(item => item.type === 'boss').map(b => b.name))];
+
+            // 보스 '종류'의 개수가 다르면 정합성 깨짐
+            if (officialNames.length !== currentNames.length) return false;
+            // 모든 현재 보스 종류가 공식 프리셋에 포함되어 있어야 함
+            return currentNames.every(name => officialNames.includes(name));
+        },
+
+        /**
+         * 스케줄 데이터에서 보스 이름 목록 텍스트를 추출합니다. (커스텀 리스트 저장용)
+         */
+        extractBossNamesText: (schedule) => {
+            return schedule
+                .filter(item => item.type === 'boss')
+                .map(item => item.name)
+                .join('\n');
         },
 
         // 특정 Draft 내용을 메인 SSOT로 승격(Commit)

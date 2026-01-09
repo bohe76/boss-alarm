@@ -7,6 +7,8 @@ import { EventBus } from '../event-bus.js';
 import { BossDataManager, LocalStorageManager } from '../data-managers.js';
 import { padNumber } from '../utils.js';
 import { trackEvent } from '../analytics.js';
+import { getBossNamesForGame, isPresetList } from '../boss-scheduler-data.js';
+import { openCustomListModalForMigration } from './custom-list.js';
 
 let _remainingTimes = {}; // Encapsulated state for remaining times
 let _memoInputs = {}; // Encapsulated state for memo inputs
@@ -227,6 +229,31 @@ function syncTextToInput(DOM, silent = true) {
 
     const newDraft = result.mergedSchedule;
     const currentListId = LocalStorageManager.get('lastSelectedGame') || 'default';
+
+    // [보헤님 지시: 프리셋 보호 및 이관 로직]
+    if (isPresetList(currentListId)) {
+        const officialBossNames = getBossNamesForGame(currentListId);
+        const inputBossNames = newDraft.map(b => b.name);
+
+        // 입력된 이름 중 프리셋에 없는 것이 하나라도 있는지 확인
+        const hasNameChange = inputBossNames.some(name => !officialBossNames.includes(name));
+
+        if (hasNameChange) {
+            if (!silent) {
+                const confirmMsg = `보스 이름이 프리셋과 다릅니다.\n이대로 저장하면 시스템 자동 업데이트를 받을 수 없으므로,\n'커스텀 보스 목록'으로 이동하여 저장해야 합니다.\n\n커스텀 보스 관리 화면으로 이동하시겠습니까?`;
+                if (confirm(confirmMsg)) {
+                    // 커스텀 모달 오픈 (데이터 주입)
+                    openCustomListModalForMigration(DOM, currentListId, DOM.schedulerBossListInput.value);
+                    return false; // 현재 화면 저장은 중단
+                } else {
+                    return false; // 취소 시 아무것도 하지 않음 (사용자가 수정하도록 유도)
+                }
+            } else {
+                // 백그라운드 싱크 중에는 이름 변경 시 드래프트 반영을 차단 (SSOT 보호)
+                return false;
+            }
+        }
+    }
 
     // [신규] 논리적 유효성 검사 (젠 주기 준수 여부)
     const validation = BossDataManager.validateBossSchedule(newDraft);

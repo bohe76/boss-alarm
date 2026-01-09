@@ -87,6 +87,13 @@ export function getBossMetadata() {
 }
 
 /**
+ * 특정 게임 ID가 프리셋(내장) 데이터인지 확인합니다.
+ */
+export function isPresetList(gameId) {
+    return !!bossMetadata[gameId];
+}
+
+/**
  * 업데이트 공지 데이터를 반환합니다.
  */
 export function getUpdateNoticeData() {
