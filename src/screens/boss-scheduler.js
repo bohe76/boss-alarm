@@ -432,16 +432,14 @@ export function initBossSchedulerScreen(DOM) {
     });
 
     EventBus.on('rerender-boss-scheduler', () => {
-        renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs);
-        // updateCalculatedTimes(DOM); 호출 삭제
+        handleShowScreen(DOM);
     });
 
     DOM.bossSchedulerScreen.addEventListener('change', (event) => {
         if (event.target === DOM.gameSelect) {
             const selectedGame = DOM.gameSelect.value;
             LocalStorageManager.set('lastSelectedGame', selectedGame); // 선택 정보 저장
-            renderBossInputs(DOM, selectedGame, _remainingTimes, _memoInputs);
-            // updateCalculatedTimes(DOM); 호출 삭제
+            handleShowScreen(DOM); // 데이터 로드부터 렌더링까지 전체 재실행
         }
     });
 

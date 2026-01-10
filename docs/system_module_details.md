@@ -55,7 +55,7 @@
     2.  Document PiP API 지원 여부를 확인하고, 지원하는 경우에만 PiP 토글 버튼을 표시합니다.
     3.  `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자(LocalStorageManager, CustomListManager), 보스 데이터 로딩을 초기화합니다.
     4.  `registerAllRoutes()`를 호출하여 모든 화면 모듈을 `src/router.js`에 등록합니다.
-    5.  `loadInitialData(DOM)`를 호출하여 URL 파라미터 또는 기본값으로부터 초기 보스 목록 및 고정 알림 데이터를 로드합니다.
+    5.  `loadInitialData(DOM)`를 호출하여 URL 파라미터 또는 로컬 스토리지로부터 데이터를 로드합니다. 이때 **지능형 자가 치유(v2.17.2)** 로직이 작동하여 정합성이 깨진 데이터는 자동으로 '커스텀 보스_001' 슬롯으로 이관합니다.
     6.  **'설정' 화면의 고정 알림 목록을 초기 렌더링합니다 (`renderFixedAlarms(DOM)`).**
     7.  `initGlobalEventListeners(DOM)`를 호출하여, `BossDataManager` 데이터 변경 감지, 로그 업데이트 등 애플리케이션 전반의 핵심 이벤트 리스너를 중앙에서 등록하고 활성화합니다.
     8.  `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 내비게이션 링크, **PiP 토글 버튼, 버전 업데이트 모달 이벤트** 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
@@ -77,19 +77,27 @@
     3.  `getRoute(screenId)`를 통해 화면 모듈을 가져와 `screen.init(DOM)` (최초 방문 시) 또는 `screen.onTransition(DOM)` (화면 전환 시)을 호출합니다.
     4.  대시보드 (`dashboard-screen`)로 전환될 경우, `renderDashboard(DOM)`를 즉시 호출하여 화면을 렌더링한 후, `setInterval(renderDashboard, 1000)`를 설정하여 1초마다 대시보드 UI를 갱신합니다. 다른 화면으로 전환 시에는 해당 `setInterval`을 해제합니다.
 
-#### `loadInitialData(DOM)` (내부 함수)
+#### `loadInitialData(DOM)` (async)
 - **설명:** 애플리케이션 시작 시 데이터 무결성을 검증하며 초기 일정을 설정합니다. URL -> 로컬 스토리지 -> 샘플 데이터 순으로 우선순위를 가집니다.
 - **인자:** `DOM` (`Object`)
 - **핵심 내부 로직:** 
-    1.  **URL 파라미터 검사**: `data` 쿼리가 있고 무결성 검증(`validateScheduleIntegrity`)을 통과하면 최우선 로드합니다. 오염된 경우 무시하고 다음 단계로 진행합니다.
-    2.  **로컬 스토리지 검사**: URL 데이터가 없을 때만 실행됩니다. 무결성 검증 통과 시 로드하며, 오염(커스텀 삭제 등 보스 정합성 깨짐) 감지 시 로컬 데이터를 강제 초기화하여 루프를 방지합니다.
-    3.  **샘플 데이터 복구**: 위 과정이 모두 실패하면 `initial-default.json` 데이터를 로드하여 깨끗한 상태를 즉시 로컬 스토리지에 기록합니다.
+    1.  **URL 파라미터 검사**: `data` 쿼리가 있는 경우 최우선 파싱합니다. 파싱 결과가 현재 프리셋/커스텀 목록과 일치하지 않으면(`validateScheduleIntegrity` 실패), 데이터를 버리는 대신 **`performSilentMigration`**을 호출하여 사용자 입력을 보존합니다.
+    2.  **로컬 스토리지 검사**: URL 데이터가 없을 때 실행됩니다. 저장된 일정의 정합성을 검사하고, 오염(커스텀 목록 삭제 등) 감지 시 자동으로 자가 치유(마이그레이션)를 실행합니다.
+    3.  **최종 결계 (샘플 복구)**: 로드에 완전히 실패한 경우에만 기본 샘플 데이터를 로드하여 최소한의 서비스 가용성을 보장합니다.
 
-#### `validateScheduleIntegrity(schedule)` (내부 함수)
-- **설명:** 주어진 일정 내 모든 보스가 현재 시스템(프리셋/커스텀)에 정의되어 있는지 확인합니다.
-- **인자:** `schedule` (`Array`)
-- **반환값:** `boolean` (유효성 여부)
-- **핵심 로직:** `getBossNamesForGame`을 통해 수집된 모든 유효한 보스 이름 셋에 스케줄의 보스가 포함되지 않으면 `false`를 반환하여 데이터 오염을 경고합니다.
+#### `validateScheduleIntegrity(listId, schedule)` (async)
+- **설명:** 주어진 일정 내 모든 보스가 현재 선택된 목록(`listId`)의 정의와 일치하는지 확인합니다.
+- **인자:** `listId` (`string`), `schedule` (`Array`)
+- **반환값:** `Promise<boolean>` (유효성 여부)
+- **핵심 로직:** `isPresetNamesMatching`을 통해 보스의 **종류(Type)**가 프리셋 정의와 일치하는지 확인하며, 커스텀 리스트의 경우 해당 리스트가 여전히 존재하는지 검증합니다.
+
+#### `performSilentMigration(DOM, schedule)` (async)
+- **설명:** 정합성이 깨진 일중 데이터를 '커스텀 보스_001' 슬롯으로 강제 이관하여 사용자 데이터를 보호합니다.
+- **인자:** `DOM` (`Object`), `schedule` (`Array`)
+- **핵심 로직:** 
+    1.  '커스텀 보스_001' 리스트가 없으면 생성, 있으면 내용을 갱신(Upsert)합니다.
+    2.  로컬 스토리지의 `lastSelectedGame`을 해당 슬롯으로 강제 전환합니다.
+    3.  Main SSOT와 Draft를 해당 데이터로 동시 업데이트하여 즉시 사용 가능한 상태로 만듭니다.
 
 #### `processBossItems(items)` (내부 함수)
 - **설명:** `initial-default.json`에서 로드한 보스 아이템 배열을 SSOT 형식의 스케줄 배열로 변환합니다.
@@ -210,7 +218,8 @@
 - **주요 메소드:**
     *   `initPresets(presets)`: `void`. 보스 프리셋 메타데이터(`boss-presets.json`)를 주입합니다. **주입 즉시 기존 스케줄을 48시간 분량으로 자동 확장합니다.**
     *   `getBossInterval(bossName, contextId)`: `number`. 특정 보스의 리젠 주기(분)를 프리셋에서 찾아 반환합니다. 보스 이름과 게임 컨텍스트를 기반으로 검색합니다.
-    *   `getBossSchedule()`: `Array`. 현재 파싱 및 확장된 보스 일정 배열(Main SSOT)을 반환합니다.
+    *   `getBossSchedule(uiFilter)`: `Array`. 현재 파싱 및 확장된 보스 일정 배열(Main SSOT)을 반환합니다. `uiFilter`가 `true`인 경우, **48시간 윈도우 내에 보스 정보가 없는 빈 날짜 헤더를 자동으로 제거**하는 UI Purification 프로세스를 수행합니다.
+    *   `isPresetNamesMatching(listId, schedule)`: `Promise<boolean>`. 특정 프리셋 리스트와 스케줄의 보스 이름들이 일치하는지 확인합니다. (v2.17.2: 인스턴스 개수가 아닌 **보스 종류(Type)**의 비교로 로직이 개선되었습니다.)
     *   `setBossSchedule(newSchedule)`: `void`. 새로운 보스 일정 배열을 받고, **48시간 확장 엔진을 돌려 정규화한 뒤** Main SSOT에 저장하며, Draft를 동기화하고 구독자에게 알립니다.
     *   `getDraftSchedule()`: `Array`. **현재 선택된 보스 목록(listId)에 격리된** Draft 스케줄을 반환합니다. 이를 통해 여러 게임(오딘, 리니지 등)을 번갈아 작업해도 사용자의 입력 데이터가 서로 섞이지 않는 **Workspace Isolation**을 실현합니다.
     *   `setDraftSchedule(newDraft)`: `void`. 현재 선택된 보스 목록 전용 키로 Draft를 설정하고 localStorage에 저장합니다.
@@ -441,7 +450,7 @@
 | **`timetable.js`** | `getScreen()` | `init` 시 '뷰/편집' 모드 토글, '표/카드' 보기 모듈 전환 및 **내보내기(Export) 모달** 이벤트 리스너를 등록합니다. <br> - **내보내기 가드**: 모달이 열려 있는 동안 `startAutoRefresh`를 일시 중단하여 프리뷰 안전성을 확보합니다. <br> - **실시간 동기화**: `syncTimetablePreview`를 통해 옵션 변경 즉시 배경 UI를 갱신합니다. <br> - **상태 복원**: `restoreOriginalSettings`를 통해 내보내기 완료 후 이전 화면 상태(탭, 필터 등)를 완벽히 복구합니다. <br> - **이미지 내보내기**: `handleExportImage`는 메인 화면이 아닌 **전용 컨테이너(`exportCaptureContainer`)**를 사용하여 1단 레이아웃 이미지를 생성하고 `html2canvas`로 캡처합니다. <br><br> **⚠️ [WARNING]**: 내보내기 로직 수정 시 `ui-renderer.js`의 `renderExportCapture`와 함께 확인해야 하며, 메인 화면 DOM(`bossListCardsContainer`)을 캡처 대상으로 지정하면 안 됩니다. |
 | **`boss-scheduler.js`** | `getScreen()` | `init` 시 `EventBus.on('show-boss-scheduler-screen')` 리스너 등록 및 **키보드 이벤트(`keydown`) 핸들러**를 통해 사용성을 강화합니다. `remaining-time-input` 필드에서 **`Enter` 키** 입력 시 다음 보스의 입력 필드로 포커스를 자동 이동시키며, 마지막 보스일 경우 '업데이트' 버튼으로 이동하여 마우스를 사용하지 않는 **고속 연속 입력**을 지원합니다. 또한, `remaining-time-input` 필드의 유효성 검사는 사용자 입력을 방해하지 않도록 **지연 검증(Deferred Validation)** 정책을 적용하여, 최종 "보스 시간 업데이트" 버튼 클릭 시점에 일괄 수행합니다. `handleApplyBossSettings(DOM)` 함수는 입력된 `data-id`와 계산된 시간, 그리고 `dataset.timeFormat`을 기반으로 `boss` 객체를 업데이트하고 리스트를 재구성하여 저장합니다. **Workspace Isolation 적용으로 게임별로 작성 중인 입력 내용이 자동 저장 및 복원되어 사용자 작업 연속성을 보장합니다.** |
 | **`calculator.js`** | `getScreen()` | `init` 시 `initCalculatorScreen(DOM)`이 호출되어 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 `handleCalculatorScreenTransition(DOM)`이 호출되어 `CrazyCalculator`의 상태를 초기화하고 `ui-renderer.js`의 `renderCalculatorScreen(DOM)`을 호출하여 화면을 렌더링합니다. `checkZenCalculatorUpdateButtonState(DOM)` 헬퍼 함수를 통해 '보스 시간 업데이트' 버튼의 활성화/비활성화 상태를 관리합니다. |
-| **`custom-list.js`** | `getScreen()` | `init` 시 `initCustomListScreen(DOM)`이 호출되어 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. `DOM.manageCustomListsButton` 클릭 시 모달이 열리며, 목록 변경 시 `EventBus.emit('rerender-boss-scheduler')`를 발행하여 보스 스케줄러의 드롭다운을 업데이트합니다. |
+| **`custom-list.js`** | `getScreen()` | `init` 시 `initCustomListScreen(DOM)`이 호출되어 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. `DOM.manageCustomListsButton` 클릭 시 모달이 열리며, 목록 변경 시 `EventBus.emit('rerender-boss-scheduler')`를 발행하여 보스 스케줄러의 드롭다운을 업데이트합니다. <br> **`openCustomListModalForMigration(DOM, currentListId, content)`**: 자가 치유 시 사용자가 마이그레이션된 데이터를 쉽게 확인할 수 있도록 모달을 열고 데이터를 주입하는 전용 API를 제공합니다. |
 | **`dashboard.js`** | `getScreen()` | `init` 시 `initDashboardScreen(DOM)`이 호출되어 `DOM.muteToggleButton` (음소거 버튼)과 `DOM.volumeSlider` (볼륨 슬라이더)에 대한 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링합니다. 음소거 버튼 클릭 시 `LocalStorageManager.setMuteState()`를 호출하여 음소거 상태를 토글하며, 볼륨 슬라이더 조작 시 `LocalStorageManager.setVolume()`을 통해 볼륨 값을 저장합니다. 두 UI 요소 모두 변경 시 `ui-renderer.js`의 `updateSoundControls(DOM)`를 호출하여 시각적 상태를 갱신합니다. `initDashboardScreen`은 `EventBus.on('log-updated', ...)` 리스너를 등록하여 새로운 로그 발생 시 `renderRecentAlarmLog(DOM)`를 호출하여 로그를 갱신합니다. |
 | **`help.js`** | `getScreen()` | `init` 시 `handleTabSwitching(DOM)`이 호출되어 '도움말'과 'FAQ' 탭 전환 이벤트 리스너를 등록합니다. `onTransition` 시 `onHelpScreenTransition(DOM)`이 호출되어 `data/feature_guide.json`과 `data/faq_guide.json`을 비동기적으로 로드하고, `ui-renderer.js`의 `renderHelpScreen()`과 `renderFaqScreen()`을 호출하여 각 탭의 콘텐츠를 렌더링합니다. |
 | **`settings.js`** | `getScreen()` | `init` 시 `initSettingsScreen(DOM)`이 호출되어 고정 알림 모달의 '추가' 및 목록의 '편집/삭제/토글' 이벤트 리스너를 등록합니다. 모달은 고정 알림의 추가/편집을 담당하며, 요일 선택 기능과 데이터 저장 로직을 포함합니다. (`LocalStorageManager`의 `getFixedAlarmById`를 사용) |

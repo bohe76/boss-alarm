@@ -130,11 +130,19 @@ export function initCustomListScreen(DOM) {
 
             if (button.classList.contains('delete-custom-list-button')) {
                 if (confirm(`'${listName}' 목록을 정말 삭제하시겠습니까?`)) {
+                    // [기능 추가] 현재 선택된 리스트가 삭제되는 경우, 프리셋 첫 번째로 강제 전환
+                    const { LocalStorageManager } = await import('../data-managers.js');
+                    if (LocalStorageManager.get('lastSelectedGame') === listName) {
+                        const { getGameNames } = await import('../boss-scheduler-data.js');
+                        const defaultGame = getGameNames().find(g => !g.isCustom)?.id || 'odin';
+                        LocalStorageManager.set('lastSelectedGame', defaultGame);
+                    }
+
                     const result = CustomListManager.deleteCustomList(listName);
                     showToast(DOM, result.message);
                     if (result.success) {
                         renderCustomListManagementModalContent(DOM); // Re-render management list
-                        EventBus.emit('rerender-boss-scheduler'); // To update dropdown
+                        EventBus.emit('rerender-boss-scheduler'); // To update dropdown & state
                         trackEvent('Click Button', { event_category: 'Interaction', event_label: '커스텀 목록 삭제', listName: listName });
                     } else {
                         trackEvent('Click Button', { event_category: 'Interaction', event_label: '커스텀 목록 삭제 실패', listName: listName, reason: result.message });

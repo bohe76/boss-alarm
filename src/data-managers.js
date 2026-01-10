@@ -512,9 +512,8 @@ export const BossDataManager = (() => {
             const officialNames = getBossNamesForGame(listId);
             const currentNames = [...new Set(schedule.filter(item => item.type === 'boss').map(b => b.name))];
 
-            // 보스 '종류'의 개수가 다르면 정합성 깨짐
-            if (officialNames.length !== currentNames.length) return false;
-            // 모든 현재 보스 종류가 공식 프리셋에 포함되어 있어야 함
+            // 보스 '종류'의 개수 비교를 제거 (일부 보스만 시간 설정한 경우도 허용)
+            // 데이터에 있는 보스 이름들이 모두 공식 프리셋 정의 내에 있는지 확인
             return currentNames.every(name => officialNames.includes(name));
         },
 
@@ -522,10 +521,10 @@ export const BossDataManager = (() => {
          * 스케줄 데이터에서 보스 이름 목록 텍스트를 추출합니다. (커스텀 리스트 저장용)
          */
         extractBossNamesText: (schedule) => {
-            return schedule
+            const bossNames = schedule
                 .filter(item => item.type === 'boss')
-                .map(item => item.name)
-                .join('\n');
+                .map(item => item.name);
+            return [...new Set(bossNames)].join('\n');
         },
 
         // 특정 Draft 내용을 메인 SSOT로 승격(Commit)

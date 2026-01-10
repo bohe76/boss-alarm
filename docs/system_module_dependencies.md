@@ -21,8 +21,10 @@
 | `event-bus.js` | `EventBus.on('navigate', ...)`, **`EventBus.emit('navigate', ...)`**: 화면 전환 이벤트 구독 및 **릴리즈 노트 이동 트리거** |
 | `alarm-scheduler.js` | `getIsAlarmRunning()`, `startAlarm()`: 알람 상태 확인 및 시작 |
 | `utils.js` | `formatMonthDay()`: 날짜 포맷팅 (loadInitialData 내부) |
-| `boss-scheduler-data.js` | `getInitialDefaultData()`, `getGameNames()`, `getBossNamesForGame()`, **`getUpdateNoticeData()`**: 초기 데이터, 무결성 검증 및 **업데이트 공지 데이터 조회** |
+| `boss-scheduler-data.js` | `getInitialDefaultData()`, `getGameNames()`, `getBossNamesForGame()`, **`getUpdateNoticeData()`**, `isPresetList`: 초기 데이터, 무결성 검증 및 **업데이트 공지 데이터 조회** |
+| `custom-list-manager.js` | `CustomListManager.*`: 자가 치유(마이그레이션) 시 커스텀 목록 슬롯 확보 및 업데이트 (**Dynamic Import**) |
 | `screens/settings.js` | `getScreen()`: '설정' 화면의 메타 정보 가져오기 (이전 `notifications.js`) |
+| `screens/custom-list.js` | `openCustomListModalForMigration()`: 자가 치유 완료 후 사용자 안내를 위한 모달 호출 (**Dynamic Import**) |
 
 ## 2. `src/global-event-listeners.js` (전역 EventBus 리스너 관리)
 

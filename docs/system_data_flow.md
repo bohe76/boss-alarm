@@ -26,10 +26,11 @@
     *   **데이터 정제**: `BossDataManager` 초기화 시 로컬 스토리지 데이터를 `_sanitizeInitData()`를 통해 검증하여 손상된 데이터를 제거합니다.
     *   **로드된 프리셋 데이터를 `BossDataManager.initPresets()`를 통해 주입하며, 주입 즉시 기존 스케줄을 48시간 분량으로 자동 확장합니다.**
     *   `registerAllRoutes()`를 호출하여 `src/screens/*.js`의 모든 화면 모듈을 `src/router.js`에 등록합니다.
-    *   `loadInitialData(DOM)`를 호출하여 초기 데이터를 로드합니다. 로딩 우선순위 및 **무결성 검증(v2.6)** 흐름은 다음과 같습니다:
-        1. **URL 파라미터**: `data` 쿼리가 있고 **시스템 정의와 일치(Integrity Check)**하면 최우선 로드합니다. 오염된 경우 경고 후 무시합니다.
-        2. **사용자 로컬 스토리지**: URL 데이터가 없거나 로드에 실패한 경우 확인합니다. 데이터가 존재하고 **무결성 검증을 통과**하면 로드하며, 오염(유령 보스 발견 등) 시 **강제 초기화**를 수행합니다.
-        3. **기본 샘플 데이터**: 위 두 과정이 모두 실패(최초 방문 포함)하면 `initial-default.json` 데이터를 로드하고 즉시 로컬 스토리지에 기록하여 안정성을 보장합니다.
+    *   `loadInitialData(DOM)`를 호출하여 초기 데이터를 로드합니다. 로딩 우선순위 및 **지능형 자가 치유(v2.17.2)** 흐름은 다음과 같습니다:
+        1. **URL 파라미터**: `data` 쿼리가 있는 경우 최우선 로드합니다. **무결성 검증(Integrity Check)** 실패 시, 데이터를 버리지 않고 **`performSilentMigration`**을 통해 '커스텀 보스_001' 슬롯으로 안전하게 이관하여 사용자 입력을 보호합니다.
+        2. **사용자 로컬 스토리지**: URL 데이터가 없을 때 확인합니다. 프리셋 이름 변경이나 커스텀 목록 삭제 등으로 정합성이 깨진 경우, 자가 치유 엔진이 작동하여 기존 데이터를 커스텀 슬롯으로 자동 마이그레이션합니다.
+        3. **지능형 데이터 회귀 (Reverse Migration)**: 위 과정이 완료된 후 `performReverseMigration`을 호출합니다. 버그로 인해 생성된 '커스텀 보스_001' 슬롯을 탐색하여, 내용이 프리셋과 일치할 경우 자동으로 데이터를 원래 프리셋으로 복구하고 임시 슬롯을 정리합니다. (v2.17.2)
+        4. **최종 결계 (샘플 복구)**: 위 과정이 모두 실패할 경우에만 기본 샘플 데이터를 로드하여 안정성을 보장합니다.
     *   **자동 확장 및 침공 보스 필터링**: 데이터가 설정될 때마다 `BossDataManager` 내부에서 `_expandAndReconstruct()`가 실행되어 48시간 일정으로 정규화됩니다. 이때 프리셋의 `isInvasion` 플래그를 확인하여 **당일이 아닌 침공 보스 인스턴스는 자동으로 제외**하여 정합성을 유지합니다. 사용자가 수정한 데이터(ID 일치)는 보호되며, 새로 생성되는 인스턴스는 고유한 UID를 부여받습니다. **또한 Workspace Isolation 정책에 따라 각 게임별 Draft 데이터는 독립된 저장 키로 관리되어 데이터 충돌을 방지합니다.**
     *   `initGlobalEventListeners(DOM)`를 호출하여 전역 이벤트 리스너를 활성화합니다.
     *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
@@ -100,7 +101,7 @@
 *   **이벤트 리스너:**
     *   **'뷰/편집' 토글 버튼 (`DOM.viewEditModeToggleButton`):** 클릭 시 모드를 전환하고 `LocalStorageManager`에 저장합니다. `updateTimetableUI`를 호출하여 UI를 갱신합니다.
     *   **'표/카드' 보기 모드 버튼 (`DOM.tableViewModeButton`):** 뷰 모드에서 표시 형식을 '표' 또는 '카드'로 토글합니다. 상태는 `LocalStorageManager`의 `timetable-view-mode`에 저장되며, 즉시 `renderBossListTableView`를 통해 레이아웃이 변경됩니다.
-    *   **'다음 보스' 토글 버튼 (`DOM.nextBossToggleButton`):** 뷰 모드에서만 활성화되며, 클릭 시 필터 상태를 토글하고 저장합니다. 이후 `updateTimetableUI` -> `renderBossListTableView`를 호출하여 선택된 보기 형식(카드/표)으로 필터링된 목록을 다시 렌더링합니다.
+    *   **'다음 보스' 토글 버튼 (`DOM.nextBossToggleButton`):** 뷰 모드에서만 활성화되며, 클릭 시 필터 상태를 토글하고 저장합니다. 이후 `updateTimetableUI` -> `renderBossListTableView`를 호출하여 선택된 보기 형식(카드/표)으로 필터링된 목록을 다시 렌더링합니다. **이때 48시간 윈도우 내에 보스가 없는 날짜 헤더는 UI Purification 로직에 의해 자동으로 거릅니다.**
     *   **"보스 시간 업데이트" 버튼 (`DOM.sortBossListButton`):** 편집 모드에서만 활성화되며, 클릭 시 `boss-parser.js`의 `parseBossList()`를 호출하여 텍스트 영역의 내용을 파싱합니다. 이 과정에서 각 줄의 시간 형식을 감지하여 `timeFormat` 속성을 `boss` 객체에 포함시키고, 유효성을 검사합니다.
         *   **유효성 실패:** 에러 메시지를 담은 경고창(`alert`)을 띄우고 저장을 중단합니다.
         *   **유효성 성공:** 파싱된 결과를 `BossDataManager.setBossSchedule()`로 저장하고, `ui-renderer.js`의 `updateBossListTextarea(DOM)`를 호출하여 정렬 및 `timeFormat`에 따라 포맷팅된 텍스트로 갱신합니다. `window.isBossListDirty`를 `false`로 초기화합니다.
@@ -170,7 +171,7 @@
 
 *   **초기화:** `app.js`에 의해 `initCustomListScreen(DOM)`이 호출됩니다. (이 화면은 직접 내비게이션되는 화면이 아니며, '보스 스케줄러' 화면에서 모달 형태로 열립니다.)
 *   **처리 흐름:** '커스텀 목록 관리' 모달의 이벤트 리스너를 등록합니다. 모달 내에서 목록 추가/수정/삭제 작업을 `CustomListManager`를 통해 수행하고, 변경 시 `EventBus.emit('rerender-boss-scheduler')`를 발행하여 '보스 스케줄러' 화면의 드롭다운을 갱신합니다.
-*   **데이터 흐름 요약:** 모달을 통해 커스텀 보스 목록을 추가/수정/삭제하고, 모든 변경사항은 `CustomListManager`를 통해 로컬 스토리지에 저장되며, 관련 UI가 갱신됩니다.
+*   **데이터 흐름 요약:** 모달을 통해 커스텀 보스 목록을 추가/수정/삭제하고, 모든 변경사항은 `CustomListManager`를 통해 로컬 스토리지에 저장되며, 관련 UI가 갱신됩니다. **삭제 시 현재 선택된 리스트가 삭제 대상일 경우, 시스템은 자동으로 '오딘' 프리셋으로 전환하여 화면 무결성을 유지합니다.**
 
 ### 3.9. 보탐 계산기 화면 (`src/screens/calculator.js`)
 

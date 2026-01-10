@@ -363,34 +363,46 @@ export function renderCrazySavedList(DOM, records) {
 }
 
 // --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 (SSOT -> UI) ---
-export function updateBossListTextarea(DOM) {
+export function updateBossListTextarea(DOM, schedule = null) {
     if (!DOM.schedulerBossListInput) return;
 
-    // 1. 전체 스케줄 데이터 가져오기 (미래 앵커 포함, 필터링 없이)
-    const schedule = BossDataManager.getBossSchedule(false);
-    if (!schedule || schedule.length === 0) {
+    // 1. 데이터 가져오기 (매개변수가 있으면 사용, 없으면 메인 SSOT 사용)
+    const targetSchedule = schedule || BossDataManager.getBossSchedule(false);
+    if (!targetSchedule || targetSchedule.length === 0) {
         DOM.schedulerBossListInput.value = '';
         return;
     }
 
     const now = Date.now();
-    const bossMap = new Map(); // 보스 이름 -> 가장 가까운 미래 데이터
+    const groupedByName = new Map(); // 보스 이름 -> 인스턴스 리스트
 
-    // 2. 보스별로 "가장 가까운 미래 데이터 1개" 추출 (앵커 선정 로직)
-    // 데이터 구조상 bossSchedule에는 { type: 'date' } 객체도 있으나, 
-    // 여기서는 type: 'boss' 객체만 추출하여 재구성함.
-    schedule.forEach(item => {
+    // 2. 보스별로 그룹화
+    targetSchedule.forEach(item => {
         if (item.type === 'boss') {
-            const itemTime = new Date(item.scheduledDate).getTime();
-            // 현재(now)보다 미래인 데이터만 고려
-            if (itemTime > now) {
-                const existing = bossMap.get(item.name);
-                // 아직 등록된 미래 데이터가 없거나, 현재 아이템이 더 가까운 미래라면 등록
-                // (기존 데이터보다 itemTime이 더 작으면 더 가까운 미래임)
-                if (!existing || itemTime < new Date(existing.scheduledDate).getTime()) {
-                    bossMap.set(item.name, item);
-                }
+            if (!groupedByName.has(item.name)) {
+                groupedByName.set(item.name, []);
             }
+            groupedByName.get(item.name).push(item);
+        }
+    });
+
+    const bossMap = new Map(); // 보스 이름 -> 최종 선정된 앵커 1개
+
+    // 3. 최적의 앵커 선정 (미래 우선, 없으면 가장 최근 과거)
+    groupedByName.forEach((instances, name) => {
+        // 시간순 정렬 (미래 보스들 중 가장 빠른 것 우선)
+        const futureInstances = instances
+            .filter(b => b.scheduledDate && new Date(b.scheduledDate).getTime() > now)
+            .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
+
+        // 과거 보스들 중 가장 최근 것
+        const pastInstances = instances
+            .filter(b => b.scheduledDate && new Date(b.scheduledDate).getTime() <= now)
+            .sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime());
+
+        const bestInstance = futureInstances.length > 0 ? futureInstances[0] : (pastInstances.length > 0 ? pastInstances[0] : null);
+        if (bestInstance) {
+            bossMap.set(name, bestInstance);
         }
     });
 
@@ -398,7 +410,7 @@ export function updateBossListTextarea(DOM) {
     let lastDateStr = '';
     const pad = (n) => String(n).padStart(2, '0');
 
-    // 3. 추출된 앵커들을 시간순으로 정렬하여 출력
+    // 4. 추출된 앵커들을 시간순으로 정렬하여 출력
     const sortedAnchors = Array.from(bossMap.values()).sort((a, b) =>
         new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()
     );
@@ -413,7 +425,8 @@ export function updateBossListTextarea(DOM) {
             lastDateStr = dateStr;
         }
 
-        // 시간 포맷팅
+        // 시간 포맷팅 (미래 데이터가 아닐 경우 시간을 표시하지 않거나 '--:--' 처리할 수도 있지만,
+        // 사용자 편의를 위해 일단 현재 스케줄의 시간을 그대로 보여줌)
         let formattedTime;
         if (item.timeFormat === 'hm') {
             formattedTime = item.time.substring(0, 5);
@@ -423,18 +436,8 @@ export function updateBossListTextarea(DOM) {
 
         const memoText = item.memo ? ` #${item.memo}` : "";
 
-        // 젠 주기(@) 정보는 SSOT에 interval(ms) 또는 intervalMinutes가 있을 경우 출력
-        // 사용자가 입력한 @젠시간 정보를 보존하기 위함
         let intervalText = "";
-        let intervalMin = 0;
-
-        if (item.intervalMinutes) {
-            intervalMin = item.intervalMinutes;
-        } else if (item.interval && item.interval > 0) {
-            // [Fix] interval은 분 단위로 저장되므로 나눗셈 없이 그대로 사용
-            intervalMin = item.interval;
-        }
-
+        let intervalMin = item.interval || 0;
         if (intervalMin > 0) {
             intervalText = ` @${intervalMin}`;
         }

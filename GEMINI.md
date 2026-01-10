@@ -1,3 +1,23 @@
+# Boss Alarm Agent Guide (GEMINI)
+
+이 문서는 에이전트가 프로젝트를 이해하고 관리하기 위한 핵심 지침서입니다.
+
+### **핵심 문서 리스트** (에이전트 필수 학습 대상)
+
+작업 시작 전, 다음 문서들을 최신 상태로 로드하고 학습하여 프로젝트의 컨텍스트를 유지해야 합니다.
+
+1.  **[GEMINI.md](file:///d:/BuyMeaCoffee/boss-alarm/GEMINI.md)**: 에이전트 가이드 및 프로젝트 통합 관리
+2.  **[system_module_details.md](file:///d:/BuyMeaCoffee/boss-alarm/docs/system_module_details.md)**: 모듈별 상세 구현 명세
+3.  **[system_module_dependencies.md](file:///d:/BuyMeaCoffee/boss-alarm/docs/system_module_dependencies.md)**: 모듈 간 의존성 관계도
+4.  **[system_data_flow.md](file:///d:/BuyMeaCoffee/boss-alarm/docs/system_data_flow.md)**: 데이터 흐름 및 업데이트 엔진 메커니즘
+5.  **[system_architecture.md](file:///d:/BuyMeaCoffee/boss-alarm/docs/system_architecture.md)**: 전체 시스템 아키텍처 및 자가 치유 전략
+6.  **[session_handoff.md](file:///d:/BuyMeaCoffee/boss-alarm/docs/session_handoff.md)**: 세션 간 인수인계 및 작업 이력
+7.  **[design_system_guide.md](file:///d:/BuyMeaCoffee/boss-alarm/docs/design_system_guide.md)**: UI/UX 디자인 시스템 및 컴포넌트 규격
+8.  **[critical_code_policy.md](file:///d:/BuyMeaCoffee/boss-alarm/docs/critical_code_policy.md)**: 핵심 로직 수정 정책 (수정 금지 영역 포함)
+9.  **[functional-specs/](file:///d:/BuyMeaCoffee/boss-alarm/docs/functional-specs/) 내 모든 문서**: 각 기능별 상세 요구사항 및 동작 명세
+
+---
+
 ### 코드 품질 및 검증 (관연 워크플로우: `/검증`, `/린트`)
 
 프로젝트의 코드 품질을 높이고 JavaScript 오류를 사전에 방지하기 위해 정적 코드 분석 도구인 **ESLint**가 도입되었습니다.
@@ -114,8 +134,8 @@
 - **보고:** 학습을 마친 후에는 "업무 준비를 마쳤습니다."라고 사용자님께 알리고 작업을 대기합니다.
 
 
-### 버전 관리 (관련 워크플로우: `/배포`)
-- 모든 커밋은 버전 관리를 포함할 수 있다. `/배포` 명령어를 통해 일관성 있는 버전 작업을 수행한다.
+### 버전 관리 (관련 워크플로우: `/배포준비`)
+- 모든 커밋은 버전 관리를 포함할 수 있다. `/배포준비` 명령어를 통해 일관성 있는 버전 작업을 수행한다.
 - 버전은 사용자가 명시적으로 지정하며, `vX.X.X` 형식을 따른다.
 - **버전 데이터 표준화 원칙**: 
   - `window.APP_VERSION` 값은 **숫자로만 관리**한다 (예: `"2.16.2"`).
@@ -196,8 +216,9 @@
 ##### 2.2. 핵심 규칙
 - **출력은 항상 SSOT(또는 Draft)를 바탕으로**: 화면 로딩 시 분 단위 남은 시간에서 역계산하지 말고, `scheduledDate`를 직접 읽어 출력하여 1ms의 오차도 허용하지 않음.
 - **입력은 SSOT 형식에 맞게 변환하여 업데이트**: 사용자가 입력을 마치는 시점에만 새로운 `scheduledDate`를 계산하여 반영.
+- **과거 데이터 자동 정제 (Data Diet)**: `_expandAndReconstruct` 로직은 서비스 성능 및 메모리 효율을 위해 오늘 00:00 이전의 보스 인스턴스를 자동으로 제거한다. 단, 사용자가 직접 입력한 '가장 가까운 미래의 앵커'는 유실 방지를 위해 기간 외라도 항상 보호한다.
 - **시간 역전 감지**: 이전 보스보다 시간이 이르면 다음 날로 처리.
-- **이름 기반 매칭**: 간편 모드에서는 이름을 키로 매칭하며, 중복 시 현재 시각에 가장 가까운 항목 선택.
+- **이름 기반 매칭 및 정합성 (v2.17.2)**: 간편 모드에서는 이름을 키로 매칭하며, 프리셋 정합성 검사 시 보스 인스턴스의 개수가 아닌 **보스 종류(Type)**를 기준으로 일치 여부를 판단하여 유령 보스 유입을 원천 차단한다. 이를 통해 일부 보스 시간만 입력된 경우에도 프리셋 모드가 유지되도록 개선했다. 중복 시 현재 시각에 가장 가까운 항목 선택.
 - **음수 시간 지원**: `-HH:MM` 형식의 과거 시간을 허용하고 정확한 과거 시점 계산.
 
 #### 3. 위반 시

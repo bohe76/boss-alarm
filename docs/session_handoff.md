@@ -1,26 +1,44 @@
 # Session Handoff Document
 
 ## 1. Current Session Summary
-- **Date:** 2026-01-08 / v2.17.1 Release
-- **Focus:** Critical Bug Fixes (Long cycle boss save failure, Midnight update popup) & Deployment
-- **Wait:** **N/A** (All tasks completed and deployed)
+- **Date:** 2026-01-10 / v2.17.2 Post-Release Stability
+- **Focus:** Scheduler Deduplication, Reverse Migration & Sync Optimization
+- **Wait:** **N/A** (Documentation synced, Tests pass)
 
 ## 2. Key Changes & Achievements
-- **[Fix] Long Cycle Boss Data Loss Resolved:**
-  - Modified `checks and balances` in `_expandAndReconstruct` to **unconditionally preserve user-inputted anchor data**, solving the issue where 36h+ bosses were filtered out.
-  - Removed strict interval validation in `validateBossSchedule` to prioritize user intent over system calculation.
-- **[Fix] Silent Midnight Update:**
-  - Improved `checkAndUpdateSchedule` to accept `isSchedulerActive` flag.
-  - Now, the "Update Schedule?" popup **only appears if the user is actively on the Boss Scheduler screen**. Otherwise, it updates silently in the background.
-- **[Docs] Documentation Synchronization:**
-  - Updated `system_module_details.md` and `system_data_flow.md` to reflect the relaxed validation policy and conditional update logic.
-- **[Release] v2.17.1 Deployed:**
-  - Updated `index.html`, `version_history.json`, and `update-notice.json`.
-  - Merged `fix/emergency-bug-fix` into `main` and pushed to origin.
+- **[Fix] Scheduler UX Polish:**
+  - Implemented `Set` based deduplication in `extractBossNamesText` to prevent phantom bosses.
+  - Refined anchor selection logic in `updateBossListTextarea` to prioritize future spawns and gracefully fallback to past spawns.
+- **[Feature] Intelligent Data Re-integration (Reverse Migration):**
+  - Added `performReverseMigration` in `app.js` to automatically restore '커스텀 보스_001' data to original presets.
+  - This resolves the "forced migration" issue caused by strict name matching in previous versions.
+- **[Fix] Data Isolation & Fallback:**
+  - Guaranteed Draft data reload when switching between games to eliminate input residue.
+  - Implemented auto-fallback to the first preset list upon deletion of the active game list.
+- **[Meta] GEMINI.md & 워크플로우 복구:**
+  - 유실되었던 '핵심 문서 리스트' 정의를 사용자 정의에 맞춰 9개 항목으로 복구 및 최신화.
+  - `/업무준비`, `/문서업데이트` 워크플로우를 최신 리스트와 100% 동기화.
+- **[Sync] 문서 동기화 완료:**
+  - `unreleased_changes.md`에 v2.17.2 관련 모든 변경 사항(코드+메타) 기록 완료.
 
 ## 3. Unresolved Issues & Technical Debts
-- **No immediate technical debt.** Recent fixes were implemented cleanly with documentation updates.
+- **No immediate technical debt.** Lint and 78 unit tests are passing.
 
 ## 4. Next Steps (Prioritized)
-1. **[Feature] PIP 5-Minute Blinking Icon:** Implement visual cue (blinking icon) in PIP window when boss spawn is imminent (< 5 mins).
-2. **[Refactor] Continue V3 SSOT Architecture:** Resume the roadmap execution for UID-centric architecture migration.
+1. **[Feature] PIP 5-Minute Blinking Icon:** Implement cumulative visual alarm in PIP window.
+2. **[Refactor] V3 SSOT Architecture:** Resume roadmap for complete UID-centric migration of all data managers.
+3. **[UX] Global Search:** Consider adding a search bar in the settings/help to navigate documentation easier.
+
+---
+*Historical Session Summaries:*
+
+## Session Handoff (2026-01-09)
+- Focus: Self-Healing System, SSOT Purification & Timetable Bug Fixes.
+- achievements: Silent migration, Data diet (today 00:00 filter), Subset matching check.
+
+---
+*Historical Session Summaries:*
+
+## Session Handoff (2026-01-08)
+- Focus: Critical Bug Fixes (Long cycle boss save failure, Midnight update popup) & v2.17.1 Release.
+- achievements: Fixed 36h+ boss data loss, implemented silent midnight update, documentation sync.

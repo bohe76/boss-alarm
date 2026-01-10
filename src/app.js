@@ -200,6 +200,56 @@ async function validateScheduleIntegrity(listId, schedule) {
     return true;
 }
 
+async function performReverseMigration() {
+    const { CustomListManager } = await import('./custom-list-manager.js');
+    const MIGRATION_SLOT_NAME = '커스텀 보스_001';
+
+    // 1. 슬롯 존재 여부 확인
+    const customLists = CustomListManager.getCustomLists();
+    const targetList = customLists.find(l => l.name === MIGRATION_SLOT_NAME);
+    if (!targetList) return false;
+
+    // 2. 해당 슬롯의 데이터 로드
+    const schedule = BossDataManager.getDraftSchedule(MIGRATION_SLOT_NAME);
+    if (!schedule || !schedule.some(item => item.type === 'boss')) {
+        // 데이터가 없으면 그냥 삭제만 하고 종료 (Clean-up)
+        CustomListManager.deleteCustomList(MIGRATION_SLOT_NAME);
+        log(`[지능형 자가 치유] 내용이 없는 '${MIGRATION_SLOT_NAME}' 슬롯을 정리했습니다.`, true);
+        return false;
+    }
+
+    // 3. 정합성 검사를 통해 원래의 프리셋 찾기
+    const { getBossMetadata } = await import('./boss-scheduler-data.js');
+    const bossMetadata = getBossMetadata();
+    const presetIds = Object.keys(bossMetadata);
+
+    let targetPresetId = null;
+    for (const presetId of presetIds) {
+        if (await validateScheduleIntegrity(presetId, schedule)) {
+            targetPresetId = presetId;
+            break;
+        }
+    }
+
+    // 4. 매칭되는 프리셋이 있으면 회귀 실행
+    if (targetPresetId) {
+        // 프리셋으로 상태 전환
+        LocalStorageManager.set('lastSelectedGame', targetPresetId);
+
+        // 데이터 이관 (Draft 및 SSOT)
+        BossDataManager.setDraftSchedule(targetPresetId, schedule);
+        BossDataManager.setBossSchedule(schedule);
+
+        // 임시 슬롯 삭제
+        CustomListManager.deleteCustomList(MIGRATION_SLOT_NAME);
+
+        log(`[지능형 자가 치유] '${MIGRATION_SLOT_NAME}'의 데이터를 '${targetPresetId}' 프리셋으로 복구하고 슬롯을 정리했습니다.`, true);
+        return true;
+    }
+
+    return false;
+}
+
 async function performSilentMigration(DOM, schedule) {
     const { CustomListManager } = await import('./custom-list-manager.js');
     const MIGRATION_SLOT_NAME = '커스텀 보스_001';
@@ -282,6 +332,7 @@ async function loadInitialData(DOM) {
         }
     }
 
+    await performReverseMigration(); // [Step 3] 부당하게 이관된 데이터 회귀 체크 (v2.17.2)
     updateBossListTextarea(DOM); // UI 동기화
 }
 
@@ -483,13 +534,6 @@ export async function initApp() {
         customListScreen.init(DOM);
     }
 
-    loadInitialData(DOM); // loadInitialData를 비동기로 호출해야 하지만, 여기서는 await를 쓰기 어려우므로 내부에서 처리하거나 체이닝 고려
-    // 하지만 app.js 상단에서 await initializeCoreServices를 하므로, 
-    // loadInitialData 내부의 동적 import들은 정상적으로 작동할 것임.
-    // 다만 loadInitialData 자체가 async가 되었으므로 호출 시 주의 필요.
-
-    // [중요] loadInitialData가 async가 되었으므로, 이후 로직을 위해 await를 붙이거나 순서 보정 필요.
-    // 하지만 initApp 전체를 async로 바꿀 수 있음 (이미 async/await 구조임)
     await loadInitialData(DOM);
     BossDataManager.checkAndUpdateSchedule(); // [Step 2] Fresh Start Update Check
 
