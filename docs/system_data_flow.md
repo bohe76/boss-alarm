@@ -176,8 +176,16 @@
 ### 3.9. 보탐 계산기 화면 (`src/screens/calculator.js`)
 
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 'calculator-screen'으로 내비게이션될 때 `handleCalculatorScreenTransition(DOM)`이 호출되어 계산기 UI 및 `CrazyCalculator` 상태를 초기화하고 렌더링합니다.
-*   **처리 흐름 (젠 계산기):** 남은 시간 입력 시 `calculator.js`를 통해 보스 출현 시간을 계산합니다. "업데이트" 버튼 클릭 시 `BossDataManager`에서 해당 보스(ID 기준)를 찾아 시간을 업데이트하고, 전체 리스트를 재구성(Reconstruction)하여 저장합니다. 이후 `updateBossListTextarea` 및 `updateBossManagementUI`를 호출하여 텍스트 영역 및 뷰 모드 UI를 즉시 갱신합니다.
+*   **처리 흐름 (젠 계산기):** 남은 시간 입력 시 `calculator.js`를 통해 보스 출현 시간을 계산합니다. "업데이트" 버튼 클릭 시 `BossDataManager`에서 해당 보스(ID 기준)를 찾아 시간을 업데이트하며, **`BossDataManager.setBossSchedule`을 통해 전체 리스트의 정규화 및 재구성(Reconstruction) 과정을 자동화**합니다. 이 과정에서 **계산된 `Date` 객체를 참조 그대로 사용함**으로써, 단순 텍스트 업데이트 장치에서 발생하던 날짜 유실(오전/오후 전환기 등의 오류)을 완벽하게 방지합니다. 이후 `updateBossSelectionDropdown`을 호출하여 다음 예정 보스 목록을 즉시 갱신합니다.
 *   **처리 흐름 (광 계산기):** "시작", "광", "캡처" 버튼 클릭을 통해 `CrazyCalculator` 모듈이 스톱워치를 제어하고, `LocalStorageManager`를 통해 기록을 저장합니다.
+
+### 3.10. PiP 위젯 데이터 동기화 (`src/pip-manager.js`)
+
+*   **동기화 채널:** 메인 앱의 1초 주기 렌더링 루프(`app.js`의 `processBossItems`)에서 `pip-manager.js`의 `updatePipContent()`를 호출합니다.
+*   **데이터 선별:** `BossDataManager.getUpcomingBosses(11)`를 통해 현재 시각 기준 가장 가까운 미래의 보스 1명과 이후의 임박 목록 10명을 선별하여 PiP 창으로 전달합니다.
+*   **UI 상태 제어:** 
+    - **임계값 기반 알림**: 다음 보스와의 시간 차(`minTimeDiff`)가 5분 미만(`IMMINENT`)일 경우, PiP 창 내의 **Bell-Alert 아이콘**을 활성화하고 깜빡여 사용자에게 긴급 상황임을 알립니다.
+    - **동적 가변 레이아웃**: 사용자의 클릭에 의해 `isExpanded` 상태가 토글되면, 현재 보스 수에 맞춰 `calculateTargetHeight()`를 통해 창의 높이를 실시간으로 재조정하여 하단 공백을 최소화합니다.
 *   **데이터 흐름 요약:** "젠 계산기"는 사용자 입력 및 `BossDataManager`를 통해 보스 시간을 직접 업데이트하고 재구성하며, "광 계산기"는 `CrazyCalculator` 모듈을 통해 스톱워치 기반의 시간 측정을 수행하고 로컬 스토리지에 기록합니다.
 
 ### 3.10. 설정 화면 (`src/screens/settings.js`)

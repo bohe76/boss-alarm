@@ -119,7 +119,7 @@ describe('BossSchedulerScreen Apply Logic', () => {
     it('should correctly process boss times and sort them', () => {
         DOM.bossInputsContainer.innerHTML = `
             <div class="boss-input-item"><span class="boss-name">우로보로스</span><input type="text" class="remaining-time-input" data-id="id-우로보로스" value="09:24:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="우로보로스"></div>
-            <div class="boss-input-item"><span class="boss-name">파르바</span><input type="text" class="remaining-time-input" data-id="id-파르바" value="00:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="파르바"></div>
+            <div class="boss-input-item"><span class="boss-name">파르바</span><input type="text" class="remaining-time-input" data-id="id-파르바" value="10:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="파르바"></div>
             <div class="boss-input-item"><span class="boss-name">셀로비아</span><input type="text" class="remaining-time-input" data-id="id-셀로비아" value="10:50:13"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="셀로비아"></div>
             <div class="boss-input-item"><span class="boss-name">페티</span><input type="text" class="remaining-time-input" data-id="id-페티" value="11:00:00"><span class="calculated-spawn-time">--:--:--</span><input class="memo-input" type="text" data-boss-name="페티"></div>
         `;
@@ -127,7 +127,7 @@ describe('BossSchedulerScreen Apply Logic', () => {
         // Trigger input events to populate dataset.calculatedDate
         DOM.bossInputsContainer.querySelectorAll('.remaining-time-input').forEach(input => {
             if (input.dataset.id === 'id-우로보로스') calculateBossAppearanceTimeSpy.mockReturnValueOnce(new Date('2025-11-29T04:24:00+09:00'));
-            if (input.dataset.id === 'id-파르바') calculateBossAppearanceTimeSpy.mockReturnValueOnce(new Date('2025-11-29T00:00:00+09:00'));
+            if (input.dataset.id === 'id-파르바') calculateBossAppearanceTimeSpy.mockReturnValueOnce(new Date('2025-11-29T10:00:00+09:00')); // 미래 시간으로 변경
             if (input.dataset.id === 'id-셀로비아') calculateBossAppearanceTimeSpy.mockReturnValueOnce(new Date('2025-11-29T05:50:13+09:00'));
             if (input.dataset.id === 'id-페티') calculateBossAppearanceTimeSpy.mockReturnValueOnce(new Date('2025-11-29T06:00:00+09:00'));
             input.dispatchEvent(new Event('input', { bubbles: true }));

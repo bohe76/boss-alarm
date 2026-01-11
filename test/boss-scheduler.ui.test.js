@@ -11,13 +11,15 @@ vi.mock('../src/logger.js', () => ({ log: vi.fn() }));
 
 // Mock boss-scheduler-data.js
 vi.mock('../src/boss-scheduler-data.js', () => ({
-    getBossNamesForGame: vi.fn().mockReturnValue(['보스1', '보스2', '셀로비아', '파르바', '우로보로스', '페티']) // 테스트에 사용되는 보스 이름들
+    getBossNamesForGame: vi.fn().mockReturnValue(['보스1', '보스2', '셀로비아', '파르바', '우로보로스', '페티']), // 테스트에 사용되는 보스 이름들
+    isPresetList: vi.fn().mockReturnValue(true) // Add mock for isPresetList
 }));
 
 vi.mock('../src/ui-renderer.js', () => ({
     renderBossInputs: vi.fn(),
     renderBossSchedulerScreen: vi.fn(),
-    updateBossListTextarea: vi.fn()
+    updateBossListTextarea: vi.fn(),
+    renderGameSelect: vi.fn()
 }));
 
 vi.mock('../src/default-boss-list.js', () => ({

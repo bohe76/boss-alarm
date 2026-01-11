@@ -40,17 +40,27 @@ export async function loadBossSchedulerData() {
  * 게임/프리셋 이름 목록을 반환합니다.
  */
 export function getGameNames() {
+    console.log('[DEBUG] getGameNames called');
+    console.log('[DEBUG] current bossMetadata keys:', Object.keys(bossMetadata));
+
     const predefined = Object.keys(bossMetadata).map(id => ({
         id: id,
         name: bossMetadata[id].gameName,
         isCustom: false
     }));
-    const custom = CustomListManager.getCustomLists().map(list => ({
+
+    const customList = CustomListManager.getCustomLists();
+    console.log('[DEBUG] Custom Lists:', customList);
+
+    const custom = customList.map(list => ({
         id: list.name,
         name: list.name,
         isCustom: true
     }));
-    return [...predefined, ...custom];
+
+    const result = [...predefined, ...custom];
+    console.log('[DEBUG] Final game list:', result);
+    return result;
 }
 
 /**

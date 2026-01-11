@@ -473,6 +473,23 @@ textarea {
     padding: 8px;
     /* Changed from 10px to 8px (spacing-xs) */
     font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* --- Focus & Outline Refinement --- */
+/* 전역 아웃라인 제거 (마우스 클릭 시 박스 라인 방지) */
+*:focus {
+    outline: none;
+}
+
+/* 입력폼 전용 보라색 강조 스타일 */
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: #9c27b0 !important;
+    /* 보라색 */
+    box-shadow: 0 0 0 2px rgba(156, 39, 176, 0.2);
+    outline: none;
 }
 
 /* Volume Slider */
@@ -586,6 +603,8 @@ textarea {
     /* Remove default h2 margin */
     color: #333;
 }
+
+
 
 .modal-content {
     background-color: #f8f8f8;

@@ -14,6 +14,8 @@
             /* Fill entire window for click events */
             overflow: hidden;
             box-sizing: border-box;
+            outline: none;
+            /* 클릭 시 박스 라인 제거 */
         }
 
         .pip-container {
@@ -53,56 +55,31 @@
             display: block;
         }
 
-        /* Sync Button - Absolute Positioning */
-        #pip-sync-btn {
+        /* Imminent Alert Icon - Bell Alert */
+        #pip-alert-icon {
             position: absolute;
-            top: 0;
-            right: 0;
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
+            top: 2px;
+            right: 6px;
+            width: 20px;
+            height: 20px;
             display: none;
             /* Hidden by default */
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            border: none;
-            padding: 4px;
-            z-index: 100;
-            pointer-events: none;
-            /* Let clicks pass through to the body */
+            color: #ea4335;
+            animation: pip-blink 1s infinite;
         }
 
-        #pip-sync-btn svg {
-            width: 100%;
-            height: 100%;
-            stroke-width: 2;
-        }
-
-        /* Blinking & Rotating Animation */
-        @keyframes sync-rotate-blink {
+        @keyframes pip-blink {
             0% {
-                color: #777;
-                transform: rotate(0deg);
-            }
-
-            49.9% {
-                color: #777;
+                opacity: 1;
             }
 
             50% {
-                color: #ea4335;
+                opacity: 0.3;
             }
 
             100% {
-                color: #ea4335;
-                transform: rotate(360deg);
+                opacity: 1;
             }
-        }
-
-        .blinking {
-            animation: sync-rotate-blink 2s linear infinite;
         }
 
         /* List section for other imminent bosses */
@@ -126,25 +103,44 @@
 
         .imminent-name {
             font-weight: bold;
-            color: #1E88E5;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 140px;
+            flex: 1;
+            /* Take up remaining space */
+            margin: 0 6px;
             font-size: 0.8em;
-            /* Adjusted as requested */
+            text-align: center;
+            /* Center the name within the space */
+        }
+
+        .imminent-spawn-time {
+            color: #333;
+            /* Always Black as requested */
+            font-size: 0.75em;
+            min-width: 38px;
+            /* Compact for [HH:MM] */
         }
 
         .imminent-time {
             font-weight: bold;
             color: #ea4335;
-            font-size: 1.0em;
-            /* Adjusted as requested */
+            font-size: 0.9em;
+            min-width: 55px;
+            text-align: right;
         }
 
         /* Color overrides */
         .warning-text {
             color: #FF8F00 !important;
+        }
+
+        .blue-text {
+            color: #1E88E5 !important;
+        }
+
+        .medium-text {
+            color: #333 !important;
         }
 
         .default-text {
@@ -162,12 +158,13 @@
 <body id="pip-body">
     <div class="pip-container">
         <div id="pip-main-boss" class="primary-boss">
-            <button id="pip-sync-btn" title="Sync Layout">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div id="pip-alert-icon" title="Boss Imminent!">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0M3.124 7.5A8.969 8.969 0 015.292 3m13.416 0a8.969 8.969 0 012.168 4.5" />
                 </svg>
-            </button>
+            </div>
             <span id="pip-boss-name">다음 보스 없음</span>
             <span id="pip-remaining-time">--:--:--</span>
         </div>

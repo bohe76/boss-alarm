@@ -95,8 +95,7 @@ export function updateNextBossDisplay(DOM) {
     }
     // Synchronize PiP window if it's open
     if (isPipWindowOpen()) {
-        const { nextBoss: pipNextBoss, minTimeDiff: pipMinTimeDiff, imminentBosses } = BossDataManager.getBossStatusSummary();
-        updatePipContent(pipNextBoss, pipMinTimeDiff, imminentBosses);
+        updatePipContent();
     }
 }
 
@@ -363,7 +362,7 @@ export function renderCrazySavedList(DOM, records) {
 }
 
 // --- 5.1. 보스 목록 텍스트 영역 업데이트 함수 (SSOT -> UI) ---
-export function updateBossListTextarea(DOM, schedule = null) {
+export function updateBossListTextarea(DOM, schedule = null, isPreset = false) {
     if (!DOM.schedulerBossListInput) return;
 
     // 1. 데이터 가져오기 (매개변수가 있으면 사용, 없으면 메인 SSOT 사용)
@@ -373,7 +372,7 @@ export function updateBossListTextarea(DOM, schedule = null) {
         return;
     }
 
-    const now = Date.now();
+
     const groupedByName = new Map(); // 보스 이름 -> 인스턴스 리스트
 
     // 2. 보스별로 그룹화
@@ -390,65 +389,49 @@ export function updateBossListTextarea(DOM, schedule = null) {
 
     // 3. 최적의 앵커 선정 (미래 우선, 없으면 가장 최근 과거)
     groupedByName.forEach((instances, name) => {
-        // 시간순 정렬 (미래 보스들 중 가장 빠른 것 우선)
-        const futureInstances = instances
-            .filter(b => b.scheduledDate && new Date(b.scheduledDate).getTime() > now)
-            .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
-
-        // 과거 보스들 중 가장 최근 것
-        const pastInstances = instances
-            .filter(b => b.scheduledDate && new Date(b.scheduledDate).getTime() <= now)
+        // 미래/과거 상관없이 가장 최신(시간이 가장 늦은) 데이터 1개만 선정하여 텍스트로 표시
+        // 이를 통해 텍스트 모드에서 보스 목록이 아예 사라지는 현상을 방지
+        const sortedInstances = instances
+            .filter(b => b.scheduledDate)
             .sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime());
 
-        const bestInstance = futureInstances.length > 0 ? futureInstances[0] : (pastInstances.length > 0 ? pastInstances[0] : null);
-        if (bestInstance) {
-            bossMap.set(name, bestInstance);
+        if (sortedInstances.length > 0) {
+            bossMap.set(name, sortedInstances[0]);
         }
     });
 
-    const outputLines = [];
-    let lastDateStr = '';
-    const pad = (n) => String(n).padStart(2, '0');
+    // 4. 텍스트 생성
+    const lines = [];
+    const today = new Date();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    lines.push(`${mm}.${dd}`); // 첫 줄 날짜
 
-    // 4. 추출된 앵커들을 시간순으로 정렬하여 출력
-    const sortedAnchors = Array.from(bossMap.values()).sort((a, b) =>
-        new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()
-    );
+    if (bossMap.size > 0) {
+        // 시간순 정렬된 배열 생성
+        const sortedBosses = Array.from(bossMap.values()).sort((a, b) => {
+            return new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime();
+        });
 
-    sortedAnchors.forEach(item => {
-        const d = new Date(item.scheduledDate);
-        const dateStr = `${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
+        sortedBosses.forEach(boss => {
+            const timeStr = boss.time.substring(0, 5); // HH:MM
+            let line = `${timeStr} ${boss.name}`;
 
-        // 날짜 헤더 추가
-        if (dateStr !== lastDateStr) {
-            outputLines.push(dateStr);
-            lastDateStr = dateStr;
-        }
+            // 프리셋 리스트가 아니고, 젠 주기가 0보다 클 때만 @젠주기 표시
+            if (!isPreset && boss.interval > 0) {
+                line += ` @${boss.interval}`;
+            }
 
-        // 시간 포맷팅 (미래 데이터가 아닐 경우 시간을 표시하지 않거나 '--:--' 처리할 수도 있지만,
-        // 사용자 편의를 위해 일단 현재 스케줄의 시간을 그대로 보여줌)
-        let formattedTime;
-        if (item.timeFormat === 'hm') {
-            formattedTime = item.time.substring(0, 5);
-        } else {
-            formattedTime = item.time;
-        }
+            if (boss.memo) {
+                line += ` #${boss.memo}`;
+            }
+            lines.push(line);
+        });
+    }
 
-        const memoText = item.memo ? ` #${item.memo}` : "";
-
-        let intervalText = "";
-        let intervalMin = item.interval || 0;
-        if (intervalMin > 0) {
-            intervalText = ` @${intervalMin}`;
-        }
-
-        outputLines.push(`${formattedTime} ${item.name}${memoText}${intervalText}`);
-    });
-
-    DOM.schedulerBossListInput.value = outputLines.join('\n');
+    DOM.schedulerBossListInput.value = lines.join('\n');
 }
 
-// --- 5.2. 고정 알림 목록 렌더링 함수 ---
 export function renderFixedAlarms(DOM) {
     if (!DOM.fixedAlarmListDiv) return;
     DOM.fixedAlarmListDiv.innerHTML = ''; // Clear existing list
@@ -486,13 +469,6 @@ export function renderFixedAlarms(DOM) {
             return `<button class="day-button ${isActive ? 'active' : ''}" data-day-index="${index}">${day}</button>`;
         }).join('')}
                 </div>
-                <div class="button-group">
-                    <button class="button edit-fixed-alarm-button icon-button" data-id="${alarm.id}" title="편집">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .642.642l3.155-1.262a2 2 0 0 0 .733-.503l11.04-11.04a2 2 0 0 0 0-2.828l-1.414-1.414a2 2 0 0 0-2.828 0L2.192 12.602a2 2 0 0 0-.503.733Z" />
-                            <path d="M11.695 3.332 14.668 6.305 16.546 4.427a1 1 0 0 0 0-1.414l-1.414-1.414a1 1 0 0 0-1.414 0l-1.878 1.878Z" />
-                        </svg>
-                        <span class="btn-text">편집</span>
                     </button>
                     <button class="button delete-fixed-alarm-button icon-button" data-id="${alarm.id}" title="삭제">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -505,7 +481,6 @@ export function renderFixedAlarms(DOM) {
         `;
         DOM.fixedAlarmListDiv.appendChild(itemDiv);
     });
-    // 참고: 기존의 '새 고정 알림 추가' UI 생성 및 이벤트 리스너 로직은 모두 제거되었습니다.
 }
 
 // --- 5.3. 고정 알림 비주얼 업데이트 함수 (faded 효과) ---
@@ -537,7 +512,7 @@ export function renderVersionInfo(DOM, versionData) {
     } else {
         log("버전 정보 JSON 형식이 올바르지 않습니다.", false);
         if (DOM.versionHistoryContent) {
-            DOM.versionHistoryContent.innerHTML = `<p>버전 정보를 불러오는 데 실패했습니다.</p>`;
+            DOM.versionHistoryContent.innerHTML = `< p > 버전 정보를 불러오는 데 실패했습니다.</p > `;
         }
         return;
     }
@@ -551,14 +526,14 @@ export function renderVersionInfo(DOM, versionData) {
             const versionStr = versionEntry.fullVersion.split(' ')[0];
 
             html += `
-                <article class="version-entry">
-                    <details class="version-accordion" ${isOpen}>
-                        <summary class="version-summary">
-                            <h3 class="version-number">${versionStr} ${dateStr ? `<time datetime="${dateStr}">(${dateStr})</time>` : ''}</h3>
-                        </summary>
-                        <div class="version-details">
-                            <ul>
-                                ${versionEntry.changes.map(change => `
+            < article class="version-entry" >
+                <details class="version-accordion" ${isOpen}>
+                    <summary class="version-summary">
+                        <h3 class="version-number">${versionStr} ${dateStr ? `<time datetime="${dateStr}">(${dateStr})</time>` : ''}</h3>
+                    </summary>
+                    <div class="version-details">
+                        <ul>
+                            ${versionEntry.changes.map(change => `
                                     <li>
                                         <strong>${change.type}:</strong> ${convertBoldMarkdownToHtml(change.description)}
                                         ${change.details && change.details.length > 0 ? `
@@ -568,15 +543,15 @@ export function renderVersionInfo(DOM, versionData) {
                                         ` : ''}
                                     </li>
                                 `).join('')}
-                            </ul>
-                        </div>
-                    </details>
-                </article>
+                        </ul>
+                    </div>
+                </details>
+                </article >
             `;
         });
         DOM.versionHistoryContent.innerHTML = html;
     } else if (DOM.versionHistoryContent) {
-        DOM.versionHistoryContent.innerHTML = `<p>버전 정보를 불러오는 데 실패했습니다.</p>`;
+        DOM.versionHistoryContent.innerHTML = `< p > 버전 정보를 불러오는 데 실패했습니다.</p > `;
     }
 }
 
@@ -623,6 +598,31 @@ export function renderCalculatorScreen(DOM) {
     }
 }
 
+export function renderGameSelect(DOM, selectedGameId) {
+    console.log('[DEBUG] renderGameSelect called', { selectedGameId });
+    if (!DOM.gameSelect) {
+        console.error('[DEBUG] DOM.gameSelect is missing!');
+        return;
+    }
+
+    const games = getGameNames();
+    console.log('[DEBUG] getGameNames result:', games);
+
+    if (!games || games.length === 0) {
+        console.warn('[DEBUG] No games found.');
+    }
+
+    const html = games.map(game => {
+        const isSelected = game.id === selectedGameId ? 'selected' : '';
+        // 데이터 구조 확인을 위한 로그
+        if (!game.name) console.warn('[DEBUG] Game item missing name:', game);
+        return `<option value="${game.id}" ${isSelected}>${game.name}</option>`;
+    }).join('');
+
+    console.log('[DEBUG] Generated HTML length:', html.length);
+    DOM.gameSelect.innerHTML = html;
+}
+
 export function renderCustomListManagementModalContent(DOM) {
     if (!DOM.customListManagementContainer) return;
     const lists = CustomListManager.getCustomLists();
@@ -631,14 +631,14 @@ export function renderCustomListManagementModalContent(DOM) {
         return;
     }
     DOM.customListManagementContainer.innerHTML = lists.map(list => `
-        <div class="custom-list-manage-item" data-list-name="${list.name}">
+            < div class="custom-list-manage-item" data - list - name="${list.name}" >
             <span class="list-name">${list.name}</span>
             <div class="button-group">
                 <button class="button edit-custom-list-button">수정</button>
                 <button class="button delete-custom-list-button">삭제</button>
             </div>
-        </div>
-    `).join('');
+        </div >
+            `).join('');
 }
 
 export function showCustomListTab(DOM, tabId) {
@@ -664,26 +664,20 @@ export function showCustomListTab(DOM, tabId) {
 // --- Boss Scheduler Screen Rendering Functions ---
 export function renderBossSchedulerScreen(DOM, remainingTimes = {}, memoInputs = {}, scheduleData = null) {
     if (!DOM.bossSchedulerScreen) return;
-    // Populate game selection dropdown
-    const gameNameObjects = getGameNames();
-    if (DOM.gameSelect) {
-        DOM.gameSelect.innerHTML = gameNameObjects.map(game =>
-            `<option value="${game.id}">${game.isCustom ? '*' : ''}${game.name}</option>`
-        ).join('');
 
-        // 로컬 스토리지에서 마지막 선택한 게임 로드
-        const lastSelectedGame = LocalStorageManager.get('lastSelectedGame');
-        if (lastSelectedGame && gameNameObjects.some(g => g.id === lastSelectedGame)) {
-            DOM.gameSelect.value = lastSelectedGame;
-        } else if (gameNameObjects.length > 0) {
-            // 저장된 값이 없거나 유효하지 않으면 첫 번째 항목 선택
-            DOM.gameSelect.value = gameNameObjects[0].id;
-            LocalStorageManager.set('lastSelectedGame', gameNameObjects[0].id);
-        }
-    }
+    // Populate game selection dropdown using the dedicated function
+    const lastSelectedGame = LocalStorageManager.get('lastSelectedGame');
+    renderGameSelect(DOM, lastSelectedGame);
 
     // Render bosses for the selected game
+    const gameNameObjects = getGameNames();
+    // 만약 renderGameSelect에 의해 선택된 값이 없다면 첫 번째 값으로 보정 (renderGameSelect 내부 로직에 의존하거나 여기서 처리)
+    if (DOM.gameSelect && !DOM.gameSelect.value && gameNameObjects.length > 0) {
+        DOM.gameSelect.value = gameNameObjects[0].id;
+    }
+
     const currentGame = DOM.gameSelect && DOM.gameSelect.value ? DOM.gameSelect.value : (gameNameObjects.length > 0 ? gameNameObjects[0].id : null);
+
 
     if (currentGame) {
         renderBossInputs(DOM, currentGame, remainingTimes, memoInputs, scheduleData);
@@ -709,19 +703,26 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
     const currentSchedule = scheduleData || BossDataManager.getDraftSchedule();
     const bossMap = new Map();
 
-    // 보스별로 가장 가까운 미래 항목을 찾기 위해 정렬된 리스트 활용
+    // 보스별로 그룹화하여 최적의 앵커(미래 우선, 없으면 최근 과거) 선정
+    const groupedByName = new Map();
     currentSchedule.forEach(item => {
         if (item.type === 'boss') {
-            const itemTime = new Date(item.scheduledDate).getTime();
-
-            // [수정된 로직] 철저하게 현재(now)보다 미래인 데이터만 고려
-            if (itemTime > now) {
-                const existing = bossMap.get(item.name);
-                // 아직 등록된 미래 데이터가 없거나, 현재 아이템이 더 가까운 미래라면 등록/갱신
-                if (!existing || itemTime < new Date(existing.scheduledDate).getTime()) {
-                    bossMap.set(item.name, item);
-                }
+            if (!groupedByName.has(item.name)) {
+                groupedByName.set(item.name, []);
             }
+            groupedByName.get(item.name).push(item);
+        }
+    });
+
+    groupedByName.forEach((instances, name) => {
+        // 미래 데이터만 필터링하여 가장 가까운 시간순 정렬
+        const futureInstances = instances
+            .filter(b => b.scheduledDate && new Date(b.scheduledDate).getTime() > now)
+            .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
+
+        // 미래 데이터가 있을 때만 앵커로 선정 (없으면 빈 값 유지)
+        if (futureInstances.length > 0) {
+            bossMap.set(name, futureInstances[0]);
         }
     });
 
@@ -847,11 +848,11 @@ export function renderTimetableList(DOM, options = {}) {
         const closeCurrentCard = () => {
             if (currentCardHtml) {
                 html += `
-                    <div class="card-standard" style="margin-bottom: 16px;">
-                        ${currentCardHtml}
-                        </div> <!-- .card-list-content 닫기 -->
-                    </div> <!-- .card-standard 닫기 -->
-                `;
+            <div class="card-standard" style="margin-bottom: 16px;">
+                ${currentCardHtml}
+                </div> <!-- .card-list-content 닫기 -->
+            </div> <!-- .card-standard 닫기 -->
+            `;
                 currentCardHtml = '';
             }
         };
@@ -866,10 +867,10 @@ export function renderTimetableList(DOM, options = {}) {
 
                 const dayOfWeek = getKoreanDayOfWeek(scheduledDate);
                 currentCardHtml = `
-                    <div class="card-header">
-                        <h3>${dateStr} (${dayOfWeek})</h3>
-                    </div>
-                    <div class="card-list-content">
+                <div class="card-header">
+                    <h3>${dateStr} (${dayOfWeek})</h3>
+                </div>
+                <div class="card-list-content">
                 `;
                 lastDateStr = dateStr;
             }
@@ -888,7 +889,7 @@ export function renderTimetableList(DOM, options = {}) {
                     <span style="display: inline-block; margin-left: 16px; min-width: ${nameMinWidth}px; flex-shrink: 0; white-space: nowrap; font-weight: 500;">${boss.name}</span>
                     ${boss.memo ? `<span style="font-size: 0.9em; color: #666; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${boss.memo}</span>` : ''}
                 </div>
-            `;
+                `;
         });
 
         // 마지막으로 열려있던 카드 닫기
@@ -964,7 +965,7 @@ export function renderTimetableList(DOM, options = {}) {
                     <td class="boss-table-name">${boss.name}</td>
                     <td class="boss-table-memo">${boss.memo || ''}</td>
                 </tr>
-            `;
+                `;
         });
 
         // 마지막으로 열려있던 테이블 카드 닫기
@@ -1045,23 +1046,23 @@ export function renderExportCapture(DOM, options = {}) {
 
                 const dayOfWeek = getKoreanDayOfWeek(scheduledDate);
                 currentCardHtml = `
-                    <div class="card-header">
-                        <h3>${dateStr} (${dayOfWeek})</h3>
-                    </div>
-                    <div class="card-list-content">
-                `;
+                <div class="card-header">
+                    <h3>${dateStr} (${dayOfWeek})</h3>
+                </div>
+                <div class="card-list-content">
+                    `;
                 lastDateStr = dateStr;
             }
 
             const time = boss.timeFormat === 'hm' ? boss.time.substring(0, 5) : boss.time;
 
             currentCardHtml += `
-                <div class="list-item list-item--dense" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden; padding: 10px 0;">
-                    <span style="font-weight: bold; min-width: 60px; flex-shrink: 0;">${time}</span>
-                    <span style="display: inline-block; margin-left: 16px; min-width: ${nameMinWidth}px; flex-shrink: 0; white-space: nowrap; font-weight: 500;">${boss.name}</span>
-                    ${boss.memo ? `<span style="font-size: 0.9em; color: #666; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${boss.memo}</span>` : ''}
-                </div>
-            `;
+                    <div class="list-item list-item--dense" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden; padding: 10px 0;">
+                        <span style="font-weight: bold; min-width: 60px; flex-shrink: 0;">${time}</span>
+                        <span style="display: inline-block; margin-left: 16px; min-width: ${nameMinWidth}px; flex-shrink: 0; white-space: nowrap; font-weight: 500;">${boss.name}</span>
+                        ${boss.memo ? `<span style="font-size: 0.9em; color: #666; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${boss.memo}</span>` : ''}
+                    </div>
+                    `;
         });
 
         closeCurrentCard();
@@ -1115,12 +1116,12 @@ export function renderExportCapture(DOM, options = {}) {
             const time = boss.timeFormat === 'hm' ? boss.time.substring(0, 5) : boss.time;
 
             currentTableHtml += `
-                <tr>
-                    <td class="boss-table-time">${time}</td>
-                    <td class="boss-table-name">${boss.name}</td>
-                    <td class="boss-table-memo">${boss.memo || ''}</td>
-                </tr>
-            `;
+                    <tr>
+                        <td class="boss-table-time">${time}</td>
+                        <td class="boss-table-name">${boss.name}</td>
+                        <td class="boss-table-memo">${boss.memo || ''}</td>
+                    </tr>
+                    `;
         });
 
         closeCurrentTableCard();

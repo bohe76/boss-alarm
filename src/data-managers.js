@@ -146,7 +146,11 @@ export const BossDataManager = (() => {
                 const key = `${bossName}_${time}`;
                 if (userDefinedMap.has(key)) {
                     // 보헤님이 직접 입력한 인스턴스가 있으면 그대로 사용 (UID 유지 및 메모 보존)
-                    return { ...userDefinedMap.get(key) };
+                    // 단, 여기서도 interval 정보가 누락되어 있을 수 있으므로 보정 (SSOT 무결성 강화)
+                    return {
+                        ...userDefinedMap.get(key),
+                        interval: intervalMinutes // [복구] 메타데이터 기반 인터벌 주입
+                    };
                 } else {
                     // 없으면 새 UID를 가진 인스턴스 생성 (복사가 아닌 새로운 인스턴스)
                     return {
@@ -154,7 +158,8 @@ export const BossDataManager = (() => {
                         id: `boss-${bossName}-${time}`,
                         scheduledDate: new Date(time),
                         time: `${padNumber(new Date(time).getHours())}:${padNumber(new Date(time).getMinutes())}`,
-                        memo: anchor.memo || "" // 앵커의 메모를 기본값으로 사용
+                        memo: anchor.memo || "", // 앵커의 메모를 기본값으로 사용
+                        interval: intervalMinutes // [복구] 메타데이터 기반 인터벌 주입
                     };
                 }
             };
@@ -174,7 +179,8 @@ export const BossDataManager = (() => {
             sameBosses.forEach(b => {
                 const bTime = new Date(b.scheduledDate).getTime();
                 if (bTime >= startTime) {
-                    expandedBosses.push({ ...b });
+                    // [복구] 기존 앵커(사용자 입력값)에도 메타데이터 기반 인터벌 강제 주입
+                    expandedBosses.push({ ...b, interval: intervalMinutes });
                 }
             });
 

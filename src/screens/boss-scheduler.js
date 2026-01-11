@@ -1,5 +1,5 @@
 // src/screens/boss-scheduler.js
-import { renderBossInputs, renderBossSchedulerScreen, updateBossListTextarea } from '../ui-renderer.js';
+import { renderBossInputs, renderBossSchedulerScreen, updateBossListTextarea, renderGameSelect } from '../ui-renderer.js';
 import { parseBossList } from '../boss-parser.js';
 import { calculateBossAppearanceTime } from '../calculator.js';
 import { log } from '../logger.js';
@@ -12,32 +12,98 @@ import { openCustomListModalForMigration } from './custom-list.js';
 
 let _remainingTimes = {}; // Encapsulated state for remaining times
 let _memoInputs = {}; // Encapsulated state for memo inputs
+let _isDirty = false; // 변경 사항 감지용 플래그
 
 function handleShowScreen(DOM) {
     // 0. 현재 선택된 게임 ID 확인
     const currentListId = LocalStorageManager.get('lastSelectedGame') || 'default';
 
     // 1. 해당 List의 Draft 데이터 확보
-    const draftSchedule = BossDataManager.getDraftSchedule(currentListId);
+    let draftSchedule = BossDataManager.getDraftSchedule(currentListId);
+    console.log('[DEBUG] handleShowScreen - draftSchedule:', draftSchedule);
 
+    // [SSOT 원칙 준수] Draft가 비어있다면, '가짜 데이터'를 만드는 게 아니라
+    // 1. Main SSOT에 저장된 데이터가 있는지 확인하여 복원하거나
+    // 2. 없다면 '빈 상태(Null)'로 정직하게 초기화해야 함.
+    if ((!draftSchedule || draftSchedule.length === 0) && isPresetList(currentListId)) {
+        console.log(`[DEBUG] Draft is empty for preset '${currentListId}'. Checking Main SSOT for hydration.`);
+
+        const mainSchedule = BossDataManager.getBossSchedule(); // Main SSOT 로드
+        const bossNames = getBossNamesForGame(currentListId); // 메타데이터 이름 목록
+
+        // Main SSOT에서 현재 리스트에 속한 보스들만 필터링 (이름 매칭)
+        // (주의: Main SSOT는 여러 게임의 보스가 섞여있을 수 있음)
+        const existingSSOTData = mainSchedule.filter(item =>
+            item.type === 'boss' && bossNames.includes(item.name)
+        );
+
+        if (existingSSOTData.length > 0) {
+            console.log(`[DEBUG] Found existing data in SSOT (${existingSSOTData.length} items). Syncing to Draft.`);
+            // SSOT -> Draft 복제 (Deep Copy)
+            // 이때 SSOT에 없는 보스(새로 추가된 보스 등)는 아래에서 병합해주는 게 완벽하지만,
+            // 일단 V2는 SSOT가 우선이므로 SSOT를 그대로 가져옴.
+            draftSchedule = JSON.parse(JSON.stringify(existingSSOTData));
+
+            // [보정] 만약 SSOT 데이터 개수가 메타데이터보다 적다면? (보스 추가된 경우)
+            // 없는 보스는 빈 상태로 채워넣어야 함.
+            if (draftSchedule.length < bossNames.length) {
+                const existingNames = draftSchedule.map(b => b.name);
+                const missingNames = bossNames.filter(n => !existingNames.includes(n));
+                missingNames.forEach((n, idx) => {
+                    const metaInterval = BossDataManager.getBossInterval(n, currentListId);
+                    draftSchedule.push({
+                        id: `boss-${Date.now()}-missing-${idx}`,
+                        type: 'boss',
+                        name: n,
+                        scheduledDate: null,
+                        memo: '',
+                        interval: metaInterval || 0
+                    });
+                });
+            }
+        } else {
+            console.log(`[DEBUG] No SSOT data found. Initializing Clean Draft (Time: Null).`);
+            // 데이터가 아예 없으면 -> 빈 껍데기 생성 (입력창은 나와야 하므로)
+            draftSchedule = bossNames.map((name, index) => {
+                const metaInterval = BossDataManager.getBossInterval(name, currentListId);
+                return {
+                    id: `boss-${Date.now()}-${index}`,
+                    type: 'boss',
+                    name: name,
+                    scheduledDate: null, // [중요] 비어있어야 함
+                    memo: '',
+                    interval: metaInterval || 0
+                };
+            });
+        }
+
+        // 초기화된 Draft를 즉시 저장 (UI에서 다시 읽을 수 있게)
+        BossDataManager.setDraftSchedule(currentListId, draftSchedule);
+    }
     // 2. Draft -> 내부 UI 상태(_remainingTimes, _memoInputs) 동기화
-    syncDraftToUIState(draftSchedule);
+    // 'Nearest Future' 로직을 적용하여 항상 올바른 양수 시간을 표시합니다.
+    console.log('[DEBUG] handleShowScreen - currentListId:', currentListId);
+    console.log('[DEBUG] handleShowScreen - draftSchedule:', draftSchedule);
+    syncDraftToUIState(draftSchedule, currentListId);
+    console.log('[DEBUG] After Sync - _remainingTimes:', _remainingTimes);
 
-    // 3. UI 렌더링 (드롭다운, 입력 필드, 텍스트 영역)
+    // 4. UI 렌더링 (드롭다운, 입력 필드, 텍스트 영역)
+    renderGameSelect(DOM, currentListId); // 게임 목록 드롭다운 렌더링 추가
     renderBossSchedulerScreen(DOM, _remainingTimes, _memoInputs, draftSchedule);
-    updateBossListTextarea(DOM, draftSchedule);
-
-    // 4. 입력 필드의 계산된 시간(스팬) 업데이트는 초기 렌더링 시 UI-Renderer가 담당함
-    // updateCalculatedTimes(DOM); 제거
+    updateBossListTextarea(DOM, draftSchedule, isPresetList(currentListId));
 
     // 5. 탭 초기화 (기본: 간편 입력 모드)
-    showSchedulerTab(DOM, 'input');
+    showSchedulerTab(DOM, 'input', true); // isInitial: true
+
+    // 진입 시에는 더티 상태 초기화
+    _isDirty = false;
 }
 
 /**
  * Draft 스케줄 데이터를 기반으로 입력 필드용 로컬 상태(_remainingTimes, _memoInputs)를 구축합니다.
+ * 이때 Anchor Boss Logic을 적용하여 '현재 시점과 가장 가까운 미래 젠 시간'을 계산합니다.
  */
-function syncDraftToUIState(draftSchedule) {
+function syncDraftToUIState(draftSchedule, listId) {
     _remainingTimes = {};
     _memoInputs = {};
     const now = Date.now();
@@ -45,7 +111,7 @@ function syncDraftToUIState(draftSchedule) {
     // 1. 보스 아이템만 추출
     const allBosses = draftSchedule.filter(item => item.type === 'boss' && item.scheduledDate);
 
-    // 2. 이름별로 그룹화하여 가장 적절한(미래 우선) 보스 선택
+    // 2. 이름별로 그룹화
     const groupedByName = {};
     allBosses.forEach(boss => {
         if (!groupedByName[boss.name]) {
@@ -56,45 +122,82 @@ function syncDraftToUIState(draftSchedule) {
 
     Object.keys(groupedByName).forEach(name => {
         const instances = groupedByName[name];
+        if (instances.length === 0) return;
 
-        // 미래 보스들 중 가장 빠른 것 찾기
-        const futureInstances = instances
-            .filter(b => new Date(b.scheduledDate).getTime() > now)
-            .sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
+        // 3. Anchor Boss Logic 적용
+        // 가장 최신의(미래에 가까운) 인스턴스를 앵커로 잡습니다.
+        // 정렬: 날짜 내림차순 (먼 미래 -> 과거)
+        instances.sort((a, b) => new Date(b.scheduledDate) - new Date(a.scheduledDate));
+        const anchorInstance = instances[0];
 
-        // 과거 보스들 중 가장 늦은(최근) 것 찾기
-        const pastInstances = instances
-            .filter(b => new Date(b.scheduledDate).getTime() <= now)
-            .sort((a, b) => new Date(b.scheduledDate) - new Date(a.scheduledDate));
+        let targetDate = new Date(anchorInstance.scheduledDate);
 
-        // 우선순위: 미래 보스 > 과거 보스
-        const bestInstance = futureInstances.length > 0 ? futureInstances[0] : (pastInstances.length > 0 ? pastInstances[0] : null);
+        // 젠 주기 가져오기 (SSOT에 이미 interval이 주입되어 있다고 가정)
+        // [SSOT 철학 준수] 메타데이터 참조 없이 Draft 데이터만 사용
+        const intervalMinutes = anchorInstance.interval || 0;
+        const intervalMs = intervalMinutes * 60 * 1000;
 
-        if (bestInstance) {
-            const targetDate = new Date(bestInstance.scheduledDate);
-            const diffMs = targetDate.getTime() - now;
-            const totalSeconds = Math.abs(Math.floor(diffMs / 1000));
+        // [핵심] Interval이 있다면 현재 시점에서 가장 가까운 미래(Nearest Future)로 보정
+        // 과거라면 미래로 당기고, 너무 먼 미래라면 현재 근처로 당김 (Bidirectional)
+        if (intervalMs > 0) {
+            targetDate = calculateNearestFutureTime(targetDate, intervalMs, now);
+            // [UI 동기화 보강] 계산된 미래 시간을 원본 객체(Draft)에도 반영해야 
+            // renderBossInputs에서 '미래 데이터'로 인식하고 젠 예정 시각을 표시해줌.
+            anchorInstance.scheduledDate = targetDate.toISOString();
+        }
+
+        const diffMs = targetDate.getTime() - now;
+
+        // 혹시라도 계산 결과가 음수라면(젠 주기가 없거나 One-time), 그대로 표시하거나 0 처리
+        // 하지만 위 로직으로 대부분 해결됨.
+
+        let timeStr = '';
+
+        if (diffMs < 0 && intervalMs <= 0) {
+            // [수정] 1회성 보스(Interval 0)이면서 이미 시간이 지났다면, 
+            // 00:00 대신 아예 빈 값으로 두어 젠 시간을 표시하지 않음 (User Request)
+            timeStr = '';
+        } else {
+            const totalSeconds = Math.max(0, Math.floor(diffMs / 1000)); // 음수 방어
             const hours = Math.floor(totalSeconds / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             const seconds = totalSeconds % 60;
 
-            let timeStr;
-            if (bestInstance.timeFormat === 'hms') {
+            if (anchorInstance.timeFormat === 'hms') {
                 timeStr = padNumber(hours) + ':' + padNumber(minutes) + ':' + padNumber(seconds);
             } else {
                 timeStr = padNumber(hours) + ':' + padNumber(minutes);
             }
-
-            _remainingTimes[name] = (diffMs < 0 ? '-' : '') + timeStr;
-            _memoInputs[name] = bestInstance.memo || '';
         }
+
+        _remainingTimes[name] = timeStr;
+        _memoInputs[name] = anchorInstance.memo || '';
     });
 }
 
-function showSchedulerTab(DOM, tabId) {
+function calculateNearestFutureTime(anchorDate, intervalMs, now) {
+    const anchorTime = anchorDate.getTime();
+    const diff = now - anchorTime;
+    // diff가 양수(과거 앵커)면 n은 양수 -> 미래로 이동
+    // diff가 음수(미래 앵커)면 n은 음수 -> 과거로 이동(현재에 가깝게)
+    // ceil을 사용하여 '현재보다 같거나 큰' 최소 시간을 찾음
+    const n = Math.ceil(diff / intervalMs);
+    return new Date(anchorTime + n * intervalMs);
+}
+
+function showSchedulerTab(DOM, tabId, isInitial = false) {
     if (!DOM.tabSchedulerInput || !DOM.tabSchedulerText || !DOM.schedulerInputModeSection || !DOM.schedulerTextModeSection) return;
 
-    // 1. 텍스트 모드에서 간편 모드로 전환 시 유효성 검사 수행
+    // 1. 더티 체크 (탭 전환 시)
+    if (!isInitial && _isDirty) {
+        if (!confirm('수정된 내용이 있습니다. 저장하지 않고 모드를 변경하시겠습니까?')) {
+            return;
+        }
+        // 확인을 눌렀다면 더티 상태 초기화 (강제 전환)
+        _isDirty = false;
+    }
+
+    // 2. 텍스트 모드에서 간편 모드로 전환 시 유효성 검사 수행
     if (tabId === 'input' && DOM.schedulerBossListInput) {
         // 전환 전 검증 (알럿 포함)
         if (!syncTextToInput(DOM, false)) {
@@ -208,7 +311,7 @@ function syncInputToText(DOM, isSilent = false, targetListId = null) {
 
         // 3. 텍스트 영역 업데이트 (현재 화면인 경우)
         if (!targetListId) {
-            updateBossListTextarea(DOM, newBossItems);
+            updateBossListTextarea(DOM, newBossItems, isPresetList(listId));
         }
         return true;
     }
@@ -310,6 +413,9 @@ export function handleApplyBossSettings(DOM) {
     // Commit Draft to Main (List ID 전달)
     BossDataManager.commitDraft(currentListId);
 
+    // 저장 성공 시 더티 상태 초기화
+    _isDirty = false;
+
     // UI 업데이트 (Main 기반으로 다시 로드 - 24시간 확장된 결과가 반영됨)
     updateBossListTextarea(DOM, draftSchedule); // 여기서는 Main SSOT를 보여주는 게 맞음? 
     // -> 아니오, 업데이트 후에도 여전히 '현재 탭'의 Draft(이자 Main)를 보여주면 됨.
@@ -344,6 +450,7 @@ export function initBossSchedulerScreen(DOM) {
         // 텍스트 모드인 경우
         if (target === DOM.schedulerBossListInput) {
             syncTextToInput(DOM);
+            _isDirty = true; // 변경 감지
             return;
         }
 
@@ -377,6 +484,7 @@ export function initBossSchedulerScreen(DOM) {
 
             // UI 업데이트 후 Draft 동기화
             syncInputToText(DOM);
+            _isDirty = true; // 변경 감지
         } else if (target.classList.contains('memo-input')) {
             // # 기호는 텍스트 모드 구분자이므로 입력 제한
             if (target.value.includes('#')) {
@@ -389,6 +497,7 @@ export function initBossSchedulerScreen(DOM) {
 
             // 메모 변경 후 Draft 동기화
             syncInputToText(DOM);
+            _isDirty = true; // 변경 감지
         } else if (target.classList.contains('interval-hh') || target.classList.contains('interval-mm')) {
             // 젠 시간(interval) 입력 로직 (Bohe 님 방식)
             const bossName = target.dataset.bossName;
@@ -419,6 +528,7 @@ export function initBossSchedulerScreen(DOM) {
 
             // 내부 Draft 동기화 및 텍스트 영역 반영
             syncInputToText(DOM);
+            _isDirty = true; // 변경 감지
         }
     });
 
@@ -437,6 +547,15 @@ export function initBossSchedulerScreen(DOM) {
 
     DOM.bossSchedulerScreen.addEventListener('change', (event) => {
         if (event.target === DOM.gameSelect) {
+            // 더티 체크 (게임/목록 변경 시)
+            if (_isDirty) {
+                if (!confirm('수정된 내용이 있습니다. 저장하지 않고 다른 목록을 선택하시겠습니까?')) {
+                    // 이전 값으로 복구
+                    DOM.gameSelect.value = LocalStorageManager.get('lastSelectedGame') || 'default';
+                    return;
+                }
+            }
+
             const selectedGame = DOM.gameSelect.value;
             LocalStorageManager.set('lastSelectedGame', selectedGame); // 선택 정보 저장
             handleShowScreen(DOM); // 데이터 로드부터 렌더링까지 전체 재실행
@@ -486,6 +605,7 @@ export function initBossSchedulerScreen(DOM) {
 
                 _remainingTimes = {}; // Clear local state
                 _memoInputs = {}; // Clear local state
+                _isDirty = true; // 변경 감지
 
                 log("모든 남은 시간과 메모가 삭제되었습니다.", true);
                 trackEvent('Click Button', { event_category: 'Interaction', event_label: '남은 시간 초기화' });
@@ -505,6 +625,10 @@ export function initBossSchedulerScreen(DOM) {
 
 // updateCalculatedTimes 함수 완전 삭제 (SSOT 오염의 원인)
 
+
+export function isSchedulerDirty() {
+    return _isDirty;
+}
 
 export function getScreen() {
     return {

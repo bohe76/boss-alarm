@@ -280,9 +280,22 @@ async function loadInitialData(DOM) {
     const params = new URLSearchParams(window.location.search);
     let loadSuccess = false;
 
+    // 0. [방어 로직] 마지막 선택 게임 정보가 없으면 기본값 설정 (Clean Install 대응)
+    let storedListId = LocalStorageManager.get('lastSelectedGame');
+    if (!storedListId) {
+        const initialData = getInitialDefaultData();
+        // 1순위: 초기 데이터의 contextId (odin-main)
+        // 2순위: default
+        const defaultId = initialData?.contextId || 'default';
+
+        LocalStorageManager.set('lastSelectedGame', defaultId);
+        storedListId = defaultId;
+        log(`초기 설정: 보스 목록이 선택되지 않아 '${defaultId}'로 자동 설정했습니다.`);
+    }
+
     // 1. URL 데이터 우선 로드
     if (params.has('data')) {
-        const currentListId = params.get('game') || LocalStorageManager.get('lastSelectedGame') || 'default';
+        const currentListId = params.get('game') || storedListId;
         DOM.schedulerBossListInput.value = decodeURIComponent(params.get('data'));
         const result = parseBossList(DOM.schedulerBossListInput);
 
@@ -303,7 +316,7 @@ async function loadInitialData(DOM) {
 
     // 2. 기존 로컬 스토리지 데이터 검사 (URL 로드 실패 시에만 실행)
     if (!loadSuccess) {
-        const currentListId = LocalStorageManager.get('lastSelectedGame') || 'default';
+        const currentListId = storedListId;
         const existingSchedule = BossDataManager.getBossSchedule();
 
         if (existingSchedule && existingSchedule.length > 0) {
@@ -561,7 +574,22 @@ export async function initApp() {
     showScreen(DOM, 'dashboard-screen');
     DOM.navDashboard.classList.add('active');
 
-    EventBus.on('navigate', (screenId) => showScreen(DOM, screenId));
+    EventBus.on('navigate', (screenId) => {
+        // [신규] 내비게이션 가드: 스케줄러 수정 중 이탈 방지
+        const { isSchedulerDirty } = getBossSchedulerScreen();
+        const currentActiveScreen = document.querySelector('.screen.active');
+
+        // 현재 스케줄러 화면이고, 내용이 수정되었으며, 다른 화면으로 가려 할 때
+        if (currentActiveScreen && currentActiveScreen.id === 'boss-scheduler-screen' && screenId !== 'boss-scheduler-screen') {
+            if (isSchedulerDirty && isSchedulerDirty()) {
+                if (!confirm('스케줄러에 수정된 내용이 있습니다. 저장하지 않고 나가시겠습니까?')) {
+                    // 내비게이션 중단 (UI 메뉴 활성화 상태 복구는 하단 navLinks 렌더링 시 자동 처리됨)
+                    return;
+                }
+            }
+        }
+        showScreen(DOM, screenId);
+    });
     initGlobalEventListeners(DOM);
     initEventHandlers(DOM);
 

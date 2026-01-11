@@ -1,33 +1,41 @@
 # Session Handoff Document
 
 ## 1. Current Session Summary
-- **Date:** 2026-01-10 / v2.17.2 Post-Release Stability
-- **Focus:** Scheduler Deduplication, Reverse Migration & Sync Optimization
-- **Wait:** **N/A** (Documentation synced, Tests pass)
+- **Date:** 2026-01-11 / PiP Mode Enhancement & Dashboard Sync
+- **Focus:** Picture-in-Picture mode expansion feature and UI consistency.
+- **Wait:** **N/A** (All tests/lint fixed)
 
 ## 2. Key Changes & Achievements
-- **[Fix] Scheduler UX Polish:**
-  - Implemented `Set` based deduplication in `extractBossNamesText` to prevent phantom bosses.
-  - Refined anchor selection logic in `updateBossListTextarea` to prioritize future spawns and gracefully fallback to past spawns.
-- **[Feature] Intelligent Data Re-integration (Reverse Migration):**
-  - Added `performReverseMigration` in `app.js` to automatically restore '커스텀 보스_001' data to original presets.
-  - This resolves the "forced migration" issue caused by strict name matching in previous versions.
-- **[Fix] Data Isolation & Fallback:**
-  - Guaranteed Draft data reload when switching between games to eliminate input residue.
-  - Implemented auto-fallback to the first preset list upon deletion of the active game list.
-- **[Meta] GEMINI.md & 워크플로우 복구:**
-  - 유실되었던 '핵심 문서 리스트' 정의를 사용자 정의에 맞춰 9개 항목으로 복구 및 최신화.
-  - `/업무준비`, `/문서업데이트` 워크플로우를 최신 리스트와 100% 동기화.
-- **[Sync] 문서 동기화 완료:**
-  - `unreleased_changes.md`에 v2.17.2 관련 모든 변경 사항(코드+메타) 기록 완료.
+- **[Feat] PiP Mode Toggle & List Expansion:**
+  - Implemented a toggle mechanism to switch between a single next boss view and a list of up to 10 upcoming bosses upon clicking the PiP window.
+  - Added dynamic window height adjustment based on the number of bosses displayed.
+- **[UI] 3-Column Layout & Dashboard Color Sync:**
+  - Applied a 3-column layout: `[Spawn Time] [Boss Name] [Remaining Time]` for richer information.
+  - **Spawn Time Format:** Updated to `[HH:MM]` (seconds removed) for a cleaner look.
+  - **Centered Names:** Boss names now occupy the remaining space with flexible `flex-grow` and are centered for better balance.
+  - **Color Sync:** Next boss name is fixed to **Blue (#1E88E5)**, and remaining times follow dashboard thresholds.
+- **[UI] Imminent Alert System:**
+  - Replaced the sync icon with a **Red Bell-Alert icon** (from Heroicons) at the top-right.
+  - It appears and blinks **ONLY when a boss is within 5 minutes**, regardless of window expansion state.
+- **[UI] Height Optimization:**
+  - Fine-tuned window height calculation (94px base, 28px/26px per item) to ensure a perfectly fit layout with a comfortable bottom margin.
+- **[Code Quality] Cleanup & Verification:**
+  - Removed unused variables and imports (`formatSpawnTime`) in `pip-manager.js`.
+  - Passed all 78 unit tests and ESLint checks.
 
 ## 3. Unresolved Issues & Technical Debts
-- **No immediate technical debt.** Lint and 78 unit tests are passing.
+- **No immediate technical debt.** v2.17.4 is stable and verified.
 
 ## 4. Next Steps (Prioritized)
-1. **[Feature] PIP 5-Minute Blinking Icon:** Implement cumulative visual alarm in PIP window.
-2. **[Refactor] V3 SSOT Architecture:** Resume roadmap for complete UID-centric migration of all data managers.
-3. **[UX] Global Search:** Consider adding a search bar in the settings/help to navigate documentation easier.
+1. **[Feature] PIP 5-Minute Blinking Icon:** Implement visual alerts in the PIP widget.
+2. **[Migration] V3 Roadmap Execution:** Start porting v2 stability patches into the V3 UID-centric engine.
+
+---
+*Historical Session Summaries:*
+
+## Session Handoff (2026-01-10)
+- Focus: Scheduler Deduplication, Reverse Migration & Sync Optimization.
+- achievements: Fixed phantom bosses, implemented intelligent data re-integration, restored GEMINI.md core docs list.
 
 ---
 *Historical Session Summaries:*

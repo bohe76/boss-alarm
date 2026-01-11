@@ -398,14 +398,14 @@
 - **역할:** 숫자 패딩, 날짜 포맷팅, 시간 유효성 검사, 시간 차이 계산, 고유 ID 생성 등 애플리케이션 전반에 걸쳐 사용되는 범용 유틸리티 함수들을 모아놓은 모듈입니다.
 - **주요 `export` 함수:** `padNumber()`, `formatMonthDay()`, `validateStandardClockTime()`, `formatTimeDifference()`, `generateUniqueId()`, `normalizeTimeFormat()`, `calculateNextOccurrence()`, `parseTime()` 등. (`calculateNextOccurrence`는 고정 알림의 다음 발생 시간 계산 시 요일을 고려합니다.)
 
-## 17. `src/calculator.js`
+## 17. `src/screens/calculator.js`
 
 - **역할:** 젠 계산기(`Zen Calculator`)의 핵심 로직을 포함하며, 남은 시간을 기반으로 보스 출현 시간을 계산합니다.
 - **주요 `export` 함수:**
     *   `calculateBossAppearanceTime(remainingTime)`: 주어진 남은 시간으로부터 보스의 정확한 출현 시간을 계산하여 반환합니다.
 
 #### `calculateAppearanceTimeFromMinutes(remainingTimeString)`
-- **설명:** 'MM:SS' 또는 'MMSS' 형식의 남은 시간 문자열로부터 보스 출현 시간을 `Date` 객체로 계산하여 반환합니다.
+- **설명:** 'MM:SS' 또는 'MMSS' 형식의 남은 시간 문자열로부터 보스 출현 시간을 `Date` 객체로 계산하여 반환합니다. 계산 시 현재 시각(`now`)을 기준으로 하되, 계산된 `Date` 객체를 모듈 변수에 저장하여 업데이트 시 원본 날짜 정보를 보존하는 소스로 활용합니다.
 - **인자:** `remainingTimeString` (`string`): 'MM:SS' 또는 'MMSS' 형식의 남은 시간.
 - **반환값:** `Date|null`
 
@@ -434,8 +434,11 @@
 - **역할:** 최신 브라우저의 Document Picture-in-Picture API를 활용하여 대시보드의 '다음 보스' 정보를 항상 위에 떠 있는 작은 창(PiP 위젯)으로 관리합니다. PiP 창의 열기/닫기, 콘텐츠 업데이트 및 상태 관리 로직을 담당합니다.
 
 - **주요 `export` 함수:**
-    - `togglePipWindow()`: PiP 창을 열거나 닫습니다. 호출 시 PiP API 지원 여부를 확인하고, 지원 시 `requestWindow()`를 통해 새 창을 생성합니다. `pip-content.html`의 HTML과 CSS를 로드하여 삽입하며, 사용자가 PiP 창을 닫을 경우 내부 상태를 재설정하기 위한 `pagehide` 이벤트 리스너를 등록합니다. **창의 너비는 240px로 고정되나, 높이는 보스 수에 따라 동적으로 계산(1개: 96px, 2개: 130px, N개: 130+(N-2)*25px)되어 최적의 가독성을 제공합니다.**
-    - `updatePipContent(nextBoss, minTimeDiff)`: 열려 있는 PiP 창의 내용을 '다음 보스' 정보로 업데이트합니다. 남은 시간에 따라 시간 표시의 색상을 동적으로 변경(5분 미만: 빨강, 10분 미만: 주황, 1시간 미만: 검정, 1시간 이상: 회색)합니다.
+    - `togglePipWindow()`: PiP 창을 열거나 닫습니다. 호출 시 PiP API 지원 여부를 확인하고, 지원 시 `requestWindow()`를 통해 새 창을 생성합니다. `pip-content.html`의 HTML과 CSS를 로드하여 삽입하며, 사용자가 PiP 창을 닫을 경우 내부 상태를 재설정하기 위한 `pagehide` 이벤트 리스너를 등록합니다. **창의 높이는 `adjustWindowHeight()` 함수를 통해 렌더링된 콘텐츠의 실제 DOM 높이(`offsetHeight`)를 측정하여 1픽셀 단위로 정확하게 자동 조절됩니다. 이를 통해 OS별 폰트 렌더링 차이나 시스템 배율에 관계없이 항상 최적의 가독성을 제공합니다.**
+    - `updatePipContent()`: 열려 있는 PiP 창의 내용을 '다음 보스' 및 '임박 보스 목록' 정보로 업데이트합니다. 
+        *   **3단 레이아웃**: `[출현 시각(HH:MM)] [보스 이름] [남은 시간]` 형태로 정보를 풍부하게 제공하며, 이름은 가변 공간에서 중앙 정렬됩니다.
+        *   **경보 시스템**: 다음 보스가 5분 미만(`IMMINENT`)일 경우 우측 상단에 빨간색 **Bell-Alert 아이콘**을 노출하고 깜빡여 사용자에게 직접적인 시각적 신호를 줍니다.
+        *   **데이터 동기화**: 대시보드와 동일한 상태별 색상 체계(보스 이름: 파란색 고정, 시간: 5분/10분/1시간 임계값 적용)를 100% 동일하게 적용합니다.
     - `isPipWindowOpen()`: PiP 창이 현재 열려 있는지 여부를 반환합니다.
 
 ---
@@ -449,7 +452,7 @@
 | **`alarm-log.js`** | `getScreen()` | `onTransition` 시 `initAlarmLogScreen(DOM)`을 호출하여 로그 화면을 초기화합니다. `initAlarmLogScreen`은 `LocalStorageManager`를 통해 "15개 보기" 토글 버튼의 상태를 로드/저장하고 관련 이벤트 리스너를 등록합니다. 로그의 실시간 갱신은 `global-event-listeners.js`에 중앙화된 `log-updated` 이벤트 리스너를 통해 자동으로 처리됩니다. `renderAlarmLog`는 토글 상태에 따라 최근 15개 또는 전체 로그를 렌더링합니다. |
 | **`timetable.js`** | `getScreen()` | `init` 시 '뷰/편집' 모드 토글, '표/카드' 보기 모듈 전환 및 **내보내기(Export) 모달** 이벤트 리스너를 등록합니다. <br> - **내보내기 가드**: 모달이 열려 있는 동안 `startAutoRefresh`를 일시 중단하여 프리뷰 안전성을 확보합니다. <br> - **실시간 동기화**: `syncTimetablePreview`를 통해 옵션 변경 즉시 배경 UI를 갱신합니다. <br> - **상태 복원**: `restoreOriginalSettings`를 통해 내보내기 완료 후 이전 화면 상태(탭, 필터 등)를 완벽히 복구합니다. <br> - **이미지 내보내기**: `handleExportImage`는 메인 화면이 아닌 **전용 컨테이너(`exportCaptureContainer`)**를 사용하여 1단 레이아웃 이미지를 생성하고 `html2canvas`로 캡처합니다. <br><br> **⚠️ [WARNING]**: 내보내기 로직 수정 시 `ui-renderer.js`의 `renderExportCapture`와 함께 확인해야 하며, 메인 화면 DOM(`bossListCardsContainer`)을 캡처 대상으로 지정하면 안 됩니다. |
 | **`boss-scheduler.js`** | `getScreen()` | `init` 시 `EventBus.on('show-boss-scheduler-screen')` 리스너 등록 및 **키보드 이벤트(`keydown`) 핸들러**를 통해 사용성을 강화합니다. `remaining-time-input` 필드에서 **`Enter` 키** 입력 시 다음 보스의 입력 필드로 포커스를 자동 이동시키며, 마지막 보스일 경우 '업데이트' 버튼으로 이동하여 마우스를 사용하지 않는 **고속 연속 입력**을 지원합니다. 또한, `remaining-time-input` 필드의 유효성 검사는 사용자 입력을 방해하지 않도록 **지연 검증(Deferred Validation)** 정책을 적용하여, 최종 "보스 시간 업데이트" 버튼 클릭 시점에 일괄 수행합니다. `handleApplyBossSettings(DOM)` 함수는 입력된 `data-id`와 계산된 시간, 그리고 `dataset.timeFormat`을 기반으로 `boss` 객체를 업데이트하고 리스트를 재구성하여 저장합니다. **Workspace Isolation 적용으로 게임별로 작성 중인 입력 내용이 자동 저장 및 복원되어 사용자 작업 연속성을 보장합니다.** |
-| **`calculator.js`** | `getScreen()` | `init` 시 `initCalculatorScreen(DOM)`이 호출되어 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. `onTransition` 시 `handleCalculatorScreenTransition(DOM)`이 호출되어 `CrazyCalculator`의 상태를 초기화하고 `ui-renderer.js`의 `renderCalculatorScreen(DOM)`을 호출하여 화면을 렌더링합니다. `checkZenCalculatorUpdateButtonState(DOM)` 헬퍼 함수를 통해 '보스 시간 업데이트' 버튼의 활성화/비활성화 상태를 관리합니다. |
+| **`calculator.js`** | `getScreen()` | `init` 시 `initCalculatorScreen(DOM)`이 호출되어 '젠 계산기' 및 '광 계산기'의 모든 이벤트 리스너를 등록합니다. '보스 시간 업데이트' 버튼 클릭 시, 수동으로 리스트를 필터링/재구성하지 않고 **`BossDataManager.setBossSchedule`에 위임**하여 SSOT 정합성을 유지합니다. 특히 **계산된 `Date` 객체를 참조 주소 그대로 활용**하여 업데이트 시 오늘/내일 날짜 정보가 유실되거나 초기화되는 현상을 근본적으로 차단합니다. `onTransition` 시 `handleCalculatorScreenTransition(DOM)`이 호출되어 `CrazyCalculator`의 상태를 초기화하고 `ui-renderer.js`의 `renderCalculatorScreen(DOM)`을 호출하여 화면을 렌더링합니다. |
 | **`custom-list.js`** | `getScreen()` | `init` 시 `initCustomListScreen(DOM)`이 호출되어 '커스텀 보스 관리' 모달의 이벤트 리스너(열기, 닫기, 탭 전환, 목록 CRUD)를 등록합니다. `DOM.manageCustomListsButton` 클릭 시 모달이 열리며, 목록 변경 시 `EventBus.emit('rerender-boss-scheduler')`를 발행하여 보스 스케줄러의 드롭다운을 업데이트합니다. <br> **`openCustomListModalForMigration(DOM, currentListId, content)`**: 자가 치유 시 사용자가 마이그레이션된 데이터를 쉽게 확인할 수 있도록 모달을 열고 데이터를 주입하는 전용 API를 제공합니다. |
 | **`dashboard.js`** | `getScreen()` | `init` 시 `initDashboardScreen(DOM)`이 호출되어 `DOM.muteToggleButton` (음소거 버튼)과 `DOM.volumeSlider` (볼륨 슬라이더)에 대한 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링합니다. 음소거 버튼 클릭 시 `LocalStorageManager.setMuteState()`를 호출하여 음소거 상태를 토글하며, 볼륨 슬라이더 조작 시 `LocalStorageManager.setVolume()`을 통해 볼륨 값을 저장합니다. 두 UI 요소 모두 변경 시 `ui-renderer.js`의 `updateSoundControls(DOM)`를 호출하여 시각적 상태를 갱신합니다. `initDashboardScreen`은 `EventBus.on('log-updated', ...)` 리스너를 등록하여 새로운 로그 발생 시 `renderRecentAlarmLog(DOM)`를 호출하여 로그를 갱신합니다. |
 | **`help.js`** | `getScreen()` | `init` 시 `handleTabSwitching(DOM)`이 호출되어 '도움말'과 'FAQ' 탭 전환 이벤트 리스너를 등록합니다. `onTransition` 시 `onHelpScreenTransition(DOM)`이 호출되어 `data/feature_guide.json`과 `data/faq_guide.json`을 비동기적으로 로드하고, `ui-renderer.js`의 `renderHelpScreen()`과 `renderFaqScreen()`을 호출하여 각 탭의 콘텐츠를 렌더링합니다. |
