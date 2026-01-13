@@ -4,3 +4,4 @@ sample_color/
 commit_message.txt
 modify_release_notes.py
 .env
+.agent/workflows/
