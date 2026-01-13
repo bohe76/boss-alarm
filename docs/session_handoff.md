@@ -1,30 +1,33 @@
 # Session Handoff Document
 
 ## 1. Current Session Summary
-- **Date:** 2026-01-14 / UI Rendering Stability & v2.17.5 Release
-- **Focus:** Fixing UI rendering bugs and deploying the latest stability version.
-- **Wait:** **N/A** (All changes pushed to main)
+- **Date:** 2026-01-14 / Deployment Failure Debugging & Security Strengthening
+- **Focus:** Resolving GitHub Pages deployment timeout and strengthening security (env & ignore policy).
+- **Wait:** **N/A** (All changes pushed to main, deployment confirmed successful)
 
 ## 2. Key Changes & Achievements
-- **[Fix] UI HTML Rendering Logic:**
-  - Fixed malformed tags in `src/ui-renderer.js` that caused raw HTML to be displayed.
-  - Enabled `innerHTML` support for Update Notice Modal to render bold tags and line breaks.
-- **[Release] v2.17.5 Deployment:**
-  - Updated version numbers and cache-busting strings.
-  - Refined release notes with user-friendly language ("아이템 득템" bolding, etc.).
-- **[Chore/Lint] Code Cleanup:**
-  - Removed unused `listId` variable in `boss-scheduler.js`.
-  - Verified 100% test pass rate (78 tests).
+- **[DevOps] Deployment Failure Resolution (Issue-030):**
+  - **The Root Cause:** Identified that non-ASCII (Korean) filenames in `.agent/workflows/` were causing Jekyll engine timeouts during deployment.
+  - **Policy Update:** Added `.nojekyll` to root to bypass the Jekyll build process.
+  - **Exclusion Policy:** Excluded `.agent/workflows/` from Git tracking via `.gitignore` to keep local convenience (Korean commands) while preventing deployment interference.
+- **[Security] Credential Protection:**
+  - Removed accidental tracking of `.env` files and strictly added them to `.gitignore`.
+  - Deleted unused external service (Supabase, OneSignal) credentials and legacy code.
+- **[Guideline] Deployment Policy:** Updated `GEMINI.md` with a new "Deployment Stability & Security" section to prevent future regressions.
 
 ## 3. Unresolved Issues & Technical Debts
-- **No critical debts in V2.** System is highly stable.
+- None. Deployment is now extremely stable (completes in ~1 min).
 
 ## 4. Next Steps (Prioritized)
-1. **[Migration] Issue-029 Execution:** Port V2 stability patches (including the recent UI rendering fixes) into the V3 UID-centric branch.
-2. **[V3] Feature Parity:** Continue building V3 modules.
+1. **[Migration] Issue-029 Execution:** Resume porting V2 stability patches into the V3 branch.
+2. **[Security] Token Revocation:** Advise user to rotate leaked Supabase/OneSignal keys for absolute safety.
 
 ---
 *Historical Session Summaries:*
+
+## Session Handoff (2026-01-14 / UI Rendering Stability)
+- Focus: Fixing UI rendering bugs and deploying v2.17.5.
+- Achievements: Fixed malformed HTML tags, enabled `innerHTML` for modals, removed unused variables.
 
 ## Session Handoff (2026-01-11)
 - Focus: PiP precision & UI Rendering Stability (v2.17.4)
