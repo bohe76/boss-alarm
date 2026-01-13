@@ -512,7 +512,7 @@ export function renderVersionInfo(DOM, versionData) {
     } else {
         log("버전 정보 JSON 형식이 올바르지 않습니다.", false);
         if (DOM.versionHistoryContent) {
-            DOM.versionHistoryContent.innerHTML = `< p > 버전 정보를 불러오는 데 실패했습니다.</p > `;
+            DOM.versionHistoryContent.innerHTML = `<p>버전 정보를 불러오는 데 실패했습니다.</p>`;
         }
         return;
     }
@@ -526,7 +526,7 @@ export function renderVersionInfo(DOM, versionData) {
             const versionStr = versionEntry.fullVersion.split(' ')[0];
 
             html += `
-            < article class="version-entry" >
+            <article class="version-entry">
                 <details class="version-accordion" ${isOpen}>
                     <summary class="version-summary">
                         <h3 class="version-number">${versionStr} ${dateStr ? `<time datetime="${dateStr}">(${dateStr})</time>` : ''}</h3>
@@ -546,12 +546,12 @@ export function renderVersionInfo(DOM, versionData) {
                         </ul>
                     </div>
                 </details>
-                </article >
+                </article>
             `;
         });
         DOM.versionHistoryContent.innerHTML = html;
     } else if (DOM.versionHistoryContent) {
-        DOM.versionHistoryContent.innerHTML = `< p > 버전 정보를 불러오는 데 실패했습니다.</p > `;
+        DOM.versionHistoryContent.innerHTML = `<p>버전 정보를 불러오는 데 실패했습니다.</p>`;
     }
 }
 
@@ -631,13 +631,13 @@ export function renderCustomListManagementModalContent(DOM) {
         return;
     }
     DOM.customListManagementContainer.innerHTML = lists.map(list => `
-            < div class="custom-list-manage-item" data - list - name="${list.name}" >
+            <div class="custom-list-manage-item" data-list-name="${list.name}">
             <span class="list-name">${list.name}</span>
             <div class="button-group">
                 <button class="button edit-custom-list-button">수정</button>
                 <button class="button delete-custom-list-button">삭제</button>
             </div>
-        </div >
+        </div>
             `).join('');
 }
 
@@ -1142,7 +1142,7 @@ export function renderUpdateModal(DOM, noticeData) {
     DOM.versionModalTitle.textContent = `v${version} 업데이트 안내`;
 
     // 개발자 한마디
-    DOM.devMessageContent.textContent = noticeData.developerMessage || "";
+    DOM.devMessageContent.innerHTML = (noticeData.developerMessage || "").replace(/\n/g, '<br>');
 
     // 업데이트 요약 목록
     const summaryItems = noticeData.summaryItems || [];

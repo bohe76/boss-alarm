@@ -103,7 +103,7 @@ function handleShowScreen(DOM) {
  * Draft 스케줄 데이터를 기반으로 입력 필드용 로컬 상태(_remainingTimes, _memoInputs)를 구축합니다.
  * 이때 Anchor Boss Logic을 적용하여 '현재 시점과 가장 가까운 미래 젠 시간'을 계산합니다.
  */
-function syncDraftToUIState(draftSchedule, listId) {
+function syncDraftToUIState(draftSchedule) {
     _remainingTimes = {};
     _memoInputs = {};
     const now = Date.now();
