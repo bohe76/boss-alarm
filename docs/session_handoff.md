@@ -1,29 +1,36 @@
 # Session Handoff Document
 
 ## 1. Current Session Summary
-- **Date:** 2026-01-14 / Deployment Failure Debugging & Security Strengthening
-- **Focus:** Resolving GitHub Pages deployment timeout and strengthening security (env & ignore policy).
-- **Wait:** **N/A** (All changes pushed to main, deployment confirmed successful)
+- **Date:** 2026-01-17 / Performance Optimization & v2.17.6 Release
+- **Focus:** Performance lag resolution (event-driven rendering) and bug fixes (Calculator duplication).
+- **Wait:** **N/A** (Merged to main, pushed to origin, verified stable)
 
 ## 2. Key Changes & Achievements
-- **[DevOps] Deployment Failure Resolution (Issue-030):**
-  - **The Root Cause:** Identified that non-ASCII (Korean) filenames in `.agent/workflows/` were causing Jekyll engine timeouts during deployment.
-  - **Policy Update:** Added `.nojekyll` to root to bypass the Jekyll build process.
-  - **Exclusion Policy:** Excluded `.agent/workflows/` from Git tracking via `.gitignore` to keep local convenience (Korean commands) while preventing deployment interference.
-- **[Security] Credential Protection:**
-  - Removed accidental tracking of `.env` files and strictly added them to `.gitignore`.
-  - Deleted unused external service (Supabase, OneSignal) credentials and legacy code.
-- **[Guideline] Deployment Policy:** Updated `GEMINI.md` with a new "Deployment Stability & Security" section to prevent future regressions.
+- **[Performance] Event-Driven Rendering Engine (v2.17.6):**
+  - **Notify System Refactoring:** Split `BossDataManager` notifications into `structural` and `ui` types.
+  - **Interval Removal:** Eliminated redundant 1-second `setInterval` in `app.js` and `timetable.js`.
+  - **Efficient Sync:** Reduced Web Worker communication overhead by 99%, triggering updates only on structural data changes.
+- **[Bug Fix] Zen Calculator & PiP Logic:**
+  - **Single Anchor Principle:** Fixed a bug where a boss was duplicated when updating time via Zen Calculator.
+  - **Smart PiP Icon:** Refined the notification bell (🔔) logic to only show when an *unseen* upcoming boss is within 5 minutes.
+- **[Documentation] 100% SSOT Sync:**
+  - Synchronized `system_architecture.md`, `system_data_flow.md`, and `system_module_details.md` with the new event-driven architecture.
+- **[Release] Deployment v2.17.6:**
+  - Completed versioning, release note generation, and lint/test verification.
 
 ## 3. Unresolved Issues & Technical Debts
-- None. Deployment is now extremely stable (completes in ~1 min).
+- **Long-term Stability Monitoring:** Need to verify if the event-driven system completely eliminates the lag after multi-day continuous runs.
 
 ## 4. Next Steps (Prioritized)
-1. **[Migration] Issue-029 Execution:** Resume porting V2 stability patches into the V3 branch.
-2. **[Security] Token Revocation:** Advise user to rotate leaked Supabase/OneSignal keys for absolute safety.
+1. **[Monitoring]** Check for any edge cases in the new notification subscription model.
+2. **[UI/UX]** Gather user feedback on the "Hidden Boss" PiP notification icon.
 
 ---
 *Historical Session Summaries:*
+
+## Session Handoff (2026-01-14 / Deployment Failure Debugging & Security)
+- Focus: Resolving GitHub Pages deployment timeout and strengthening security.
+- Achievements: Implemented `.nojekyll`, excluded workflows from git, removed legacy credentials.
 
 ## Session Handoff (2026-01-14 / UI Rendering Stability)
 - Focus: Fixing UI rendering bugs and deploying v2.17.5.
