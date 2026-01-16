@@ -35,7 +35,7 @@
     *   `initGlobalEventListeners(DOM)`를 호출하여 전역 이벤트 리스너를 활성화합니다.
     *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
     *   **`renderAlarmStatusSummary(DOM)`를 호출하여 알림 상태 요약을 초기 렌더링합니다.**
-    *   `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링하며, 1초마다 주기적으로 갱신되도록 `setInterval`을 설정합니다.
+    *   `showScreen(DOM, 'dashboard-screen')`을 호출하여 대시보드 화면을 초기 화면으로 설정하고 즉시 렌더링합니다. (환경 초기화)
     *   **스켈레톤 해제 및 콘텐츠 노출**: 모든 초기화 로직이 완료된 시점에 `body`에서 `loading` 클래스를 제거하여 스켈레톤 UI를 숨기고, 실제 대시보드 콘텐츠를 화면에 노출하여 로딩 시너지를 완결합니다.
     *   `EventBus.on('navigate', (screenId) => showScreen(DOM, screenId))` 리스너를 등록하여 다른 모듈에서 화면 전환을 요청할 수 있도록 합니다.
 
@@ -43,7 +43,7 @@
     *   모든 화면 요소에서 `active` 클래스를 제거하고, 지정된 `screenId`에 해당하는 요소에 `active` 클래스를 추가하여 화면을 표시합니다.
     *   내비게이션 링크의 `active` 상태를 동기화합니다.
     *   `src/router.js`를 통해 해당 화면 모듈을 가져와 `screen.init(DOM)` (최초 방문 시) 또는 `screen.onTransition(DOM)` (화면 전환 시)을 호출하여 화면별 로직을 초기화/실행합니다.
-    *   대시보드 화면으로 전환 시 `renderDashboard(DOM)`를 즉시 호출하고 `setInterval`을 설정하여 1초마다 갱신합니다. 다른 화면으로 전환 시 `setInterval`을 해제합니다.
+    *   대시보드 화면으로 전환 시 `renderDashboard(DOM)`를 즉시 호출하여 초기 화면을 그립니다. 대량의 반복 렌더링 부하를 줄이기 위해 전역 인터벌 방식은 폐기되었으며, `notifyUI` 이벤트를 통한 반응형 갱신 체계로 통합되었습니다.
     *   `share-screen`, `version-info-screen`, `help-screen` 등의 화면은 `onTransition` 시 `api-service.js`를 통해 데이터를 비동기적으로 로드하고 `ui-renderer.js`를 통해 렌더링합니다.
 
 ## 2. 알람 시작 및 주기적 갱신 흐름
@@ -69,6 +69,7 @@
         - 이때 `isSchedulerActive` 플래그를 전달하여 현재 스케줄러 화면을 보고 있는지 여부에 따라 **스마트한 팝업 제어**를 수행합니다.
         - 기준점 통과 시 "오늘+내일"의 48시간 윈도우를 재구성하는 **지능형 SSOT 자동 업데이트** 프로세스를 시작합니다.
         - `BossDataManager.getBossStatusSummary()`를 통해 실시간 남은 시간을 계산하고 `setNextBossInfo`로 전역 상태를 업데이트합니다.
+        - **성능 최적화 (v2.17.6)**: `setNextBossInfo`는 `notifyUI()`를 발생시키며, 이를 구독 중인 `global-event-listeners.js`가 대시보드 UI를 갱신합니다.
 
 5. **지능형 SSOT 자동 업데이트 및 충돌 해결 흐름**:
     - **Step 1 (감지)**: `checkAndUpdateSchedule`이 현재 시각과 `lastAutoUpdateTimestamp`를 비교하여 업데이트 필요 여부 판단.
@@ -88,12 +89,12 @@
 
 ### 3.1. 대시보드 화면 (`src/screens/dashboard.js`)
 
-*   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initDashboardScreen(DOM)`이 호출됩니다. `global-event-listeners.js`에 등록된 `BossDataManager.subscribe`와 `setInterval`에 의해 `ui-renderer.js`의 `renderDashboard(DOM)`가 주기적으로 호출되어 최신 상태를 반영합니다.
+*   **초기화 및 갱신:** `app.js`의 `showScreen` 함수를 통해 `initDashboardScreen(DOM)`이 호출됩니다. 모든 갱신은 `global-event-listeners.js`에 등록된 `BossDataManager.subscribe(..., 'ui')` 리스너에 의해 이벤트 기반으로 수행됩니다.
 *   **이벤트 리스너:**
     *   **음소거 토글 버튼 (`DOM.muteToggleButton`):** 클릭 시 `LocalStorageManager.setMuteState()`를 호출하여 음소거 상태를 토글하고, `ui-renderer.js`의 `updateSoundControls()`로 UI를 갱신하며, `log()`를 기록합니다.
     *   **볼륨 슬라이더 (`DOM.volumeSlider`):** `input` 이벤트 발생 시 `LocalStorageManager.setVolume()`을 호출하여 볼륨 값을 저장하고, 만약 음소거 상태였다면 `LocalStorageManager.setMuteState(false)`를 호출하여 음소거를 해제합니다. 이후 `ui-renderer.js`의 `updateSoundControls()`를 호출하여 UI를 갱신합니다.
 *   **렌더링:** `ui-renderer.js`의 `renderDashboard(DOM)` 함수가 호출되면, `BossDataManager`에서 다음 보스 정보 및 예정된 보스 목록을 가져와 `updateNextBossDisplay()` 및 `renderUpcomingBossList()`를 통해 표시하고, `LocalStorageManager` 및 `alarm-scheduler.js`에서 알람 상태 및 음소거 상태를 가져와 `renderAlarmStatusSummary()` 및 `updateSoundControls()`로 표시합니다. **특히 '다가오는 보스 목록'을 렌더링할 때는 `BossDataManager` 내부에서 `calculateNextOccurrence` 함수를 사용하여 고정 알림의 다음 발생 시간을 계산합니다.** `renderRecentAlarmLog(DOM)`는 `logger.js`의 `log-updated` 이벤트에 반응하여 갱신됩니다.
-*   **데이터 흐름 요약:** 대시보드는 `BossDataManager`의 구독 및 1초 `setInterval`을 통해 보스 데이터 및 타이머를 갱신하고, `logger.js`의 `log-updated` 이벤트에 반응하여 최근 알림 로그를 갱신하는 복합적인 반응형/주기적 갱신 메커니즘을 가집니다.
+*   **데이터 흐름 요약:** 대시보드는 `BossDataManager`의 `ui` 알림 구독을 통해 시간 흐름과 데이터 변경에 반응하며, `logger.js`의 `log-updated` 이벤트에 반응하여 최근 알림 로그를 갱신하는 최적화된 이벤트 주도형(Event-driven) 갱신 메커니즘을 가집니다.
 
 ### 3.2. 보스 시간표 화면 (`src/screens/timetable.js`)
 

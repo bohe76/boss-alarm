@@ -67,7 +67,8 @@ export const BossDataManager = (() => {
     let _nextBoss = null; // 다음 보스 정보를 저장할 변수
     let _minTimeDiff = Infinity; // 다음 보스까지 남은 시간을 저장할 변수
     let _presets = {}; // 보스 프리셋 메타데이터 저장용
-    const subscribers = []; // 구독자(콜백 함수) 목록
+    const structuralSubscribers = [];
+    const uiSubscribers = [];
 
     const _getInternalBossMetadata = (bossName, contextId) => {
         const getMeta = (val) => {
@@ -90,10 +91,13 @@ export const BossDataManager = (() => {
         return _getInternalBossMetadata(bossName, contextId).interval;
     };
 
-    const notify = () => {
-        for (const subscriber of subscribers) {
-            subscriber();
-        }
+    const notifyStructural = () => {
+        structuralSubscribers.forEach(cb => cb());
+        notifyUI(); // 구조적 변경은 UI 변경을 포함함
+    };
+
+    const notifyUI = () => {
+        uiSubscribers.forEach(cb => cb());
     };
 
     /**
@@ -295,7 +299,7 @@ export const BossDataManager = (() => {
                     return value;
                 });
                 localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(_draftSchedule));
-                notify();
+                notifyStructural();
             }
         },
         /**
@@ -334,7 +338,7 @@ export const BossDataManager = (() => {
                 return value;
             });
             localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(_draftSchedule));
-            notify();
+            notifyStructural();
         },
         /**
          * 정기적인 업데이트(자정 00:00)가 필요한지 확인하고 수행합니다.
@@ -377,7 +381,7 @@ export const BossDataManager = (() => {
                         // 취소 시에도 원본 SSOT는 이미 위에서 업데이트됨. 
                         // Draft는 그대로 유지되어 사용자의 편집권을 보호함.
                     }
-                    notify();
+                    notifyStructural();
                 };
 
                 // 사용자가 스케줄러에서 수정 중인지 확인
@@ -397,7 +401,7 @@ export const BossDataManager = (() => {
                         bossSchedule = _expandAndReconstruct(bossSchedule);
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(bossSchedule));
                         LocalStorageManager.set('lastAutoUpdateTimestamp', now.getTime());
-                        notify();
+                        notifyStructural();
                     }
                 } else {
                     // 수정 중이 아니거나, 딴 화면 보고 있으면 조용히 업데이트
@@ -419,8 +423,12 @@ export const BossDataManager = (() => {
         validateBossSchedule: () => {
             return { isValid: true };
         },
-        subscribe: (callback) => {
-            subscribers.push(callback);
+        subscribe: (callback, type = 'structural') => {
+            if (type === 'structural') {
+                structuralSubscribers.push(callback);
+            } else if (type === 'ui') {
+                uiSubscribers.push(callback);
+            }
         },
         getBossSchedule: (uiFilter = true) => {
             if (!bossSchedule) return [];
@@ -469,7 +477,7 @@ export const BossDataManager = (() => {
             // 들어온 리스트를 즉시 48시간(오늘~내일) 분량으로 확장하고 정규화함
             bossSchedule = _expandAndReconstruct(newSchedule || []);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(bossSchedule)); // 원본 영구 저장
-            notify();
+            notifyStructural();
         },
         // --- Draft Management ---
         // --- Draft Management (List-based Isolation) ---
@@ -553,7 +561,7 @@ export const BossDataManager = (() => {
 
                 // 중요: Commit 후에는 현재 Draft가 SSOT와 동일해지므로 유지해도 됨.
                 // 또는 SSOT가 바뀌었으니 다른 알림 로직 트리거
-                notify();
+                notifyStructural();
             }
         },
 
@@ -570,7 +578,7 @@ export const BossDataManager = (() => {
         setNextBossInfo: (nextBoss, minTimeDiff) => {
             _nextBoss = nextBoss;
             _minTimeDiff = minTimeDiff;
-            notify();
+            notifyUI();
         },
         getNextBossInfo: () => ({ nextBoss: _nextBoss, minTimeDiff: _minTimeDiff }),
 
