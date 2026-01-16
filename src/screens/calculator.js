@@ -79,31 +79,41 @@ export function initCalculatorScreen(DOM) {
             const currentSchedule = BossDataManager.getBossSchedule(false); // Get full schedule including future anchors
             let bossFoundAndUpdated = false;
 
-            // 2. Update the specific boss instance in the schedule
-            const updatedSchedule = currentSchedule.map(item => {
-                if (item.type === 'boss' && item.id === targetId) {
-                    bossFoundAndUpdated = true;
+            // 2. Prepare the single updated anchor for this boss
+            // First, find the original item to preserve metadata like memo, but we will ONLY use one updated anchor.
+            const originalItem = currentSchedule.find(item => item.type === 'boss' && item.id === targetId);
 
-                    // Format the time string for the 'time' field (HH:MM:SS)
-                    const hours = padNumber(lastCalculatedBossTime.getHours());
-                    const minutes = padNumber(lastCalculatedBossTime.getMinutes());
-                    const seconds = padNumber(lastCalculatedBossTime.getSeconds());
-                    const newTimeFormat = `${hours}:${minutes}:${seconds}`;
+            if (originalItem) {
+                bossFoundAndUpdated = true;
 
-                    return {
-                        ...item,
-                        time: newTimeFormat,
-                        scheduledDate: lastCalculatedBossTime, // Use the precisely calculated Date object
-                        alerted_5min: false, alerted_1min: false, alerted_0min: false
-                    };
-                }
-                return item;
-            });
+                // Format the time string for the 'time' field (HH:MM:SS)
+                const hours = padNumber(lastCalculatedBossTime.getHours());
+                const minutes = padNumber(lastCalculatedBossTime.getMinutes());
+                const seconds = padNumber(lastCalculatedBossTime.getSeconds());
+                const newTimeFormat = `${hours}:${minutes}:${seconds}`;
+
+                const updatedAnchor = {
+                    ...originalItem,
+                    time: newTimeFormat,
+                    scheduledDate: lastCalculatedBossTime, // Use the precisely calculated Date object
+                    alerted_5min: false, alerted_1min: false, alerted_0min: false
+                };
+
+                // 3. Construct the new schedule: 
+                //    - All items that are NOT the target boss name (keep other bosses as they are)
+                //    - PLUS the single new anchor for the target boss
+                const filteredSchedule = currentSchedule.filter(item => {
+                    if (item.type !== 'boss') return true; // Keep date headers (they'll be regened anyway)
+                    return item.name !== bossName; // Remove all existing instances of this specific boss
+                });
+
+                filteredSchedule.push(updatedAnchor);
+
+                // 4. Save to SSOT (BossDataManager will handle expansion based on the Single Anchor)
+                BossDataManager.setBossSchedule(filteredSchedule);
+            }
 
             if (bossFoundAndUpdated) {
-                // 3. Save to SSOT (BossDataManager will handle expansion, sorting, and date markers)
-                BossDataManager.setBossSchedule(updatedSchedule);
-
                 // 4. Update UI
                 updateBossListTextarea(DOM);
                 updateTimetableUI(DOM);

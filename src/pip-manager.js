@@ -202,10 +202,13 @@ export function updatePipContent() {
     }
 
     // Imminent Alert Icon Logic
-    // Only show alert icon if next boss is imminent (< 5 min)
+    // Show alert icon if ANY OTHER boss in the list is imminent (< 5 min)
     const alertIcon = pipWindow.document.getElementById('pip-alert-icon');
     if (alertIcon) {
-        if (minTimeDiff < BOSS_THRESHOLDS.IMMINENT) {
+        const listAfterNextBoss = upcoming.slice(1);
+        const hasAnyImminentInList = listAfterNextBoss.some(boss => (boss.timestamp - now) < BOSS_THRESHOLDS.IMMINENT);
+
+        if (hasAnyImminentInList) {
             alertIcon.style.display = 'block';
         } else {
             alertIcon.style.display = 'none';
