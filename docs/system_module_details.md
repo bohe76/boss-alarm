@@ -237,7 +237,10 @@
     *   `checkAndUpdateSchedule(force, isSchedulerActive)`: `void`. 자정(00:00) 기준점 통과 및 앱 시작 시 48시간 윈도우 최신화 여부를 판단하고 실행하는 핵심 엔진. **`isSchedulerActive`가 `false`이면 팝업 없이 조용히 업데이트를 수행합니다.**
     *   `isDraftDirty()`: `boolean`. 현재 편집 중인 데이터가 있는지 판단.
     *   `syncDraftWithMain()`: `void`. Main SSOT의 최신 상태를 Draft로 강제 복제.
-    *   `_expandAndReconstruct(items)`: `Array`. [Critical] 모든 보스 데이터를 오늘~내일 기준 48시간으로 확장하는 핵심 내부 로직. **36시간 이상의 긴 주기 보스라도 사용자가 직접 입력한 시간은 48시간 윈도우 밖이라도 무조건 보존하여 데이터 유실을 방지합니다.**
+    *   `_expandAndReconstruct(items)`: `Array`. [Critical] 모든 보스 데이터를 오늘~내일 기준 48시간으로 확장하는 핵심 내부 로직. 
+        *   **인터벌 강제 세척 (v2.17.7)**: 프리셋 보스인 경우 사용자 데이터의 오염된 인터벌을 공식 메타데이터 값으로 강제 교체합니다.
+        *   **ID 표준화 (v2.17.7)**: 모든 인스턴스에 `boss-[이름]-[타임스탬프]` 형식의 고유 ID를 재부여하여 정합성을 확보합니다.
+        *   36시간 이상의 긴 주기 보스라도 사용자가 직접 입력한 시간은 48시간 윈도우 밖이라도 무조건 보존하여 데이터 유실을 방지합니다.
 
 #### `LocalStorageManager` (싱글톤 객체)
 - **설명:** 웹 브라우저의 `localStorage`를 통해 다양한 애플리케이션 설정(예: 음소거 상태, 알람 실행 상태, 사이드바 확장 상태) 및 사용자 데이터(고정 알림, 광 계산기 기록 등)를 영구적으로 저장하고 로드합니다. 특히 고정 알림 데이터는 `days` 속성(요일 정보)을 포함하도록 확장되었으며, 기존 데이터 로드 시 마이그레이션 로직이 자동 적용됩니다.
@@ -399,7 +402,7 @@
 ## 16. `src/utils.js`
 
 - **역할:** 숫자 패딩, 날짜 포맷팅, 시간 유효성 검사, 시간 차이 계산, 고유 ID 생성 등 애플리케이션 전반에 걸쳐 사용되는 범용 유틸리티 함수들을 모아놓은 모듈입니다.
-- **주요 `export` 함수:** `padNumber()`, `formatMonthDay()`, `validateStandardClockTime()`, `formatTimeDifference()`, `generateUniqueId()`, `normalizeTimeFormat()`, `calculateNextOccurrence()`, `parseTime()` 등. (`calculateNextOccurrence`는 고정 알림의 다음 발생 시간 계산 시 요일을 고려합니다.)
+- **주요 `export` 함수:** `padNumber()`, `formatMonthDay()`, `validateStandardClockTime()`, `formatTimeDifference()`, `generateUniqueId()`, `normalizeTimeFormat()`, `calculateNextOccurrence()`, `parseTime()`, `calculateNearestFutureTime()` 등. (`calculateNearestFutureTime`은 과거 앵커와 주기를 기반으로 현재 이후의 가장 가까운 미래 시각을 예측합니다.)
 
 ## 17. `src/screens/calculator.js`
 
