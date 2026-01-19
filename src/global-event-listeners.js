@@ -3,7 +3,8 @@
 import { EventBus } from './event-bus.js';
 import { BossDataManager } from './data-managers.js';
 import { renderDashboard } from './ui-renderer.js';
-import { renderAlarmLog } from './screens/alarm-log.js'; // Assuming renderAlarmLog will be exported
+import { renderAlarmLog } from './screens/alarm-log.js';
+import { isPipWindowOpen, updatePipContent } from './pip-manager.js';
 
 /**
  * Initializes global EventBus listeners that should always be active from application start.
@@ -12,10 +13,15 @@ import { renderAlarmLog } from './screens/alarm-log.js'; // Assuming renderAlarm
 export function initGlobalEventListeners(DOM) {
     // Subscribe to BossDataManager changes to automatically refresh the dashboard
     BossDataManager.subscribe(() => {
-        // 1. 대시보드 화면이 아닐 경우 렌더링 스킵
+        // 1. PIP 창이 열려 있으면 화면과 무관하게 업데이트
+        if (isPipWindowOpen()) {
+            updatePipContent();
+        }
+
+        // 2. 대시보드 화면이 아닐 경우 메인 UI 렌더링 스킵
         if (!DOM.dashboardScreen || !DOM.dashboardScreen.classList.contains('active')) return;
 
-        // 2. 모달이 열려 있으면 렌더링 생략 (내보내기 프리뷰 등 UI 보호)
+        // 3. 모달이 열려 있으면 렌더링 생략 (내보내기 프리뷰 등 UI 보호)
         const isAnyModalOpen = Array.from(document.querySelectorAll('.modal'))
             .some(modal => window.getComputedStyle(modal).display === 'flex');
         if (isAnyModalOpen) return;

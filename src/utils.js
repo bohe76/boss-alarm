@@ -28,7 +28,7 @@ export function validateStandardClockTime(time) {
     // HHMMSS (6-digit) format
     const hhmmssMatch = trimmedTime.match(/^(?:2[0-3]|[01]?[0-9])[0-5][0-9][0-5][0-9]$/);
     if (hhmmssMatch) return true;
-    
+
     return false;
 }
 
@@ -43,7 +43,7 @@ export function validateCountdownTime(time) {
     // Assumes the last two digits are seconds, and preceding digits are minutes
     const mmSsMatch = trimmedTime.match(/^(\d+)([0-5][0-9])$/);
     if (mmSsMatch) return true;
-    
+
     return false;
 }
 
@@ -213,3 +213,27 @@ export function parseTime(timeString) {
 
     return { hours, minutes, seconds };
 }
+
+/**
+ * 기준 시각(anchorDate)과 주기(intervalMs)를 바탕으로 현재 시각(now) 이후의 가장 가까운 미래 시간을 계산합니다.
+ * @param {Date} anchorDate - 기준이 되는 앵커 시간
+ * @param {number} intervalMs - 젠 주기 (밀리초)
+ * @param {number} now - 현재 시각 (타임스탬프)
+ * @returns {Date} 계산된 미래 시간
+ */
+export function calculateNearestFutureTime(anchorDate, intervalMs, now) {
+    if (!intervalMs || intervalMs <= 0) return anchorDate;
+
+    const anchorTime = anchorDate.getTime();
+    const diff = now - anchorTime;
+
+    // diff가 양수면 현재보다 과거이므로 미래로 밀어냄
+    // diff가 음수면 현재보다 미래이므로 (필요시) 현재와 가장 가까운 미래로 당김
+    const n = Math.ceil(diff / intervalMs);
+
+    // 만약 현재 시각과 정확히 일치한다면 다음 전으로 한 칸 더 밀어냄 (사용자 경험상 '다음'을 기대하므로)
+    const finalN = (anchorTime + n * intervalMs === now) ? n + 1 : n;
+
+    return new Date(anchorTime + finalN * intervalMs);
+}
+

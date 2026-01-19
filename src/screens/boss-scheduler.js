@@ -5,7 +5,7 @@ import { calculateBossAppearanceTime } from '../calculator.js';
 import { log } from '../logger.js';
 import { EventBus } from '../event-bus.js';
 import { BossDataManager, LocalStorageManager } from '../data-managers.js';
-import { padNumber } from '../utils.js';
+import { padNumber, calculateNearestFutureTime } from '../utils.js';
 import { trackEvent } from '../analytics.js';
 import { getBossNamesForGame, isPresetList } from '../boss-scheduler-data.js';
 import { openCustomListModalForMigration } from './custom-list.js';
@@ -49,10 +49,10 @@ function handleShowScreen(DOM) {
             if (draftSchedule.length < bossNames.length) {
                 const existingNames = draftSchedule.map(b => b.name);
                 const missingNames = bossNames.filter(n => !existingNames.includes(n));
-                missingNames.forEach((n, idx) => {
+                missingNames.forEach((n) => {
                     const metaInterval = BossDataManager.getBossInterval(n, currentListId);
                     draftSchedule.push({
-                        id: `boss-${Date.now()}-missing-${idx}`,
+                        id: `boss-${n}-${Date.now()}`,
                         type: 'boss',
                         name: n,
                         scheduledDate: null,
@@ -67,7 +67,7 @@ function handleShowScreen(DOM) {
             draftSchedule = bossNames.map((name, index) => {
                 const metaInterval = BossDataManager.getBossInterval(name, currentListId);
                 return {
-                    id: `boss-${Date.now()}-${index}`,
+                    id: `boss-${name}-${Date.now()}-${index}`,
                     type: 'boss',
                     name: name,
                     scheduledDate: null, // [중요] 비어있어야 함
@@ -124,17 +124,30 @@ function syncDraftToUIState(draftSchedule) {
         const instances = groupedByName[name];
         if (instances.length === 0) return;
 
-        // 3. Anchor Boss Logic 적용
-        // 가장 최신의(미래에 가까운) 인스턴스를 앵커로 잡습니다.
-        // 정렬: 날짜 내림차순 (먼 미래 -> 과거)
-        instances.sort((a, b) => new Date(b.scheduledDate) - new Date(a.scheduledDate));
-        const anchorInstance = instances[0];
+        // 3. Anchor Boss Logic 적용 (미래 우선 -> 없으면 최신 과거)
+        const futureInstances = instances
+            .filter(b => b.scheduledDate && new Date(b.scheduledDate).getTime() > now)
+            .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
+
+        let anchorInstance;
+        if (futureInstances.length > 0) {
+            anchorInstance = futureInstances[0]; // 가장 가까운 미래
+        } else {
+            const pastInstances = instances
+                .filter(b => b.scheduledDate && new Date(b.scheduledDate).getTime() <= now)
+                .sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime());
+            anchorInstance = pastInstances[0]; // 가장 최근 과거
+        }
+
+        if (!anchorInstance) return;
 
         let targetDate = new Date(anchorInstance.scheduledDate);
 
-        // 젠 주기 가져오기 (SSOT에 이미 interval이 주입되어 있다고 가정)
-        // [SSOT 철학 준수] 메타데이터 참조 없이 Draft 데이터만 사용
-        const intervalMinutes = anchorInstance.interval || 0;
+        // 젠 주기 가져오기 (SSOT에 없으면 메타데이터 참조)
+        // [수정] 현재 게임 ID를 가져와서 메타데이터 인터벌 조회
+        const currentListId = LocalStorageManager.get('lastSelectedGame') || 'default';
+        const metaInterval = BossDataManager.getBossInterval(name, currentListId);
+        const intervalMinutes = anchorInstance.interval || metaInterval || 0;
         const intervalMs = intervalMinutes * 60 * 1000;
 
         // [핵심] Interval이 있다면 현재 시점에서 가장 가까운 미래(Nearest Future)로 보정
@@ -154,19 +167,23 @@ function syncDraftToUIState(draftSchedule) {
         let timeStr = '';
 
         if (diffMs < 0 && intervalMs <= 0) {
-            // [수정] 1회성 보스(Interval 0)이면서 이미 시간이 지났다면, 
-            // 00:00 대신 아예 빈 값으로 두어 젠 시간을 표시하지 않음 (User Request)
             timeStr = '';
         } else {
-            const totalSeconds = Math.max(0, Math.floor(diffMs / 1000)); // 음수 방어
+            // 과거 앵커만 있는 경우, 다음 젠 예측 시간을 기준으로 남은 시간 계산
+            let finalTargetTime = targetDate.getTime();
+            const finalDiffMs = Math.max(0, finalTargetTime - now);
+
+            const totalSeconds = Math.floor(finalDiffMs / 1000);
             const hours = Math.floor(totalSeconds / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             const seconds = totalSeconds % 60;
 
+            const hStr = hours >= 100 ? String(hours) : padNumber(hours);
+
             if (anchorInstance.timeFormat === 'hms') {
-                timeStr = padNumber(hours) + ':' + padNumber(minutes) + ':' + padNumber(seconds);
+                timeStr = hStr + ':' + padNumber(minutes) + ':' + padNumber(seconds);
             } else {
-                timeStr = padNumber(hours) + ':' + padNumber(minutes);
+                timeStr = hStr + ':' + padNumber(minutes);
             }
         }
 
@@ -175,15 +192,7 @@ function syncDraftToUIState(draftSchedule) {
     });
 }
 
-function calculateNearestFutureTime(anchorDate, intervalMs, now) {
-    const anchorTime = anchorDate.getTime();
-    const diff = now - anchorTime;
-    // diff가 양수(과거 앵커)면 n은 양수 -> 미래로 이동
-    // diff가 음수(미래 앵커)면 n은 음수 -> 과거로 이동(현재에 가깝게)
-    // ceil을 사용하여 '현재보다 같거나 큰' 최소 시간을 찾음
-    const n = Math.ceil(diff / intervalMs);
-    return new Date(anchorTime + n * intervalMs);
-}
+
 
 function showSchedulerTab(DOM, tabId, isInitial = false) {
     if (!DOM.tabSchedulerInput || !DOM.tabSchedulerText || !DOM.schedulerInputModeSection || !DOM.schedulerTextModeSection) return;
@@ -281,7 +290,7 @@ function syncInputToText(DOM, isSilent = false, targetListId = null) {
 
                 if (calculatedDateStr) {
                     const scheduledDate = new Date(calculatedDateStr);
-                    const bossId = inputEl ? inputEl.dataset.id : 'boss-' + Date.now() + '-' + newBossItems.length;
+                    const bossId = inputEl && inputEl.dataset.id ? inputEl.dataset.id : `boss-${bossName}-${scheduledDate.getTime()}`;
 
                     const hhEl = item.querySelector('.interval-hh');
                     const mmEl = item.querySelector('.interval-mm');

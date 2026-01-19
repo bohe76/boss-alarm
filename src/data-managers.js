@@ -29,8 +29,8 @@ export const BossDataManager = (() => {
                 const d = item.scheduledDate instanceof Date ? item.scheduledDate : new Date(item.scheduledDate);
                 const hasValidDate = !isNaN(d.getTime());
 
-                // ID가 없으면 생성 (영속성 식별을 위해 필요)
-                if (hasName && hasValidDate && !item.id) {
+                // ID가 없거나 형식이 맞지 않으면 재생성 (표준화: boss-[이름]-[타임스탬프])
+                if (hasName && hasValidDate) {
                     item.id = `boss-${item.name}-${d.getTime()}`;
                 }
 
@@ -87,6 +87,13 @@ export const BossDataManager = (() => {
         return { interval: 0, isInvasion: false };
     };
 
+    const _isInternalPresetBoss = (bossName) => {
+        for (const context of Object.values(_presets)) {
+            if (context.bossMetadata && context.bossMetadata[bossName] !== undefined) return true;
+        }
+        return false;
+    };
+
     const _getInternalBossInterval = (bossName, contextId) => {
         return _getInternalBossMetadata(bossName, contextId).interval;
     };
@@ -131,10 +138,14 @@ export const BossDataManager = (() => {
             const userDefinedItems = bossItems.filter(b => b.name === bossName);
             const customInterval = userDefinedItems.find(b => b.interval > 0)?.interval;
 
-            // 사용자 정의 값이 있으면 사용, 없으면 프리셋에서 가져옴
-            const intervalMinutes = (customInterval !== undefined && customInterval > 0)
-                ? customInterval
-                : _getInternalBossInterval(bossName);
+            // [근본 해결] 프리셋 보스라면 데이터오염 방지를 위해 
+            // 사용자 정의(customInterval)보다 공식 프리셋 인터벌을 무조건 우선함.
+            const isPresetBoss = _isInternalPresetBoss(bossName);
+            const metaInterval = _getInternalBossInterval(bossName);
+
+            const intervalMinutes = (isPresetBoss && metaInterval > 0)
+                ? metaInterval
+                : (customInterval !== undefined && customInterval > 0 ? customInterval : metaInterval);
 
             const interval = intervalMinutes * 60 * 1000;
             // 해당 보스의 사용자 입력 중 현재와 가장 가까운 것을 기준 앵커로 설정 (자동 확장을 위한 기준)
@@ -150,20 +161,19 @@ export const BossDataManager = (() => {
                 const key = `${bossName}_${time}`;
                 if (userDefinedMap.has(key)) {
                     // 보헤님이 직접 입력한 인스턴스가 있으면 그대로 사용 (UID 유지 및 메모 보존)
-                    // 단, 여기서도 interval 정보가 누락되어 있을 수 있으므로 보정 (SSOT 무결성 강화)
                     return {
                         ...userDefinedMap.get(key),
                         interval: intervalMinutes // [복구] 메타데이터 기반 인터벌 주입
                     };
                 } else {
-                    // 없으면 새 UID를 가진 인스턴스 생성 (복사가 아닌 새로운 인스턴스)
+                    // 없으면 새 UID를 가진 인스턴스 생성 (표준화: boss-[이름]-[타임스탬프])
                     return {
                         ...anchor,
                         id: `boss-${bossName}-${time}`,
                         scheduledDate: new Date(time),
                         time: `${padNumber(new Date(time).getHours())}:${padNumber(new Date(time).getMinutes())}`,
-                        memo: anchor.memo || "", // 앵커의 메모를 기본값으로 사용
-                        interval: intervalMinutes // [복구] 메타데이터 기반 인터벌 주입
+                        memo: anchor.memo || "",
+                        interval: intervalMinutes
                     };
                 }
             };
@@ -177,19 +187,17 @@ export const BossDataManager = (() => {
             const meta = _getInternalBossMetadata(bossName);
             const isTodayOnly = meta.isInvasion;
 
-
-            // [수정] 젠 주기에 상관없이 사용자가 직접 입력한 데이터(앵커) 중 '오늘 00:00 이후' 데이터만 보존
-            // (데이터 다이어트 및 과거 흔적 제거)
+            // [수정] 48시간 윈도우 밖이라도 '현재 시각보다 미래'인 데이터(앵커)는 
+            // 유실 방지를 위해 무조건 보존 (SSOT 무결성 원칙)
             sameBosses.forEach(b => {
                 const bTime = new Date(b.scheduledDate).getTime();
-                if (bTime >= startTime) {
-                    // [복구] 기존 앵커(사용자 입력값)에도 메타데이터 기반 인터벌 강제 주입
-                    expandedBosses.push({ ...b, interval: intervalMinutes });
+                if (bTime >= startTime || bTime > now) {
+                    expandedBosses.push({ ...b, interval: intervalMinutes, id: `boss-${bossName}-${bTime}` });
                 }
             });
 
             if (interval > 0) {
-                // 과거로 확장 (오늘 00:00까지만)
+                // 과거로 확장
                 let t = anchorTime - interval;
                 while (t >= startTime) {
                     const inst = createInstance(t);
@@ -198,38 +206,32 @@ export const BossDataManager = (() => {
                     }
                     t -= interval;
                 }
-                // 미래로 확장 (48시간 윈도우 내)
+                // 미래로 확장
                 t = anchorTime + interval;
-                let generatedInWindow = false;
-
-                // 앵커가 윈도우 안에 있는지 확인
-                if (anchorTime >= startTime && anchorTime <= endTime) {
-                    generatedInWindow = true;
-                }
+                let hasFutureInstance = expandedBosses.some(b => b.name === bossName && new Date(b.scheduledDate).getTime() > now);
 
                 while (t <= endTime) {
                     const inst = createInstance(t);
                     if (!isTodayOnly || isSameDay(inst.scheduledDate, new Date(now))) {
                         expandedBosses.push(inst);
-                        generatedInWindow = true;
+                        if (t > now) hasFutureInstance = true;
                     }
                     t += interval;
                 }
 
-                // [중요 로직] 윈도우 내에 생성된 것이 하나도 없다면, 가장 가까운 미래 1개를 강제 생성 (Anchor Keeper)
-                if (!generatedInWindow) {
+                // Future Anchor Keeper
+                if (!hasFutureInstance) {
                     let futureTime = anchorTime;
-                    while (futureTime < endTime) {
+                    while (futureTime <= now) {
                         futureTime += interval;
                     }
                     const hiddenAnchor = createInstance(futureTime);
                     expandedBosses.push(hiddenAnchor);
                 }
             }
-            // else 블록(1회성 이벤트)은 이미 위에서 sameBosses.forEach로 처리됨
         });
 
-        // 중복 제거 (확장 과정에서 사용자가 입력한 시간과 겹칠 수 있음)
+        // 중복 제거
         const finalUniqueItems = [];
         const seenIds = new Set();
         expandedBosses.forEach(boss => {
@@ -248,9 +250,6 @@ export const BossDataManager = (() => {
             const d = boss.scheduledDate;
             const dateStr = `${padNumber(d.getMonth() + 1)}.${padNumber(d.getDate())}`;
 
-            // Reconstruct 시 날짜 헤더 추가 로직
-            // 단, 저장 로직에서는 헤더가 굳이 필요 없지만, 호환성을 위해 유지하거나
-            // 혹은 UI 렌더링 시에만 필터링하도록 함.
             if (dateStr !== lastDateStr) {
                 reconstructed.push({ type: 'date', date: dateStr });
                 lastDateStr = dateStr;
@@ -260,6 +259,7 @@ export const BossDataManager = (() => {
 
         return reconstructed;
     };
+
 
     // Load Draft from LocalStorage helper
     const loadDraft = () => {

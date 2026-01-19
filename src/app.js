@@ -37,7 +37,7 @@ function processBossItems(items) {
     let day = now.getDate();
     let lastTimeInMinutes = -1;
 
-    return items.map((item, index) => {
+    return items.map((item) => {
         const [hours, minutes] = item.time.split(':').map(Number);
         const currentTimeInMinutes = hours * 60 + minutes;
 
@@ -50,7 +50,7 @@ function processBossItems(items) {
         const scheduledDate = new Date(year, month, day, hours, minutes, 0);
 
         return {
-            id: `boss-${Date.now()}-${index}`,
+            id: `boss-${item.name}-${scheduledDate.getTime()}`,
             name: item.name,
             time: item.time, // "HH:mm"
             memo: item.memo || "",

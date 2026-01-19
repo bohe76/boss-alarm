@@ -4,7 +4,7 @@ import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRu
 import { log, getLogs } from './logger.js'; // Import log and getLogs
 // import { loadJsonContent } from './api-service.js'; // loadJsonContent is no longer needed here
 import { getGameNames, getBossNamesForGame } from './boss-scheduler-data.js';
-import { formatMonthDay, getKoreanDayOfWeek, padNumber, formatTimeDifference, formatSpawnTime } from './utils.js';
+import { formatMonthDay, getKoreanDayOfWeek, padNumber, formatTimeDifference, formatSpawnTime, calculateNearestFutureTime } from './utils.js';
 
 const MUTE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`;
 const UNMUTE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>`;
@@ -715,14 +715,23 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
     });
 
     groupedByName.forEach((instances, name) => {
-        // 미래 데이터만 필터링하여 가장 가까운 시간순 정렬
+        // 1. 미래 데이터 필터링 및 현재와 가장 가까운 순 정렬
         const futureInstances = instances
             .filter(b => b.scheduledDate && new Date(b.scheduledDate).getTime() > now)
             .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
 
-        // 미래 데이터가 있을 때만 앵커로 선정 (없으면 빈 값 유지)
         if (futureInstances.length > 0) {
+            // 미래 데이터가 있으면 가장 가까운 것 선택
             bossMap.set(name, futureInstances[0]);
+        } else {
+            // 2. 미래 데이터가 없으면 과거 데이터 중 가장 최근 것 선택 (앵커용)
+            const pastInstances = instances
+                .filter(b => b.scheduledDate && new Date(b.scheduledDate).getTime() <= now)
+                .sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime());
+
+            if (pastInstances.length > 0) {
+                bossMap.set(name, pastInstances[0]);
+            }
         }
     });
 
@@ -737,18 +746,46 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
     }
 
     DOM.bossInputsContainer.innerHTML = bossNames.map(bossName => {
-        const initialTimeValue = remainingTimes[bossName] || '';
         const existingBoss = bossMap.get(bossName);
         const bossId = existingBoss ? existingBoss.id : '';
         const initialMemoValue = memoInputs[bossName] !== undefined ? memoInputs[bossName] : (existingBoss && existingBoss.memo ? existingBoss.memo : '');
 
-        // SSOT에 이미 저장된 데이터가 있다면 정밀한 시간을 직접 사용
+        // 1. 젠 예정 시간 및 남은 시간 도출
         let spawnTimeDisplay = '--:--:--';
         let isoDateAttr = '';
+        let calculatedRemainingTime = remainingTimes[bossName] || '';
+
         if (existingBoss && existingBoss.scheduledDate) {
-            const sDate = new Date(existingBoss.scheduledDate);
+            let sDate = new Date(existingBoss.scheduledDate);
+
+            // [수정] SSOT에 인터벌이 없더라도 메타데이터에서 직접 조회하여 보정 로직 보호
+            const metaInterval = BossDataManager.getBossInterval(bossName, gameName);
+            const intervalMs = (existingBoss.interval || metaInterval || 0) * 60 * 1000;
+
+            // [지능형 보정] 만약 과거 데이터라면 미래 예측 시간으로 자동 변환하여 표시
+            if (sDate.getTime() <= now && intervalMs > 0) {
+                sDate = calculateNearestFutureTime(sDate, intervalMs, now);
+            }
+
             spawnTimeDisplay = `${padNumber(sDate.getHours())}:${padNumber(sDate.getMinutes())}:${padNumber(sDate.getSeconds())}`;
             isoDateAttr = `data-calculated-date="${sDate.toISOString()}"`;
+
+            // [핵심 수정] 입력 필드가 비어있다면, 계산된 젠 시간을 바탕으로 남은 시간을 역산해서 채워줌
+            if (!calculatedRemainingTime) {
+                const diffMs = Math.max(0, sDate.getTime() - now);
+                const totalSeconds = Math.floor(diffMs / 1000);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+
+                const hStr = hours >= 100 ? String(hours) : padNumber(hours);
+                // 초 단위 포맷은 앵커의 형식을 따르거나 기본 hm으로 표시
+                if (existingBoss.timeFormat === 'hms') {
+                    calculatedRemainingTime = `${hStr}:${padNumber(minutes)}:${padNumber(seconds)}`;
+                } else {
+                    calculatedRemainingTime = `${hStr}:${padNumber(minutes)}`;
+                }
+            }
         }
 
         // 젠 주기(interval)를 시/분으로 환산 (0인 경우 입력창을 비워 플레이스홀더 노출)
@@ -761,7 +798,7 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
             <div class="list-item boss-input-item">
                 <div class="boss-input-row-main">
                     <span class="boss-name">${bossName}</span>
-                    <input type="text" class="remaining-time-input" data-boss-name="${bossName}" data-id="${bossId}" ${isoDateAttr} value="${initialTimeValue}">
+                    <input type="text" class="remaining-time-input" data-boss-name="${bossName}" data-id="${bossId}" ${isoDateAttr} value="${calculatedRemainingTime}">
                     <span class="calculated-spawn-time">${spawnTimeDisplay}</span>
                 </div>
                 <div class="boss-input-row-details">
