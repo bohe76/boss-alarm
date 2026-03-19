@@ -49,12 +49,10 @@ describe('BossSchedulerScreen UI Interaction', () => {
             bossSchedulerScreen: document.createElement('div'),
             bossInputsContainer: document.createElement('div'),
             clearAllRemainingTimesButton: document.createElement('button'),
-            schedulerBossListInput: document.createElement('textarea'), // Add
-            gameSelect: { value: 'odin-main' } // Add gameSelect mock
+            gameSelect: { value: 'odin-main' }
         };
         DOM.bossSchedulerScreen.appendChild(DOM.bossInputsContainer);
         DOM.bossSchedulerScreen.appendChild(DOM.clearAllRemainingTimesButton);
-        DOM.bossSchedulerScreen.appendChild(DOM.schedulerBossListInput); // Add
         document.body.appendChild(DOM.bossSchedulerScreen);
         initBossSchedulerScreen(DOM);
     });

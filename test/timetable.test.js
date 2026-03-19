@@ -58,19 +58,16 @@ describe('Timetable Screen', () => {
         vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => { });
     });
 
-    it('should migrate old filter state and remove obsolete keys during initialization', () => {
-        // Old key exists, new key doesn't
+    it('should initialize filter to default true when not set', () => {
+        // No filter state exists
         LocalStorageManager.get.mockImplementation((key) => {
             if (key === 'timetableNextBossFilter') return null;
-            if (key === 'bossManagementNextBossFilter') return false; // Old was OFF
             return undefined;
         });
 
         initTimetableScreen(DOM);
 
-        expect(Storage.prototype.removeItem).toHaveBeenCalledWith('bossManagementMode');
-        expect(LocalStorageManager.set).toHaveBeenCalledWith('timetableNextBossFilter', false);
-        expect(Storage.prototype.removeItem).toHaveBeenCalledWith('bossManagementNextBossFilter');
+        expect(LocalStorageManager.set).toHaveBeenCalledWith('timetableNextBossFilter', true);
         expect(updateTimetableUI).toHaveBeenCalledWith(DOM);
     });
 

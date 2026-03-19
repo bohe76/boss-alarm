@@ -4,6 +4,7 @@ import { log } from './logger.js';
 import { speak } from './speech.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js';
 import { renderAlarmStatusSummary } from './ui-renderer.js';
+import { DB } from './db.js';
 
 let worker = null;
 
@@ -93,47 +94,45 @@ export function getIsAlarmRunning() {
 }
 
 function handleAlarm({ id, name, type, isFixed, targetTime }) {
-    let currentBoss = null;
     if (isFixed) {
-        currentBoss = LocalStorageManager.getFixedAlarms().find(a => a.id === id);
-    } else {
-        currentBoss = BossDataManager.getBossSchedule().find(a => a.id === id);
-    }
+        const currentBoss = LocalStorageManager.getFixedAlarms().find(a => a.id === id);
+        if (!currentBoss) return;
+        if (currentBoss[`alerted_${type}`] === targetTime) return;
 
-    if (!currentBoss) return;
+        let msg = '';
+        if (type === '5min') msg = `5분 전, ${name}`;
+        else if (type === '1min') msg = `1분 전, ${name}`;
+        else if (type === '0min') msg = `${name} 젠 입니다.`;
 
-    // alerted_5min, alerted_1min, alerted_0min이 targetTime과 일치하면 이미 처리된 알림으로 간주
-    if (currentBoss[`alerted_${type}`] === targetTime) return;
+        log(msg, true);
+        speak(msg);
+        if (Notification.permission === 'granted') {
+            const notification = new Notification('보스 알리미', { body: msg });
+            notification.onclick = () => window.focus();
+        }
 
-    let msg = '';
-    if (type === '5min') msg = `5분 전, ${name}`;
-    else if (type === '1min') msg = `1분 전, ${name}`;
-    else if (type === '0min') msg = `${name} 젠 입니다.`;
-
-    log(msg, true);
-    speak(msg);
-
-    if (Notification.permission === 'granted') {
-        const notification = new Notification('보스 알리미', { body: msg });
-        notification.onclick = () => window.focus();
-    }
-
-    if (isFixed) {
         currentBoss[`alerted_${type}`] = targetTime;
         LocalStorageManager.updateFixedAlarm(id, currentBoss);
         syncScheduleToWorker();
     } else {
-        const schedule = BossDataManager.getBossSchedule();
-        const target = schedule.find(b => b.id === id);
-        if (target) {
-            target[`alerted_${type}`] = true;
-            if (type === '0min') {
-                const newSchedule = schedule.filter(b => b.id !== id);
-                BossDataManager.setBossSchedule(newSchedule);
-            } else {
-                BossDataManager.setBossSchedule(schedule);
-            }
+        const schedule = DB.getSchedule(id);
+        if (!schedule) return;
+        if (schedule[`alerted_${type}`] === targetTime) return;
+
+        let msg = '';
+        if (type === '5min') msg = `5분 전, ${name}`;
+        else if (type === '1min') msg = `1분 전, ${name}`;
+        else if (type === '0min') msg = `${name} 젠 입니다.`;
+
+        log(msg, true);
+        speak(msg);
+        if (Notification.permission === 'granted') {
+            const notification = new Notification('보스 알리미', { body: msg });
+            notification.onclick = () => window.focus();
         }
+
+        DB.updateSchedule(id, { [`alerted_${type}`]: targetTime });
+        DB.notifyStructural();
     }
 }
 

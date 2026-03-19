@@ -44,15 +44,10 @@ function startAutoRefresh(DOM) {
 }
 
 export function initTimetableScreen(DOM) {
-    // Migration: Remove obsolete keys and migrate filter state
-    localStorage.removeItem('bossManagementMode');
-
     let filterNextBoss = LocalStorageManager.get('timetableNextBossFilter');
     if (filterNextBoss === null) {
-        const oldFilter = LocalStorageManager.get('bossManagementNextBossFilter');
-        filterNextBoss = oldFilter !== null ? oldFilter : true; // Default to true
+        filterNextBoss = true; // Default to true
         LocalStorageManager.set('timetableNextBossFilter', filterNextBoss);
-        localStorage.removeItem('bossManagementNextBossFilter');
     }
 
     updateTimetableUI(DOM);
