@@ -1090,6 +1090,13 @@ export function renderExportCapture(DOM, options = {}) {
     // 데이터 필터링
     let bosses = schedule.filter(item => item.type === 'boss');
 
+    // 고정 알림을 48h 윈도우로 병합 (렌더 시점과 동일 기준)
+    const windowStart = new Date(now);
+    windowStart.setHours(0, 0, 0, 0);
+    const windowEnd = new Date(windowStart);
+    windowEnd.setDate(windowEnd.getDate() + 2);
+    bosses = [...bosses, ..._expandFixedAlarmsInRange(windowStart, windowEnd)];
+
     if (dateRange !== 'all') {
         const targetDate = new Date();
         if (dateRange === 'tomorrow') targetDate.setDate(targetDate.getDate() + 1);
@@ -1103,6 +1110,8 @@ export function renderExportCapture(DOM, options = {}) {
     if (nextBossOnly) {
         bosses = bosses.filter(boss => new Date(boss.scheduledDate) > now);
     }
+
+    bosses.sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
 
     // 이름 최대 길이 계산 (카드 모드용)
     const maxNameLength = bosses.length > 0
@@ -1148,8 +1157,9 @@ export function renderExportCapture(DOM, options = {}) {
 
             const time = boss.timeFormat === 'hm' ? boss.time.substring(0, 5) : boss.time;
 
+            const fixedClass = boss.isFixed ? ' list-item--fixed' : '';
             currentCardHtml += `
-                    <div class="list-item list-item--dense" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden; padding: 10px 0;">
+                    <div class="list-item list-item--dense${fixedClass}" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden; padding: 10px 0;">
                         <span style="font-weight: bold; min-width: 60px; flex-shrink: 0;">${time}</span>
                         <span style="display: inline-block; margin-left: 16px; min-width: ${nameMinWidth}px; flex-shrink: 0; white-space: nowrap; font-weight: 500;">${boss.name}</span>
                         ${boss.memo ? `<span style="font-size: 0.9em; color: #666; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${boss.memo}</span>` : ''}
@@ -1206,9 +1216,10 @@ export function renderExportCapture(DOM, options = {}) {
             }
 
             const time = boss.timeFormat === 'hm' ? boss.time.substring(0, 5) : boss.time;
+            const rowClass = boss.isFixed ? ' class="boss-table-row--fixed"' : '';
 
             currentTableHtml += `
-                    <tr>
+                    <tr${rowClass}>
                         <td class="boss-table-time">${time}</td>
                         <td class="boss-table-name">${boss.name}</td>
                         <td class="boss-table-memo">${boss.memo || ''}</td>

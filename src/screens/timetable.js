@@ -293,6 +293,37 @@ async function handleExportText(DOM) {
     const now = new Date();
     const days = ['일', '월', '화', '수', '목', '금', '토'];
 
+    // 고정 알림을 48h 윈도우로 병합 (시간표/이미지와 동일 기준)
+    const fixedAlarms = LocalStorageManager.getFixedAlarms().filter(a => a.enabled);
+    const fixedEntries = [];
+    if (fixedAlarms.length > 0) {
+        const windowStart = new Date(now);
+        windowStart.setHours(0, 0, 0, 0);
+        const windowEnd = new Date(windowStart);
+        windowEnd.setDate(windowEnd.getDate() + 2);
+        const cursor = new Date(windowStart);
+        while (cursor < windowEnd) {
+            const dayIndex = cursor.getDay();
+            for (const alarm of fixedAlarms) {
+                const allowed = alarm.days ?? [0, 1, 2, 3, 4, 5, 6];
+                if (!allowed.includes(dayIndex)) continue;
+                const [hh, mm] = String(alarm.time).split(':').map(Number);
+                const occ = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), hh || 0, mm || 0, 0);
+                if (occ < windowStart || occ >= windowEnd) continue;
+                fixedEntries.push({
+                    type: 'boss',
+                    isFixed: true,
+                    name: alarm.name,
+                    scheduledDate: occ.toISOString(),
+                    memo: ''
+                });
+            }
+            cursor.setDate(cursor.getDate() + 1);
+        }
+    }
+    schedule.push(...fixedEntries);
+    schedule.sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
+
     const getFormattedDateStrings = (date) => {
         const mm = date.getMonth() + 1;
         const dd = date.getDate();
