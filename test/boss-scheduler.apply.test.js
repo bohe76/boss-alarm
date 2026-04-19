@@ -96,19 +96,8 @@ describe('BossSchedulerScreen Apply Logic', () => {
 
         initBossSchedulerScreen(DOM);
 
-        // 프리셋 데이터 주입 (침공 보스 필터링 테스트용)
-        BossDataManager.initPresets({
-            'odin-main': {
-                bossMetadata: {
-                    '침공 셀로비아': { interval: 0, isInvasion: true },
-                    '일반 보스': { interval: 0, isInvasion: false },
-                    '우로보로스': 0,
-                    '파르바': 0,
-                    '셀로비아': 0,
-                    '페티': 0
-                }
-            }
-        });
+        // 프리셋 주입은 이제 boss-scheduler-data.js::loadBossSchedulerData 가 담당한다(issue-032).
+        // 테스트에서 필요한 보스 메타데이터는 mock 된 BossDataManager 가 대신 처리하므로 별도 주입은 생략한다.
     });
 
     afterEach(() => {

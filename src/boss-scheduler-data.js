@@ -2,6 +2,7 @@
 
 import { log } from './logger.js';
 import { CustomListManager } from './custom-list-manager.js';
+import { syncPresetsToDb } from './preset-loader.js';
 
 let bossMetadata = {}; //From boss-presets.json
 let initialDefaultData = null; // From initial-default.json
@@ -25,6 +26,9 @@ export async function loadBossSchedulerData() {
         bossMetadata = await presetsRes.json();
         initialDefaultData = await defaultRes.json();
         updateNoticeData = await noticeRes.json();
+
+        // issue-032: 메모리 캐시뿐 아니라 DB games/bosses 테이블에도 sync 해야 48h 확장·프리셋 인터벌 강제 적용이 동작한다.
+        syncPresetsToDb(bossMetadata);
 
         log(`보스 프리셋 및 초기 데이터를 성공적으로 로드했습니다.`);
         return { bossMetadata, initialDefaultData, updateNoticeData };

@@ -1,6 +1,5 @@
 // src/app.js
 
-import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning } from './alarm-scheduler.js';
 import { renderFixedAlarms, renderAlarmStatusSummary, renderDashboard, updateBossListTextarea, renderUpdateModal } from './ui-renderer.js';
 import { log } from './logger.js';
@@ -10,6 +9,8 @@ import { getInitialDefaultData, getUpdateNoticeData } from './boss-scheduler-dat
 import { EventBus } from './event-bus.js';
 import { getRoute, registerRoute } from './router.js';
 import { initializeCoreServices } from './services.js';
+import { DB } from './db.js';
+import { decodeV3Data } from './share-encoder.js';
 import { initGlobalEventListeners } from './global-event-listeners.js';
 import { togglePipWindow } from './pip-manager.js';
 import { trackPageView, trackEvent } from './analytics.js'; // Added GA imports
@@ -269,7 +270,6 @@ async function performSilentMigration(DOM, schedule) {
 }
 
 async function loadInitialData(DOM) {
-    const params = new URLSearchParams(window.location.search);
     let loadSuccess = false;
 
     // 0. [방어 로직] 마지막 선택 게임 정보가 없으면 기본값 설정 (Clean Install 대응)
@@ -285,24 +285,33 @@ async function loadInitialData(DOM) {
         log(`초기 설정: 보스 목록이 선택되지 않아 '${defaultId}'로 자동 설정했습니다.`);
     }
 
-    // 1. URL 데이터 우선 로드
-    if (params.has('data')) {
-        const currentListId = params.get('game') || storedListId;
-        DOM.schedulerBossListInput.value = decodeURIComponent(params.get('data'));
-        const result = parseBossList(DOM.schedulerBossListInput);
+    // 1. URL v3data 파라미터 로드 (issue-036)
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('v3data')) {
+        const payload = decodeV3Data(params.get('v3data'));
+        if (payload) {
+            const targetBosses = DB.getBossesByGameId(payload.gameId);
+            if (targetBosses.length > 0) {
+                const bossIdByName = new Map(targetBosses.map(b => [b.name, b.id]));
+                const newSchedules = payload.schedules
+                    .filter(s => bossIdByName.has(s.bossName))
+                    .map(s => ({
+                        bossId: bossIdByName.get(s.bossName),
+                        scheduledDate: s.scheduledDate,
+                        memo: s.memo || ''
+                    }));
 
-        if (result.success) {
-            const integrity = await validateScheduleIntegrity(currentListId, result.mergedSchedule);
-            if (integrity) {
-                BossDataManager.setBossSchedule(result.mergedSchedule);
-                BossDataManager.clearDraft(currentListId);
+                LocalStorageManager.set('lastSelectedGame', payload.gameId);
+                storedListId = payload.gameId;
+                DB.replaceSchedulesByGameId(payload.gameId, newSchedules);
+                BossDataManager.clearDraft(payload.gameId);
                 loadSuccess = true;
-                log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
+                log(`URL에서 '${payload.gameId}' 스케줄 ${newSchedules.length}건을 불러왔습니다.`);
             } else {
-                // 이름 불일치 시: 자동 마이그레이션 실행
-                log("URL 데이터 이름 불일치 감지. 자동으로 커스텀 리스트로 이관합니다.");
-                loadSuccess = await performSilentMigration(DOM, result.mergedSchedule);
+                log(`URL의 게임 '${payload.gameId}'가 DB에 없어 로드를 건너뜁니다.`);
             }
+        } else {
+            log("URL v3data 디코딩 실패");
         }
     }
 

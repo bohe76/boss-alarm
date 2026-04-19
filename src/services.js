@@ -1,7 +1,7 @@
 // src/services.js
 import { initLogger } from './logger.js';
 import { loadBossSchedulerData } from './boss-scheduler-data.js';
-import { LocalStorageManager, BossDataManager } from './data-managers.js';
+import { LocalStorageManager } from './data-managers.js';
 import { CustomListManager } from './custom-list-manager.js';
 
 /**
@@ -16,10 +16,7 @@ export async function initializeCoreServices(DOM) {
     LocalStorageManager.init();
     CustomListManager.init();
 
-    // Load boss data from the server.
-    const { bossMetadata } = await loadBossSchedulerData();
-
-    // Initialize presets in DataManager
-    BossDataManager.initPresets(bossMetadata);
+    // Load boss data from the server. (프리셋 → DB sync 까지 여기서 수행)
+    await loadBossSchedulerData();
 }
 

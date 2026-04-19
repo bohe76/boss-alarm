@@ -601,11 +601,6 @@
                         </div>
                     </div>
 
-                    <div class="modal-tabs" style="width: 100%; max-width: 960px; margin: 0 auto 20px auto;">
-                        <button id="tab-scheduler-input" class="tab-button active">간편 입력 모드</button>
-                        <button id="tab-scheduler-text" class="tab-button">텍스트 모드</button>
-                    </div>
-
                     <div id="scheduler-input-mode-section" class="scheduler-tab-content active">
                         <div class="boss-list-display-container card-standard card-size-list">
                             <div class="boss-input-header">
@@ -620,14 +615,6 @@
                                     <!-- Boss input fields will be rendered here -->
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div id="scheduler-text-mode-section" class="scheduler-tab-content" style="display: none;">
-                        <div class="card-size-list">
-                            <p class="boss-management-instruction">알림을 원하지 않는 보스는 텍스트에서 삭제하세요.<br>정확한 알림을 원하면 초까지
-                                입력해주세요.</p>
-                            <textarea id="schedulerBossListInput" placeholder="12:34 보스이름 형식으로 입력하세요."></textarea>
                         </div>
                     </div>
 
@@ -740,15 +727,14 @@
 
     <div id="toast-container"></div>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <link rel="stylesheet" href="src/styles/style.css?v=2.17.7.1">
+    <link rel="stylesheet" href="src/styles/style.css?v=3.0.0">
     <script type="module">
-        window.APP_VERSION = "2.17.7.1"; // Define global app version
+        window.APP_VERSION = "3.0.0"; // Define global app version
 
         import { initDomElements } from './src/dom-elements.js';
         import { initLogger, log } from './src/logger.js';
         import { BossDataManager, LocalStorageManager } from './src/data-managers.js';
         import { speak } from './src/speech.js'; // Import speak function
-        import { parseBossList } from './src/boss-parser.js';
         import { startAlarm, stopAlarm, getIsAlarmRunning } from './src/alarm-scheduler.js';
         import { updateBossListTextarea, renderFixedAlarms, updateFixedAlarmVisuals } from './src/ui-renderer.js';
         import { getShortUrl } from './src/api-service.js';

@@ -469,6 +469,13 @@ export function renderFixedAlarms(DOM) {
             return `<button class="day-button ${isActive ? 'active' : ''}" data-day-index="${index}">${day}</button>`;
         }).join('')}
                 </div>
+                <div class="button-group">
+                    <button class="button edit-fixed-alarm-button icon-button" data-id="${alarm.id}" title="수정">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .642.642l3.155-1.262a2 2 0 0 0 .733-.503l11.04-11.04a2 2 0 0 0 0-2.828l-1.414-1.414a2 2 0 0 0-2.828 0L2.192 12.602a2 2 0 0 0-.503.733Z" />
+                            <path d="M11.695 3.332 14.668 6.305 16.546 4.427a1 1 0 0 0 0-1.414l-1.414-1.414a1 1 0 0 0-1.414 0l-1.878 1.878Z" />
+                        </svg>
+                        <span class="btn-text">수정</span>
                     </button>
                     <button class="button delete-fixed-alarm-button icon-button" data-id="${alarm.id}" title="삭제">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -834,6 +841,44 @@ export function updateTimetableUI(DOM, options = {}) {
     });
 }
 
+/**
+ * 활성화된 고정 알림을 주어진 날짜 범위 내 가상 타임테이블 엔트리로 확장한다.
+ * 보스 스케줄과 동일한 shape({ type, name, time, scheduledDate, memo, ... })을 반환해 정렬·렌더링에서 통합 처리 가능.
+ * @param {Date} rangeStart 범위 시작(포함)
+ * @param {Date} rangeEnd 범위 종료(비포함)
+ */
+function _expandFixedAlarmsInRange(rangeStart, rangeEnd) {
+    const alarms = LocalStorageManager.getFixedAlarms().filter(a => a.enabled);
+    if (alarms.length === 0) return [];
+
+    const result = [];
+    const cursor = new Date(rangeStart);
+    cursor.setHours(0, 0, 0, 0);
+
+    while (cursor < rangeEnd) {
+        const dayIndex = cursor.getDay();
+        for (const alarm of alarms) {
+            const days = alarm.days ?? [0, 1, 2, 3, 4, 5, 6];
+            if (!days.includes(dayIndex)) continue;
+            const [hh, mm] = String(alarm.time).split(':').map(Number);
+            const occ = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), hh || 0, mm || 0, 0);
+            if (occ < rangeStart || occ >= rangeEnd) continue;
+            result.push({
+                type: 'boss',
+                isFixed: true,
+                id: `fixed-${alarm.id}-${occ.getTime()}`,
+                name: alarm.name,
+                time: alarm.time,
+                timeFormat: 'hm',
+                scheduledDate: occ.toISOString(),
+                memo: ''
+            });
+        }
+        cursor.setDate(cursor.getDate() + 1);
+    }
+    return result;
+}
+
 export function renderTimetableList(DOM, options = {}) {
     if (!DOM.bossListCardsContainer) return;
 
@@ -845,6 +890,14 @@ export function renderTimetableList(DOM, options = {}) {
 
     // 2. 보스 데이터 추출 및 날짜 필터링
     let bosses = schedule.filter(item => item.type === 'boss');
+
+    // 고정 알림을 48h 윈도우(또는 선택된 dateRange)로 확장해 보스와 병합
+    const windowStart = new Date(now);
+    windowStart.setHours(0, 0, 0, 0);
+    const windowEnd = new Date(windowStart);
+    windowEnd.setDate(windowEnd.getDate() + 2);
+    const fixedEntries = _expandFixedAlarmsInRange(windowStart, windowEnd);
+    bosses = [...bosses, ...fixedEntries];
 
     if (dateRange !== 'all') {
         const targetDate = new Date();
@@ -920,8 +973,9 @@ export function renderTimetableList(DOM, options = {}) {
                 time = boss.time; // HH:MM:SS
             }
 
+            const fixedClass = boss.isFixed ? ' list-item--fixed' : '';
             currentCardHtml += `
-                <div class="list-item list-item--dense" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden; padding: 10px 0;">
+                <div class="list-item list-item--dense${fixedClass}" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden; padding: 10px 0;">
                     <span style="font-weight: bold; min-width: 60px; flex-shrink: 0;">${time}</span>
                     <span style="display: inline-block; margin-left: 16px; min-width: ${nameMinWidth}px; flex-shrink: 0; white-space: nowrap; font-weight: 500;">${boss.name}</span>
                     ${boss.memo ? `<span style="font-size: 0.9em; color: #666; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${boss.memo}</span>` : ''}
@@ -996,8 +1050,9 @@ export function renderTimetableList(DOM, options = {}) {
                 time = boss.time; // HH:MM:SS
             }
 
+            const rowClass = boss.isFixed ? ' class="boss-table-row--fixed"' : '';
             currentTableHtml += `
-                <tr>
+                <tr${rowClass}>
                     <td class="boss-table-time">${time}</td>
                     <td class="boss-table-name">${boss.name}</td>
                     <td class="boss-table-memo">${boss.memo || ''}</td>
@@ -1035,6 +1090,13 @@ export function renderExportCapture(DOM, options = {}) {
     // 데이터 필터링
     let bosses = schedule.filter(item => item.type === 'boss');
 
+    // 고정 알림을 48h 윈도우로 병합 (렌더 시점과 동일 기준)
+    const windowStart = new Date(now);
+    windowStart.setHours(0, 0, 0, 0);
+    const windowEnd = new Date(windowStart);
+    windowEnd.setDate(windowEnd.getDate() + 2);
+    bosses = [...bosses, ..._expandFixedAlarmsInRange(windowStart, windowEnd)];
+
     if (dateRange !== 'all') {
         const targetDate = new Date();
         if (dateRange === 'tomorrow') targetDate.setDate(targetDate.getDate() + 1);
@@ -1048,6 +1110,8 @@ export function renderExportCapture(DOM, options = {}) {
     if (nextBossOnly) {
         bosses = bosses.filter(boss => new Date(boss.scheduledDate) > now);
     }
+
+    bosses.sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
 
     // 이름 최대 길이 계산 (카드 모드용)
     const maxNameLength = bosses.length > 0
@@ -1093,8 +1157,9 @@ export function renderExportCapture(DOM, options = {}) {
 
             const time = boss.timeFormat === 'hm' ? boss.time.substring(0, 5) : boss.time;
 
+            const fixedClass = boss.isFixed ? ' list-item--fixed' : '';
             currentCardHtml += `
-                    <div class="list-item list-item--dense" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden; padding: 10px 0;">
+                    <div class="list-item list-item--dense${fixedClass}" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden; padding: 10px 0;">
                         <span style="font-weight: bold; min-width: 60px; flex-shrink: 0;">${time}</span>
                         <span style="display: inline-block; margin-left: 16px; min-width: ${nameMinWidth}px; flex-shrink: 0; white-space: nowrap; font-weight: 500;">${boss.name}</span>
                         ${boss.memo ? `<span style="font-size: 0.9em; color: #666; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${boss.memo}</span>` : ''}
@@ -1151,9 +1216,10 @@ export function renderExportCapture(DOM, options = {}) {
             }
 
             const time = boss.timeFormat === 'hm' ? boss.time.substring(0, 5) : boss.time;
+            const rowClass = boss.isFixed ? ' class="boss-table-row--fixed"' : '';
 
             currentTableHtml += `
-                    <tr>
+                    <tr${rowClass}>
                         <td class="boss-table-time">${time}</td>
                         <td class="boss-table-name">${boss.name}</td>
                         <td class="boss-table-memo">${boss.memo || ''}</td>
