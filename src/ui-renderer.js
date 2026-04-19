@@ -101,12 +101,28 @@ export function updateNextBossDisplay(DOM) {
 
 export function renderUpcomingBossList(DOM) {
     if (!DOM.upcomingBossListContent) return;
-    const upcomingBosses = BossDataManager.getUpcomingBosses(11);
+
+    const schedule = BossDataManager.getBossSchedule();
+    const now = new Date();
+    const nowTime = now.getTime();
+    const windowStart = new Date(now);
+    windowStart.setHours(0, 0, 0, 0);
+    const windowEnd = new Date(windowStart);
+    windowEnd.setDate(windowEnd.getDate() + 2);
+
+    const merged = [
+        ...schedule.filter(item => item.type === 'boss'),
+        ..._expandFixedAlarmsInRange(windowStart, windowEnd)
+    ]
+        .filter(b => b.scheduledDate && new Date(b.scheduledDate).getTime() > nowTime)
+        .sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
+
+    const upcoming = merged.slice(1, 11);
+
     let html = '<ul>';
-    if (upcomingBosses.length > 0) {
-        const now = Date.now();
-        upcomingBosses.slice(1).forEach(boss => {
-            const timeDiff = boss.timestamp - now;
+    if (upcoming.length > 0) {
+        upcoming.forEach(boss => {
+            const timeDiff = new Date(boss.scheduledDate).getTime() - nowTime;
             const isImminent = timeDiff < BOSS_THRESHOLDS.IMMINENT;
             const isWarning = timeDiff < BOSS_THRESHOLDS.WARNING;
             const isMedium = timeDiff < BOSS_THRESHOLDS.MEDIUM;
@@ -115,24 +131,25 @@ export function renderUpcomingBossList(DOM) {
             let spawnTimeClass = '';
             let bossNameClass = '';
             let remainingTimeClass = '';
-            if (isImminent) { // < 5 minutes (Highest priority)
+            if (isImminent) {
                 spawnTimeClass = 'imminent-boss-info';
                 bossNameClass = 'imminent-boss-info';
                 remainingTimeClass = 'imminent-remaining-time';
-            } else if (isWarning) { // < 10 minutes
+            } else if (isWarning) {
                 spawnTimeClass = 'imminent-boss-info';
                 bossNameClass = 'imminent-boss-info';
                 remainingTimeClass = 'warning-priority';
-            } else if (isMedium) { // < 1 hour
+            } else if (isMedium) {
                 spawnTimeClass = 'medium-priority';
                 bossNameClass = 'medium-priority';
                 remainingTimeClass = 'medium-priority';
-            } else { // Default: >= 1 hour
+            } else {
                 spawnTimeClass = 'default-grey';
                 bossNameClass = 'default-grey';
                 remainingTimeClass = 'default-grey';
             }
-            html += `<li class="list-item list-item--dense"><span class="spawn-time ${spawnTimeClass}">${formattedSpawnTime}</span> <span class="${bossNameClass}">${boss.name}</span> <span class="${remainingTimeClass}">${remaining}</span></li>`;
+            const fixedClass = boss.isFixed ? ' list-item--fixed' : '';
+            html += `<li class="list-item list-item--dense${fixedClass}"><span class="spawn-time ${spawnTimeClass}">${formattedSpawnTime}</span> <span class="${bossNameClass}">${boss.name}</span> <span class="${remainingTimeClass}">${remaining}</span></li>`;
         });
     } else {
         html += '<li>예정된 보스가 없습니다.</li>';
