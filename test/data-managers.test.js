@@ -470,4 +470,174 @@ describe('BossDataManager', () => {
             expect(result).toEqual([]);
         });
     });
+
+    // ──────────────────────────────────────────────
+    // 36시간 이상 보스 젠 로직 (Future Anchor Keeper 검증)
+    // v2.17.7.1 공지에 언급된 버그가 v3에서 해결됐는지 확인
+    // ──────────────────────────────────────────────
+    describe('long-interval boss respawn (>= 36h)', () => {
+        it('36시간 보스: 앵커+36h가 윈도우(모레 00:00)를 넘으면 앵커 1개만 유지', () => {
+            setupGame('g1');
+            const boss = setupBoss('g1', '우로보로스', 2160); // 36h
+
+            // NOW=09:00 기준 앵커 19:00 → +36h = 모레 07:00 (windowEnd=모레 00:00 보다 뒤)
+            const anchor = new Date(NOW.getTime() + 10 * 60 * 60 * 1000);
+            setDraft('g1', [{
+                type: 'boss', name: '우로보로스',
+                scheduledDate: anchor.toISOString(), memo: '', interval: 2160
+            }]);
+            BossDataManager.commitDraft('g1');
+
+            const schedules = DB.getSchedulesByGameId('g1').filter(s => s.bossId === boss.id);
+            expect(schedules.length).toBe(1);
+            expect(new Date(schedules[0].scheduledDate).getTime()).toBe(anchor.getTime());
+        });
+
+        it('36시간 보스: 앵커+36h가 윈도우 안(모레 00:00 이전)이면 forward 1회 확장', () => {
+            setupGame('g1');
+            const boss = setupBoss('g1', '우로보로스', 2160); // 36h
+
+            // NOW=09:00 기준 앵커 11:00 → +36h = 모레 23:00? 잠깐 계산: 11+36=47h후 = 모레 10:00
+            // startTime=오늘 00:00, endTime=모레 00:00 → 모레 10:00 > endTime → 밖
+            // 앵커를 자정 직후(00:30)로 잡으면 +36h = 모레 12:30 → 여전히 밖
+            // endTime 안에 포함되려면 앵커 + 36h ≤ 모레 00:00 → 앵커 ≤ 오늘 자정 = startTime
+            // 즉 **미래** 앵커가 36h 이내로 윈도우 안에 들어오려면 anchor가 과거여야 함 (backward 확장)
+            const anchor = new Date(NOW.getTime() - 8 * 60 * 60 * 1000); // 어제 01:00 (이미 지남, GC 대상 아님 - alerted_0min=false)
+            setDraft('g1', [{
+                type: 'boss', name: '우로보로스',
+                scheduledDate: anchor.toISOString(), memo: '', interval: 2160
+            }]);
+            BossDataManager.commitDraft('g1');
+
+            const schedules = DB.getSchedulesByGameId('g1')
+                .filter(s => s.bossId === boss.id)
+                .sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
+
+            // 앵커(어제 01:00) + forward 36h = 오늘 13:00 (윈도우 안) → 2개
+            expect(schedules.length).toBe(2);
+            expect(new Date(schedules[1].scheduledDate).getTime()).toBe(anchor.getTime() + 2160 * 60 * 1000);
+        });
+
+        it('48시간 보스: 앵커 + 48h 인스턴스가 윈도우 경계 근처면 제외 또는 포함 (startOfDay 기준)', () => {
+            setupGame('g1');
+            const boss = setupBoss('g1', '발리', 2880); // 48h
+
+            // 앵커: 지금(09:00) + 5시간 = 14:00
+            const anchor = new Date(NOW.getTime() + 5 * 60 * 60 * 1000);
+            setDraft('g1', [{
+                type: 'boss', name: '발리',
+                scheduledDate: anchor.toISOString(), memo: '', interval: 2880
+            }]);
+            BossDataManager.commitDraft('g1');
+
+            const schedules = DB.getSchedulesByGameId('g1').filter(s => s.bossId === boss.id);
+            // endTime = startOfDay + 48h = 모레 00:00
+            // anchor + 48h = 14:00 + 48h = 모레 14:00 > endTime → 윈도우 밖
+            // but hasFuture true(anchor가 future) → Future Anchor Keeper 발동 X → anchor만
+            expect(schedules.length).toBe(1);
+        });
+
+        it('72시간 보스: 미래 앵커만 있으면 정확히 1개 스케줄 생성', () => {
+            setupGame('g1');
+            const boss = setupBoss('g1', '오딘', 4320); // 72h
+
+            const anchor = new Date(NOW.getTime() + 12 * 60 * 60 * 1000);
+            setDraft('g1', [{
+                type: 'boss', name: '오딘',
+                scheduledDate: anchor.toISOString(), memo: '', interval: 4320
+            }]);
+            BossDataManager.commitDraft('g1');
+
+            const schedules = DB.getSchedulesByGameId('g1').filter(s => s.bossId === boss.id);
+            // 72h > 48h 윈도우. forward/backward 둘 다 윈도우 밖. anchor만 남음.
+            expect(schedules.length).toBe(1);
+            expect(new Date(schedules[0].scheduledDate).getTime()).toBe(anchor.getTime());
+        });
+
+        it('72시간 보스: 앵커가 과거(방금 지남)이면 Future Anchor Keeper가 다음 젠을 추가해야 한다', () => {
+            setupGame('g1');
+            const boss = setupBoss('g1', '오딘', 4320); // 72h
+
+            // 앵커: 지금(09:00) - 1시간 = 08:00 (이미 지남)
+            const anchor = new Date(NOW.getTime() - 1 * 60 * 60 * 1000);
+            setDraft('g1', [{
+                type: 'boss', name: '오딘',
+                scheduledDate: anchor.toISOString(), memo: '', interval: 4320
+            }]);
+            BossDataManager.commitDraft('g1');
+
+            const schedules = DB.getSchedulesByGameId('g1')
+                .filter(s => s.bossId === boss.id)
+                .sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate));
+
+            // 과거 앵커 + Future Anchor Keeper로 생성된 미래 젠 (anchor + 72h)
+            expect(schedules.length).toBe(2);
+            expect(new Date(schedules[0].scheduledDate).getTime()).toBe(anchor.getTime());
+            expect(new Date(schedules[1].scheduledDate).getTime()).toBe(anchor.getTime() + 4320 * 60 * 1000);
+        });
+
+        it('72시간 보스: 과거 앵커가 alerted_0min 완료 상태면 GC 후 미래 젠만 남아야 한다', () => {
+            setupGame('g1');
+            const boss = setupBoss('g1', '오딘', 4320);
+
+            const pastAnchor = new Date(NOW.getTime() - 1 * 60 * 60 * 1000);
+            // alerted_0min=true로 DB에 직접 주입
+            DB.addSchedule({
+                bossId: boss.id,
+                scheduledDate: pastAnchor.toISOString(),
+                alerted_0min: true
+            });
+
+            // 외부 트리거 없이 checkAndUpdateSchedule 강제 실행
+            BossDataManager.checkAndUpdateSchedule(true);
+
+            const schedules = DB.getSchedulesByGameId('g1').filter(s => s.bossId === boss.id);
+            // GC는 보스별 최소 1개 보존이므로, Future Anchor Keeper가 미래 인스턴스를 만들어 그걸 남긴다.
+            expect(schedules.length).toBe(1);
+            expect(new Date(schedules[0].scheduledDate).getTime()).toBeGreaterThan(NOW.getTime());
+            // 정확히 anchor + 72h
+            expect(new Date(schedules[0].scheduledDate).getTime())
+                .toBe(pastAnchor.getTime() + 4320 * 60 * 1000);
+        });
+
+        it('60시간 보스: 미래 앵커 기준 forward 확장은 윈도우 밖이라 앵커만 남는다', () => {
+            setupGame('g1');
+            const boss = setupBoss('g1', '히로킨', 3600); // 60h
+
+            const anchor = new Date(NOW.getTime() + 6 * 60 * 60 * 1000); // +6h → 15:00
+            setDraft('g1', [{
+                type: 'boss', name: '히로킨',
+                scheduledDate: anchor.toISOString(), memo: '', interval: 3600
+            }]);
+            BossDataManager.commitDraft('g1');
+
+            const schedules = DB.getSchedulesByGameId('g1').filter(s => s.bossId === boss.id);
+            expect(schedules.length).toBe(1);
+            expect(new Date(schedules[0].scheduledDate).getTime()).toBe(anchor.getTime());
+        });
+
+        it('checkAndUpdateSchedule: 날짜가 바뀌면 윈도우 재구축으로 과거 인스턴스를 GC하고 미래를 채운다', () => {
+            setupGame('g1');
+            const boss = setupBoss('g1', '토르', 4320); // 72h
+
+            // 어제 앵커(alerted_0min=true) 주입
+            const yesterday = new Date(NOW.getTime() - 24 * 60 * 60 * 1000);
+            DB.addSchedule({
+                bossId: boss.id,
+                scheduledDate: yesterday.toISOString(),
+                alerted_0min: true
+            });
+            // lastAutoUpdateTimestamp 는 어제 → 날짜 달라 재구축 트리거
+            DB.setSetting('lastAutoUpdateTimestamp', yesterday.getTime());
+
+            BossDataManager.checkAndUpdateSchedule(false);
+
+            const schedules = DB.getSchedulesByGameId('g1').filter(s => s.bossId === boss.id);
+            expect(schedules.length).toBe(1);
+            const t = new Date(schedules[0].scheduledDate).getTime();
+            // 과거 인스턴스가 GC로 제거된 뒤 Future Anchor Keeper가 어제 앵커 + 72h 를 생성해야 한다
+            expect(t).toBeGreaterThan(NOW.getTime());
+            expect(t).toBe(yesterday.getTime() + 4320 * 60 * 1000);
+        });
+    });
 });
