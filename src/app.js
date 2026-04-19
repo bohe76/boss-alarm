@@ -9,6 +9,8 @@ import { getInitialDefaultData, getUpdateNoticeData } from './boss-scheduler-dat
 import { EventBus } from './event-bus.js';
 import { getRoute, registerRoute } from './router.js';
 import { initializeCoreServices } from './services.js';
+import { DB } from './db.js';
+import { decodeV3Data } from './share-encoder.js';
 import { initGlobalEventListeners } from './global-event-listeners.js';
 import { togglePipWindow } from './pip-manager.js';
 import { trackPageView, trackEvent } from './analytics.js'; // Added GA imports
@@ -283,7 +285,35 @@ async function loadInitialData(DOM) {
         log(`초기 설정: 보스 목록이 선택되지 않아 '${defaultId}'로 자동 설정했습니다.`);
     }
 
-    // 1. URL 데이터 우선 로드 (v3 공유 URL 재구현 전까지 비활성 — issue-036 참고)
+    // 1. URL v3data 파라미터 로드 (issue-036)
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('v3data')) {
+        const payload = decodeV3Data(params.get('v3data'));
+        if (payload) {
+            const targetBosses = DB.getBossesByGameId(payload.gameId);
+            if (targetBosses.length > 0) {
+                const bossIdByName = new Map(targetBosses.map(b => [b.name, b.id]));
+                const newSchedules = payload.schedules
+                    .filter(s => bossIdByName.has(s.bossName))
+                    .map(s => ({
+                        bossId: bossIdByName.get(s.bossName),
+                        scheduledDate: s.scheduledDate,
+                        memo: s.memo || ''
+                    }));
+
+                LocalStorageManager.set('lastSelectedGame', payload.gameId);
+                storedListId = payload.gameId;
+                DB.replaceSchedulesByGameId(payload.gameId, newSchedules);
+                BossDataManager.clearDraft(payload.gameId);
+                loadSuccess = true;
+                log(`URL에서 '${payload.gameId}' 스케줄 ${newSchedules.length}건을 불러왔습니다.`);
+            } else {
+                log(`URL의 게임 '${payload.gameId}'가 DB에 없어 로드를 건너뜁니다.`);
+            }
+        } else {
+            log("URL v3data 디코딩 실패");
+        }
+    }
 
     // 2. 기존 로컬 스토리지 데이터 검사 (URL 로드 실패 시에만 실행)
     if (!loadSuccess) {
