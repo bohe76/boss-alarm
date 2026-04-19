@@ -1,26 +1,6 @@
-# 모듈별 상세 설명 (v2.1 - 디자인 표준화 및 동적 레이아웃 적용)
+# 모듈별 상세 설명 (v3.0.0 - 4-테이블 DB 정규화 아키텍처)
 
 이 문서는 '보스 알리미' 애플리케이션을 구성하는 각 JavaScript 모듈의 역할, `export`되는 모든 API의 상세 명세, 핵심 내부 로직, 그리고 다른 모듈과의 상호작용 방식을 코드 수준에서 상세히 기술합니다.
-
----
-
-## 00. 에이전틱 워크플로우 엔진 (`.agent/workflows/`)
-
-### 역할
-안티그래비티 에이전트의 자율적 작업 및 자동화를 위한 **절차적 실행 엔진**입니다. `GEMINI.md`에 정의된 기술적 기준과 원칙을 실제 도구(tool) 호출로 변환하는 오퍼레이션 레이어를 담당합니다.
-
-### 주요 워크플로우 (슬래시 명령어)
-*   **/업무준비**: 프로젝트 핵심 문서 및 지난 세션의 인수인계서(`session_handoff.md`)를 학습하여 문맥을 복구합니다.
-*   **/검증**: `npm run lint` 및 로직 변경 시 `npm test`를 수행하여 코드의 안정성을 보장합니다. (정적 파일 생략 정책 준수)
-*   **/린트**: 린트 에러가 **0**이 될 때까지 스스로 코드를 분석하고 수정하는 자율 정제 루프를 실행합니다.
-*   **/문서업데이트**: 코드의 물리적 변화와 문서의 논리적 설명을 100% 동기화하는 정밀 동기화 작업을 수행합니다.
-*   **/배포**: 버전 업데이트, 릴리즈 노트 생성, 업데이트 공지 UI 갱신 등 배포 전 공정을 자동화합니다.
-*   **/오토파일럿**: 이슈 분석부터 TDD 구현, 문서 이동까지 이슈 해결의 전 과정을 자율적으로 수행합니다.
-*   **/세션종료**: 작업 성과 요약 및 `session_handoff.md` 작성을 통해 다음 업무를 위한 인수인계를 수행합니다.
-
-### 핵심 운영 메커니즘
-- **기준(GEMINI) 참조**: 모든 워크플로우는 상세 지시 사항을 직접 담는 대신, `GEMINI.md`의 최신 원칙을 참조하여 실행함으로써 지식의 일관성을 유지합니다.
-- **Fail-Fast**: 검증 단계에서 오류 발생 시 즉시 중단하고 사용자에게 보고하거나 자율 수정 루프(린트 등)로 전환합니다.
 
 ---
 
@@ -81,8 +61,8 @@
 - **설명:** 애플리케이션 시작 시 데이터 무결성을 검증하며 초기 일정을 설정합니다. URL -> 로컬 스토리지 -> 샘플 데이터 순으로 우선순위를 가집니다.
 - **인자:** `DOM` (`Object`)
 - **핵심 내부 로직:** 
-    1.  **URL 파라미터 검사**: `data` 쿼리가 있는 경우 최우선 파싱합니다. 파싱 결과가 현재 프리셋/커스텀 목록과 일치하지 않으면(`validateScheduleIntegrity` 실패), 데이터를 버리는 대신 **`performSilentMigration`**을 호출하여 사용자 입력을 보존합니다.
-    2.  **로컬 스토리지 검사**: URL 데이터가 없을 때 실행됩니다. 저장된 일정의 정합성을 검사하고, 오염(커스텀 목록 삭제 등) 감지 시 자동으로 자가 치유(마이그레이션)를 실행합니다.
+    1.  **URL 파라미터 검사**: `v3data` 쿼리가 있는 경우 `decodeV3Data()`로 최우선 파싱합니다. 성공 시 `DB.replaceSchedulesByGameId()`로 DB를 갱신합니다.
+    2.  **DB 검사**: URL 데이터가 없을 때 `DB`에서 마지막 선택 게임의 스케줄을 로드합니다.
     3.  **최종 결계 (샘플 복구)**: 로드에 완전히 실패한 경우에만 기본 샘플 데이터를 로드하여 최소한의 서비스 가용성을 보장합니다.
 
 #### `validateScheduleIntegrity(listId, schedule)` (async)
@@ -216,7 +196,7 @@
 #### `BossDataManager` (싱글톤 객체)
 - **설명:** 보스 스케줄(SSOT) 및 Draft(임시 스케줄)를 관리합니다. SSOT 변경 시 Draft와 localStorage가 즉시 동기화됩니다.
 - **주요 메소드:**
-    *   `initPresets(presets)`: `void`. 보스 프리셋 메타데이터(`boss-presets.json`)를 주입합니다. **주입 즉시 기존 스케줄을 48시간 분량으로 자동 확장합니다.**
+    *   `initPresets(presets)`: `void`. 보스 프리셋 메타데이터(`boss-presets.json`)를 주입합니다. **주입 즉시 `syncPresetsToDb()`로 DB를 동기화하고 기존 스케줄을 48시간 분량으로 자동 확장합니다.**
     *   `getBossInterval(bossName, contextId)`: `number`. 특정 보스의 리젠 주기(분)를 프리셋에서 찾아 반환합니다. 보스 이름과 게임 컨텍스트를 기반으로 검색합니다.
     *   `getBossSchedule(uiFilter)`: `Array`. 현재 파싱 및 확장된 보스 일정 배열(Main SSOT)을 반환합니다. `uiFilter`가 `true`인 경우, **48시간 윈도우 내에 보스 정보가 없는 빈 날짜 헤더를 자동으로 제거**하는 UI Purification 프로세스를 수행합니다.
     *   `isPresetNamesMatching(listId, schedule)`: `Promise<boolean>`. 특정 프리셋 리스트와 스케줄의 보스 이름들이 일치하는지 확인합니다. (v2.17.2: 인스턴스 개수가 아닌 **보스 종류(Type)**의 비교로 로직이 개선되었습니다.)
@@ -230,7 +210,7 @@
     *   `getAllUpcomingBosses(nowTime)`: `Array`. 동적 보스와 고정 알림을 통합하여 시간순으로 정렬된 모든 예정된 보스 목록을 반환합니다.
     *   `getBossStatusSummary(nowTime)`: `Object`. 다음 보스, 남은 시간, 임박한 보스 목록 등 현재 상태 요약을 반환합니다.
     *   `getUpcomingBosses(count)`: `Array`. 현재 시간 이후 예정된 보스 목록을 `count`만큼 정확히 반환합니다.
-    *   `subscribe(callback, type)`: `void`. `BossDataManager`의 데이터 변경을 감지할 콜백 함수를 등록합니다.
+    *   `subscribe(callback, type)`: `void`. `BossDataManager`의 데이터 변경을 감지할 콜백 함수를 등록합니다. **`DB.subscribe()`와 달리 unsubscribe 함수를 반환하지 않습니다.**
         - **`structural` (기본값)**: 보스 추가/삭제/스케줄 변경 등 전체 데이터 구조 변화 시 알림.
         - **`ui`**: 단순 시간 흐름에 따른 렌더링 갱신 필요 시 알림. (`notifyStructural` 호출 시에도 함께 트리거됨)
     *   `notifyStructural() / notifyUI()`: 내부 관리를 위한 알림 트리거 함수입니다.
@@ -366,21 +346,35 @@
     - `getShortUrl(longUrl)`: TinyURL API를 사용하여 긴 URL을 단축합니다.
     - `loadJsonContent(filePath)`: 지정된 경로에서 JSON 파일을 비동기적으로 로드합니다.
 
-## 13. `src/boss-parser.js`
+## 13. `src/db.js` (4-테이블 정규화 DB)
 
-- **역할:** 사용자 입력 텍스트(보스 목록)를 파싱하여 구조화된 데이터로 변환합니다. **시간 역전 감지 로직**을 통해 날짜 롤오버를 자동 처리하며, **엄격한 날짜 헤더 규칙**과 **지능형 이름 추출**을 지원합니다.
-- **주요 `export` 함수:**
-    - `parseBossList(bossListInput)`:
-        *   **엄격한 날짜 헤더**: 첫 번째 줄은 반드시 `MM.DD` 형식의 날짜여야 하며, 이를 기준으로 전체 일정의 시작점을 정의합니다.
-        *   **지능형 이름 추출**: 명시적인 비고 구분자(`#`)가 없을 경우 시간 뒤의 텍스트 전체를 이름으로 간주하여 공백 포함 이름을 안전하게 보존합니다.
-        *   각 줄을 파싱할 때 보스 이름과 시간을 조합한 **표준 UID**를 생성하여 부여하며, 시간 역전 감지 로직을 통해 날짜 롤오버를 자동 처리합니다.
-    - `getSortedBossListText(rawText)`: 원본 텍스트를 그대로 반환합니다 (하위 호환성).
+- **역할:** localStorage를 기반으로 5개 키(`v3_games`, `v3_bosses`, `v3_schedules`, `v3_settings`, `v3_uid_counter`)를 관리하는 정규화 DB 싱글톤입니다.
+- **주요 API:**
+    - `DB.save()`: 변경사항을 localStorage에 저장합니다. `QuotaExceededError` 발생 시 `false`를 반환합니다.
+    - `DB.importAll(data)`: 외부 데이터를 가져옵니다. `schedules.bossId → bosses` FK 검증을 수행합니다.
+    - `DB.subscribe(callback)`: 데이터 변경 구독을 등록합니다. **unsubscribe 함수를 반환합니다** (`() => arr.splice(idx, 1)`).
+    - `DB.getGames()` / `DB.getBossesByGameId(gameId)` / `DB.getSchedulesByGameId(gameId)` / `DB.getSetting(key)`: 데이터 조회 API.
+    - `DB.upsertGame(game)` / `DB.upsertBoss(boss)` / `DB.deleteBoss(bossId)`: 게임·보스 CRUD. `deleteBoss`는 연관 스케줄을 cascade 삭제합니다.
+    - `DB.replaceSchedulesByGameId(gameId, schedules)`: 특정 게임의 스케줄 전체를 교체합니다 (공유 URL 가져오기 시 사용).
+
+## 13.1. `src/preset-loader.js` (프리셋 DB 동기화)
+
+- **역할:** `boss-presets.json` 프리셋 데이터를 DB와 동기화합니다.
+- **주요 함수:**
+    - `syncPresetsToDb(presets)`: `DB.upsertGame`, `DB.upsertBoss`로 프리셋의 게임·보스를 DB에 반영하고, 프리셋에서 제거된 보스는 `DB.deleteBoss`로 cascade 정리합니다.
+
+## 13.2. `src/share-encoder.js` (v3 공유 URL 인코딩)
+
+- **역할:** v3 공유 payload를 base64(JSON) 방식으로 인코딩/디코딩합니다. `VERSION = '3'`을 사용합니다.
+- **주요 함수:**
+    - `encodeV3Data({ gameId, schedules })`: `TextEncoder`로 UTF-8 인코딩 후 base64 문자열을 반환합니다.
+    - `decodeV3Data(encoded)`: base64 → JSON 파싱 후 `payload.v !== '3'`이면 `null`을 반환합니다.
 
 ## 14. `src/boss-scheduler-data.js`
 
 - **역할:** 보스 프리셋 메타데이터(`boss-presets.json`), 초기 기본 데이터(`initial-default.json`) 및 **업데이트 공지 데이터(`update-notice.json`)**를 비동기 로드하고 제공합니다. `CustomListManager`와 연동하여 사용자 지정 목록도 통합 관리합니다.
 - **주요 `export` 함수:**
-    - `loadBossSchedulerData()`: `boss-presets.json`, `initial-default.json`, `update-notice.json`을 `fetch`로 비동기 로드합니다. 로드 실패 시 사용자에게 알림(`alert`)을 표시하고 빈 데이터로 폴백합니다.
+    - `loadBossSchedulerData()`: `boss-presets.json`, `initial-default.json`, `update-notice.json`을 `fetch`로 비동기 로드합니다. 로드 완료 후 **`syncPresetsToDb(bossMetadata)`를 호출하여 DB와 프리셋을 동기화합니다** (issue-032 해결). 로드 실패 시 사용자에게 알림(`alert`)을 표시하고 빈 데이터로 폴백합니다.
     - `getInitialDefaultData()`: 앱 초기 구동 시 사용할 기본 보스 목록 데이터(`{ items: [...] }`)를 반환합니다.
     - `getBossMetadata()`: 전체 보스 프리셋 메타데이터 객체를 반환합니다.
     - `getUpdateNoticeData()`: 로드된 업데이트 안내 공지 데이터 객체를 반환합니다.
@@ -463,5 +457,5 @@
 | **`dashboard.js`** | `getScreen()` | `init` 시 `initDashboardScreen(DOM)`이 호출되어 `DOM.muteToggleButton` (음소거 버튼)과 `DOM.volumeSlider` (볼륨 슬라이더)에 대한 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링합니다. 음소거 버튼 클릭 시 `LocalStorageManager.setMuteState()`를 호출하여 음소거 상태를 토글하며, 볼륨 슬라이더 조작 시 `LocalStorageManager.setVolume()`을 통해 볼륨 값을 저장합니다. 두 UI 요소 모두 변경 시 `ui-renderer.js`의 `updateSoundControls(DOM)`를 호출하여 시각적 상태를 갱신합니다. `initDashboardScreen`은 `EventBus.on('log-updated', ...)` 리스너를 등록하여 새로운 로그 발생 시 `renderRecentAlarmLog(DOM)`를 호출하여 로그를 갱신합니다. |
 | **`help.js`** | `getScreen()` | `init` 시 `handleTabSwitching(DOM)`이 호출되어 '도움말'과 'FAQ' 탭 전환 이벤트 리스너를 등록합니다. `onTransition` 시 `onHelpScreenTransition(DOM)`이 호출되어 `data/feature_guide.json`과 `data/faq_guide.json`을 비동기적으로 로드하고, `ui-renderer.js`의 `renderHelpScreen()`과 `renderFaqScreen()`을 호출하여 각 탭의 콘텐츠를 렌더링합니다. |
 | **`settings.js`** | `getScreen()` | `init` 시 `initSettingsScreen(DOM)`이 호출되어 고정 알림 모달의 '추가' 및 목록의 '편집/삭제/토글' 이벤트 리스너를 등록합니다. 모달은 고정 알림의 추가/편집을 담당하며, 요일 선택 기능과 데이터 저장 로직을 포함합니다. (`LocalStorageManager`의 `getFixedAlarmById`를 사용) |
-| **`share.js`** | `getScreen()` | `onTransition` 시 `initShareScreen(DOM)`이 호출되어 현재의 동적 보스 목록(`data`)을 인코딩하여 `api-service.js`의 `getShortUrl()`을 통해 짧은 URL을 생성합니다. 생성된 URL은 `navigator.clipboard.writeText()`를 사용하여 클립보드에 복사되며, `DOM.shareMessage`에 결과 메시지를 표시합니다. (고정 알림은 공유되지 않습니다.) |
+| **`share.js`** | `getScreen()` | `onTransition` 시 `initShareScreen(DOM)`이 호출됩니다. `DB.getSetting('lastSelectedGame')`으로 게임 ID를 확인하고, `DB.getSchedulesByGameId(gameId)` / `DB.getBossesByGameId(gameId)`로 데이터를 조회합니다. `share-encoder.js`의 `encodeV3Data({ gameId, schedules })`로 base64 인코딩 후 `?v3data=<encoded>` URL을 구성합니다. `api-service.js`의 `getShortUrl()`로 단축 URL을 생성하고 클립보드에 복사하며, `DOM.shareMessage`에 결과를 표시합니다. (고정 알림은 공유되지 않습니다.) |
 | **`version-info.js`** | `getScreen()` | `onTransition` 시 `initVersionInfoScreen(DOM)`이 호출되어 `api-service.js`의 `loadJsonContent()`를 통해 `data/version_history.json` 파일을 로드하고, `ui-renderer.js`의 `renderVersionInfo(DOM, versionData)`를 호출하여 릴리즈 노트 콘텐츠를 렌더링합니다. |

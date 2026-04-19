@@ -61,17 +61,25 @@
 ## 5. 릴리즈 노트 관리 프로세스
 프로젝트의 변경 사항을 체계적으로 관리하고 누락 없이 릴리즈 노트에 반영하기 위해 다음 절차를 따릅니다.
 
-1.  **릴리즈 대기 목록 (`docs/unreleased_changes.md`) 활용:**
-    *   기능 추가, 버그 수정 등 의미 있는 작업이 완료될 때마다 해당 내역을 `docs/unreleased_changes.md` 파일의 `## [Unreleased]` 섹션에 추가합니다.
-    *   **사용자 지시:** 사용자가 "릴리즈 목록에 내용 추가해줘" 또는 이와 유사한 뉘앙스로 지시하면, 해당 작업 내역을 요약하여 이 파일에 추가합니다.
-    *   **형식:**
-        ```markdown
-        ### Fixes (또는 Features, Refactor 등)
-        - [작업 내용 요약]
+> **[v3.0.0 변경]** `docs/unreleased_changes.md` 파일은 v3.0.0 릴리즈 시점에 삭제되었습니다. 해당 파일을 통한 릴리즈 대기 목록 관리 워크플로우는 폐기되었습니다.
+
+1.  **릴리즈 노트 직접 편집:**
+    *   기능 추가, 버그 수정 등 의미 있는 작업이 완료되어 릴리즈가 확정되면, `data/version_history.json`에 해당 버전 항목을 직접 추가합니다.
+    *   **형식:** 아래와 같이 `version_history.json`에 새 버전 객체를 추가합니다.
+        ```json
+        {
+          "version": "3.x.y",
+          "date": "YYYY-MM-DD",
+          "title": "릴리즈 제목",
+          "changes": [
+            { "type": "feat", "description": "기능 설명" },
+            { "type": "fix", "description": "버그 수정 설명" }
+          ]
+        }
         ```
+    *   `window.APP_VERSION`은 `index.html` 또는 해당 설정 파일에서 릴리즈 버전에 맞게 갱신합니다. 버전 값은 `"3.0.0"` 형태의 **순수 숫자** 문자열로 관리하며, 'v' 접두사는 UI 레이어에서만 추가합니다.
 
 2.  **릴리즈 시점:**
-    *   정식 릴리즈 시에는 `docs/unreleased_changes.md`의 내용을 기반으로 `data/version_history.json`을 업데이트하고, `docs/unreleased_changes.md` 내용은 초기화합니다.
-    *   이를 통해 AI 세션이 변경되더라도 작업 내역을 지속적으로 추적하고 관리할 수 있습니다.
+    *   `data/version_history.json` 업데이트 → `window.APP_VERSION` 갱신 → `data/update-notice.json` 갱신(필요 시) → 커밋 및 태그 순으로 진행합니다.
 
 **※ 예외 처리:** 구현 중 해결이 어려운 기술적 문제나 심각한 충돌이 발생하면, 즉시 작업을 중단하고 상황을 보고합니다.

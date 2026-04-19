@@ -7,11 +7,13 @@
 
 | 파일 | 핵심 영역 |
 |------|----------|
+| `src/db.js` | `DB` 싱글톤 전체 (save/importAll/subscribe/FK 검증) |
 | `src/data-managers.js` | `BossDataManager`, `LocalStorageManager` 전체 |
-| `src/boss-parser.js` | `parseBossList`, 날짜/시간 파싱 로직 |
 | `src/app.js` | `processBossItems`, `loadInitialData` |
-| `src/screens/boss-scheduler.js` | `syncInputToText`, `syncTextToInput`, `handleApplyBossSettings` |
+| `src/screens/boss-scheduler.js` | `handleApplyBossSettings` |
 | `src/ui-renderer.js` | `renderBossInputs`, `updateBossListTextarea` |
+| `src/share-encoder.js` | `encodeV3Data`, `decodeV3Data` |
+| `src/preset-loader.js` | `syncPresetsToDb` (cascade 정리 로직) |
 
 ### 1.2. 수정 전 필수 절차
 1. **변경 의도 설명:** 무엇을, 왜 바꾸려는지 사용자님께 먼저 설명
@@ -28,20 +30,21 @@
 
 ### 2.1. 데이터 흐름
 ```
-[JSON 파일] → processBossItems → [Main SSOT] → [Draft] → [UI]
-[사용자 입력] → [Draft] → commitDraft → [Main SSOT]
+[boss-presets.json] → syncPresetsToDb() → [DB: v3_games, v3_bosses]
+[사용자 입력 (폼)] → DB.upsertSchedule() → [DB: v3_schedules] → BossDataManager → [UI]
+[공유 URL ?v3data=] → decodeV3Data() → DB.replaceSchedulesByGameId() → [DB]
 ```
 
 ### 2.2. 핵심 규칙
-- **버전 데이터 표준화 (SSOT)**: `window.APP_VERSION` 값은 **숫자로만 관리**한다 (예: `"2.17.0"`). 출력 시 'v' 접두사는 UI 레이어에서 처리하며, 데이터 연산 및 비교는 순수 숫자 문자열을 기준으로 삼는다.
-- **기준(GEMINI) vs 절차(Workshop) 이원화**: 에이전트 작업 시 `GEMINI.md`는 기술적 기준을 제시하고, 워크플로우 파일은 실행 절차를 담당한다. 에이전트는 항상 기준을 참조하여 절차를 수행해야 한다.
-- **출력은 항상 SSOT(또는 Draft)를 바탕으로**: 화면 로딩 시 분 단위 남은 시간에서 역계산하지 말고, `scheduledDate`를 직접 읽어 출력하여 1ms의 오차도 허용하지 않음.
-- **표준 ID 체계 준수 (v2.17.7)**: 모든 보스 인스턴스의 ID는 `boss-[보스이름]-[타임스탬프]` 형식을 유지해야 하며, 이를 통해 데이터의 추적성과 고유성을 보장한다.
-- **입력은 SSOT 형식에 맞게 변환하여 업데이트**: 사용자가 입력을 마치는 시점에만 새로운 `scheduledDate`를 계산하여 반영.
-- **과거 데이터 자동 정제 (Data Diet)**: `_expandAndReconstruct` 로직은 서비스 성능 및 메모리 효율을 위해 오늘 00:00 이전의 보스 인스턴스를 자동으로 제거한다. 단, 사용자가 직접 입력한 '가장 가까운 미래의 앵커'는 유실 방지를 위해 48시간 윈도우 밖이라도 항상 보호한다.
-- **프리셋 인터벌 우선 원칙 (v2.17.7)**: 보스 이름이 공식 프리셋에 존재할 경우, 사용자 데이터에 저장된 인터벌 정보보다 공식 메타데이터의 젠 주기를 절대적으로 우선하여 적용(강제 세척)한다.
+- **v3 DB 규칙**: `DB.save()` 실패(QuotaExceededError) 시 `false` 반환 처리 필수. `DB.importAll()` 호출 시 FK 검증 수행됨. `DB.subscribe()`는 unsubscribe 함수를 반환하므로 cleanup 시 반드시 호출할 것.
+- **버전 데이터 표준화 (SSOT)**: `window.APP_VERSION` 값은 **숫자로만 관리**한다 (예: `"3.0.0"`). 출력 시 'v' 접두사는 UI 레이어에서 처리한다.
+- **출력은 항상 DB/SSOT를 바탕으로**: 화면 로딩 시 분 단위 남은 시간에서 역계산하지 말고, `scheduledDate`를 직접 읽어 출력하여 1ms의 오차도 허용하지 않음.
+- **공유 URL 포맷**: v3에서 `?data=` 파라미터는 폐기되었으며, 반드시 `?v3data=` 파라미터와 `share-encoder.js`의 `encodeV3Data`/`decodeV3Data`를 사용한다.
+- **텍스트 모드 제거**: v3에서 텍스트 영역 직접 입력 방식(boss-parser.js, syncInputToText, syncTextToInput)은 완전히 제거되었다. 보스 데이터 입력은 폼 기반 단일 방식으로만 처리한다.
+- **프리셋 DB 동기화 필수**: 앱 초기화 시 `loadBossSchedulerData()` 내에서 `syncPresetsToDb()`가 자동 호출된다. 프리셋 변경 시 DB cascade 정리(deleteBoss)가 수행된다.
+- **입력은 DB 형식에 맞게 변환하여 업데이트**: 사용자가 입력을 마치는 시점에만 새로운 `scheduledDate`를 계산하여 DB에 반영.
+- **과거 데이터 자동 정제 (GC)**: `_expandAndReconstruct` 로직은 `alerted_0min` 완료된 과거 스케줄을 제거하되 보스별 최소 1개를 보존한다. Future Anchor Keeper가 미래 인스턴스가 없으면 강제 생성한다.
 - **시간 역전 감지**: 이전 보스보다 시간이 이르면 다음 날로 처리.
-- **이름 기반 매칭 및 정합성 (v2.17.2)**: 간편 모드에서는 이름을 키로 매칭하며, 프리셋 정합성 검사 시 보스 인스턴스의 개수가 아닌 **보스 종류(Type)**를 기준으로 일치 여부를 판단하여 유령 보스 유입을 원천 차단한다. 이를 통해 일부 보스 시간만 입력된 경우에도 프리셋 모드가 유지되도록 개선했다. 중복 시 현재 시각에 가장 가까운 항목을 선택한다.
 - **음수 시간 지원**: `-HH:MM` 형식의 과거 시간을 허용하고 정확한 과거 시점 계산.
 
 ## 3. 위반 시

@@ -1,6 +1,6 @@
-# 데이터 흐름 (v2.17.0 - 에이전트 기반 정밀 동기화 체계 적용)
+# 데이터 흐름 (v3.0.0 - 4-테이블 DB 정규화 아키텍처)
 
-이 문서는 '보스 알리미' 애플리케이션의 주요 화면 및 기능에 대한 상세한 데이터 흐름을 설명합니다. 애플리케이션의 모든 동작은 `app.js`가 오케스트레이션하며, 모듈 간 통신은 주로 `EventBus` 및 데이터 관리자(`BossDataManager`, `LocalStorageManager`)의 구독 패턴을 통해 이루어지고, `ui-renderer.js`를 통해 UI가 업데이트됩니다.
+이 문서는 '보스 알리미' 애플리케이션의 주요 화면 및 기능에 대한 상세한 데이터 흐름을 설명합니다. 애플리케이션의 모든 동작은 `app.js`가 오케스트레이션하며, 모듈 간 통신은 주로 `EventBus` 및 데이터 관리자(`BossDataManager`, `DB`, `LocalStorageManager`)의 구독 패턴을 통해 이루어지고, `ui-renderer.js`를 통해 UI가 업데이트됩니다. v3.0에서는 보스/게임/스케줄 데이터가 `src/db.js`의 4-테이블 정규화 구조로 관리되며, 공유 URL은 `?v3data=` 파라미터와 `share-encoder.js`를 사용합니다.
 
 ## 0. 카카오톡 인앱 브라우저 환경 처리 흐름 (초기 단계)
 
@@ -24,14 +24,13 @@
     *   `initDomElements()`를 호출하여 모든 DOM 요소 참조를 `DOM` 객체에 수집합니다.
     *   `initializeCoreServices(DOM)`를 `await`하여 로거, 데이터 관리자, 그리고 핵심 데이터(`boss-presets.json`, `initial-default.json`)를 비동기로 로드합니다.
     *   **데이터 정제**: `BossDataManager` 초기화 시 로컬 스토리지 데이터를 `_sanitizeInitData()`를 통해 검증하여 손상된 데이터를 제거합니다.
-    *   **로드된 프리셋 데이터를 `BossDataManager.initPresets()`를 통해 주입하며, 주입 즉시 기존 스케줄을 48시간 분량으로 자동 확장합니다.**
+    *   **로드된 프리셋 데이터를 `syncPresetsToDb()`로 DB에 동기화하고, `BossDataManager.initPresets()`를 통해 주입하며, 주입 즉시 기존 스케줄을 48시간 분량으로 자동 확장합니다.**
     *   `registerAllRoutes()`를 호출하여 `src/screens/*.js`의 모든 화면 모듈을 `src/router.js`에 등록합니다.
-    *   `loadInitialData(DOM)`를 호출하여 초기 데이터를 로드합니다. 로딩 우선순위 및 **지능형 자가 치유(v2.17.2)** 흐름은 다음과 같습니다:
-        1. **URL 파라미터**: `data` 쿼리가 있는 경우 최우선 로드합니다. **무결성 검증(Integrity Check)** 실패 시, 데이터를 버리지 않고 **`performSilentMigration`**을 통해 '커스텀 보스_001' 슬롯으로 안전하게 이관하여 사용자 입력을 보호합니다.
-        2. **사용자 로컬 스토리지**: URL 데이터가 없을 때 확인합니다. 프리셋 이름 변경이나 커스텀 목록 삭제 등으로 정합성이 깨진 경우, 자가 치유 엔진이 작동하여 기존 데이터를 커스텀 슬롯으로 자동 마이그레이션합니다.
-        3. **지능형 데이터 회귀 (Reverse Migration)**: 위 과정이 완료된 후 `performReverseMigration`을 호출합니다. 버그로 인해 생성된 '커스텀 보스_001' 슬롯을 탐색하여, 내용이 프리셋과 일치할 경우 자동으로 데이터를 원래 프리셋으로 복구하고 임시 슬롯을 정리합니다. (v2.17.2)
-        4. **최종 결계 (샘플 복구)**: 위 과정이 모두 실패할 경우에만 기본 샘플 데이터를 로드하여 안정성을 보장합니다.
-    *   **자동 확장 및 침공 보스 필터링**: 데이터가 설정될 때마다 `BossDataManager` 내부에서 `_expandAndReconstruct()`가 실행되어 48시간 일정으로 정규화됩니다. 이때 프리셋의 `isInvasion` 플래그를 확인하여 **당일이 아닌 침공 보스 인스턴스는 자동으로 제외**하여 정합성을 유지합니다. 사용자가 수정한 데이터(ID 일치)는 보호되며, 새로 생성되는 인스턴스는 고유한 UID를 부여받습니다. **또한 Workspace Isolation 정책에 따라 각 게임별 Draft 데이터는 독립된 저장 키로 관리되어 데이터 충돌을 방지합니다.**
+    *   `loadInitialData(DOM)`를 호출하여 초기 데이터를 로드합니다. 로딩 우선순위는 다음과 같습니다:
+        1. **URL 파라미터**: `v3data` 쿼리가 있는 경우 `decodeV3Data()`로 디코딩하여 `DB.replaceSchedulesByGameId()`로 DB에 적용합니다.
+        2. **사용자 DB**: URL 데이터가 없을 때 `DB`에서 마지막 선택 게임의 스케줄을 로드합니다.
+        3. **최종 결계 (샘플 복구)**: 로드에 완전히 실패한 경우에만 기본 샘플 데이터를 로드하여 최소한의 서비스 가용성을 보장합니다.
+    *   **자동 확장 및 침공 보스 필터링**: 데이터가 설정될 때마다 `BossDataManager` 내부에서 `_expandAndReconstruct()`가 실행되어 48시간 일정으로 정규화됩니다. 이때 프리셋의 `isInvasion` 플래그를 확인하여 **당일이 아닌 침공 보스 인스턴스는 자동으로 제외**하여 정합성을 유지합니다. GC 로직(alerted_0min 완료된 과거 스케줄 제거, 보스별 최소 1개 보존)과 Future Anchor Keeper(미래 인스턴스가 없으면 강제 생성)가 포함됩니다.
     *   `initGlobalEventListeners(DOM)`를 호출하여 전역 이벤트 리스너를 활성화합니다.
     *   `initEventHandlers(DOM, globalTooltip)`를 호출하여 알람 토글, 내비게이션 링크 등 주요 UI 요소의 이벤트 핸들러를 등록합니다.
     *   **`renderAlarmStatusSummary(DOM)`를 호출하여 알림 상태 요약을 초기 렌더링합니다.**
@@ -100,13 +99,10 @@
 
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initTimetableScreen(DOM)`이 호출됩니다. 이 함수는 `LocalStorageManager`에서 '다음 보스' 필터(`timetableNextBossFilter`) 상태를 로드하고, `ui-renderer.js`의 `updateTimetableUI(DOM)`를 호출하여 시간표 UI를 초기 렌더링합니다. '보스 시간표' 화면은 조회 전용이며, 수정을 위해 '보스 스케줄러'로 이동할 수 있는 버튼을 제공합니다.
 *   **이벤트 리스너:**
-    *   **'뷰/편집' 토글 버튼 (`DOM.viewEditModeToggleButton`):** 클릭 시 모드를 전환하고 `LocalStorageManager`에 저장합니다. `updateTimetableUI`를 호출하여 UI를 갱신합니다.
     *   **'표/카드' 보기 모드 버튼 (`DOM.tableViewModeButton`):** 뷰 모드에서 표시 형식을 '표' 또는 '카드'로 토글합니다. 상태는 `LocalStorageManager`의 `timetable-view-mode`에 저장되며, 즉시 `renderBossListTableView`를 통해 레이아웃이 변경됩니다.
-    *   **'다음 보스' 토글 버튼 (`DOM.nextBossToggleButton`):** 뷰 모드에서만 활성화되며, 클릭 시 필터 상태를 토글하고 저장합니다. 이후 `updateTimetableUI` -> `renderBossListTableView`를 호출하여 선택된 보기 형식(카드/표)으로 필터링된 목록을 다시 렌더링합니다. **이때 48시간 윈도우 내에 보스가 없는 날짜 헤더는 UI Purification 로직에 의해 자동으로 거릅니다.**
-    *   **"보스 시간 업데이트" 버튼 (`DOM.sortBossListButton`):** 편집 모드에서만 활성화되며, 클릭 시 `boss-parser.js`의 `parseBossList()`를 호출하여 텍스트 영역의 내용을 파싱합니다. 이 과정에서 각 줄의 시간 형식을 감지하여 `timeFormat` 속성을 `boss` 객체에 포함시키고, 유효성을 검사합니다.
-        *   **유효성 실패:** 에러 메시지를 담은 경고창(`alert`)을 띄우고 저장을 중단합니다.
-        *   **유효성 성공:** 파싱된 결과를 `BossDataManager.setBossSchedule()`로 저장하고, `ui-renderer.js`의 `updateBossListTextarea(DOM)`를 호출하여 정렬 및 `timeFormat`에 따라 포맷팅된 텍스트로 갱신합니다. `window.isBossListDirty`를 `false`로 초기화합니다.
-*   **데이터 흐름 요약:** `LocalStorageManager`를 통해 모드 및 보기 형식, 필터 상태를 관리합니다. **뷰 모드**에서는 `BossDataManager` 데이터를 기반으로 `ui-renderer.js`가 **선택된 보기 형식(카드 리스트 또는 테이블)**으로 고유 비고를 포함하여 보스 목록을 생성합니다. **편집 모드**에서는 사용자 입력을 파싱하여 **표준 UID**를 포함한 데이터를 `BossDataManager`에 저장하는 양방향 흐름을 가집니다.
+    *   **'다음 보스' 토글 버튼 (`DOM.nextBossToggleButton`):** 클릭 시 필터 상태를 토글하고 저장합니다. 이후 `updateTimetableUI` -> `renderBossListTableView`를 호출하여 선택된 보기 형식(카드/표)으로 필터링된 목록을 다시 렌더링합니다. **이때 48시간 윈도우 내에 보스가 없는 날짜 헤더는 UI Purification 로직에 의해 자동으로 거릅니다.**
+*   **고정 알림 병합:** 시간표 카드·표(`renderTimetableList`, `renderExportCapture`) 및 텍스트 내보내기(`handleExportText`) 모두 `_expandFixedAlarmsInRange(rangeStart, rangeEnd)`를 통해 고정 알림을 `{type:'boss', isFixed:true, ...}` shape으로 확장하여 보스 스케줄과 함께 표시합니다.
+*   **데이터 흐름 요약:** `LocalStorageManager`를 통해 보기 형식·필터 상태를 관리합니다. `BossDataManager` 데이터를 기반으로 `ui-renderer.js`가 **선택된 보기 형식(카드 리스트 또는 테이블)**으로 보스 목록을 생성합니다. 고정 알림은 내보내기 4경로 모두에 병합됩니다.
 
 #### 3.2.1. 시간표 내보내기(Export) 데이터 흐름 (Issue-022, UI 격리 적용)
 1.  **백업 및 환경 설정**: 사용자가 내보내기 버튼 클릭 시, 현재 활성 화면 정보를 `originalSettings`에 백업하고 프리뷰를 위해 시간표 화면을 활성화합니다.
@@ -121,26 +117,15 @@
 
 ### 3.3. 보스 스케줄러 화면 (`src/screens/boss-scheduler.js`)
 
-*   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initBossSchedulerScreen(DOM)`이 호출됩니다. 화면 진입 시 `BossDataManager.getDraftSchedule()`을 통해 Draft를 확보하고, UI 상태를 동기화합니다.
-*   **SSOT 원칙:** 스케줄러는 **Draft(임시 SSOT)**를 기반으로 동작합니다. 모든 UI 출력은 Draft에서 읽어오고, 사용자 입력은 Draft에 반영됩니다. "보스 시간 업데이트" 버튼을 누르면 Draft가 Main SSOT에 커밋됩니다.
-*   **간편 입력 모드/텍스트 모드 전환:**
-    *   **간편 입력 모드 → 텍스트 모드:** `syncInputToText()`가 입력 필드의 유효한 데이터를 Draft에 반영하고 텍스트 영역을 갱신합니다. 유효한 입력이 없으면 기존 Draft를 유지합니다.
-    *   **텍스트 모드 → 간편 입력 모드:** `syncTextToInput()`이 텍스트 내용을 파싱하여 Draft에 반영하고 입력 필드를 갱신합니다.
-*   **이벤트 리스너 (DOM.bossSchedulerScreen에 위임):**
-    *   **입력 필드 렌더링:** `ui-renderer.js`의 `renderBossInputs()`를 호출하여 선택된 게임에 맞는 보스 입력 필드를 렌더링합니다. 이때 **SSOT의 정밀한 시간(scheduledDate)이 있다면 이를 직접 읽어 젠 시간과 남은 시간을 렌더링**하여 오차를 방지합니다.
-    *   **남은 시간 입력 (`.remaining-time-input`):** `input` 이벤트 발생 시 젠 시간을 실시간으로 표시합니다. **지능형 UI 동기화**를 통해 현재 시각 기준 가장 가까운 미래의 인스턴스 UID와 매핑되어 비고(memo) 및 데이터가 관리됩니다.
-    *   **"모든 남은 시간 지우기" 버튼 (`DOM.clearAllRemainingTimesButton`):** 모든 입력 필드를 초기화합니다.
+*   **초기화:** `app.js`의 `showScreen` 함수를 통해 `initBossSchedulerScreen(DOM)`이 호출됩니다. 화면 진입 시 `DB.getSchedulesByGameId(gameId)`를 통해 DB에서 스케줄을 확보하고, UI 상태를 동기화합니다.
+*   **SSOT 원칙:** 스케줄러는 **DB**를 기반으로 동작합니다. 모든 UI 출력은 DB에서 읽어오고, 사용자 입력은 DB에 반영됩니다. "보스 시간 업데이트" 버튼을 누르면 변경사항이 DB에 저장됩니다.
+*   **입력 방식:** v3에서 텍스트 모드를 완전히 제거하고 **폼 기반 단일 입력**으로 통일했습니다. 텍스트 영역 편집 모드와 `syncInputToText`/`syncTextToInput` 패턴은 더 이상 존재하지 않습니다.
+*   **이벤트 리스너:**
+    *   **입력 필드 렌더링:** `ui-renderer.js`의 `renderBossInputs()`를 호출하여 선택된 게임에 맞는 보스 입력 필드를 렌더링합니다.
+    *   **남은 시간 입력 (`.remaining-time-input`):** `input` 이벤트 발생 시 젠 시간을 실시간으로 표시합니다.
     *   **"보스 시간 업데이트" 버튼 (`DOM.moveToBossSettingsButton`):**
-        1.  현재 활성화된 모드(간편 입력/텍스트)의 데이터를 Draft에 최종 반영합니다.
-        2.  `BossDataManager.commitDraft()`를 호출하여 Draft를 Main SSOT에 적용합니다.
-        3.  `EventBus.emit('navigate', 'timetable-screen')`을 발행하여 '보스 시간표' 화면으로 전환을 요청합니다.
-*   **에셋 바인딩 및 저장 흐름 (간편 입력 모드 기준):**
-    1.  **입력 단계**: 사용자가 `.remaining-time-input`에 '남은 시간'을 입력하거나 비고를 수정합니다.
-    2.  **임시 계산**: UI는 `calculatedDate`를 즉시 도출하여 젠 시간을 사용자에게 미리 보여주지만, SSOT는 아직 변경되지 않습니다.
-    3.  **최종 커밋 및 보존**: "보스 시간 업데이트" 버튼 클릭 시 `handleApplyBossSettings`가 호출됩니다. 
-        - **과거의 엄격한 유효성 검사 제거**: 시스템 계산 주기와 맞지 않아도 사용자가 입력한 시간을 **절대적 진실(Absolute Truth)**로 간주하여 무조건 저장합니다.
-    4.  **SSOT 동기화**: `BossDataManager.commitDraft()`를 통해 48시간 확장 및 정렬 과정을 거쳐 Main SSOT에 최종 반영됩니다. **이때 36시간 이상 긴 주기의 보스라 하더라도 사용자가 지정한 시간은 48시간 윈도우 밖이라도 필터링되지 않고 영구 보존됩니다.**
-*   **날짜 처리 (`boss-parser.js`):** 텍스트 파싱 시 **엄격한 날짜 헤더(`MM.DD`)**를 기준으로 하며, 시간 역전 감지 로직을 통해 날짜 롤오버를 처리합니다.
+        1.  입력 데이터를 DB에 최종 저장합니다.
+        2.  `EventBus.emit('navigate', 'timetable-screen')`을 발행하여 '보스 시간표' 화면으로 전환을 요청합니다.
 
 ### 3.4. 알림 로그 화면 (`src/screens/alarm-log.js`)
 
@@ -152,8 +137,13 @@
 ### 3.5. 공유 화면 (`src/screens/share.js`)
 
 *   **초기화:** `app.js`의 `showScreen` 함수를 통해 'share-screen'으로 내비게이션될 때 `initShareScreen(DOM)`이 호출됩니다.
-*   **처리 흐름:** `DOM.bossListInput.value`를 통해 현재 동적 보스 목록 데이터만 수집하고, 이를 URL 파라미터(`data`)로 인코딩합니다. `api-service.js`의 `getShortUrl()`을 통해 단축 URL을 생성하고 클립보드에 복사한 후, `DOM.shareMessage`에 결과를 표시합니다.
-*   **데이터 흐름 요약:** 현재 동적 보스 목록만 URL 파라미터로 인코딩한 후 TinyURL API를 통해 단축 URL을 생성하여 클립보드에 복사하고, 결과를 사용자에게 알립니다. (고정 알림은 공유되지 않습니다.)
+*   **처리 흐름:**
+    1.  `DB.getSetting('lastSelectedGame')`으로 현재 게임 ID를 확인합니다.
+    2.  `DB.getSchedulesByGameId(gameId)`와 `DB.getBossesByGameId(gameId)`로 스케줄 및 보스 데이터를 조회합니다.
+    3.  `share-encoder.js`의 `encodeV3Data({ gameId, schedules })`로 base64 인코딩합니다.
+    4.  `?v3data=<encoded>` 파라미터로 긴 URL을 구성하고, `api-service.js`의 `getShortUrl()`을 통해 단축 URL을 생성합니다.
+    5.  클립보드에 복사 후 `DOM.shareMessage`에 결과를 표시합니다.
+*   **데이터 흐름 요약:** DB에서 보스 스케줄을 읽어 `encodeV3Data()`로 base64 인코딩한 뒤 `?v3data=` 파라미터로 URL을 구성하고, TinyURL API로 단축하여 클립보드에 복사합니다. (고정 알림은 공유되지 않습니다.)
 
 ### 3.6. 버전 정보 화면 (`src/screens/version-info.js`)
 
@@ -252,22 +242,6 @@
 
 ---
 
-## 5. 에이전트 기반 시스템 관리 및 동기화 흐름
+## 5. Future Anchor Keeper
 
-애플리케이션의 개발 및 운영 중 발생하는 정보의 무결성을 유지하기 위해 **안티그래비티 에이전트** 기반의 동기화 흐름이 작동합니다.
-
-1.  **[코드 변화 감지]**: 에이전트가 `git diff`를 통해 코드의 물리적 변화(함수, 데이터 구조 등)를 식별합니다.
-2.  **[기준 문서 참조]**: `GEMINI.md`에 정의된 6개 핵심 문서 리스트와 기술적 기준을 로드합니다.
-3.  **[정밀 동기화 실행]**: 식별된 변화를 바탕으로 관련 문서의 용어와 로직 설명을 코드와 100% 일치하도록 덮어씁니다.
-4.  **[Rationale 명문화]**: 코드를 통해 파악하기 어려운 설계 결정 배경을 문서에 추가하여 '지식의 연속성'을 확보합니다.
-5.  **[인수인계 성과 기록]**: 세션 종료 시 오늘의 성과를 `docs/session_handoff.md`에 기록하여 다음 세션의 문맥 복구를 준비합니다.
-6. **지능형 미래 예측 및 자동 앵커 보정 (v2.17.7)**
-사용자가 보스 스케줄러 화면에 진입하거나 데이터를 조회할 때, 시스템은 다음과 같은 지능형 보정 흐름을 거칩니다.
-
-1.  **앵커 검색**: 해당 보스의 인스턴스 중 미래 데이터가 있는지 조회합니다.
-2.  **과거 기반 추론**: 미래 데이터가 없을 경우, 가장 최근의 **과거 앵커**를 선택합니다.
-3.  **미래 투영 (Future Projection)**: 선택된 앵커가 과거일지라도, 보스의 공식 인터벌을 적용하여 현재 시점 이후의 가장 가까운 **미래 젠 시각**을 계산합니다. (`calculateNearestFutureTime` 엔진 사용)
-4.  **UI 동기화**: 계산된 미래 시각을 바탕으로 '남은 시간'을 역산하여 UI 입력 필드에 자동으로 채워넣습니다.
-
-7. **Future Anchor Keeper (v2.17.7)**
-`_expandAndReconstruct` 엔진은 48시간 윈도우 내외를 막론하고 해당 보스의 미래 젠 정보가 하나도 없을 경우, 가장 가까운 미래의 인스턴스 1개를 강제로 생성하여 SSOT에 삽입합니다. 이는 48시간 주기의 보스가 윈도우 밖으로 밀려나더라도 데이터의 징검다리를 잃지 않도록 보장하는 안전장치입니다.
+`_expandAndReconstruct` 엔진은 48시간 윈도우 내외를 막론하고 해당 보스의 미래 젠 정보가 하나도 없을 경우, 가장 가까운 미래의 인스턴스 1개를 강제로 생성하여 DB에 삽입합니다. 이는 48시간 주기의 보스가 윈도우 밖으로 밀려나더라도 데이터의 징검다리를 잃지 않도록 보장하는 안전장치입니다.

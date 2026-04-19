@@ -1,4 +1,4 @@
-# 모듈 간 의존성 (v2.0 - 리팩토링 후)
+# 모듈 간 의존성 (v3.0.0 - 4-테이블 DB 정규화 아키텍처)
 
 본 아키텍처의 주요 의존성 관계는 **`app.js`가 애플리케이션의 핵심 모듈과 전역 이벤트를 초기화**하며 시작됩니다. 각 화면(`src/screens/*.js`) 모듈은 필요한 서비스와 UI 모듈에 독립적으로 의존하며, **`EventBus`를 통해 서로 통신**하는 구조를 가집니다.
 
@@ -16,7 +16,8 @@
 | `global-event-listeners.js` | `initGlobalEventListeners()`: 중앙화된 전역 이벤트 리스너 초기화 |
 | `data-managers.js` | `LocalStorageManager.*`, `BossDataManager.*`: 데이터 로딩 및 관리 (사이드바 상태 제외) |
 | `index.html` | `#dashboard-skeleton` 제어: 초기 로딩 시 스켈레톤 UI 노출 및 해제 관리 |
-| `boss-parser.js` | `parseBossList()`: 보스 목록 텍스트 파싱 (초기 로드 시) |
+| `share-encoder.js` | `decodeV3Data()`: URL `v3data` 파라미터 디코딩 (초기 로드 시) |
+| `db.js` | `DB.replaceSchedulesByGameId()`, `DB.getSetting()`: 공유 URL 데이터 DB 적용 및 마지막 선택 게임 조회 |
 | `ui-renderer.js` | `renderFixedAlarms()`, `renderAlarmStatusSummary()`, `renderDashboard()`, `updateBossListTextarea()`, **`renderUpdateModal()`**: UI 초기 렌더링 및 **버전 안내 모달 생성** |
 | `event-bus.js` | `EventBus.on('navigate', ...)`, **`EventBus.emit('navigate', ...)`**: 화면 전환 이벤트 구독 및 **릴리즈 노트 이동 트리거** |
 | `alarm-scheduler.js` | `getIsAlarmRunning()`, `startAlarm()`: 알람 상태 확인 및 시작 |
@@ -45,14 +46,14 @@
 | 화면 모듈 | 의존하는 모듈 | 호출하는 함수 / 발행하는 이벤트 |
 |---|---|---|
 | **`alarm-log.js`** | `logger.js`, `data-managers.js`, `ui-renderer.js` | `getLogs()`, `renderAlarmLog()` (조건부 렌더링), `LocalStorageManager.get/set()` |
-| **`timetable.js`**| `boss-parser.js`, `ui-renderer.js`, `data-managers.js`, `logger.js`, `html2canvas (External)` | '뷰/편집' 모드 토글, '표/카드' 보기 모드 전환, '다음 보스' 필터 토글, `parseBossList()`, `updateTimetableUI()`, `renderBossListTableView()`, **`renderExportCapture()`**, `updateBossListTextarea()`, `BossDataManager.setBossSchedule()`, `LocalStorageManager.get/set('timetable-view-mode')`, `log()`, `html2canvas` 캡처. <br> **[주의]** `ui-renderer.js`의 DOM 조작 함수와 긴밀하게 결합되어 있어, 레이아웃 변경 시 반드시 `timetable.js`의 내보내기 로직을 함께 검토해야 합니다. |
+| **`timetable.js`**| `ui-renderer.js`, `data-managers.js`, `logger.js`, `html2canvas (External)` | '표/카드' 보기 모드 전환, '다음 보스' 필터 토글, `updateTimetableUI()`, `renderBossListTableView()`, **`renderExportCapture()`**, `BossDataManager.setBossSchedule()`, `LocalStorageManager.get/set('timetable-view-mode')`, `log()`, `html2canvas` 캡처. 고정 알림은 `_expandFixedAlarmsInRange()`로 4경로 모두 병합. <br> **[주의]** `ui-renderer.js`의 DOM 조작 함수와 긴밀하게 결합되어 있어, 레이아웃 변경 시 반드시 `timetable.js`의 내보내기 로직을 함께 검토해야 합니다. |
 | **`calculator.js`** | `calculator.js`, `crazy-calculator.js`, `data-managers.js`, `ui-renderer.js`, `utils.js`, `logger.js` | `initCalculatorScreen()`, `handleCalculatorScreenTransition()`, `calculateAppearanceTimeFromMinutes()`, `CrazyCalculator.*`, `LocalStorageManager.*`, `BossDataManager.*`, `updateBossManagementUI()`, `showToast()`, `log()` |
 | **`boss-scheduler.js`**| `ui-renderer.js`, `calculator.js`, `logger.js`, `event-bus.js`, `data-managers.js`, `utils.js` | `renderBossSchedulerScreen()`, `handleApplyBossSettings()`, `calculateBossAppearanceTime()`, `log()`, `EventBus.emit()`, `BossDataManager.setBossSchedule()`, `generateUniqueId()`, `padNumber()` |
 | **`custom-list.js`** | `ui-renderer.js`, `custom-list-manager.js`, `event-bus.js` | `showCustomListTab()`, `renderCustomListManagementModalContent()`, `showToast()`, `CustomListManager.*`, `EventBus.emit('rerender-boss-scheduler')` |
 | **`dashboard.js`** | `ui-renderer.js`, `data-managers.js`, `logger.js`, `event-bus.js` | `updateSoundControls()`, `renderRecentAlarmLog()`, `LocalStorageManager.get/setMuteState()`, `LocalStorageManager.get/setVolume()`, `log()`, `EventBus.on('log-updated', ...)` (최근 로그 표시용) |
 | **`help.js`** | `api-service.js`, `ui-renderer.js` | `loadJsonContent()` (from `data/` folder), `renderHelpScreen()`, `renderFaqScreen()` |
 | **`settings.js`** | `data-managers.js`, `ui-renderer.js`, `utils.js`, `logger.js`, `alarm-scheduler.js` | `LocalStorageManager.getFixedAlarmById()`, `LocalStorageManager.addFixedAlarm()`, `LocalStorageManager.updateFixedAlarm()`, `LocalStorageManager.deleteFixedAlarm()`, `renderFixedAlarms()`, `updateFixedAlarmVisuals()`, `validateFixedAlarmTime()`, `normalizeTimeFormat()`, `log()`, `syncScheduleToWorker()`, `getIsAlarmRunning()` |
-| **`share.js`** | `api-service.js`, `logger.js` | `getShortUrl()`, `log()` |
+| **`share.js`** | `api-service.js`, `logger.js`, `db.js`, `share-encoder.js`, `analytics.js` | `getShortUrl()`, `log()`, `DB.getSetting()`, `DB.getSchedulesByGameId()`, `DB.getBossesByGameId()`, `encodeV3Data()`, `trackEvent()` |
 | **`version-info.js`**| `api-service.js`, `ui-renderer.js` | `loadJsonContent()`, `renderVersionInfo()` |
 
 ## 4. 핵심 로직 및 서비스 모듈 (간접 의존성 포함)
@@ -63,7 +64,8 @@
 | **`ui-renderer.js`** | `data-managers.js`, `alarm-scheduler.js`, `logger.js`, `custom-list-manager.js`, `boss-scheduler-data.js`, `utils.js`, `pip-manager.js` | UI 렌더링에 필요한 각종 데이터 조회 및 효율적인 DOM 조작. **지능형 UI 동기화**를 통해 현재 시각 기준 가장 적합한 데이터 인스턴스를 매핑하여 표시. |
 | **`BossDataManager`** | `LocalStorageManager.js`, `utils.js` (날짜 계산 및 MM.DD 포매팅 보조), `boss-presets.json`, `logger.js` (데이터 처리 로그 기록) | `getUpcomingBosses` 함수 내에서 고정 알림 데이터를 가져오고, `calculateNextOccurrence`를 사용하여 다음 발생 시간을 계산합니다. 또한 프리셋의 메타데이터(`isInvasion`, `interval`)를 참조하여 일정 확장 및 자동 필터링을 수행합니다. |
 | **`custom-list-manager.js`** | `data-managers.js`, `logger.js`, `boss-scheduler-data.js` | 커스텀 목록 영구 저장, 유효성 검사, 미리 정의된 게임 이름 조회 |
-| **`boss-parser.js`** | `logger.js`, `data-managers.js`, `utils.js` | 보스 목록 텍스트 파싱, 기존 데이터 병합, `BossDataManager` 상태 변경, 로깅. **엄격한 텍스트 규격**(첫 줄 날짜 필수)을 적용하고, **지능형 이름 추출**을 통해 공백 포함 보스 이름을 안전하게 보존합니다. |
+| **`share-encoder.js`** | 없음 | v3 공유 payload base64(JSON) 인코딩/디코딩. `encodeV3Data()`와 `decodeV3Data()`를 export합니다. |
+| **`preset-loader.js`** | `db.js` | `syncPresetsToDb(presets)`: 프리셋 데이터를 DB에 동기화. 제거된 보스는 cascade 정리. |
 | **`global-event-listeners.js`** | `event-bus.js` (전역 이벤트 공유), `data-managers.js` (데이터 변경 구독 관리), `ui-renderer.js` [Dynamic Import] (데이터 변경 시 대시보드 및 시간표 인터페이스 갱신 트리거), `screens/alarm-log.js` | 전역 EventBus 리스너를 정의하고, `BossDataManager`의 데이터 변경 및 `log-updated` 이벤트에 반응합니다. |
 | **`boss-scheduler-data.js`** | `logger.js`, `custom-list-manager.js`, `api-service.js` | 보스 프리셋 및 초기 데이터 JSON 로딩, 커스텀 목록과 조합하여 제공 |
 | **`speech.js`** | `data-managers.js` | 음소거 상태(`getMuteState`) 확인 |
@@ -72,20 +74,7 @@
 | **`logger.js`** | `event-bus.js` | `EventBus.emit()`을 통해 로그 업데이트 이벤트 발행 |
 | **`router.js`** | 없음 | 화면 라우팅 시스템 제공 |
 | **`event-bus.js`** | 없음 | 모듈 간 이벤트 통신 제공 |
-| **`Agentic Workflow`** | `GEMINI.md`, `docs/*.md`, `npm scripts`, `git` | 기준 문서 학습, 코드 품질 검증, 버전 관리 및 배포 자동화 수행 |
+| **`db.js`** | 없음 (localStorage 직접 접근) | 4-테이블 정규화 DB 싱글톤. `save()` QuotaExceededError 반환, `subscribe()` unsubscribe 반환 |
 | **`services.js`** | `logger.js`, `boss-scheduler-data.js`, `data-managers.js`, `custom-list-manager.js` | 핵심 서비스 초기화 및 데이터 로드 후 `BossDataManager.initPresets()` 호출 |
 | **`utils.js`** | `logger.js` | 유효성 검사 시 로깅. (`calculateNextOccurrence` 함수를 통해 고정 알림의 다음 발생 시간을 계산) |
 
----
-
-## 5. 에이전틱 워크플로우 엔진 의존성
-
-에이전틱 워크플로우 엔진은 애플리케이션의 런타임에 영향을 주지 않는 **운영 및 개발 자동화 계층**으로 존재합니다.
-
-| 워크플로우 엔진이 의존하는 요소 | 상호작용 방식 / 목적 |
-|---|---|
-| `GEMINI.md` | **Source of Truth**: 모든 작업의 기술적 기준 및 스타일 가이드라인을 참조 |
-| `docs/session_handoff.md`| **Context Recovery**: 세션 간 업무 연속성을 위한 인수인계 데이터 로드 |
-| `npm run lint / test` | **Quality Guard**: 코드 수정 후 자동으로 검증 명령을 수행하여 무결성 보장 |
-| `git CLI` | **History Management**: 변경 사항 분석 및 규정된 커밋 메시지 형식으로 기록 |
-| `docs/*.md` (6개 문서) | **Self-Documentation**: 코드 변경 시 `/문서업데이트`를 통해 자동으로 문서 최신화 |
