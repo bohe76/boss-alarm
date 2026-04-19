@@ -277,9 +277,6 @@ export const BossDataManager = (() => {
             notifyStructural();
         },
 
-        // initPresets is now a no-op (handled by preset-loader.js)
-        initPresets() {},
-
         subscribe(callback, type = 'structural') {
             if (type === 'structural') structuralSubscribers.push(callback);
             else if (type === 'ui') uiSubscribers.push(callback);
