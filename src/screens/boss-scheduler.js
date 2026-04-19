@@ -1,6 +1,5 @@
 // src/screens/boss-scheduler.js
-import { renderBossInputs, renderBossSchedulerScreen, updateBossListTextarea, renderGameSelect } from '../ui-renderer.js';
-import { parseBossList } from '../boss-parser.js';
+import { renderBossSchedulerScreen, updateBossListTextarea, renderGameSelect } from '../ui-renderer.js';
 import { calculateBossAppearanceTime } from '../calculator.js';
 import { log } from '../logger.js';
 import { EventBus } from '../event-bus.js';
@@ -8,7 +7,6 @@ import { BossDataManager, LocalStorageManager } from '../data-managers.js';
 import { padNumber, calculateNearestFutureTime } from '../utils.js';
 import { trackEvent } from '../analytics.js';
 import { getBossNamesForGame, isPresetList } from '../boss-scheduler-data.js';
-import { openCustomListModalForMigration } from './custom-list.js';
 
 let _remainingTimes = {}; // Encapsulated state for remaining times
 let _memoInputs = {}; // Encapsulated state for memo inputs
@@ -194,85 +192,20 @@ function syncDraftToUIState(draftSchedule) {
 
 
 
-function showSchedulerTab(DOM, tabId, isInitial = false) {
-    if (!DOM.tabSchedulerInput || !DOM.tabSchedulerText || !DOM.schedulerInputModeSection || !DOM.schedulerTextModeSection) return;
-
-    // 1. 더티 체크 (탭 전환 시)
-    if (!isInitial && _isDirty) {
-        if (!confirm('수정된 내용이 있습니다. 저장하지 않고 모드를 변경하시겠습니까?')) {
-            return;
-        }
-        // 확인을 눌렀다면 더티 상태 초기화 (강제 전환)
-        _isDirty = false;
-    }
-
-    // 2. 텍스트 모드에서 간편 모드로 전환 시 유효성 검사 수행
-    if (tabId === 'input' && DOM.schedulerBossListInput) {
-        // 전환 전 검증 (알럿 포함)
-        if (!syncTextToInput(DOM, false)) {
-            // 검증 실패 시 텍스트 모드 유지
-            DOM.tabSchedulerInput.classList.remove('active');
-            DOM.tabSchedulerText.classList.add('active');
-            DOM.schedulerInputModeSection.style.display = 'none';
-            DOM.schedulerTextModeSection.style.display = 'block';
-            return;
-        }
-    }
-
-    // Toggle active state for tab buttons
-    DOM.tabSchedulerInput.classList.toggle('active', tabId === 'input');
-    DOM.tabSchedulerText.classList.toggle('active', tabId === 'text');
-
-    // Toggle visibility for tab content sections
-    DOM.schedulerInputModeSection.style.display = tabId === 'input' ? 'block' : 'none';
-    DOM.schedulerTextModeSection.style.display = tabId === 'text' ? 'block' : 'none';
-
-    // 2. 탭 전환 후 데이터 동기화
-    if (tabId === 'text' && DOM.bossInputsContainer && DOM.schedulerBossListInput) {
-        // 간편 입력 모드에서 텍스트 모드로 갈 때: 입력 필드 값 -> Draft -> 텍스트
-        syncInputToText(DOM);
-    }
-
-    const modeLabel = tabId === 'input' ? '간편 입력 모드' : '텍스트 모드';
-    trackEvent('Click Button', { event_category: 'Interaction', event_label: '스케줄러 탭 전환: ' + modeLabel });
+// v3: 텍스트 모드가 제거되어 탭 전환 로직은 no-op. 호출부 호환을 위해 시그니처만 유지. (issue-033)
+function showSchedulerTab() {
+    return;
 }
 
 /**
  * 간편 입력 모드의 값을 특정 List ID의 Draft에 저장하거나, 현재 선택된 모드에 맞게 처리함.
  * listId 파라미터가 있으면 해당 ID로 저장, 없으면 현재 선택된 게임 ID 사용.
  */
-function syncInputToText(DOM, isSilent = false, targetListId = null) {
+function syncInputToText(DOM, targetListId = null) {
     const listId = targetListId || LocalStorageManager.get('lastSelectedGame') || 'default';
 
-    // 텍스트 모드에서 -> 간편 모드 전환 시 (또는 텍스트 모드 데이터 파싱)
-    const isTextMode = DOM.tabSchedulerText && DOM.tabSchedulerText.classList.contains('active');
-
-    // 만약 호출자가 명시적으로 텍스트 모드 파싱을 원하지 않고(단순 저장용 등), 간편 모드 상태라면 간편 모드를 저장
-    // 하지만 탭 전환 로직에서는 현재 활성 탭 기준으로 동작해야 함.
-
-    // [탭 스위칭 시나리오]
-    // A탭(간편모드) -> B탭 클릭 -> syncInputToText(DOM, true, 'A') 호출 -> A의 간편 입력값 저장 -> OK
-    // A탭(텍스트모드) -> B탭 클릭 -> syncInputToText(DOM, true, 'A') 호출 -> A의 텍스트값 저장 -> OK
-
-    if (isTextMode && !targetListId) { // targetListId가 없으면 현재 화면의 텍스트 모드
-        const parseResult = parseBossList(DOM.schedulerBossListInput);
-
-        if (!parseResult.success) {
-            if (!isSilent) alert('입력 오류:\n' + parseResult.errors.join('\n'));
-            return false;
-        }
-
-        // 파싱된 결과를 Draft에 저장
-        BossDataManager.setDraftSchedule(listId, parseResult.mergedSchedule);
-
-        // 간편 모드 갱신 (선택적: 현재 화면이면 갱신해야 하지만, 떠나는 탭이면 굳이? 하지만 일관성 위해)
-        if (!targetListId) {
-            // 현재 화면을 위한 호출이었다면 UI 상태도 갱신
-            syncDraftToUIState(parseResult.mergedSchedule);
-        }
-        return true;
-    } else { // 간편 입력 모드 또는 targetListId가 있는 경우 (다른 탭의 데이터 저장)
-        // 간편 입력 모드 -> Draft (기존 로직)
+    // v3: 텍스트 모드 제거됨(issue-033). 간편 입력 모드에서 수집한 값만 Draft에 저장한다.
+    {
         const newBossItems = [];
         // 1. 간편 입력 모드 DOM에서 유효한 보스 정보 수집
         DOM.bossInputsContainer.querySelectorAll('.boss-input-item').forEach(item => {
@@ -326,88 +259,19 @@ function syncInputToText(DOM, isSilent = false, targetListId = null) {
     }
 }
 
-/**
- * 텍스트 모드의 내용을 분석하여 Draft SSOT를 업데이트하고 UI를 동기화합니다.
- * @param {boolean} silent 유효성 검사 실패 시 알럿을 띄울지 여부
- */
-function syncTextToInput(DOM, silent = true) {
-    if (!DOM.schedulerBossListInput) return false;
-
-    const result = parseBossList(DOM.schedulerBossListInput);
-    if (!result.success) {
-        if (!silent) alert("텍스트 형식 오류:\n" + result.errors.join('\n'));
-        return false;
-    }
-
-    const newDraft = result.mergedSchedule;
-    const currentListId = LocalStorageManager.get('lastSelectedGame') || 'default';
-
-    // [보헤님 지시: 프리셋 보호 및 이관 로직]
-    if (isPresetList(currentListId)) {
-        const officialBossNames = getBossNamesForGame(currentListId);
-        const inputBossNames = newDraft.map(b => b.name);
-
-        // 입력된 이름 중 프리셋에 없는 것이 하나라도 있는지 확인
-        const hasNameChange = inputBossNames.some(name => !officialBossNames.includes(name));
-
-        if (hasNameChange) {
-            if (!silent) {
-                const confirmMsg = `보스 이름이 프리셋과 다릅니다.\n이대로 저장하면 시스템 자동 업데이트를 받을 수 없으므로,\n'커스텀 보스 목록'으로 이동하여 저장해야 합니다.\n\n커스텀 보스 관리 화면으로 이동하시겠습니까?`;
-                if (confirm(confirmMsg)) {
-                    // 커스텀 모달 오픈 (데이터 주입)
-                    openCustomListModalForMigration(DOM, currentListId, DOM.schedulerBossListInput.value);
-                    return false; // 현재 화면 저장은 중단
-                } else {
-                    return false; // 취소 시 아무것도 하지 않음 (사용자가 수정하도록 유도)
-                }
-            } else {
-                // 백그라운드 싱크 중에는 이름 변경 시 드래프트 반영을 차단 (SSOT 보호)
-                return false;
-            }
-        }
-    }
-
-    // [신규] 논리적 유효성 검사 (젠 주기 준수 여부)
-    const validation = BossDataManager.validateBossSchedule(newDraft);
-    if (!validation.isValid) {
-        if (!silent) {
-            const forceApply = confirm("보스 시간 설정 경고\n" + "------------------------\n" + validation.message + "\n\n이대로 강제 저장하시겠습니까?");
-            if (!forceApply) return false;
-        } else {
-            return false;
-        }
-    }
-
-    // 1. 파싱 및 검증 결과를 Draft에 저장 (SSOT 업데이트)
-    BossDataManager.setDraftSchedule(currentListId, newDraft);
-
-    // 2. Draft -> UI 상태 동기화
-    syncDraftToUIState(newDraft);
-
-    // 3. 입력 필드 재렌더링 (현재 편집 중인 Draft를 명시적으로 전달)
-    if (DOM.gameSelect && DOM.gameSelect.value) {
-        renderBossInputs(DOM, DOM.gameSelect.value, _remainingTimes, _memoInputs, newDraft);
-    }
-    return true;
-}
+// syncTextToInput 및 관련 텍스트 모드 로직은 v3에서 제거됨(issue-033).
 
 export function handleApplyBossSettings(DOM) {
-    const isTextMode = DOM.tabSchedulerText && DOM.tabSchedulerText.classList.contains('active');
     const currentListId = LocalStorageManager.get('lastSelectedGame') || 'default';
 
-    // 현재 활성화된 탭의 데이터를 Draft에 최종 반영 (이 과정에서 유효성 검사 수행)
-    if (isTextMode && DOM.schedulerBossListInput) {
-        if (!syncTextToInput(DOM, false)) return; // syncTextToInput 내부에서 currentListId 사용
-    } else {
-        syncInputToText(DOM, false, currentListId);
+    // 간편 입력 모드 데이터를 Draft에 반영하고 최종 유효성 검사 수행
+    syncInputToText(DOM, currentListId);
 
-        // [신규] 간편 입력 모드 최종 유효성 검사 (Bohe 님 지시)
-        const draftScheduleForValidation = BossDataManager.getDraftSchedule(currentListId);
-        const validation = BossDataManager.validateBossSchedule(draftScheduleForValidation);
-        if (!validation.isValid) {
-            const forceApply = confirm("보스 시간 설정 경고\n" + "------------------------\n" + validation.message + "\n\n이대로 강제 저장하시겠습니까?");
-            if (!forceApply) return; // 사용자가 취소하면 중단
-        }
+    const draftScheduleForValidation = BossDataManager.getDraftSchedule(currentListId);
+    const validation = BossDataManager.validateBossSchedule(draftScheduleForValidation);
+    if (!validation.isValid) {
+        const forceApply = confirm("보스 시간 설정 경고\n" + "------------------------\n" + validation.message + "\n\n이대로 강제 저장하시겠습니까?");
+        if (!forceApply) return; // 사용자가 취소하면 중단
     }
 
     // 최종 검증 (Draft 기반)
@@ -438,10 +302,9 @@ export function handleApplyBossSettings(DOM) {
 
     EventBus.emit('navigate', 'timetable-screen');
     log("보스 시간이 업데이트되었습니다.", true);
-    const updateLabel = '보스 시간 업데이트(' + (isTextMode ? '텍스트 모드' : '간편 입력 모드') + ')';
     trackEvent('Click Button', {
         event_category: 'Interaction',
-        event_label: updateLabel
+        event_label: '보스 시간 업데이트'
     });
 }
 
@@ -452,18 +315,10 @@ export function initBossSchedulerScreen(DOM) {
     // 네비게이션 연동
     EventBus.on('show-boss-scheduler-screen', () => handleShowScreen(DOM));
 
-    // 1 & 2. 간편 입력 모드 변경 감지 (Delegation)
+    // 간편 입력 모드 변경 감지 (Delegation). 텍스트 모드는 issue-033 으로 제거됨.
     DOM.bossSchedulerScreen.addEventListener('input', (event) => {
         const target = event.target;
 
-        // 텍스트 모드인 경우
-        if (target === DOM.schedulerBossListInput) {
-            syncTextToInput(DOM);
-            _isDirty = true; // 변경 감지
-            return;
-        }
-
-        // 간편 입력 모드인 경우 (남은 시간 입력 또는 메모 입력)
         if (target.classList.contains('remaining-time-input')) {
             const inputField = target;
             const bossName = inputField.dataset.bossName;
@@ -615,10 +470,6 @@ export function initBossSchedulerScreen(DOM) {
             }
         } else if (event.target === DOM.moveToBossSettingsButton) {
             handleApplyBossSettings(DOM);
-        } else if (event.target === DOM.tabSchedulerInput) {
-            showSchedulerTab(DOM, 'input');
-        } else if (event.target === DOM.tabSchedulerText) {
-            showSchedulerTab(DOM, 'text');
         }
     });
 

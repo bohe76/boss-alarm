@@ -1,6 +1,5 @@
 // src/app.js
 
-import { parseBossList } from './boss-parser.js';
 import { startAlarm, stopAlarm, getIsAlarmRunning } from './alarm-scheduler.js';
 import { renderFixedAlarms, renderAlarmStatusSummary, renderDashboard, updateBossListTextarea, renderUpdateModal } from './ui-renderer.js';
 import { log } from './logger.js';
@@ -269,7 +268,6 @@ async function performSilentMigration(DOM, schedule) {
 }
 
 async function loadInitialData(DOM) {
-    const params = new URLSearchParams(window.location.search);
     let loadSuccess = false;
 
     // 0. [방어 로직] 마지막 선택 게임 정보가 없으면 기본값 설정 (Clean Install 대응)
@@ -285,26 +283,7 @@ async function loadInitialData(DOM) {
         log(`초기 설정: 보스 목록이 선택되지 않아 '${defaultId}'로 자동 설정했습니다.`);
     }
 
-    // 1. URL 데이터 우선 로드
-    if (params.has('data')) {
-        const currentListId = params.get('game') || storedListId;
-        DOM.schedulerBossListInput.value = decodeURIComponent(params.get('data'));
-        const result = parseBossList(DOM.schedulerBossListInput);
-
-        if (result.success) {
-            const integrity = await validateScheduleIntegrity(currentListId, result.mergedSchedule);
-            if (integrity) {
-                BossDataManager.setBossSchedule(result.mergedSchedule);
-                BossDataManager.clearDraft(currentListId);
-                loadSuccess = true;
-                log("URL에서 보스 목록을 성공적으로 불러왔습니다.");
-            } else {
-                // 이름 불일치 시: 자동 마이그레이션 실행
-                log("URL 데이터 이름 불일치 감지. 자동으로 커스텀 리스트로 이관합니다.");
-                loadSuccess = await performSilentMigration(DOM, result.mergedSchedule);
-            }
-        }
-    }
+    // 1. URL 데이터 우선 로드 (v3 공유 URL 재구현 전까지 비활성 — issue-036 참고)
 
     // 2. 기존 로컬 스토리지 데이터 검사 (URL 로드 실패 시에만 실행)
     if (!loadSuccess) {
