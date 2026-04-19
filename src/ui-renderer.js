@@ -974,11 +974,10 @@ export function renderTimetableList(DOM, options = {}) {
             }
 
             const fixedClass = boss.isFixed ? ' list-item--fixed' : '';
-            const namePrefix = boss.isFixed ? '⏰ ' : '';
             currentCardHtml += `
                 <div class="list-item list-item--dense${fixedClass}" style="display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden; padding: 10px 0;">
                     <span style="font-weight: bold; min-width: 60px; flex-shrink: 0;">${time}</span>
-                    <span style="display: inline-block; margin-left: 16px; min-width: ${nameMinWidth}px; flex-shrink: 0; white-space: nowrap; font-weight: 500;">${namePrefix}${boss.name}</span>
+                    <span style="display: inline-block; margin-left: 16px; min-width: ${nameMinWidth}px; flex-shrink: 0; white-space: nowrap; font-weight: 500;">${boss.name}</span>
                     ${boss.memo ? `<span style="font-size: 0.9em; color: #666; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${boss.memo}</span>` : ''}
                 </div>
                 `;
@@ -1052,11 +1051,10 @@ export function renderTimetableList(DOM, options = {}) {
             }
 
             const rowClass = boss.isFixed ? ' class="boss-table-row--fixed"' : '';
-            const namePrefix = boss.isFixed ? '⏰ ' : '';
             currentTableHtml += `
                 <tr${rowClass}>
                     <td class="boss-table-time">${time}</td>
-                    <td class="boss-table-name">${namePrefix}${boss.name}</td>
+                    <td class="boss-table-name">${boss.name}</td>
                     <td class="boss-table-memo">${boss.memo || ''}</td>
                 </tr>
                 `;
