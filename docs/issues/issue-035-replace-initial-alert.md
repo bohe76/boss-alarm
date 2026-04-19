@@ -1,16 +1,21 @@
 ---
 id: issue-035
 title: "최초 접속 알림 안내를 alert() 대신 배너/토스트로 교체"
-status: "진행 중"
+status: "보류 (Won't Fix)"
 priority: "Medium"
 assignee: "Claude"
 labels:
   - ux
   - accessibility
   - v3.0
+  - wontfix
 created_date: "2026-04-19"
 resolved_date: ""
 ---
+
+> **결정 (2026-04-19):** 릴리즈 범위에서 제외. 기존 alert 동작 유지. 향후 배너 UI 설계가 확정되면 재개 예정.
+
+
 
 # Issue-035: 최초 접속 알림 안내를 alert() 대신 배너/토스트로 교체
 
