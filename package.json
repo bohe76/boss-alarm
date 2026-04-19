@@ -1,6 +1,6 @@
 {
   "name": "boss-alarm",
-  "version": "2.16.0",
+  "version": "3.0.0",
   "description": "A web application for game boss timers and alarms.",
   "main": "index.js",
   "directories": {
