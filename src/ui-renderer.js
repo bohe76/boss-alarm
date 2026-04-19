@@ -469,6 +469,13 @@ export function renderFixedAlarms(DOM) {
             return `<button class="day-button ${isActive ? 'active' : ''}" data-day-index="${index}">${day}</button>`;
         }).join('')}
                 </div>
+                <div class="button-group">
+                    <button class="button edit-fixed-alarm-button icon-button" data-id="${alarm.id}" title="수정">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .642.642l3.155-1.262a2 2 0 0 0 .733-.503l11.04-11.04a2 2 0 0 0 0-2.828l-1.414-1.414a2 2 0 0 0-2.828 0L2.192 12.602a2 2 0 0 0-.503.733Z" />
+                            <path d="M11.695 3.332 14.668 6.305 16.546 4.427a1 1 0 0 0 0-1.414l-1.414-1.414a1 1 0 0 0-1.414 0l-1.878 1.878Z" />
+                        </svg>
+                        <span class="btn-text">수정</span>
                     </button>
                     <button class="button delete-fixed-alarm-button icon-button" data-id="${alarm.id}" title="삭제">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
