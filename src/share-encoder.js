@@ -24,7 +24,9 @@ export function encodeV3Data({ gameId, schedules }) {
     const utf8Bytes = new TextEncoder().encode(json);
     let binary = '';
     for (let i = 0; i < utf8Bytes.length; i++) binary += String.fromCharCode(utf8Bytes[i]);
-    return btoa(binary);
+    // URL-safe base64: '+' → '-', '/' → '_', trailing '=' 제거
+    // (표준 base64의 '+' 는 쿼리 파라미터에서 공백으로 디코딩되어 링크가 깨짐)
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 /**
@@ -35,7 +37,11 @@ export function encodeV3Data({ gameId, schedules }) {
 export function decodeV3Data(encoded) {
     if (!encoded || typeof encoded !== 'string') return null;
     try {
-        const binary = atob(encoded);
+        // URL-safe base64 → 표준 base64 복원 (+ '=' 패딩 복원)
+        let b64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+        const padLen = (4 - (b64.length % 4)) % 4;
+        if (padLen > 0) b64 += '='.repeat(padLen);
+        const binary = atob(b64);
         const utf8Bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) utf8Bytes[i] = binary.charCodeAt(i);
         const json = new TextDecoder().decode(utf8Bytes);

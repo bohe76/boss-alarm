@@ -66,4 +66,35 @@ describe('share-encoder', () => {
         const decoded = decodeV3Data(encodeV3Data(input));
         expect(decoded).toEqual(input);
     });
+
+    it('produces URL-safe output without +, /, or = characters', () => {
+        // 대량 한글 데이터로 표준 base64에서 +/가 나올 상황 재현
+        const names = ['파르바','하츨링','그림자','란도아','콜레닉스','바실리스크','셀로비아','굴베이그','최하층굴베이그','우드에바','헬드레드','리스배리그','우르드','단조장인','미호','모든 보스 파티','난도아스'];
+        const schedules = Array.from({ length: 40 }, (_, i) => ({
+            bossName: names[i % names.length],
+            scheduledDate: new Date(Date.UTC(2026, 3, 22, 0, i)).toISOString(),
+            memo: `메모${i}`
+        }));
+        const encoded = encodeV3Data({ gameId: 'odin-invasion', schedules });
+        expect(encoded).not.toMatch(/[+/=]/);
+    });
+
+    it('survives URLSearchParams round-trip (the shared-link scenario)', () => {
+        // 링크가 무효해 보이는 버그 재현용: +가 공백으로 디코딩되면 atob 실패
+        const names = ['파르바','하츨링','그림자','란도아','콜레닉스','바실리스크','셀로비아','굴베이그','최하층굴베이그','우드에바'];
+        const input = {
+            gameId: 'odin-invasion',
+            schedules: Array.from({ length: 30 }, (_, i) => ({
+                bossName: names[i % names.length],
+                scheduledDate: new Date(Date.UTC(2026, 3, 22, 0, i)).toISOString(),
+                memo: i % 2 ? '우선순위' : ''
+            }))
+        };
+        const encoded = encodeV3Data(input);
+        const url = new URL(`https://example.com/app?v3data=${encoded}`);
+        const fromQuery = new URLSearchParams(url.search).get('v3data');
+        expect(fromQuery).toBe(encoded);
+        const decoded = decodeV3Data(fromQuery);
+        expect(decoded).toEqual(input);
+    });
 });
