@@ -130,21 +130,31 @@ Draft 상태의 보스 스케줄을 DB에 최종 반영하는 함수. `BossDataM
 ## 공유 도메인
 
 ### v3data
-공유 URL 쿼리 파라미터 이름. `?v3data=<base64>` 형식으로 보스 스케줄을 인코딩하여 공유한다.  
+v3.0.x 공유 URL 쿼리 파라미터. `?v3data=<base64>` 형식으로 보스 스케줄을 인코딩하여 공유했다.  
+v3.0.2부터 신규 발신은 `#d=` fragment 방식(v4 포맷)으로 전환되었으나, `?v3data=`는 **영구 호환 수신**이 유지된다. `decodeShareData()`가 자동으로 v3/v4를 판별한다.  
 출현 위치: `src/share-encoder.js`, `src/app.js` (URL 파싱)  
-관련 용어: [base64 JSON URL](#base64-json-url)
+관련 용어: [v4 공유 포맷](#v4-공유-포맷), [base64 JSON URL](#base64-json-url)
 
-### base64 JSON URL
-보스 스케줄 데이터를 JSON으로 직렬화한 후 base64로 인코딩한 문자열. URL 쿼리 파라미터로 전달된다.  
-포맷: `{ v: "3", gameId: string, schedules: [...] }` → JSON → base64  
-출현 위치: `src/share-encoder.js` (`encodeV3Data`, `decodeV3Data`)  
+### v4 공유 포맷
+v3.0.2에서 도입된 신규 공유 URL 포맷. GitHub Pages 414 URI Too Long 문제를 해결하기 위해 query string 대신 URL fragment(`#d=`)를 사용하며, JSON 키를 단축하고 ISO 시간을 epoch 초로 압축하여 payload 크기를 줄인다.  
+포맷: `{ v: 4, g: "<gameId>", s: [{ n: "<bossName>", d: <epoch>, m: "<memo>" }] }` → JSON → URL-safe base64  
+키 매핑: `g` = gameId, `s` = schedules, `n` = bossName, `d` = scheduledDate(epoch초), `m` = memo  
+URL 구조: `https://bohe76.github.io/boss-alarm/#d=<URL-safe base64>`  
+출현 위치: `src/share-encoder.js` (`encodeV4Data`), `src/screens/share.js` (발신), `src/app.js` (수신)  
 관련 용어: [v3data](#v3data), [시간표 공유](#시간표-공유)
 
+### base64 JSON URL
+보스 스케줄 데이터를 JSON으로 직렬화한 후 base64로 인코딩한 문자열. v3에서는 URL 쿼리 파라미터(`?v3data=`)로, v4에서는 URL fragment(`#d=`)로 전달된다.  
+v3 포맷: `{ v: "3", gameId: string, schedules: [...] }` → JSON → base64  
+v4 포맷: `{ v: 4, g: string, s: [...] }` → JSON → URL-safe base64  
+출현 위치: `src/share-encoder.js` (`encodeV4Data`, `decodeShareData`, `decodeV3Data`)  
+관련 용어: [v3data](#v3data), [v4 공유 포맷](#v4-공유-포맷), [시간표 공유](#시간표-공유)
+
 ### 시간표 공유
-DB에 저장된 보스 스케줄을 다른 사람과 공유하는 기능. v3data URL 또는 텍스트/이미지 내보내기로 제공된다.  
+DB에 저장된 보스 스케줄을 다른 사람과 공유하는 기능. v4 `#d=` URL(정식) 또는 텍스트/이미지 내보내기로 제공된다.  
 고정 알림은 공유에서 제외된다.  
 출현 위치: `src/screens/share.js`, `src/share-encoder.js`  
-관련 용어: [v3data](#v3data), [텍스트/이미지 내보내기](#텍스트이미지-내보내기)
+관련 용어: [v4 공유 포맷](#v4-공유-포맷), [v3data](#v3data), [텍스트/이미지 내보내기](#텍스트이미지-내보내기)
 
 ### 텍스트/이미지 내보내기
 시간표를 텍스트로 복사하거나 이미지 파일로 저장하는 기능.  

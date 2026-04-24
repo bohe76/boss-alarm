@@ -65,7 +65,7 @@
 - [x] 4-테이블 정규화 LocalStorage DB
 - [x] 48시간 보스 시간표 자동 확장 및 GC
 - [x] 보스 시간표 카드/표 보기 및 이미지·텍스트 내보내기
-- [x] `?v3data=` 기반 공유 URL (base64 JSON)
+- [x] `#d=` fragment 기반 공유 URL (v4 URL-safe base64; v3 `?v3data=` 영구 호환 수신)
 - [x] PiP 위젯 (게임 화면 위 미니 창)
 - [x] 고정 알림 (요일 기반 반복 알림)
 - [x] 카카오톡 인앱 브라우저 회피

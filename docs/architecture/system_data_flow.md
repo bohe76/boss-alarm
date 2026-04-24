@@ -1,6 +1,6 @@
 # 데이터 흐름 (v3.0.0 - 4-테이블 DB 정규화 아키텍처)
 
-이 문서는 '보스 알리미' 애플리케이션의 주요 화면 및 기능에 대한 상세한 데이터 흐름을 설명합니다. 애플리케이션의 모든 동작은 `app.js`가 오케스트레이션하며, 모듈 간 통신은 주로 `EventBus` 및 데이터 관리자(`BossDataManager`, `DB`, `LocalStorageManager`)의 구독 패턴을 통해 이루어지고, `ui-renderer.js`를 통해 UI가 업데이트됩니다. v3.0에서는 보스/게임/스케줄 데이터가 `src/db.js`의 4-테이블 정규화 구조로 관리되며, 공유 URL은 `?v3data=` 파라미터와 `share-encoder.js`를 사용합니다.
+이 문서는 '보스 알리미' 애플리케이션의 주요 화면 및 기능에 대한 상세한 데이터 흐름을 설명합니다. 애플리케이션의 모든 동작은 `app.js`가 오케스트레이션하며, 모듈 간 통신은 주로 `EventBus` 및 데이터 관리자(`BossDataManager`, `DB`, `LocalStorageManager`)의 구독 패턴을 통해 이루어지고, `ui-renderer.js`를 통해 UI가 업데이트됩니다. v3.0에서는 보스/게임/스케줄 데이터가 `src/db.js`의 4-테이블 정규화 구조로 관리됩니다. v3.0.2부터 공유 URL은 `#d=<URL-safe base64>` fragment(v4 포맷)를 정식으로 사용하며, `?v3data=` 파라미터(v3)는 영구 호환 수신이 유지됩니다.
 
 ## 0. 카카오톡 인앱 브라우저 환경 처리 흐름 (초기 단계)
 
@@ -27,7 +27,7 @@
     *   **로드된 프리셋 데이터를 `syncPresetsToDb()`로 DB에 동기화하고, `BossDataManager.initPresets()`를 통해 주입하며, 주입 즉시 기존 스케줄을 48시간 분량으로 자동 확장합니다.**
     *   `registerAllRoutes()`를 호출하여 `src/screens/*.js`의 모든 화면 모듈을 `src/router.js`에 등록합니다.
     *   `loadInitialData(DOM)`를 호출하여 초기 데이터를 로드합니다. 로딩 우선순위는 다음과 같습니다:
-        1. **URL 파라미터**: `v3data` 쿼리가 있는 경우 `decodeV3Data()`로 디코딩하여 `DB.replaceSchedulesByGameId()`로 DB에 적용합니다.
+        1. **URL fragment/파라미터**: `#d=` fragment(v4)가 있으면 hash를 우선 처리하고, 없으면 `?v3data=` 파라미터(v3 호환)를 fallback으로 처리합니다. `decodeShareData()`로 디코딩하여 `DB.replaceSchedulesByGameId()`로 DB에 적용합니다.
         2. **사용자 DB**: URL 데이터가 없을 때 `DB`에서 마지막 선택 게임의 스케줄을 로드합니다.
         3. **최종 결계 (샘플 복구)**: 로드에 완전히 실패한 경우에만 기본 샘플 데이터를 로드하여 최소한의 서비스 가용성을 보장합니다.
     *   **자동 확장 및 침공 보스 필터링**: 데이터가 설정될 때마다 `BossDataManager` 내부에서 `_expandAndReconstruct()`가 실행되어 48시간 일정으로 정규화됩니다. 이때 프리셋의 `isInvasion` 플래그를 확인하여 **당일이 아닌 침공 보스 인스턴스는 자동으로 제외**하여 정합성을 유지합니다. GC 로직(alerted_0min 완료된 과거 스케줄 제거, 보스별 최소 1개 보존)과 Future Anchor Keeper(미래 인스턴스가 없으면 강제 생성)가 포함됩니다.
@@ -140,10 +140,10 @@
 *   **처리 흐름:**
     1.  `DB.getSetting('lastSelectedGame')`으로 현재 게임 ID를 확인합니다.
     2.  `DB.getSchedulesByGameId(gameId)`와 `DB.getBossesByGameId(gameId)`로 스케줄 및 보스 데이터를 조회합니다.
-    3.  `share-encoder.js`의 `encodeV3Data({ gameId, schedules })`로 base64 인코딩합니다.
-    4.  `?v3data=<encoded>` 파라미터로 긴 URL을 구성하고, `api-service.js`의 `getShortUrl()`을 통해 단축 URL을 생성합니다.
+    3.  `share-encoder.js`의 `encodeV4Data({ gameId, schedules })`로 URL-safe base64 인코딩합니다 (키 단축 + epoch 초).
+    4.  `#d=<encoded>` fragment로 긴 URL을 구성하고, `api-service.js`의 `getShortUrl()`을 통해 단축 URL을 생성합니다.
     5.  클립보드에 복사 후 `DOM.shareMessage`에 결과를 표시합니다.
-*   **데이터 흐름 요약:** DB에서 보스 스케줄을 읽어 `encodeV3Data()`로 base64 인코딩한 뒤 `?v3data=` 파라미터로 URL을 구성하고, TinyURL API로 단축하여 클립보드에 복사합니다. (고정 알림은 공유되지 않습니다.)
+*   **데이터 흐름 요약:** DB에서 보스 스케줄을 읽어 `encodeV4Data()`로 URL-safe base64 인코딩한 뒤 `#d=` fragment로 URL을 구성하고, TinyURL API로 단축하여 클립보드에 복사합니다. (고정 알림은 공유되지 않습니다.)
 
 ### 3.6. 버전 정보 화면 (`src/screens/version-info.js`)
 

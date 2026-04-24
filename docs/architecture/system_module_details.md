@@ -363,12 +363,13 @@
 - **주요 함수:**
     - `syncPresetsToDb(presets)`: `DB.upsertGame`, `DB.upsertBoss`로 프리셋의 게임·보스를 DB에 반영하고, 프리셋에서 제거된 보스는 `DB.deleteBoss`로 cascade 정리합니다.
 
-## 13.2. `src/share-encoder.js` (v3 공유 URL 인코딩)
+## 13.2. `src/share-encoder.js` (v3/v4 공유 URL 인코딩/디코딩)
 
-- **역할:** v3 공유 payload를 base64(JSON) 방식으로 인코딩/디코딩합니다. `VERSION = '3'`을 사용합니다.
+- **역할:** v3/v4 공유 payload를 인코딩/디코딩합니다. v3.0.2부터 발신은 v4 포맷(`#d=` fragment + URL-safe base64)을 사용하며, 수신은 v3·v4 모두 영구 지원합니다.
 - **주요 함수:**
-    - `encodeV3Data({ gameId, schedules })`: `TextEncoder`로 UTF-8 인코딩 후 base64 문자열을 반환합니다.
-    - `decodeV3Data(encoded)`: base64 → JSON 파싱 후 `payload.v !== '3'`이면 `null`을 반환합니다.
+    - `encodeV4Data({ gameId, schedules })`: JSON 키를 단축(`g`/`s`/`n`/`d`/`m`)하고 ISO 날짜를 epoch 초로 변환한 뒤 URL-safe base64로 인코딩하여 반환합니다.
+    - `decodeShareData(encoded)`: v3/v4를 자동 판별하는 통합 디코더입니다. `payload.v === '4'`이면 v4 경로, 그 외이면 `decodeV3Data()`에 위임합니다.
+    - `decodeV3Data(encoded)`: v3 전용 디코더. base64 → JSON 파싱 후 `payload.v !== '3'`이면 `null`을 반환합니다. **영구 보존** — v3 공유 링크 수신 호환성을 위해 절대 삭제하지 않습니다.
 
 ## 14. `src/boss-scheduler-data.js`
 
@@ -457,5 +458,5 @@
 | **`dashboard.js`** | `getScreen()` | `init` 시 `initDashboardScreen(DOM)`이 호출되어 `DOM.muteToggleButton` (음소거 버튼)과 `DOM.volumeSlider` (볼륨 슬라이더)에 대한 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링합니다. 음소거 버튼 클릭 시 `LocalStorageManager.setMuteState()`를 호출하여 음소거 상태를 토글하며, 볼륨 슬라이더 조작 시 `LocalStorageManager.setVolume()`을 통해 볼륨 값을 저장합니다. 두 UI 요소 모두 변경 시 `ui-renderer.js`의 `updateSoundControls(DOM)`를 호출하여 시각적 상태를 갱신합니다. `initDashboardScreen`은 `EventBus.on('log-updated', ...)` 리스너를 등록하여 새로운 로그 발생 시 `renderRecentAlarmLog(DOM)`를 호출하여 로그를 갱신합니다. |
 | **`help.js`** | `getScreen()` | `init` 시 `handleTabSwitching(DOM)`이 호출되어 '도움말'과 'FAQ' 탭 전환 이벤트 리스너를 등록합니다. `onTransition` 시 `onHelpScreenTransition(DOM)`이 호출되어 `data/feature_guide.json`과 `data/faq_guide.json`을 비동기적으로 로드하고, `ui-renderer.js`의 `renderHelpScreen()`과 `renderFaqScreen()`을 호출하여 각 탭의 콘텐츠를 렌더링합니다. |
 | **`settings.js`** | `getScreen()` | `init` 시 `initSettingsScreen(DOM)`이 호출되어 고정 알림 모달의 '추가' 및 목록의 '편집/삭제/토글' 이벤트 리스너를 등록합니다. 모달은 고정 알림의 추가/편집을 담당하며, 요일 선택 기능과 데이터 저장 로직을 포함합니다. (`LocalStorageManager`의 `getFixedAlarmById`를 사용) |
-| **`share.js`** | `getScreen()` | `onTransition` 시 `initShareScreen(DOM)`이 호출됩니다. `DB.getSetting('lastSelectedGame')`으로 게임 ID를 확인하고, `DB.getSchedulesByGameId(gameId)` / `DB.getBossesByGameId(gameId)`로 데이터를 조회합니다. `share-encoder.js`의 `encodeV3Data({ gameId, schedules })`로 base64 인코딩 후 `?v3data=<encoded>` URL을 구성합니다. `api-service.js`의 `getShortUrl()`로 단축 URL을 생성하고 클립보드에 복사하며, `DOM.shareMessage`에 결과를 표시합니다. (고정 알림은 공유되지 않습니다.) |
+| **`share.js`** | `getScreen()` | `onTransition` 시 `initShareScreen(DOM)`이 호출됩니다. `DB.getSetting('lastSelectedGame')`으로 게임 ID를 확인하고, `DB.getSchedulesByGameId(gameId)` / `DB.getBossesByGameId(gameId)`로 데이터를 조회합니다. `share-encoder.js`의 `encodeV4Data({ gameId, schedules })`로 v4 payload를 생성한 뒤 `#d=<URL-safe base64>` URL fragment를 구성합니다. 인코딩 결과가 4000자를 초과하면 길이 가드 토스트를 표시하고 중단합니다. `api-service.js`의 `getShortUrl()`로 단축 URL을 생성(실패 시 원본 URL 폴백)하고 클립보드에 복사하며, `DOM.shareMessage`에 결과를 표시합니다. (고정 알림은 공유되지 않습니다.) |
 | **`version-info.js`** | `getScreen()` | `onTransition` 시 `initVersionInfoScreen(DOM)`이 호출되어 `api-service.js`의 `loadJsonContent()`를 통해 `data/version_history.json` 파일을 로드하고, `ui-renderer.js`의 `renderVersionInfo(DOM, versionData)`를 호출하여 릴리즈 노트 콘텐츠를 렌더링합니다. |

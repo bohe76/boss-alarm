@@ -61,9 +61,9 @@
     *   "15개 보기" 토글 및 전체 로그 보기
     *   로그 업데이트 반응형 갱신
 6.  [공유 (Share)](share.md)
-    *   DB(`v3_schedules`)에서 현재 게임 스케줄 조회 후 `encodeV3Data()`로 직렬화
-    *   URL 파라미터 `?v3data=` 사용 (v2의 `?data=` 파라미터 폐기)
-    *   TinyURL을 통한 단축 URL 생성 (실패 시 원본 URL 폴백)
+    *   DB(`v3_schedules`)에서 현재 게임 스케줄 조회 후 `encodeV4Data()`로 직렬화
+    *   URL fragment `#d=<URL-safe base64>` 사용 (v4 정식 포맷; v3의 `?v3data=` 영구 호환 수신)
+    *   TinyURL을 통한 단축 URL 생성 (실패 시 원본 URL 폴백, 4000자 초과 시 길이 가드 토스트)
     *   클립보드 복사 기능
 7.  [버전 정보 (Version Info)](version-info.md)
     *   `data/version_history.json` 로드 및 표시

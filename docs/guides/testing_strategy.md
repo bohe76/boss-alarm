@@ -153,7 +153,7 @@ describe('<모듈 또는 함수명>', () => {
 |---|---|
 | 도구 | Playwright (권장) |
 | 우선 시나리오 | 게임 선택 → 보스 입력 → 알람 활성화 → PiP 실행 |
-| 공유 URL 시나리오 | `?v3data=` URL 접속 → 보스 목록 자동 로드 확인 |
+| 공유 URL 시나리오 | `#d=` fragment(v4) 또는 `?v3data=` 파라미터(v3 호환) URL 접속 → 보스 목록 자동 로드 확인 |
 | 실행 환경 | GitHub Actions (CI) + headless Chromium |
 | 트리거 | main 브랜치 PR 시 실행 |
 | 현재 상태 | **미도입** — 기여자가 먼저 착수 시 이 섹션을 갱신할 것 |

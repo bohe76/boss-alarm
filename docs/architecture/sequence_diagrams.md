@@ -43,8 +43,11 @@ sequenceDiagram
     app.js->>app.js: registerAllRoutes()
     app.js->>app.js: loadInitialData(DOM)
 
-    alt v3data 파라미터 존재
-        app.js->>app.js: decodeV3Data(params.get v3data)
+    alt #d= fragment 존재 (v4)
+        app.js->>app.js: decodeShareData(location.hash #d=)
+        app.js->>DB: replaceSchedulesByGameId(gameId, newSchedules)
+    else ?v3data= 파라미터 존재 (v3 호환 fallback)
+        app.js->>app.js: decodeShareData(params.get v3data)
         app.js->>DB: replaceSchedulesByGameId(gameId, newSchedules)
     else 로컬 데이터 존재
         app.js->>BDM: getBossSchedule()
@@ -163,7 +166,7 @@ sequenceDiagram
 
 공유 화면에서 URL을 생성하는 흐름과, 공유 URL을 통해 다른 사용자가 접속했을 때 데이터가 복원되는 흐름입니다.
 
-인코딩은 `share-encoder.js`의 순수 함수 `encodeV3Data()`가 담당하며, TinyURL API 호출은 `api-service.js`에서 수행합니다. 수신 측은 `app.js`의 `loadInitialData()`에서 URL 파라미터를 감지하여 `DB.replaceSchedulesByGameId()`로 적용합니다.
+인코딩은 `share-encoder.js`의 순수 함수 `encodeV4Data()`가 담당하며, TinyURL API 호출은 `api-service.js`에서 수행합니다. 수신 측은 `app.js`의 `loadInitialData()`에서 hash 우선 → query fallback 순서로 감지하여 `decodeShareData()`로 디코딩한 뒤 `DB.replaceSchedulesByGameId()`로 적용합니다.
 
 ```mermaid
 sequenceDiagram
@@ -176,25 +179,33 @@ sequenceDiagram
     participant app.js
     participant BDM as data-managers.js (BossDataManager)
 
-    Note over User: 공유 URL 생성
+    Note over User: 공유 URL 생성 (v4)
     User->>sharej: 공유 화면 진입 onTransition
     sharej->>DB: getSetting lastSelectedGame
     sharej->>DB: getSchedulesByGameId(gameId)
     sharej->>DB: getBossesByGameId(gameId)
-    sharej->>sharej: bossName, scheduledDate, memo 변환
-    sharej->>share-encoder.js: encodeV3Data(gameId, schedules)
-    Note over share-encoder.js: JSON to UTF-8 to btoa binary
-    share-encoder.js-->>sharej: base64 문자열
-    sharej->>api-service.js: await getShortUrl(longUrl)
+    sharej->>sharej: bossName, scheduledDate(→epoch초), memo 변환
+    sharej->>share-encoder.js: encodeV4Data(gameId, schedules)
+    Note over share-encoder.js: JSON(키 단축) to UTF-8 to URL-safe base64
+    share-encoder.js-->>sharej: URL-safe base64 문자열
+    sharej->>api-service.js: await getShortUrl(longUrl #d=...)
     api-service.js-->>sharej: shortUrl 또는 null
     sharej->>Clipboard: navigator.clipboard.writeText
 
-    Note over User: 공유 URL 수신 다른 사용자
-    User->>app.js: v3data 파라미터로 접속
-    app.js->>share-encoder.js: decodeV3Data(encoded)
-    Note over share-encoder.js: atob to UTF-8 to JSON, v===3 검증
+    Note over User: 공유 URL 수신 다른 사용자 (hash 우선)
+    User->>app.js: #d= fragment로 접속 (v4)
+    app.js->>share-encoder.js: decodeShareData(location.hash)
+    Note over share-encoder.js: URL-safe base64 to JSON, v===4 판별
     share-encoder.js-->>app.js: gameId, schedules
-    app.js->>DB: getBossesByGameId(payload.gameId)
+    app.js->>DB: replaceSchedulesByGameId(payload.gameId, newSchedules)
+    app.js->>BDM: clearDraft(payload.gameId)
+    app.js->>DB: setSetting lastSelectedGame payload.gameId
+
+    Note over User: 구형 링크 수신 (v3 호환 fallback)
+    User->>app.js: ?v3data= 파라미터로 접속 (v3)
+    app.js->>share-encoder.js: decodeShareData(params.get v3data)
+    Note over share-encoder.js: base64 to JSON, v==='3' 판별 → v3 경로
+    share-encoder.js-->>app.js: gameId, schedules
     app.js->>DB: replaceSchedulesByGameId(payload.gameId, newSchedules)
     app.js->>BDM: clearDraft(payload.gameId)
     app.js->>DB: setSetting lastSelectedGame payload.gameId

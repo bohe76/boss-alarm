@@ -16,7 +16,7 @@
 | `global-event-listeners.js` | `initGlobalEventListeners()`: 중앙화된 전역 이벤트 리스너 초기화 |
 | `data-managers.js` | `LocalStorageManager.*`, `BossDataManager.*`: 데이터 로딩 및 관리 (사이드바 상태 제외) |
 | `index.html` | `#dashboard-skeleton` 제어: 초기 로딩 시 스켈레톤 UI 노출 및 해제 관리 |
-| `share-encoder.js` | `decodeV3Data()`: URL `v3data` 파라미터 디코딩 (초기 로드 시) |
+| `share-encoder.js` | `decodeShareData()`: URL `#d=` fragment(v4) 또는 `?v3data=` 파라미터(v3 호환) 디코딩 (초기 로드 시) |
 | `db.js` | `DB.replaceSchedulesByGameId()`, `DB.getSetting()`: 공유 URL 데이터 DB 적용 및 마지막 선택 게임 조회 |
 | `ui-renderer.js` | `renderFixedAlarms()`, `renderAlarmStatusSummary()`, `renderDashboard()`, `updateBossListTextarea()`, **`renderUpdateModal()`**: UI 초기 렌더링 및 **버전 안내 모달 생성** |
 | `event-bus.js` | `EventBus.on('navigate', ...)`, **`EventBus.emit('navigate', ...)`**: 화면 전환 이벤트 구독 및 **릴리즈 노트 이동 트리거** |
@@ -53,7 +53,7 @@
 | **`dashboard.js`** | `ui-renderer.js`, `data-managers.js`, `logger.js`, `event-bus.js` | `updateSoundControls()`, `renderRecentAlarmLog()`, `LocalStorageManager.get/setMuteState()`, `LocalStorageManager.get/setVolume()`, `log()`, `EventBus.on('log-updated', ...)` (최근 로그 표시용) |
 | **`help.js`** | `api-service.js`, `ui-renderer.js` | `loadJsonContent()` (from `data/` folder), `renderHelpScreen()`, `renderFaqScreen()` |
 | **`settings.js`** | `data-managers.js`, `ui-renderer.js`, `utils.js`, `logger.js`, `alarm-scheduler.js` | `LocalStorageManager.getFixedAlarmById()`, `LocalStorageManager.addFixedAlarm()`, `LocalStorageManager.updateFixedAlarm()`, `LocalStorageManager.deleteFixedAlarm()`, `renderFixedAlarms()`, `updateFixedAlarmVisuals()`, `validateFixedAlarmTime()`, `normalizeTimeFormat()`, `log()`, `syncScheduleToWorker()`, `getIsAlarmRunning()` |
-| **`share.js`** | `api-service.js`, `logger.js`, `db.js`, `share-encoder.js`, `analytics.js` | `getShortUrl()`, `log()`, `DB.getSetting()`, `DB.getSchedulesByGameId()`, `DB.getBossesByGameId()`, `encodeV3Data()`, `trackEvent()` |
+| **`share.js`** | `api-service.js`, `logger.js`, `db.js`, `share-encoder.js`, `analytics.js` | `getShortUrl()`, `log()`, `DB.getSetting()`, `DB.getSchedulesByGameId()`, `DB.getBossesByGameId()`, `encodeV4Data()`, `trackEvent()` |
 | **`version-info.js`**| `api-service.js`, `ui-renderer.js` | `loadJsonContent()`, `renderVersionInfo()` |
 
 ## 4. 핵심 로직 및 서비스 모듈 (간접 의존성 포함)
@@ -64,7 +64,7 @@
 | **`ui-renderer.js`** | `data-managers.js`, `alarm-scheduler.js`, `logger.js`, `custom-list-manager.js`, `boss-scheduler-data.js`, `utils.js`, `pip-manager.js` | UI 렌더링에 필요한 각종 데이터 조회 및 효율적인 DOM 조작. **지능형 UI 동기화**를 통해 현재 시각 기준 가장 적합한 데이터 인스턴스를 매핑하여 표시. |
 | **`BossDataManager`** | `LocalStorageManager.js`, `utils.js` (날짜 계산 및 MM.DD 포매팅 보조), `boss-presets.json`, `logger.js` (데이터 처리 로그 기록) | `getUpcomingBosses` 함수 내에서 고정 알림 데이터를 가져오고, `calculateNextOccurrence`를 사용하여 다음 발생 시간을 계산합니다. 또한 프리셋의 메타데이터(`isInvasion`, `interval`)를 참조하여 일정 확장 및 자동 필터링을 수행합니다. |
 | **`custom-list-manager.js`** | `data-managers.js`, `logger.js`, `boss-scheduler-data.js` | 커스텀 목록 영구 저장, 유효성 검사, 미리 정의된 게임 이름 조회 |
-| **`share-encoder.js`** | 없음 | v3 공유 payload base64(JSON) 인코딩/디코딩. `encodeV3Data()`와 `decodeV3Data()`를 export합니다. |
+| **`share-encoder.js`** | 없음 | v3/v4 공유 payload 인코딩/디코딩. `encodeV4Data()`(v4 발신), `decodeShareData()`(v3/v4 자동 판별 수신), `decodeV3Data()`(v3 전용, 영구 보존)를 export합니다. |
 | **`preset-loader.js`** | `db.js` | `syncPresetsToDb(presets)`: 프리셋 데이터를 DB에 동기화. 제거된 보스는 cascade 정리. |
 | **`global-event-listeners.js`** | `event-bus.js` (전역 이벤트 공유), `data-managers.js` (데이터 변경 구독 관리), `ui-renderer.js` [Dynamic Import] (데이터 변경 시 대시보드 및 시간표 인터페이스 갱신 트리거), `screens/alarm-log.js` | 전역 EventBus 리스너를 정의하고, `BossDataManager`의 데이터 변경 및 `log-updated` 이벤트에 반응합니다. |
 | **`boss-scheduler-data.js`** | `logger.js`, `custom-list-manager.js`, `api-service.js` | 보스 프리셋 및 초기 데이터 JSON 로딩, 커스텀 목록과 조합하여 제공 |
