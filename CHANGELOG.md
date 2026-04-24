@@ -11,6 +11,24 @@
 
 ---
 
+## [3.0.2] - 2026-04-24
+
+### Fixed
+- 공유 URL `Too Long` 에러 해결: 보스 등록 수가 많을 때 GitHub Pages가 414 URI Too Long을 반환하던 문제를 URL `?v3data=` query → `#d=` fragment 전환으로 해결 (fragment는 서버로 전송되지 않으므로 414 자체 회피). TinyURL fragment 보존 사전 검증 통과(`.omc/autopilot/tinyurl-fragment-check.md`).
+
+### Changed
+- 공유 페이로드 v4 포맷 도입: JSON 키 단축(`gameId→g`, `schedules→s`, `bossName→n`, `scheduledDate→d`, `memo→m`) + 시간을 epoch 초로 저장하여 동일 데이터의 base64 길이를 약 30~50% 감소. v3 발신은 폐기, **v3 수신 디코더는 영구 보존**(이전 버전 발급 링크 호환).
+- `share-encoder.js`에 `encodeV4Data`(신규 발신) + `decodeShareData`(v3/v4 자동 분기) 도입. `decodeV3Data`/`encodeV3Data`는 deprecated 마킹 후 영구 보존.
+
+### Added
+- 클라이언트 길이 가드: 공유 URL이 4000자를 초과하면 메신저·인앱브라우저 환경에서 잘릴 위험을 사용자에게 토스트로 안내.
+- 회귀 테스트 11건 추가: v4 라운드트립, v3 호환 디코딩, fragment URL 라운드트립, 잘못된 v 타입/hash 추가 파라미터/epoch 정밀도/음수 timestamp 회귀 케이스 포함.
+
+### Security
+- 안전한 hash 파싱: `location.hash` 추출 시 `&utm_source=` 등 추가 파라미터를 안전하게 분리. 디코딩 + DB 반영 모두 성공 시에만 `history.replaceState`로 hash cleanup (부분 실패 시 사용자가 외부 브라우저 재시도 가능하도록 hash 보존).
+
+---
+
 ## [3.0.1] - 2026-04-22
 
 ### Fixed

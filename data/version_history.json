@@ -1,5 +1,21 @@
 [
   {
+    "fullVersion": "v3.0.2 (2026-04-24)",
+    "date": "2026-04-24",
+    "changes": [
+      {
+        "type": "fix",
+        "description": "공유 URL 길이 문제 해결 — fragment 전환 + 페이로드 압축",
+        "details": [
+          "**공유 URL `Too Long` 에러 해결:** 보스 등록 수가 많을 때 `?v3data=` 쿼리스트링이 길어져 GitHub Pages가 414 URI Too Long 에러를 반환하던 문제를, URL을 `#d=` fragment 방식으로 전환하여 해결했습니다 (fragment는 서버로 전송되지 않음).",
+          "**페이로드 50%+ 압축:** v4 인코딩 포맷으로 JSON 키를 단축(`bossName→n`, `scheduledDate→d` 등)하고 시간을 epoch 초로 저장하여 동일 데이터의 base64 길이를 30%+ 줄였습니다.",
+          "**v3 링크 영구 호환:** 이전 버전에서 발급된 `?v3data=` 공유 링크도 계속 정상 동작합니다.",
+          "**길이 가드 안내:** 공유 URL이 4000자를 초과하면 메신저·인앱브라우저에서 잘릴 위험을 사용자에게 토스트로 알립니다."
+        ]
+      }
+    ]
+  },
+  {
     "fullVersion": "v3.0.1 (2026-04-22)",
     "date": "2026-04-22",
     "changes": [
