@@ -10,7 +10,7 @@ import { EventBus } from './event-bus.js';
 import { getRoute, registerRoute } from './router.js';
 import { initializeCoreServices } from './services.js';
 import { DB } from './db.js';
-import { decodeV3Data } from './share-encoder.js';
+import { decodeShareData } from './share-encoder.js';
 import { initGlobalEventListeners } from './global-event-listeners.js';
 import { togglePipWindow } from './pip-manager.js';
 import { trackPageView, trackEvent } from './analytics.js'; // Added GA imports
@@ -285,10 +285,25 @@ async function loadInitialData(DOM) {
         log(`초기 설정: 보스 목록이 선택되지 않아 '${defaultId}'로 자동 설정했습니다.`);
     }
 
-    // 1. URL v3data 파라미터 로드 (issue-036)
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('v3data')) {
-        const payload = decodeV3Data(params.get('v3data'));
+    // 1. URL v4 fragment(#d=) 우선, v3 query(?v3data=) fallback (issue-036, issue-037)
+    let sharedEncoded = null;
+    let sharedSource = null;  // 'hash' | 'query' — replaceState 분기용
+    const hash = window.location.hash;
+    if (hash.startsWith('#d=')) {
+        // hash에 추가 파라미터(&utm_source=... 등) 들어왔을 때 안전 추출
+        sharedEncoded = hash.slice(3).split('&')[0];
+        sharedSource = 'hash';
+    } else {
+        // hash가 없을 때만 query fallback (hash 존재하나 디코딩 실패 시 query 시도 안 함)
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('v3data')) {
+            sharedEncoded = params.get('v3data');
+            sharedSource = 'query';
+        }
+    }
+
+    if (sharedEncoded) {
+        const payload = decodeShareData(sharedEncoded);
         if (payload) {
             const targetBosses = DB.getBossesByGameId(payload.gameId);
             if (targetBosses.length > 0) {
@@ -306,12 +321,21 @@ async function loadInitialData(DOM) {
                 DB.replaceSchedulesByGameId(payload.gameId, newSchedules);
                 BossDataManager.clearDraft(payload.gameId);
                 loadSuccess = true;
-                log(`URL에서 '${payload.gameId}' 스케줄 ${newSchedules.length}건을 불러왔습니다.`);
+                // 로그는 logger.js가 innerHTML로 출력하므로 HTML 메타문자 sanitize
+                const safeGameId = String(payload.gameId).replace(/[<>&"']/g, '?').slice(0, 64);
+                log(`URL에서 '${safeGameId}' 스케줄 ${newSchedules.length}건을 불러왔습니다.`);
+
+                // T2.3: 디코딩 + DB 반영 모두 성공 시에만 hash cleanup
+                // (부분 실패 시 hash 보존하여 사용자가 외부 브라우저 재시도 가능)
+                if (sharedSource === 'hash' && typeof history !== 'undefined' && history.replaceState) {
+                    history.replaceState(null, '', window.location.pathname + window.location.search);
+                }
             } else {
-                log(`URL의 게임 '${payload.gameId}'가 DB에 없어 로드를 건너뜁니다.`);
+                const safeGameId = String(payload.gameId).replace(/[<>&"']/g, '?').slice(0, 64);
+                log(`URL의 게임 '${safeGameId}'가 DB에 없어 로드를 건너뜁니다.`);
             }
         } else {
-            log("URL v3data 디코딩 실패");
+            log(`URL ${sharedSource === 'hash' ? '#d=' : '?v3data='} 디코딩 실패`);
         }
     }
 

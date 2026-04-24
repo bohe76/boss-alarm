@@ -3,7 +3,7 @@ import { getShortUrl } from '../api-service.js';
 import { log } from '../logger.js';
 import { trackEvent } from '../analytics.js';
 import { DB } from '../db.js';
-import { encodeV3Data } from '../share-encoder.js';
+import { encodeV4Data } from '../share-encoder.js';
 
 export function initShareScreen(DOM) {
     (async () => {
@@ -23,16 +23,25 @@ export function initShareScreen(DOM) {
                 }))
                 .filter(s => !!s.bossName); // FK 끊긴 항목은 제외
 
-            const encoded = encodeV3Data({ gameId, schedules: serialized });
-            const baseUrl = window.location.href.split('?')[0];
-            const longUrl = `${baseUrl}?v3data=${encoded}`;
+            const encoded = encodeV4Data({ gameId, schedules: serialized });
+            const baseUrl = window.location.href.split(/[?#]/)[0];
+            const longUrl = `${baseUrl}#d=${encoded}`;
 
+            const URL_LENGTH_WARN_THRESHOLD = 4000;
+            const isLengthRisky = longUrl.length > URL_LENGTH_WARN_THRESHOLD;
             const shortUrl = await getShortUrl(longUrl);
             await navigator.clipboard.writeText(shortUrl || longUrl);
-            DOM.shareMessage.textContent = shortUrl
-                ? "단축 URL이 클립보드에 복사되었습니다."
-                : `URL 단축 실패: ${longUrl} (원본 URL 복사됨)`;
-            log(shortUrl ? "단축 URL이 클립보드에 복사되었습니다." : "URL 단축 실패. 원본 URL이 클립보드에 복사되었습니다.", true);
+
+            let message;
+            if (shortUrl) {
+                message = "단축 URL이 클립보드에 복사되었습니다.";
+            } else if (isLengthRisky) {
+                message = `URL 단축 실패. 등록된 보스가 많아 일부 환경(메신저·인앱브라우저)에서 깨질 수 있습니다. 원본 URL이 복사되었습니다.`;
+            } else {
+                message = `URL 단축 실패: ${longUrl} (원본 URL 복사됨)`;
+            }
+            DOM.shareMessage.textContent = message;
+            log(message, true);
 
             trackEvent('Copy to Clipboard', {
                 event_category: 'Interaction',
