@@ -11,6 +11,14 @@
 
 ---
 
+## [3.0.3] - 2026-04-26
+
+### Fixed
+- 젠 계산기 "보스 시간 업데이트" 버튼 동작 불가 수정: v3 4-테이블 DB 마이그레이션 시 `BossDataManager.setBossSchedule()`이 `scheduledDate` 변경을 처리하지 않고 `alerted_*`/`memo`만 업데이트하던 버그 + `calculator.js`가 dropdown value의 schedule ID(string)를 DB enrich 결과의 id(number)와 `===` 비교하여 항상 매칭 실패하던 버그를 동시 수정. DB API 직접 호출(`DB.getSchedule` → `deleteSchedulesByBossId` → `addSchedule` → `expandSchedule`)로 재작성하고 Single Anchor Principle(FR-CAL-004)을 DB와 Draft 양쪽에 일관 적용.
+- 계산기로 갱신한 보스 시간이 보스 스케쥴러 화면에 반영되지 않던 문제 수정: 보스 스케쥴러는 `v3_draft_${gameId}` Draft를 우선 로드하므로 DB 갱신만으로는 화면이 갱신되지 않음. DB 업데이트 직후 Draft에도 동일 보스의 anchor를 single로 patch하여 화면 일관성 확보.
+
+---
+
 ## [3.0.2] - 2026-04-24
 
 ### Fixed
