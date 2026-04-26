@@ -29,4 +29,10 @@ resolved_date: ""
 
 ---
 ## 4. 해결 과정 및 최종 결과
-(V3 브랜치 작업 시 진행 예정)
+
+### v3.0.3 (2026-04-26) — 젠 계산기 핸들러 v3 마이그레이션 누락 발견·이식
+
+- `src/screens/calculator.js`의 보스 시간 업데이트 핸들러가 v3 4-테이블 DB 마이그레이션 시 v2 호환 코드(string ID 매칭, `setBossSchedule()` 우회 시간 변경)로 남아 동작 불능이던 케이스를 사용자 보고로 발견.
+- v3 DB API 직접 호출(`DB.getSchedule` → `deleteSchedulesByBossId` → `addSchedule` → `expandSchedule`)로 재작성. Single Anchor Principle을 **DB와 Draft 양쪽에 일관 적용**하여 보스 스케쥴러 화면 동기화 누락도 함께 해결.
+- 상세는 [issue-031](issue-031-zen-calculator-duplicate-boss-bug.md) 참조.
+- 본 이슈는 향후 추가 누락 케이스가 발견될 때마다 재활용 (status 유지: 미해결).
