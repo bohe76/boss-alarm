@@ -6,15 +6,15 @@
 
 작업 시작 전, 다음 문서들을 최신 상태로 로드하고 학습하여 프로젝트의 컨텍스트를 유지해야 합니다.
 
-1.  **[GEMINI.md](file:///d:/BuyMeaCoffee/boss-alarm/GEMINI.md)**: 에이전트 가이드 및 프로젝트 통합 관리
-2.  **[system_module_details.md](file:///d:/BuyMeaCoffee/boss-alarm/docs/architecture/system_module_details.md)**: 모듈별 상세 구현 명세
-3.  **[system_module_dependencies.md](file:///d:/BuyMeaCoffee/boss-alarm/docs/architecture/system_module_dependencies.md)**: 모듈 간 의존성 관계도
-4.  **[system_data_flow.md](file:///d:/BuyMeaCoffee/boss-alarm/docs/architecture/system_data_flow.md)**: 데이터 흐름 및 업데이트 엔진 메커니즘
-5.  **[system_architecture.md](file:///d:/BuyMeaCoffee/boss-alarm/docs/architecture/system_architecture.md)**: 전체 시스템 아키텍처 및 자가 치유 전략
-6.  **[session-log/](file:///d:/BuyMeaCoffee/boss-alarm/docs/session-log/)**: 세션별 인수인계 로그 (이전 핸드오프는 `session-log/archive/pre-v3-handoff.md`)
-7.  **[design_system_guide.md](file:///d:/BuyMeaCoffee/boss-alarm/docs/guides/design_system_guide.md)**: UI/UX 디자인 시스템 및 컴포넌트 규격
-8.  **[critical_code_policy.md](file:///d:/BuyMeaCoffee/boss-alarm/docs/architecture/critical_code_policy.md)**: 핵심 로직 수정 정책 (수정 금지 영역 포함)
-9.  **[functional-specs/](file:///d:/BuyMeaCoffee/boss-alarm/docs/functional-specs/) 내 모든 문서**: 각 기능별 상세 요구사항 및 동작 명세
+1.  **[GEMINI.md](./GEMINI.md)**: 에이전트 가이드 및 프로젝트 통합 관리
+2.  **[system_module_details.md](./docs/architecture/system_module_details.md)**: 모듈별 상세 구현 명세
+3.  **[system_module_dependencies.md](./docs/architecture/system_module_dependencies.md)**: 모듈 간 의존성 관계도
+4.  **[system_data_flow.md](./docs/architecture/system_data_flow.md)**: 데이터 흐름 및 업데이트 엔진 메커니즘
+5.  **[system_architecture.md](./docs/architecture/system_architecture.md)**: 전체 시스템 아키텍처 및 자가 치유 전략
+6.  **[session-log/](./docs/session-log/)**: 세션별 인수인계 로그 (이전 핸드오프는 `session-log/archive/pre-v3-handoff.md`)
+7.  **[design_system_guide.md](./docs/guides/design_system_guide.md)**: UI/UX 디자인 시스템 및 컴포넌트 규격
+8.  **[critical_code_policy.md](./docs/architecture/critical_code_policy.md)**: 핵심 로직 수정 정책 (수정 금지 영역 포함)
+9.  **[functional-specs/](./docs/functional-specs/) 내 모든 문서**: 각 기능별 상세 요구사항 및 동작 명세
 
 ---
 
