@@ -1,6 +1,7 @@
 import { calculateAppearanceTimeFromMinutes } from '../calculator.js';
 import { CrazyCalculator } from '../crazy-calculator.js';
 import { LocalStorageManager, BossDataManager } from '../data-managers.js';
+import { DB } from '../db.js';
 import {
     showToast,
     populateBossSelectionDropdown,
@@ -73,66 +74,65 @@ export function initCalculatorScreen(DOM) {
                 return;
             }
 
-            const [targetId, , bossName] = selectedBossValue.split('__');
+            const [targetIdStr, , bossName] = selectedBossValue.split('__');
+            const targetId = parseInt(targetIdStr, 10);
+            const targetSchedule = Number.isNaN(targetId) ? null : DB.getSchedule(targetId);
 
-            // 1. Get current schedule
-            const currentSchedule = BossDataManager.getBossSchedule(false); // Get full schedule including future anchors
-            let bossFoundAndUpdated = false;
-
-            // 2. Prepare the single updated anchor for this boss
-            // First, find the original item to preserve metadata like memo, but we will ONLY use one updated anchor.
-            const originalItem = currentSchedule.find(item => item.type === 'boss' && item.id === targetId);
-
-            if (originalItem) {
-                bossFoundAndUpdated = true;
-
-                // Format the time string for the 'time' field (HH:MM:SS)
-                const hours = padNumber(lastCalculatedBossTime.getHours());
-                const minutes = padNumber(lastCalculatedBossTime.getMinutes());
-                const seconds = padNumber(lastCalculatedBossTime.getSeconds());
-                const newTimeFormat = `${hours}:${minutes}:${seconds}`;
-
-                const updatedAnchor = {
-                    ...originalItem,
-                    time: newTimeFormat,
-                    scheduledDate: lastCalculatedBossTime, // Use the precisely calculated Date object
-                    alerted_5min: false, alerted_1min: false, alerted_0min: false
-                };
-
-                // 3. Construct the new schedule: 
-                //    - All items that are NOT the target boss name (keep other bosses as they are)
-                //    - PLUS the single new anchor for the target boss
-                const filteredSchedule = currentSchedule.filter(item => {
-                    if (item.type !== 'boss') return true; // Keep date headers (they'll be regened anyway)
-                    return item.name !== bossName; // Remove all existing instances of this specific boss
-                });
-
-                filteredSchedule.push(updatedAnchor);
-
-                // 4. Save to SSOT (BossDataManager will handle expansion based on the Single Anchor)
-                BossDataManager.setBossSchedule(filteredSchedule);
-            }
-
-            if (bossFoundAndUpdated) {
-                // 4. Update UI
-                updateBossListTextarea(DOM);
-                updateTimetableUI(DOM);
-
-                const newTimeText = `${padNumber(lastCalculatedBossTime.getHours())}:${padNumber(lastCalculatedBossTime.getMinutes())}:${padNumber(lastCalculatedBossTime.getSeconds())}`;
-                showToast(DOM, `${bossName} 보스 시간이 ${newTimeText}으로 업데이트 되었습니다.`);
-                trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 시간 업데이트 (젠 계산기)', bossName: bossName, newTime: newTimeText });
-
-                // Reset inputs
-                DOM.remainingTimeInput.value = '';
-                DOM.bossAppearanceTimeDisplay.textContent = '--:--:--';
-                DOM.bossSelectionDropdown.value = '';
-                lastCalculatedBossTime = null; // Clear the stored date
-                checkZenCalculatorUpdateButtonState(DOM);
-                populateBossSelectionDropdown(DOM);
-            } else {
+            if (!targetSchedule) {
                 showToast(DOM, "선택된 보스를 목록에서 찾거나 업데이트할 수 없습니다.");
                 trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 시간 업데이트 실패', reason: 'Boss Not Found' });
+                return;
             }
+
+            const bossId = targetSchedule.bossId;
+            const activeGame = DB.getSetting('lastSelectedGame');
+            const memo = targetSchedule.memo || '';
+
+            // Single Anchor Principle (FR-CAL-004): 동일 보스의 모든 인스턴스 제거 후 새 앵커 1개 주입.
+            // 이후 _expandAndReconstruct가 이 단일 앵커를 기준으로 48h 윈도우를 깨끗이 재구성.
+            DB.deleteSchedulesByBossId(bossId);
+            DB.addSchedule({
+                bossId,
+                scheduledDate: lastCalculatedBossTime.toISOString(),
+                memo,
+                alerted_5min: false,
+                alerted_1min: false,
+                alerted_0min: false
+            });
+
+            if (activeGame) {
+                BossDataManager.expandSchedule(activeGame);
+
+                // Draft 동기화: Single Anchor Principle을 Draft에도 동일 적용.
+                // 보스 스케쥴러는 Draft를 우선 로드하므로 DB만 갱신하면 화면 갱신이 누락된다.
+                const draft = BossDataManager.getDraftSchedule(activeGame) || [];
+                const filteredDraft = draft.filter(item => item.type !== 'boss' || item.name !== bossName);
+                filteredDraft.push({
+                    id: `boss-${bossName}-${lastCalculatedBossTime.getTime()}`,
+                    type: 'boss',
+                    name: bossName,
+                    scheduledDate: lastCalculatedBossTime,
+                    memo,
+                    interval: BossDataManager.getBossInterval(bossName, activeGame) || 0,
+                    timeFormat: 'hms'
+                });
+                BossDataManager.setDraftSchedule(activeGame, filteredDraft);
+            }
+
+            updateBossListTextarea(DOM);
+            updateTimetableUI(DOM);
+
+            const newTimeText = `${padNumber(lastCalculatedBossTime.getHours())}:${padNumber(lastCalculatedBossTime.getMinutes())}:${padNumber(lastCalculatedBossTime.getSeconds())}`;
+            showToast(DOM, `${bossName} 보스 시간이 ${newTimeText}으로 업데이트 되었습니다.`);
+            trackEvent('Click Button', { event_category: 'Interaction', event_label: '보스 시간 업데이트 (젠 계산기)', bossName: bossName, newTime: newTimeText });
+
+            // Reset inputs
+            DOM.remainingTimeInput.value = '';
+            DOM.bossAppearanceTimeDisplay.textContent = '--:--:--';
+            DOM.bossSelectionDropdown.value = '';
+            lastCalculatedBossTime = null;
+            checkZenCalculatorUpdateButtonState(DOM);
+            populateBossSelectionDropdown(DOM);
         });
     }
 
