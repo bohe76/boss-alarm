@@ -1,4 +1,5 @@
 import { BossDataManager, BOSS_THRESHOLDS } from './data-managers.js';
+import { escapeHtml } from './html-utils.js';
 
 let pipWindow = null;
 let isPipOpen = false;
@@ -181,11 +182,13 @@ export function updatePipContent() {
 
                 const timeParts = boss.time.split(':');
                 const formattedSpawnTime = `[${timeParts[0].padStart(2, '0')}:${timeParts[1].padStart(2, '0')}]`;
+                const safeSpawnTime = escapeHtml(formattedSpawnTime);
+                const safeBossName = escapeHtml(boss.name);
 
                 return `
                     <div class="imminent-item" style="${fontWeightStyle}">
-                        <span class="imminent-spawn-time">${formattedSpawnTime}</span>
-                        <span class="imminent-name ${nameClass}" style="${fontWeightStyle}">${boss.name}</span>
+                        <span class="imminent-spawn-time">${safeSpawnTime}</span>
+                        <span class="imminent-name ${nameClass}" style="${fontWeightStyle}">${safeBossName}</span>
                         <span class="imminent-time ${timeClass}" style="${fontWeightStyle}">${format(diff)}</span>
                     </div>
                 `;

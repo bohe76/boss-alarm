@@ -13,7 +13,8 @@ function load(key) {
     try {
         const raw = localStorage.getItem(key);
         return raw ? JSON.parse(raw) : null;
-    } catch {
+    } catch (error) {
+        console.error('[DB] localStorage 파싱 실패', { key }, error);
         return null;
     }
 }

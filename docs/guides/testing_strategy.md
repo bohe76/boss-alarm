@@ -1,6 +1,6 @@
 # 테스트 전략 가이드
 
-> 기준: 132 tests / 13 files / vitest + jsdom (2026-04-19 기준)
+> 기준: Vitest 162 tests / 16 files + Playwright E2E 3 tests / 1 file (2026-06-24 기준)
 
 ---
 
@@ -8,13 +8,13 @@
 
 | 항목 | 현황 |
 |------|------|
-| 테스트 프레임워크 | [Vitest](https://vitest.dev/) v4.x |
-| 실행 환경 | jsdom (브라우저 DOM 에뮬레이션) |
+| 테스트 프레임워크 | [Vitest](https://vitest.dev/) v4.x, Playwright |
+| 실행 환경 | jsdom, headless Chromium |
 | 설정 파일 | `vitest.config.js` |
 | 전역 셋업 | `test/setup.js` (Web Worker Mock) |
-| 총 테스트 수 | **132 tests** |
-| 테스트 파일 수 | **13 files** |
-| 실행 명령 | `npm test` (`vitest run`) |
+| 총 테스트 수 | **162 unit/integration tests + 3 E2E tests** |
+| 테스트 파일 수 | **16 Vitest files + 1 Playwright file** |
+| 실행 명령 | `npm test`, `npm run e2e` |
 
 ---
 
@@ -34,6 +34,7 @@
 | `test/utils.test.js` | `src/utils.js` | padNumber, formatTime, validateBossSchedulerInput, calculateNextOccurrence 등 |
 | `test/custom-list-manager.test.js` | `src/custom-list-manager.js` | 커스텀 목록 CRUD |
 | `test/boss-sorting-logic.test.js` | (정렬 로직) | 보스 정렬 순서 |
+| `test/ui-renderer.timetable.test.js` | `src/ui-renderer.js` | 시간표/export 필터·정렬·고정 알림 병합·escape 동등성 |
 
 ### 2.2 통합 테스트 (Integration)
 
@@ -53,10 +54,16 @@ jsdom 환경에서 DOM 상태와 렌더러 호출을 검증한다. 실제 브라
 | 테스트 파일 | 검증 항목 |
 |---|---|
 | `test/boss-scheduler.ui.test.js` | 보스 입력 폼 렌더링, 잔여 시간 표시, 탭 전환 시 상태 보존 |
+| `test/html-safety.test.js` | 사용자 입력 boss name/memo/fixed alarm/log message가 HTML로 실행되지 않음 |
+| `test/pip-manager.test.js` | PiP expanded list의 사용자 입력 boss name이 HTML로 실행되지 않음 |
 
 ### 2.4 E2E 테스트 (End-to-End)
 
-**현재 미도입.** 향후 Playwright 도입 권장 (아래 §5 참조).
+Playwright로 실제 브라우저 흐름을 검증한다. 상세 기준과 스크린샷 목록은 `docs/guides/e2e_baseline.md`를 따른다.
+
+| 테스트 파일 | 검증 흐름 |
+|---|---|
+| `e2e/baseline.spec.js` | 대시보드/도움말 로드, 스케줄러 입력→시간표→내보내기→공유, 고정 알림 추가→시간표 병합 |
 
 ---
 
@@ -68,8 +75,8 @@ jsdom 환경에서 DOM 상태와 렌더러 호출을 검증한다. 실제 브라
 | 보스 주기 계산, 시간 유틸리티 | 단위 | 엣지 케이스(48h 보스, 자정 경계) 집중 검증 필요 |
 | 화면 init/상태 — 스케줄러·시간표 | UI (jsdom) | DOM 이벤트·렌더러 호출 패턴 검증 |
 | DB ↔ 스케줄러 ↔ 화면 흐름 | 통합 | 여러 모듈 연동 확인, FK 무결성 |
-| 공유 URL 생성 → 수신 → 화면 반영 | 통합 또는 E2E | 엔드-투-엔드 시나리오 — E2E 미도입 시 통합으로 대체 |
-| 사용자 전체 플로우(게임 선택 → 알람 → PiP) | E2E (미도입) | Playwright 도입 후 자동화 대상 |
+| 공유 URL 생성 → 수신 → 화면 반영 | 통합 또는 E2E | 엔드-투-엔드 시나리오 |
+| 사용자 전체 플로우(게임 선택 → 알람 → PiP) | E2E + 수동 smoke | PiP/알림 권한은 브라우저 정책 의존성이 큼 |
 
 ---
 
@@ -90,7 +97,8 @@ jsdom 환경에서 DOM 상태와 렌더러 호출을 검증한다. 실제 브라
 
 ### 4.3 PR 체크리스트
 
-- [ ] `npm test` 132+ 테스트 전체 통과
+- [ ] `npm test` 현재 전체 테스트 통과
+- [ ] 핵심 사용자 흐름 변경 시 `npm run e2e` 통과
 - [ ] `npm run lint` 0 errors
 - [ ] 새 기능에 대한 테스트 파일 또는 케이스 추가
 
@@ -147,13 +155,13 @@ describe('<모듈 또는 함수명>', () => {
 
 ---
 
-## 7. E2E 도입 로드맵 (TBD)
+## 7. E2E 기준선
 
 | 단계 | 내용 |
 |---|---|
-| 도구 | Playwright (권장) |
-| 우선 시나리오 | 게임 선택 → 보스 입력 → 알람 활성화 → PiP 실행 |
-| 공유 URL 시나리오 | `#d=` fragment(v4) 또는 `?v3data=` 파라미터(v3 호환) URL 접속 → 보스 목록 자동 로드 확인 |
-| 실행 환경 | GitHub Actions (CI) + headless Chromium |
-| 트리거 | main 브랜치 PR 시 실행 |
-| 현재 상태 | **미도입** — 기여자가 먼저 착수 시 이 섹션을 갱신할 것 |
+| 도구 | Playwright |
+| 현재 자동화 | 대시보드/도움말, 보스 스케줄러, 시간표, 내보내기 모달, 공유 링크, 고정 알림 |
+| 실행 환경 | 로컬 headless Chromium |
+| 실행 명령 | `npm run e2e` |
+| 산출물 | `screenshots/e2e/` |
+| 다음 확장 | 공유 URL 수신(`#d=`, `?v3data=`), 계산기, 모바일 viewport, CI |

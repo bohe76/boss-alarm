@@ -20,6 +20,8 @@
 
 - 전체 문서 인덱스 + 코드↔문서 매핑 → **[knowledge_map.md](knowledge_map.md)**
 - 도메인 용어가 헷갈릴 때 → [glossary.md](glossary.md)
+- 구조 단순화/리팩토링 착수 기준 → [refactoring_plan.md](refactoring_plan.md)
+- Playwright E2E 기준선과 스크린샷 목록 → [guides/e2e_baseline.md](guides/e2e_baseline.md)
 - 변경하려는 코드가 어느 문서에 영향 주는지 → [knowledge_map.md §4 변경 영향도](knowledge_map.md#4-변경-영향도--x-바꿨다-무엇을-봐야-하나)
 
 ## 운영

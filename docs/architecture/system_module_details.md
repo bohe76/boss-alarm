@@ -169,7 +169,7 @@
 *   `renderCrazySavedList(DOM, records)`: 광 계산기의 저장된 기록 목록을 렌더링합니다.
 *   `renderUpdateModal(DOM, noticeData)`: 앱 시작 시 버전 업데이트 안내 모달을 렌더링합니다. `update-notice.json`에서 로드된 `noticeData`를 인자로 받아 개발자 인사말과 가변적인 업데이트 요약 목록을 동적으로 구성합니다. 버전 번호는 `window.APP_VERSION`을 참조하여 제목에 표시합니다. **모든 렌더링은 인라인 스타일을 배제하고 표준화된 CSS 클래스를 사용하며, 버튼 등은 32px 높이의 공통 규격을 준수합니다.**
 *   `renderExportCapture(DOM, options)`: **[Critical]** 내보내기 이미지를 생성하기 위해 `#export-capture-container`에 시간표를 렌더링합니다.
-    *   **스타일 동기화 (Strict Style Enforcement):** 이 함수는 반드시 `renderTimetableList`(메인 화면 렌더링)와 **동일한 HTML 구조 및 CSS 클래스**를 사용해야 합니다. 인라인 스타일을 사용하여 디자인을 흉내 내는 것은 **절대 금지**되며, 디자인 변경 시 두 함수를 동시에 업데이트해야 합니다.
+    *   **스타일 동기화 (Strict Style Enforcement):** 이 함수는 `renderTimetableList`와 같은 시간표 view model 및 카드/표 HTML helper를 사용합니다. 단, 화면용 카드 폭(`18px/자, 최소 110px`)과 export용 카드 폭(`14px/자, 최소 80px`)은 캡처 레이아웃 차이로 유지합니다.
     *   **레이아웃 고정:** 옵션과 무관하게 항상 **1단 레이아웃**으로 렌더링됩니다.
 *   그 외 상세 렌더링 함수들.
 
@@ -200,7 +200,9 @@
     *   `getBossInterval(bossName, contextId)`: `number`. 특정 보스의 리젠 주기(분)를 프리셋에서 찾아 반환합니다. 보스 이름과 게임 컨텍스트를 기반으로 검색합니다.
     *   `getBossSchedule(uiFilter)`: `Array`. 현재 파싱 및 확장된 보스 일정 배열(Main SSOT)을 반환합니다. `uiFilter`가 `true`인 경우, **48시간 윈도우 내에 보스 정보가 없는 빈 날짜 헤더를 자동으로 제거**하는 UI Purification 프로세스를 수행합니다.
     *   `isPresetNamesMatching(listId, schedule)`: `Promise<boolean>`. 특정 프리셋 리스트와 스케줄의 보스 이름들이 일치하는지 확인합니다. (v2.17.2: 인스턴스 개수가 아닌 **보스 종류(Type)**의 비교로 로직이 개선되었습니다.)
-    *   `setBossSchedule(newSchedule)`: `void`. 새로운 보스 일정 배열을 받고, **48시간 확장 엔진을 돌려 정규화한 뒤** Main SSOT에 저장하며, Draft를 동기화하고 **`notifyStructural()`**을 호출합니다.
+    *   `setBossSchedule(items)`: `void`. legacy 호환 wrapper입니다. numeric schedule id와 `bossId`가 있는 항목은 `updateExistingScheduleState()` 경로로 알림 상태(`alerted_*`)와 메모만 갱신하며, string/new id 또는 `bossId`가 없는 schedule-shaped 항목은 현재 선택 게임의 `replaceBossSchedule(gameId, items)` 경로로 전체 schedule을 교체합니다. 두 경로 모두 **`notifyStructural()`**을 호출합니다.
+    *   `replaceBossSchedule(gameId, items)`: `void`. 지정한 게임의 boss schedule을 name/scheduledDate 기반으로 재구성하고, 누락된 boss metadata를 생성한 뒤 48시간 확장 엔진을 실행합니다.
+    *   `updateExistingScheduleState(items)`: `void`. 기존 DB schedule id를 가진 항목의 알림 상태와 메모만 갱신합니다. `bossId`와 `scheduledDate`는 변경하지 않습니다.
     *   `getDraftSchedule()`: `Array`. **현재 선택된 보스 목록(listId)에 격리된** Draft 스케줄을 반환합니다. 이를 통해 여러 게임(오딘, 리니지 등)을 번갈아 작업해도 사용자의 입력 데이터가 서로 섞이지 않는 **Workspace Isolation**을 실현합니다.
     *   `setDraftSchedule(newDraft)`: `void`. 현재 선택된 보스 목록 전용 키로 Draft를 설정하고 localStorage에 저장합니다.
     *   `commitDraft()`: `void`. Draft 데이터를 **48시간 분량으로 자동 확장 및 정규화하여** Main SSOT에 적용(Commit)합니다. Draft를 Main SSOT로 병합하고 즉시 다시 Draft를 동기화하여 연속성 확보. **이 과정에서 'validateBossSchedule'은 더 이상 검증 오류를 반환하지 않으며 사용자 입력을 신뢰합니다.**

@@ -423,6 +423,104 @@ describe('BossDataManager', () => {
             const loaded = BossDataManager.getDraftSchedule('g1');
             expect(loaded).toEqual([]);
         });
+
+        it('Draft JSON 파싱 실패는 빈 배열 fallback을 유지하되 오류를 기록해야 한다', () => {
+            const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            localStorage.setItem('v3_draft_g1', '{not-json');
+
+            expect(BossDataManager.getDraftSchedule('g1')).toEqual([]);
+            expect(errorSpy).toHaveBeenCalledWith(
+                expect.stringContaining('[BossDataManager] Draft 파싱 실패'),
+                expect.objectContaining({ gameId: 'g1' }),
+                expect.any(SyntaxError)
+            );
+
+            errorSpy.mockRestore();
+        });
+    });
+
+    describe('setBossSchedule compatibility wrapper', () => {
+        it('numeric schedule id updates only alarm state and memo while preserving bossId and scheduledDate', () => {
+            setupGame('g1');
+            const boss = setupBoss('g1', '보스A', 60);
+            const originalDate = makeLocalDate(2026, 3, 20, 10, 0, 0).toISOString();
+            const schedule = DB.addSchedule({
+                bossId: boss.id,
+                scheduledDate: originalDate,
+                memo: 'old memo'
+            });
+            let notified = false;
+            BossDataManager.subscribe(() => { notified = true; });
+
+            BossDataManager.setBossSchedule([{
+                type: 'boss',
+                id: schedule.id,
+                bossId: 9999,
+                name: '다른 이름',
+                scheduledDate: makeLocalDate(2026, 3, 21, 12, 0, 0).toISOString(),
+                memo: 'new memo',
+                alerted_5min: 123,
+                alerted_1min: 456,
+                alerted_0min: 789
+            }]);
+
+            const updated = DB.getSchedule(schedule.id);
+            expect(updated.bossId).toBe(boss.id);
+            expect(updated.scheduledDate).toBe(originalDate);
+            expect(updated.memo).toBe('new memo');
+            expect(updated.alerted_5min).toBe(123);
+            expect(updated.alerted_1min).toBe(456);
+            expect(updated.alerted_0min).toBe(789);
+            expect(notified).toBe(true);
+        });
+
+        it('new schedule-shaped items replace the active game schedule and create missing bosses', () => {
+            setupGame('g1');
+            const oldBoss = setupBoss('g1', '기존보스', 0);
+            DB.addSchedule({
+                bossId: oldBoss.id,
+                scheduledDate: makeLocalDate(2026, 3, 20, 9, 30, 0).toISOString(),
+                memo: 'remove me'
+            });
+            const newDate = makeLocalDate(2026, 3, 20, 12, 0, 0).toISOString();
+
+            BossDataManager.setBossSchedule([{
+                type: 'boss',
+                id: 'boss-new-string-id',
+                name: '신규보스',
+                scheduledDate: newDate,
+                memo: 'new memo',
+                interval: 0
+            }]);
+
+            const bosses = DB.getBossesByGameId('g1');
+            const newBoss = bosses.find(boss => boss.name === '신규보스');
+            expect(newBoss).toBeTruthy();
+            const schedules = DB.getSchedulesByGameId('g1');
+            expect(schedules).toHaveLength(1);
+            expect(schedules[0].bossId).toBe(newBoss.id);
+            expect(schedules[0].scheduledDate).toBe(newDate);
+            expect(schedules[0].memo).toBe('new memo');
+            expect(schedules.some(schedule => schedule.bossId === oldBoss.id)).toBe(false);
+        });
+
+        it('replaceBossSchedule writes to the specified game without relying on lastSelectedGame', () => {
+            DB.upsertGame({ id: 'g1', name: 'Game 1', type: 'custom' });
+            DB.upsertGame({ id: 'g2', name: 'Game 2', type: 'custom' });
+            DB.setSetting('lastSelectedGame', 'g1');
+            const newDate = makeLocalDate(2026, 3, 20, 12, 30, 0).toISOString();
+
+            BossDataManager.replaceBossSchedule('g2', [{
+                type: 'boss',
+                name: 'G2보스',
+                scheduledDate: newDate,
+                memo: ''
+            }]);
+
+            expect(DB.getSchedulesByGameId('g1')).toEqual([]);
+            expect(DB.getSchedulesByGameId('g2')).toHaveLength(1);
+            expect(DB.getSetting('lastSelectedGame')).toBe('g2');
+        });
     });
 
     // ──────────────────────────────────────────────

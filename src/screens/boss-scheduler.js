@@ -18,14 +18,11 @@ function handleShowScreen(DOM) {
 
     // 1. 해당 List의 Draft 데이터 확보
     let draftSchedule = BossDataManager.getDraftSchedule(currentListId);
-    console.log('[DEBUG] handleShowScreen - draftSchedule:', draftSchedule);
 
     // [SSOT 원칙 준수] Draft가 비어있다면, '가짜 데이터'를 만드는 게 아니라
     // 1. Main SSOT에 저장된 데이터가 있는지 확인하여 복원하거나
     // 2. 없다면 '빈 상태(Null)'로 정직하게 초기화해야 함.
     if ((!draftSchedule || draftSchedule.length === 0) && isPresetList(currentListId)) {
-        console.log(`[DEBUG] Draft is empty for preset '${currentListId}'. Checking Main SSOT for hydration.`);
-
         const mainSchedule = BossDataManager.getBossSchedule(); // Main SSOT 로드
         const bossNames = getBossNamesForGame(currentListId); // 메타데이터 이름 목록
 
@@ -36,7 +33,6 @@ function handleShowScreen(DOM) {
         );
 
         if (existingSSOTData.length > 0) {
-            console.log(`[DEBUG] Found existing data in SSOT (${existingSSOTData.length} items). Syncing to Draft.`);
             // SSOT -> Draft 복제 (Deep Copy)
             // 이때 SSOT에 없는 보스(새로 추가된 보스 등)는 아래에서 병합해주는 게 완벽하지만,
             // 일단 V2는 SSOT가 우선이므로 SSOT를 그대로 가져옴.
@@ -60,7 +56,6 @@ function handleShowScreen(DOM) {
                 });
             }
         } else {
-            console.log(`[DEBUG] No SSOT data found. Initializing Clean Draft (Time: Null).`);
             // 데이터가 아예 없으면 -> 빈 껍데기 생성 (입력창은 나와야 하므로)
             draftSchedule = bossNames.map((name, index) => {
                 const metaInterval = BossDataManager.getBossInterval(name, currentListId);
@@ -80,10 +75,7 @@ function handleShowScreen(DOM) {
     }
     // 2. Draft -> 내부 UI 상태(_remainingTimes, _memoInputs) 동기화
     // 'Nearest Future' 로직을 적용하여 항상 올바른 양수 시간을 표시합니다.
-    console.log('[DEBUG] handleShowScreen - currentListId:', currentListId);
-    console.log('[DEBUG] handleShowScreen - draftSchedule:', draftSchedule);
     syncDraftToUIState(draftSchedule, currentListId);
-    console.log('[DEBUG] After Sync - _remainingTimes:', _remainingTimes);
 
     // 4. UI 렌더링 (드롭다운, 입력 필드, 텍스트 영역)
     renderGameSelect(DOM, currentListId); // 게임 목록 드롭다운 렌더링 추가

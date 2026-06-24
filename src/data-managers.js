@@ -20,7 +20,8 @@ function loadDraftFromLs(gameId) {
             if (key === 'scheduledDate' && value) return new Date(value);
             return value;
         });
-    } catch {
+    } catch (error) {
+        console.error('[BossDataManager] Draft 파싱 실패', { gameId, key: `${DRAFT_KEY_PREFIX}${gameId}` }, error);
         return null;
     }
 }
@@ -289,20 +290,78 @@ export const BossDataManager = (() => {
             return _enrichSchedules(schedules, uiFilter);
         },
 
-        setBossSchedule(items) {
+        updateExistingScheduleState(items) {
             if (!items || !Array.isArray(items)) return;
             const enrichedItems = items.filter(item => item.type === 'boss');
             enrichedItems.forEach(item => {
                 if (item.id && typeof item.id === 'number') {
                     DB.updateSchedule(item.id, {
-                        alerted_5min: item.alerted_5min || false,
-                        alerted_1min: item.alerted_1min || false,
-                        alerted_0min: item.alerted_0min || false,
+                        alerted_5min: item.alerted_5min ?? false,
+                        alerted_1min: item.alerted_1min ?? false,
+                        alerted_0min: item.alerted_0min ?? false,
                         memo: item.memo || ''
                     });
                 }
             });
             notifyStructural();
+        },
+
+        replaceBossSchedule(gameId, items) {
+            if (!gameId || !Array.isArray(items)) return;
+
+            const game = DB.getGame(gameId);
+            if (!game) return;
+
+            const gameBosses = DB.getBossesByGameId(gameId);
+            const bossNameMap = new Map(gameBosses.map(boss => [boss.name, boss]));
+            const newSchedules = [];
+
+            items
+                .filter(item => item.type === 'boss' && item.name && item.scheduledDate)
+                .forEach(item => {
+                    const scheduledDate = new Date(item.scheduledDate);
+                    if (isNaN(scheduledDate.getTime())) return;
+
+                    const existingBoss = bossNameMap.get(item.name);
+                    const boss = DB.upsertBoss(gameId, item.name, {
+                        interval: item.interval ?? existingBoss?.interval ?? 0,
+                        isInvasion: item.isInvasion ?? existingBoss?.isInvasion ?? false
+                    });
+                    bossNameMap.set(item.name, boss);
+
+                    newSchedules.push({
+                        bossId: boss.id,
+                        scheduledDate: scheduledDate.toISOString(),
+                        memo: item.memo || '',
+                        alerted_5min: item.alerted_5min ?? false,
+                        alerted_1min: item.alerted_1min ?? false,
+                        alerted_0min: item.alerted_0min ?? false
+                    });
+                });
+
+            DB.replaceSchedulesByGameId(gameId, newSchedules);
+            if (newSchedules.length > 0) {
+                _expandAndReconstruct(gameId);
+            }
+            DB.setSetting('lastSelectedGame', gameId);
+            notifyStructural();
+        },
+
+        setBossSchedule(items) {
+            if (!Array.isArray(items)) return;
+
+            const bossItems = items.filter(item => item.type === 'boss');
+            const shouldReplaceActiveSchedule = bossItems.some(item =>
+                item.scheduledDate && item.name && (typeof item.id !== 'number' || !item.bossId)
+            );
+
+            if (shouldReplaceActiveSchedule) {
+                const activeGame = DB.getSetting('lastSelectedGame');
+                this.replaceBossSchedule(activeGame, items);
+                return;
+            }
+
+            this.updateExistingScheduleState(items);
         },
 
         isDraftDirty() {

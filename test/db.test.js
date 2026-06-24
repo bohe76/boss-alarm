@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DB } from '../src/db.js';
 
 describe('DB', () => {
@@ -25,6 +25,20 @@ describe('DB', () => {
     describe('Games CRUD', () => {
         it('should return empty array initially', () => {
             expect(DB.getGames()).toEqual([]);
+        });
+
+        it('should log parse failures and keep the empty-array fallback', () => {
+            const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            localStorage.setItem(DB.KEYS.GAMES, '{not-json');
+
+            expect(DB.getGames()).toEqual([]);
+            expect(errorSpy).toHaveBeenCalledWith(
+                expect.stringContaining('[DB] localStorage 파싱 실패'),
+                expect.objectContaining({ key: DB.KEYS.GAMES }),
+                expect.any(SyntaxError)
+            );
+
+            errorSpy.mockRestore();
         });
 
         it('should upsert and get games', () => {
