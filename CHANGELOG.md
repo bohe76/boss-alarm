@@ -11,6 +11,27 @@
 
 ---
 
+## [3.0.4] - 2026-09-21
+
+### Fixed
+- iOS Safari 무한 로딩(스켈레톤 화면 고정) 수정: iOS Safari 일반 탭에는 `window.Notification`이 없어, 알람을 켠 상태로 재접속하면 `initApp()` → `startAlarm()`의 `Notification.permission` 접근에서 ReferenceError가 발생해 초기화가 중단되던 문제. `alarm-scheduler.js`의 Notification 접근 3곳에 지원 여부 가드를 추가 (시스템 알림만 건너뜀). 알람 발생 시 같은 예외로 `alerted_*` 기록이 누락되던 문제도 함께 해소.
+- 첫 방문 샘플 데이터 미적용 수정: `BossDataManager.setBossSchedule()`이 numeric id 항목만 처리해 `loadInitialData`의 샘플 적재가 no-op이던 문제. 선택된 프리셋 게임의 스케줄이 비어 있으면 `initial-default.json` 샘플이 48시간 확장되어 적재됨.
+
+### Security
+- 보스 이름·메모, 커스텀 목록 이름, 고정 알림, 게임 선택 목록, 광 계산기 기록, PiP 위젯, 로그 메시지를 `escapeHtml()`(`src/html-utils.js`) 또는 `textContent`로 출력하여 HTML 삽입(XSS) 차단.
+
+### Changed
+- `BossDataManager.setBossSchedule()`을 호환 wrapper로 전환: 기존 schedule id 항목은 `updateExistingScheduleState()`(alert/memo만 갱신), 신규 schedule 형태는 `replaceBossSchedule(gameId, items)`(게임 스케줄 재구성 + 48h 확장)로 라우팅.
+- `renderTimetableList()`와 `renderExportCapture()`의 필터·정렬·카드/표 HTML 생성 로직을 공통 view model helper로 통합.
+- `db.js`/Draft의 localStorage JSON 파싱 실패 시 빈 상태 fallback은 유지하되 `console.error`로 원인 기록.
+- 개발용 `[DEBUG]` 콘솔 로그 제거.
+
+### Added
+- Playwright E2E 기준선(`npm run e2e`): 대시보드, 스케줄러→시간표·내보내기·공유, 고정 알림, Notification 미지원 환경(iOS Safari) 부팅 시나리오.
+- 단위 테스트: HTML 안전성, PiP, 시간표 렌더러, DB/Draft 파싱 실패, `setBossSchedule` 라우팅.
+
+---
+
 ## [3.0.3] - 2026-04-26
 
 ### Fixed
