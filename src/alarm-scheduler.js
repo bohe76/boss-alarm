@@ -8,6 +8,11 @@ import { DB } from './db.js';
 
 let worker = null;
 
+// iOS Safari 일반 탭 등 Notification API가 없는 환경에서는 시스템 알림을 건너뛴다
+function isNotificationSupported() {
+    return 'Notification' in window;
+}
+
 try {
     worker = new Worker('./src/workers/timer-worker.js', { type: 'module' });
     worker.onerror = function (e) {
@@ -67,7 +72,7 @@ BossDataManager.subscribe(() => {
 export function startAlarm(DOM) {
     LocalStorageManager.setAlarmRunningState(true);
 
-    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+    if (isNotificationSupported() && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
         Notification.requestPermission();
     }
 
@@ -106,7 +111,7 @@ function handleAlarm({ id, name, type, isFixed, targetTime }) {
 
         log(msg, true);
         speak(msg);
-        if (Notification.permission === 'granted') {
+        if (isNotificationSupported() && Notification.permission === 'granted') {
             const notification = new Notification('보스 알리미', { body: msg });
             notification.onclick = () => window.focus();
         }
@@ -126,7 +131,7 @@ function handleAlarm({ id, name, type, isFixed, targetTime }) {
 
         log(msg, true);
         speak(msg);
-        if (Notification.permission === 'granted') {
+        if (isNotificationSupported() && Notification.permission === 'granted') {
             const notification = new Notification('보스 알리미', { body: msg });
             notification.onclick = () => window.focus();
         }

@@ -35,12 +35,19 @@ async function stubExternalRequests(page) {
   });
 }
 
-async function seedQuietSettings(page, { skipPolicyDialog = true } = {}) {
-  await page.addInitScript(({ skipPolicyDialog: shouldSkipPolicyDialog }) => {
+async function seedQuietSettings(page, { skipPolicyDialog = true, alarmRunning = false, withoutNotificationApi = false } = {}) {
+  await page.addInitScript(({ skipPolicyDialog: shouldSkipPolicyDialog, alarmRunning: isAlarmRunning, withoutNotificationApi: shouldRemoveNotificationApi }) => {
     const settings = JSON.parse(localStorage.getItem('v3_settings') || '{}');
     settings['hide_update_modal_v3.0.3'] = true;
     if (shouldSkipPolicyDialog) settings.hasVisitedAlarmPolicy = 'true';
+    if (isAlarmRunning) settings.alarmRunningState = true;
     localStorage.setItem('v3_settings', JSON.stringify(settings));
+
+    // iOS Safari 일반 탭에는 Notification API 자체가 없다
+    if (shouldRemoveNotificationApi) {
+      delete window.Notification;
+      return;
+    }
 
     if (!('Notification' in window)) {
       window.Notification = {
@@ -48,7 +55,7 @@ async function seedQuietSettings(page, { skipPolicyDialog = true } = {}) {
         requestPermission: () => Promise.resolve('denied')
       };
     }
-  }, { skipPolicyDialog });
+  }, { skipPolicyDialog, alarmRunning, withoutNotificationApi });
 }
 
 function watchUnexpectedErrors(page) {
@@ -99,6 +106,16 @@ test('dashboard and help content load from a clean browser state', async ({ page
   await expect(page.locator('#help-screen')).toHaveClass(/active/);
   await expect(page.locator('#featureGuideContent')).toContainText('대시보드');
   await page.screenshot({ path: screenshotPath('help'), fullPage: true });
+
+  expect(errors).toEqual([]);
+});
+
+test('app boots without Notification API while alarm was left running (iOS Safari)', async ({ page }) => {
+  const errors = watchUnexpectedErrors(page);
+  await openApp(page, { alarmRunning: true, withoutNotificationApi: true });
+
+  await expect(page.locator('#dashboard-real-content')).toBeVisible();
+  await expect(page.locator('#alarmToggleButton')).toHaveClass(/alarm-on/);
 
   expect(errors).toEqual([]);
 });
