@@ -1,5 +1,9 @@
 # Repository Guidelines
 
+## Project Memory
+
+Before substantive work, read `.omx/project-memory.json` and apply it as local project memory. Its `notes` entries with `category: "global_codex_memory_import"` are project-specific records migrated verbatim from global Codex `MEMORY.md`; check relevant entries before editing or reporting.
+
 ## Project Structure & Module Organization
 
 `index.html` is the browser entry point. Main ES module source lives in `src/`, with screen modules in `src/screens/`, background timer logic in `src/workers/`, styling in `src/styles/`, and static app data in `src/data/` plus root-level `data/`. Tests live in `test/` and use the same feature-oriented naming as the modules they cover. Project documentation is under `docs/`; architecture details start at `docs/architecture/system_architecture.md`.
