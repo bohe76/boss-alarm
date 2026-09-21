@@ -1,8 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const screenshotDir = path.join(process.cwd(), 'screenshots', 'e2e');
+// 릴리즈 때 package.json과 index.html의 APP_VERSION이 함께 bump되므로 업데이트 모달 숨김 키를 버전에 맞춘다
+const appVersion = JSON.parse(readFileSync(path.join(process.cwd(), 'package.json'), 'utf8')).version;
 
 test.beforeAll(() => {
   mkdirSync(screenshotDir, { recursive: true });
@@ -36,9 +38,9 @@ async function stubExternalRequests(page) {
 }
 
 async function seedQuietSettings(page, { skipPolicyDialog = true, alarmRunning = false, withoutNotificationApi = false } = {}) {
-  await page.addInitScript(({ skipPolicyDialog: shouldSkipPolicyDialog, alarmRunning: isAlarmRunning, withoutNotificationApi: shouldRemoveNotificationApi }) => {
+  await page.addInitScript(({ skipPolicyDialog: shouldSkipPolicyDialog, alarmRunning: isAlarmRunning, withoutNotificationApi: shouldRemoveNotificationApi, appVersion: version }) => {
     const settings = JSON.parse(localStorage.getItem('v3_settings') || '{}');
-    settings['hide_update_modal_v3.0.3'] = true;
+    settings[`hide_update_modal_v${version}`] = true;
     if (shouldSkipPolicyDialog) settings.hasVisitedAlarmPolicy = 'true';
     if (isAlarmRunning) settings.alarmRunningState = true;
     localStorage.setItem('v3_settings', JSON.stringify(settings));
@@ -55,7 +57,7 @@ async function seedQuietSettings(page, { skipPolicyDialog = true, alarmRunning =
         requestPermission: () => Promise.resolve('denied')
       };
     }
-  }, { skipPolicyDialog, alarmRunning, withoutNotificationApi });
+  }, { skipPolicyDialog, alarmRunning, withoutNotificationApi, appVersion });
 }
 
 function watchUnexpectedErrors(page) {
