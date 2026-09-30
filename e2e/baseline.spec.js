@@ -37,10 +37,10 @@ async function stubExternalRequests(page) {
   });
 }
 
-async function seedQuietSettings(page, { skipPolicyDialog = true, alarmRunning = false, withoutNotificationApi = false } = {}) {
-  await page.addInitScript(({ skipPolicyDialog: shouldSkipPolicyDialog, alarmRunning: isAlarmRunning, withoutNotificationApi: shouldRemoveNotificationApi, appVersion: version }) => {
+async function seedQuietSettings(page, { skipPolicyDialog = true, skipUpdateNotice = true, alarmRunning = false, withoutNotificationApi = false } = {}) {
+  await page.addInitScript(({ skipPolicyDialog: shouldSkipPolicyDialog, skipUpdateNotice: shouldSkipUpdateNotice, alarmRunning: isAlarmRunning, withoutNotificationApi: shouldRemoveNotificationApi, appVersion: version }) => {
     const settings = JSON.parse(localStorage.getItem('v3_settings') || '{}');
-    settings[`hide_update_modal_v${version}`] = true;
+    if (shouldSkipUpdateNotice) settings[`hide_update_modal_v${version}`] = true;
     if (shouldSkipPolicyDialog) settings.hasVisitedAlarmPolicy = 'true';
     if (isAlarmRunning) settings.alarmRunningState = true;
     localStorage.setItem('v3_settings', JSON.stringify(settings));
@@ -57,7 +57,7 @@ async function seedQuietSettings(page, { skipPolicyDialog = true, alarmRunning =
         requestPermission: () => Promise.resolve('denied')
       };
     }
-  }, { skipPolicyDialog, alarmRunning, withoutNotificationApi, appVersion });
+  }, { skipPolicyDialog, skipUpdateNotice, alarmRunning, withoutNotificationApi, appVersion });
 }
 
 function watchUnexpectedErrors(page) {
@@ -119,6 +119,21 @@ test('app boots without Notification API while alarm was left running (iOS Safar
   await expect(page.locator('#dashboard-real-content')).toBeVisible();
   await expect(page.locator('#alarmToggleButton')).toHaveClass(/alarm-on/);
 
+  expect(errors).toEqual([]);
+});
+
+test('current release notice and release history render the matching version', async ({ page }) => {
+  const errors = watchUnexpectedErrors(page);
+  await openApp(page, { skipUpdateNotice: false });
+  const modal = page.locator('#version-update-modal');
+  await expect(modal).toBeVisible();
+  await expect(modal).toContainText(`v${appVersion} 패치 업데이트입니다.`);
+  await expect(modal).toContainText('da.gd');
+  await modal.getByRole('button', { name: '×', exact: true }).click();
+  await expect(modal).not.toBeVisible();
+  await page.locator('#nav-version-info').click();
+  await expect(page.locator('#versionHistoryContent')).toContainText(`v${appVersion}`);
+  await expect(page.locator('#versionHistoryContent')).toContainText('공유 링크 생성 오류 해결');
   expect(errors).toEqual([]);
 });
 

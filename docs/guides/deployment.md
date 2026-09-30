@@ -1,6 +1,6 @@
 # 배포 가이드
 
-> 보스 알리미 v3.0 — GitHub Pages 정적 배포
+> 보스 알리미 v3.0.5 — GitHub Pages 정적 배포
 
 ---
 
@@ -14,20 +14,22 @@
 | 배포 브랜치 | `main` |
 | 빌드 시스템 | 없음 (정적 파일 직접 서빙) |
 | 번들러 | 없음 (ES Modules 직접 사용) |
-| CI/CD | GitHub Pages 자동 배포 (`.github/workflows/` 미존재 — Pages 기본 설정) |
+| PR 검증 | `.github/workflows/share-validation.yml` — 단위 테스트, lint, Chromium E2E 및 da.gd 실연동 검증 |
+| 운영 배포 | GitHub Pages 기본 설정 — `main` 브랜치 루트(`/`) |
 
 ---
 
 ## 2. 배포 흐름
 
 ```
-로컬 개발 → npm test 통과 → npm run lint 통과
-→ git commit → git push origin main
+기능 브랜치 개발 → npm test 통과 → npm run lint 통과
+→ PR 생성/갱신 → Share validation 전체 통과 → 릴리즈 정보 확인
+→ 승인 후 main 병합
 → GitHub Pages 자동 재배포 (수 분 소요)
 → 배포 후 검증
 ```
 
-GitHub Actions 워크플로우 파일(`.github/workflows/`)은 현재 존재하지 않으며, GitHub Pages 설정에서 `main` 브랜치의 루트(`/`)를 소스로 지정하여 자동 배포된다.
+`Share validation`은 `main` 대상 PR에서 실행된다. GitHub Pages는 `main` 브랜치 루트(`/`)를 소스로 자동 배포한다. PR 검증 성공만으로 운영 배포가 이루어지는 것은 아니다.
 
 ---
 
@@ -36,19 +38,30 @@ GitHub Actions 워크플로우 파일(`.github/workflows/`)은 현재 존재하�
 ### 3.1 필수 통과 항목
 
 ```bash
-# 1. 전체 테스트 실행 — 132 tests 전부 통과 필수
+# 1. 전체 단위 테스트 실행 — 현재 191개, 최종 실행 결과 기준 전부 통과 필수
 npm test
 
 # 2. ESLint 검사 — 0 errors 필수
 npm run lint
+
+# 3. 브라우저 준비 및 전체 E2E — 기본·릴리즈 안내 6개 + 실연동 1개
+npx playwright install --with-deps chromium
+LIVE_SHARE_E2E=1 npm run e2e -- --workers=1
 ```
+
+실연동 검증은 합성 데이터로 실제 da.gd 단축 링크를 생성한다. PR 코드는 테스트 브라우저에서 production origin으로 제공하며 운영 사이트에 배포하지 않는다. 실제 API 요청, CORS, 클립보드, 최근 생성 안내 페이지, 새 브라우저 컨텍스트의 일정·메모 복원을 검증한다. `LIVE_SHARE_E2E`를 지정하지 않으면 이 1개 시험은 건너뛰므로 전체 실연동 통과로 기록하지 않는다.
+
+로컬 환경에서 브라우저 실행이 제한되면 GitHub Actions의 해당 PR 최종 커밋 검증 결과를 확인한다. 현재 E2E는 데스크톱 Chromium이며, Notification API 미지원 시험도 Chromium의 기능 모의 시험이다. 실제 iOS Safari·카카오톡 실기기 검증을 대체하지 않는다.
 
 ### 3.2 수동 확인 항목
 
-- [ ] `data/version_history.json` 버전 정보 최신화 여부
-- [ ] `src/data/update-notice.json` 공지 내용 갱신 여부 (대규모 업데이트 시)
+- [ ] `package.json` / `package-lock.json` 루트 버전 일치 여부
+- [ ] `CHANGELOG.md` 변경 사항 및 릴리즈 날짜 기록
+- [ ] `data/version_history.json` 최신 버전 항목을 선두에 추가
+- [ ] `src/data/update-notice.json` 공지 내용을 기존 안내 어조로 갱신
 - [ ] `src/data/boss-presets.json` 보스 데이터 변경 사항 반영 여부
-- [ ] `index.html` `APP_VERSION` 상수가 최신 버전 번호와 일치하는지 확인
+- [ ] `index.html` `APP_VERSION` 및 CSS 캐시 버전이 최신 버전 번호와 일치하는지 확인
+- [ ] 버전 갱신 후 단위 테스트·lint·실연동 E2E 재실행 및 업데이트 모달 확인
 
 ---
 
@@ -58,11 +71,13 @@ npm run lint
 # 로컬에서 최종 확인
 npm test && npm run lint
 
-# main 브랜치에 커밋 및 푸시
+# 기능 브랜치에 릴리즈 준비 커밋 및 푸시
 git add <변경파일>
 git commit -m "chore(release): vX.Y.Z 릴리즈 설명"
-git push origin main
+git push origin <작업-브랜치>
 ```
+
+PR에서 최종 검증 결과를 확인하고 승인 후 `main`에 병합한다. 버전 태그 및 GitHub Release 발행은 승인된 릴리즈 절차에 따라 진행하며, 준비 커밋이나 PR 생성 자체를 발행 완료로 기록하지 않는다.
 
 GitHub Pages는 push 수신 후 자동으로 사이트를 재빌드한다. 완료까지 통상 1~3분 소요.
 
@@ -128,7 +143,9 @@ git push origin main
 |---|---|
 | 서버 환경 변수 | 없음 |
 | `.env` 파일 | 없음 |
-| API 키 | TinyURL API — 키 불필요 (무료 엔드포인트) |
+| API 키 | da.gd 익명 POST API — 키 불필요 |
+
+da.gd 실연동에는 `https://da.gd/s` 및 생성된 단축 주소에 대한 HTTPS 접속이 필요하다. 도메인 제한 환경에서는 `da.gd` 허용 여부를 확인한다. 새 링크에는 최근 생성 안내 페이지가 나타날 수 있으며, 서비스 오류·시간 초과 시 원본 URL로 폴백한다. 공유 URL에는 일정과 메모가 포함되며 단축 요청 시 da.gd에 전달된다. Base64는 암호화가 아니다.
 
 ---
 
