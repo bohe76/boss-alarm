@@ -143,7 +143,7 @@
     3.  `share-encoder.js`의 `encodeV4Data({ gameId, schedules })`로 URL-safe base64 인코딩합니다 (키 단축 + epoch 초).
     4.  `#d=<encoded>` fragment로 긴 URL을 구성하고, `api-service.js`의 `getShortUrl()`을 통해 단축 URL을 생성합니다.
     5.  클립보드에 복사 후 `DOM.shareMessage`에 결과를 표시합니다.
-*   **데이터 흐름 요약:** DB에서 보스 스케줄을 읽어 `encodeV4Data()`로 URL-safe base64 인코딩한 뒤 `#d=` fragment로 URL을 구성하고, TinyURL API로 단축하여 클립보드에 복사합니다. (고정 알림은 공유되지 않습니다.)
+*   **데이터 흐름 요약:** DB에서 보스 스케줄을 읽어 `encodeV4Data()`로 URL-safe base64 인코딩한 뒤 `#d=` fragment로 URL을 구성하고, da.gd API로 단축하여 클립보드에 복사합니다. (고정 알림은 공유되지 않습니다.)
 
 ### 3.6. 버전 정보 화면 (`src/screens/version-info.js`)
 

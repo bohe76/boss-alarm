@@ -12,7 +12,7 @@
 
 ## 1. 개요
 
-'공유' 화면은 사용자가 현재 애플리케이션에 설정된 보스 스케줄을 다른 사람과 쉽게 공유할 수 있도록 URL을 생성하고 제공하는 기능입니다. v3.0.2부터 `share-encoder.js`의 `encodeV4Data()`를 사용하며, URL fragment `#d=<URL-safe base64>`를 정식 포맷으로 사용합니다. TinyURL 서비스를 활용하여 단축 URL을 생성하고 클립보드에 자동 복사합니다.
+'공유' 화면은 사용자가 현재 애플리케이션에 설정된 보스 스케줄을 다른 사람과 쉽게 공유할 수 있도록 URL을 생성하고 제공하는 기능입니다. v3.0.2부터 `share-encoder.js`의 `encodeV4Data()`를 사용하며, URL fragment `#d=<URL-safe base64>`를 정식 포맷으로 사용합니다. da.gd 서비스를 활용하여 단축 URL을 생성하고 클립보드에 자동 복사합니다.
 
 v3.0.0~v3.0.1에서 사용하던 `?v3data=` 파라미터는 수신 호환을 위해 영구 지원됩니다. v2에서 사용하던 `?data=` 파라미터 방식은 v3.0.0에서 폐기되었습니다.
 
@@ -21,7 +21,7 @@ v3.0.0~v3.0.1에서 사용하던 `?v3data=` 파라미터는 수신 호환을 위
 ## 2. 사용자 시나리오
 
 - **시나리오 1**: 사용자가 '공유' 메뉴를 클릭하면 → 현재 보스 스케줄 기반 v4 URL(`#d=...`)이 자동 생성되고 → 클립보드에 단축 URL이 복사된다.
-- **시나리오 2**: TinyURL 서비스가 실패하면 → 원본 긴 URL(`#d=...`)이 클립보드에 복사되고 → 안내 메시지가 표시된다. 단, 원본 URL이 4000자를 초과하면 길이 가드 토스트가 표시된다.
+- **시나리오 2**: da.gd 서비스가 실패하면 → 원본 긴 URL(`#d=...`)이 클립보드에 복사되고 → 안내 메시지가 표시된다. 단, 원본 URL이 4000자를 초과하면 길이 가드 토스트가 표시된다.
 - **시나리오 3 (v4 수신)**: 수신 측이 `#d=` fragment URL을 열면 → hash를 자동 감지하여 → `decodeShareData()`로 디코딩 후 해당 게임의 스케줄이 DB에 반영된다.
 - **시나리오 4 (v3 호환 수신)**: 수신 측이 구형 `?v3data=` URL을 열면 → query 파라미터를 fallback 감지하여 → 동일하게 스케줄이 DB에 반영된다.
 - **시나리오 5**: 보스 스케줄이 없는 경우 → "공유 링크 생성 실패" 메시지가 표시된다.
@@ -38,8 +38,8 @@ v3.0.0~v3.0.1에서 사용하던 `?v3data=` 파라미터는 수신 호환을 위
 | FR-SHA-004 | FK가 끊긴 항목(보스 이름 없음)은 공유 대상에서 제외한다 | P0 | ✅ |
 | FR-SHA-005 | encodeV4Data({ gameId, schedules })를 사용하여 JSON→UTF-8→URL-safe base64로 직렬화한다 (키 단축 + epoch 초) | P0 | ✅ |
 | FR-SHA-006 | 생성된 URL-safe base64 문자열을 #d= fragment로 URL에 포함한다 | P0 | ✅ |
-| FR-SHA-007 | api-service.js의 getShortUrl()을 통해 TinyURL로 단축 URL을 생성한다 | P0 | ✅ |
-| FR-SHA-008 | TinyURL 실패 시 원본 긴 URL을 클립보드에 복사하고 안내 메시지를 표시한다. 원본 URL이 4000자 초과 시 길이 가드 토스트를 표시한다 | P0 | ✅ |
+| FR-SHA-007 | api-service.js의 getShortUrl()을 통해 da.gd로 단축 URL을 생성한다 | P0 | ✅ |
+| FR-SHA-008 | da.gd 실패 시 원본 긴 URL을 클립보드에 복사하고 안내 메시지를 표시한다. 원본 URL이 4000자 초과 시 길이 가드 토스트를 표시한다 | P0 | ✅ |
 | FR-SHA-009 | 수신 측에서 #d= fragment를 우선 감지하고, 없으면 ?v3data= 파라미터를 fallback으로 감지하여 decodeShareData()로 디코딩한다 | P0 | ✅ |
 | FR-SHA-010 | 디코딩 성공 시 DB.replaceSchedulesByGameId()로 스케줄을 DB에 반영한다 | P0 | ✅ |
 | FR-SHA-011 | payload의 v 필드가 지원하지 않는 값이거나 파싱 오류 시 null을 반환하고 무시한다 | P0 | ✅ |
@@ -51,8 +51,8 @@ v3.0.0~v3.0.1에서 사용하던 `?v3data=` 파라미터는 수신 호환을 위
 ## 4. 수용 기준 (Acceptance Criteria)
 
 - **AC-001**: Given 보스 스케줄이 등록된 상태 / When '공유' 화면 진입 / Then 자동으로 v4 포맷 단축 URL이 생성되고 클립보드에 복사된다.
-- **AC-002**: Given TinyURL API 호출 성공 / When 처리 완료 / Then "단축 URL이 클립보드에 복사되었습니다." 메시지가 표시된다.
-- **AC-003**: Given TinyURL API 호출 실패 / When 오류 발생 / Then 원본 긴 URL(`#d=...`)이 클립보드에 복사되고 "URL 단축 실패" 메시지가 표시된다.
+- **AC-002**: Given da.gd API 호출 성공 / When 처리 완료 / Then "단축 URL이 클립보드에 복사되었습니다." 메시지가 표시된다.
+- **AC-003**: Given da.gd API 호출 실패 / When 오류 발생 / Then 원본 긴 URL(`#d=...`)이 클립보드에 복사되고 "URL 단축 실패" 메시지가 표시된다.
 - **AC-004**: Given v4 공유 URL(`#d=...`)을 포함한 링크 접근 / When 앱 초기화 / Then decodeShareData()로 디코딩하여 해당 게임 스케줄이 DB에 반영된다.
 - **AC-004b**: Given v3 호환 URL(`?v3data=...`)을 포함한 링크 접근 / When 앱 초기화 / Then decodeShareData()로 디코딩하여 동일하게 스케줄이 DB에 반영된다.
 - **AC-005**: Given 지원하지 않는 payload 버전 또는 파싱 오류 / When decodeShareData() 호출 / Then null을 반환하고 기존 데이터를 변경하지 않는다.
@@ -64,7 +64,7 @@ v3.0.0~v3.0.1에서 사용하던 `?v3data=` 파라미터는 수신 호환을 위
 
 - **데이터**: `v3_schedules` (공유할 스케줄), `v3_bosses` (보스 이름 매핑), `v3_settings` (`lastSelectedGame`)
 - **모듈**: `src/share-encoder.js`(`encodeV4Data`, `decodeShareData`, `decodeV3Data`), `src/api-service.js`(`getShortUrl`), `src/app.js`(`loadInitialData`의 hash 우선 + query fallback 분기)
-- **외부 서비스**: TinyURL API (URL 단축)
+- **외부 서비스**: da.gd API (URL 단축)
 - **브라우저 API**: Clipboard API (`navigator.clipboard.writeText`)
 
 ---
@@ -96,8 +96,8 @@ v3.0.0~v3.0.1에서 사용하던 `?v3data=` 파라미터는 수신 호환을 위
 - **원본 데이터:** `DB.getSetting('lastSelectedGame')`으로 현재 선택된 `gameId`를 조회한 뒤, `DB.getSchedulesByGameId(gameId)`로 스케줄 목록을, `DB.getBossesByGameId(gameId)`로 보스 이름 매핑을 가져옵니다. FK가 끊긴 항목(보스 이름 없음)은 제외됩니다. '고정 알림'은 공유 대상에 포함되지 않습니다.
 - **데이터 인코딩:** `src/share-encoder.js`의 `encodeV4Data({ gameId, schedules })`를 사용합니다. 내부적으로 JSON → TextEncoder(UTF-8) → URL-safe base64 방식으로 직렬화하며, 버전 식별자 `v: 4`, 단축 키(`g`, `s`, `n`, `d`, `m`), epoch 초 시간이 payload에 포함됩니다.
 - **URL 구조:** 생성된 URL-safe base64 문자열은 `#d=` fragment로 전달됩니다. fragment는 서버로 전송되지 않아 GitHub Pages 414 URI Too Long 오류를 원천 회피합니다. v2의 `?data=`, v3.0.0~v3.0.1의 `?v3data=` 파라미터 발신은 v3.0.2부터 폐기됩니다.
-- **TinyURL 서비스 사용:** 인코딩된 데이터를 포함하는 긴 URL(`#d=…`)은 `src/api-service.js`의 `getShortUrl()` 함수를 통해 TinyURL 서비스로 전송되어 단축 URL로 변환됩니다. TinyURL은 fragment를 보존하여 정상 동작이 검증되었습니다.
-- **단축 실패 시 폴백:** TinyURL 서비스 실패 시 원본 긴 URL(`#d=…`)을 클립보드에 복사하고 안내 메시지를 표시합니다. 원본 URL이 4000자를 초과하면 길이 가드 토스트를 추가로 표시합니다.
+- **da.gd 서비스 사용:** 인코딩된 데이터를 포함하는 긴 URL(`#d=…`)은 `src/api-service.js`의 `getShortUrl()` 함수를 통해 da.gd 서비스로 전송되어 단축 URL로 변환됩니다. 익명 POST `https://da.gd/s`에 `URLSearchParams({ url: longUrl, text: '1' })`를 전달하며 인증 정보는 보내지 않습니다. 10초 타임아웃과 HTTP 200 / HTTPS da.gd 링크 검증을 적용합니다. 새 링크에는 da.gd의 최근 생성 안내 페이지가 표시될 수 있습니다.
+- **단축 실패 시 폴백:** da.gd 서비스 실패 시 원본 긴 URL(`#d=…`)을 클립보드에 복사하고 안내 메시지를 표시합니다. 원본 URL이 4000자를 초과하면 길이 가드 토스트를 추가로 표시합니다.
 
 ### 8.3. 공유 URL 디코딩 (수신 측)
 - 앱 초기화 시 `app.js`의 `loadInitialData()`에서 URL을 확인합니다. **hash 우선 → query fallback** 순서로 처리합니다.
@@ -111,3 +111,5 @@ v3.0.0~v3.0.1에서 사용하던 `?v3data=` 파라미터는 수신 호환을 위
 - **성공 메시지:** 단축 URL 생성 및 클립보드 복사 성공 시 "단축 URL이 클립보드에 복사되었습니다." 메시지가 표시됩니다.
 - **단축 실패 시:** "URL 단축 실패: {원본 URL} (원본 URL 복사됨)" 메시지가 표시되고 원본 URL이 클립보드에 복사됩니다.
 - **오류 메시지:** 선택된 게임 없음, 기타 예외 등 공유 링크 생성 자체가 실패할 경우 "공유 링크 생성 실패: {오류 내용}" 메시지가 표시됩니다. 관련 오류 내용은 애플리케이션의 '로그'에도 기록됩니다.
+
+- 클립보드 접근 실패 시 생성된 링크(단축 실패 시 원본 링크)를 화면에 표시하여 직접 복사할 수 있습니다. 화면 이탈 또는 재진입으로 무효화된 응답은 복사/메시지 갱신을 하지 않습니다.

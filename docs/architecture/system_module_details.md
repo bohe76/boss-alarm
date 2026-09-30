@@ -343,9 +343,9 @@
 
 ## 12. `src/api-service.js`
 
-- **역할:** TinyURL API를 통한 URL 단축 및 로컬 JSON 파일 로드와 같은 외부 서비스와의 비동기 통신을 처리합니다.
+- **역할:** da.gd API를 통한 URL 단축 및 로컬 JSON 파일 로드와 같은 외부 서비스와의 비동기 통신을 처리합니다.
 - **주요 `export` 함수:**
-    - `getShortUrl(longUrl)`: TinyURL API를 사용하여 긴 URL을 단축합니다.
+    - `getShortUrl(longUrl)`: da.gd API를 사용하여 긴 URL을 단축합니다.
     - `loadJsonContent(filePath)`: 지정된 경로에서 JSON 파일을 비동기적으로 로드합니다.
 
 ## 13. `src/db.js` (4-테이블 정규화 DB)
@@ -460,5 +460,5 @@
 | **`dashboard.js`** | `getScreen()` | `init` 시 `initDashboardScreen(DOM)`이 호출되어 `DOM.muteToggleButton` (음소거 버튼)과 `DOM.volumeSlider` (볼륨 슬라이더)에 대한 이벤트 리스너를 등록하고, '최근 알림 로그'를 초기 렌더링합니다. 음소거 버튼 클릭 시 `LocalStorageManager.setMuteState()`를 호출하여 음소거 상태를 토글하며, 볼륨 슬라이더 조작 시 `LocalStorageManager.setVolume()`을 통해 볼륨 값을 저장합니다. 두 UI 요소 모두 변경 시 `ui-renderer.js`의 `updateSoundControls(DOM)`를 호출하여 시각적 상태를 갱신합니다. `initDashboardScreen`은 `EventBus.on('log-updated', ...)` 리스너를 등록하여 새로운 로그 발생 시 `renderRecentAlarmLog(DOM)`를 호출하여 로그를 갱신합니다. |
 | **`help.js`** | `getScreen()` | `init` 시 `handleTabSwitching(DOM)`이 호출되어 '도움말'과 'FAQ' 탭 전환 이벤트 리스너를 등록합니다. `onTransition` 시 `onHelpScreenTransition(DOM)`이 호출되어 `data/feature_guide.json`과 `data/faq_guide.json`을 비동기적으로 로드하고, `ui-renderer.js`의 `renderHelpScreen()`과 `renderFaqScreen()`을 호출하여 각 탭의 콘텐츠를 렌더링합니다. |
 | **`settings.js`** | `getScreen()` | `init` 시 `initSettingsScreen(DOM)`이 호출되어 고정 알림 모달의 '추가' 및 목록의 '편집/삭제/토글' 이벤트 리스너를 등록합니다. 모달은 고정 알림의 추가/편집을 담당하며, 요일 선택 기능과 데이터 저장 로직을 포함합니다. (`LocalStorageManager`의 `getFixedAlarmById`를 사용) |
-| **`share.js`** | `getScreen()` | `onTransition` 시 `initShareScreen(DOM)`이 호출됩니다. `DB.getSetting('lastSelectedGame')`으로 게임 ID를 확인하고, `DB.getSchedulesByGameId(gameId)` / `DB.getBossesByGameId(gameId)`로 데이터를 조회합니다. `share-encoder.js`의 `encodeV4Data({ gameId, schedules })`로 v4 payload를 생성한 뒤 `#d=<URL-safe base64>` URL fragment를 구성합니다. 인코딩 결과가 4000자를 초과하면 길이 가드 토스트를 표시하고 중단합니다. `api-service.js`의 `getShortUrl()`로 단축 URL을 생성(실패 시 원본 URL 폴백)하고 클립보드에 복사하며, `DOM.shareMessage`에 결과를 표시합니다. (고정 알림은 공유되지 않습니다.) |
+| **`share.js`** | `getScreen()` | `onTransition` 시 `initShareScreen(DOM)`이 호출됩니다. `DB.getSetting('lastSelectedGame')`으로 게임 ID를 확인하고, `DB.getSchedulesByGameId(gameId)` / `DB.getBossesByGameId(gameId)`로 데이터를 조회합니다. `share-encoder.js`의 `encodeV4Data({ gameId, schedules })`로 v4 payload를 생성한 뒤 `#d=<URL-safe base64>` URL fragment를 구성합니다. 단축 실패 시 원본 URL이 4000자를 초과하면 길이 주의 안내를 표시합니다. `api-service.js`의 `getShortUrl()`로 단축 URL을 생성(실패 시 원본 URL 폴백)하고 클립보드에 복사하며, `DOM.shareMessage`에 결과를 표시합니다. (고정 알림은 공유되지 않습니다.) |
 | **`version-info.js`** | `getScreen()` | `onTransition` 시 `initVersionInfoScreen(DOM)`이 호출되어 `api-service.js`의 `loadJsonContent()`를 통해 `data/version_history.json` 파일을 로드하고, `ui-renderer.js`의 `renderVersionInfo(DOM, versionData)`를 호출하여 릴리즈 노트 콘텐츠를 렌더링합니다. |

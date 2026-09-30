@@ -28,11 +28,11 @@ async function stubExternalRequests(page) {
       body: 'window.html2canvas = async () => { const canvas = document.createElement("canvas"); canvas.width = 16; canvas.height = 16; return canvas; };'
     });
   });
-  await page.route('https://tinyurl.com/api-create.php**', route => {
+  await page.route('https://da.gd/s', route => {
     route.fulfill({
       status: 200,
       contentType: 'text/plain',
-      body: 'https://tinyurl.test/boss-alarm-e2e'
+      body: 'https://da.gd/boss-alarm-e2e'
     });
   });
 }
@@ -87,7 +87,7 @@ async function enterOneBossSchedule(page) {
 
   const remainingInput = firstBossItem.locator('.remaining-time-input');
   await remainingInput.fill('00:10');
-  await firstBossItem.locator('.memo-input').fill('E2E baseline');
+  await firstBossItem.locator('.memo-input').fill('E2E baseline 한글 & + % # 雪');
   await expect(firstBossItem.locator('.calculated-spawn-time')).not.toHaveText('--:--:--');
 
   await page.screenshot({ path: screenshotPath('scheduler-input'), fullPage: true });
@@ -136,10 +136,15 @@ test('scheduler input updates timetable, export modal, and share link', async ({
   await page.locator('#close-export-modal').click();
   await expect(page.locator('#export-modal')).not.toBeVisible();
 
+  const requestPromise = page.waitForRequest('https://da.gd/s');
   await page.locator('#nav-share').click();
+  const shareRequest = await requestPromise;
+  expect(shareRequest.method()).toBe('POST');
+  const originalUrl = new URLSearchParams(shareRequest.postData()).get('url');
+  expect(originalUrl).toContain('#d=');
   await expect(page.locator('#share-screen')).toHaveClass(/active/);
   await expect(page.locator('#shareMessage')).toContainText(/클립보드|공유 링크/);
-  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('https://tinyurl.test/boss-alarm-e2e');
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('https://da.gd/boss-alarm-e2e');
   await page.screenshot({ path: screenshotPath('share'), fullPage: true });
 
   expect(errors).toEqual([]);
@@ -178,4 +183,23 @@ test('fixed alarm can be added and appears in timetable', async ({ page }) => {
   await page.screenshot({ path: screenshotPath('timetable-fixed-alarm'), fullPage: true });
 
   expect(errors).toEqual([]);
+});
+
+
+test('share retains the original link when shortening and clipboard both fail', async ({ page }) => {
+  await openApp(page);
+  await enterOneBossSchedule(page);
+  await page.route('https://da.gd/s', route => route.fulfill({ status: 503, body: 'Unavailable' }));
+  await page.evaluate(() => {
+    navigator.clipboard.writeText = async () => { throw new Error('denied'); };
+  });
+  await page.locator('#nav-share').click();
+  await expect(page.locator('#shareMessage')).toContainText('직접 복사');
+  const link = page.locator('#shareMessage a');
+  await expect(link).toHaveAttribute('href', /#d=/);
+  const decoded = await page.evaluate(async url => {
+    const { decodeShareData } = await import('/src/share-encoder.js');
+    return decodeShareData(new URL(url).hash.slice(3));
+  }, await link.getAttribute('href'));
+  expect(decoded.schedules[0].memo).toBe('E2E baseline 한글 & + % # 雪');
 });
