@@ -64,7 +64,8 @@ describe('BossSchedulerScreen UI Interaction', () => {
     });
 
     it('should update calculated time on input change', () => {
-        calculateBossAppearanceTimeSpy.mockReturnValue(new Date('2025-11-28T19:30:00+09:00'));
+        // The UI formats local time; keep this fixture independent of the runner's timezone.
+        calculateBossAppearanceTimeSpy.mockReturnValue(new Date(2025, 10, 28, 19, 30, 0));
         DOM.bossInputsContainer.innerHTML = `
             <div class="boss-input-item">
                 <input type="text" class="remaining-time-input" value="">

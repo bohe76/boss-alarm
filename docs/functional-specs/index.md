@@ -17,7 +17,7 @@
     *   초기 로딩 및 화면 전환
     *   전역 알림 시스템 (음성 및 시각적 알림, **볼륨 조절 기능 포함**)
     *   Local Storage를 통한 설정 및 데이터 저장
-    *   TinyURL을 통한 URL 단축 및 공유
+    *   da.gd을 통한 URL 단축 및 공유
     *   EventBus를 통한 모듈 간 통신
 ### 1.3. DB 기반 스케줄 자동 관리 엔진 (v3.0.0)
 - **4-테이블 정규화 DB**: v3.0.0부터 `DB`(로컬 스토리지 기반, `src/db.js`)를 단일 진실 원천으로 사용합니다. `v3_games`, `v3_bosses`, `v3_schedules`, `v3_settings` 4개 테이블로 구성됩니다.
@@ -63,7 +63,7 @@
 6.  [공유 (Share)](share.md)
     *   DB(`v3_schedules`)에서 현재 게임 스케줄 조회 후 `encodeV4Data()`로 직렬화
     *   URL fragment `#d=<URL-safe base64>` 사용 (v4 정식 포맷; v3의 `?v3data=` 영구 호환 수신)
-    *   TinyURL을 통한 단축 URL 생성 (실패 시 원본 URL 폴백, 4000자 초과 시 길이 가드 토스트)
+    *   da.gd을 통한 단축 URL 생성 (실패 시 원본 URL 폴백, 4000자 초과 시 길이 가드 토스트)
     *   클립보드 복사 기능
 7.  [버전 정보 (Version Info)](version-info.md)
     *   `data/version_history.json` 로드 및 표시

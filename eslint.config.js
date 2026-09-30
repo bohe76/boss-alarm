@@ -2,6 +2,7 @@ import globals from "globals";
 import js from "@eslint/js";
 
 export default [
+  { ignores: ['playwright-report/**', 'test-results/**'] },
   js.configs.recommended,
   {
     files: ["**/*.{js,mjs}"],

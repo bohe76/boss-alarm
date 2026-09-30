@@ -166,7 +166,7 @@ sequenceDiagram
 
 공유 화면에서 URL을 생성하는 흐름과, 공유 URL을 통해 다른 사용자가 접속했을 때 데이터가 복원되는 흐름입니다.
 
-인코딩은 `share-encoder.js`의 순수 함수 `encodeV4Data()`가 담당하며, TinyURL API 호출은 `api-service.js`에서 수행합니다. 수신 측은 `app.js`의 `loadInitialData()`에서 hash 우선 → query fallback 순서로 감지하여 `decodeShareData()`로 디코딩한 뒤 `DB.replaceSchedulesByGameId()`로 적용합니다.
+인코딩은 `share-encoder.js`의 순수 함수 `encodeV4Data()`가 담당하며, da.gd API 호출은 `api-service.js`에서 수행합니다. 수신 측은 `app.js`의 `loadInitialData()`에서 hash 우선 → query fallback 순서로 감지하여 `decodeShareData()`로 디코딩한 뒤 `DB.replaceSchedulesByGameId()`로 적용합니다.
 
 ```mermaid
 sequenceDiagram

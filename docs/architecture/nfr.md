@@ -41,7 +41,7 @@
 | 음성 알림 (`speechSynthesis`) | 가능 | 브라우저 내장 API |
 | 시스템 알림 (`Notification`) | 가능 | 권한 획득 후 오프라인에서도 동작 |
 | 프리셋 JSON 로드 (`boss-presets.json`) | 불가 | 서비스 워커(PWA 캐싱) 미구현. 오프라인 시 `fetch` 실패 |
-| TinyURL 단축 URL 생성 | 불가 | 외부 API 호출 필요 |
+| da.gd 단축 URL 생성 | 불가 | 외부 API 호출 필요 |
 | 공유 URL 생성 (긴 URL) | 가능 | `encodeV4Data()`는 순수 로컬 연산 |
 
 ### 2.2. 단일 사용자 모델
@@ -89,7 +89,7 @@
 ### 5.1. 데이터 경계
 
 - 모든 사용자 데이터는 **브라우저 LocalStorage에만** 존재합니다.
-- 외부 서버로 전송되는 데이터: 없음 (TinyURL API 호출 시 URL 문자열만 전달)
+- 외부 서버로 전송되는 데이터: 공유 시 da.gd에 스케줄 payload를 포함한 URL 문자열을 전달 (base64는 암호화가 아님)
 - 분석(Analytics): `trackEvent`, `trackPageView` 호출이 존재하나 개인식별정보(PII) 미포함
 
 ### 5.2. XSS 표면
