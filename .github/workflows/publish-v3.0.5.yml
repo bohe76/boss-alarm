@@ -1,0 +1,33 @@
+name: Publish v3.0.5
+on:
+  push:
+    branches: [release/publish-v3.0.5]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: bedfbb00ba5d23f7d70c3352b80c4cc832e70d60
+          persist-credentials: false
+      - name: Publish the approved v3.0.5 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: bohe76/boss-alarm
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          text = pathlib.Path("CHANGELOG.md").read_text()
+          notes = text.split("## [3.0.5] - 2026-09-30\n", 1)[1].split("\n---\n", 1)[0].strip()
+          pathlib.Path("/tmp/release-notes.md").write_text(notes + "\n")
+          PY
+          if gh release view v3.0.5 --json tagName >/dev/null 2>&1; then
+            echo "Release already exists; no overwrite performed."
+          else
+            gh release create v3.0.5 --target bedfbb00ba5d23f7d70c3352b80c4cc832e70d60 --title "v3.0.5 — 공유 링크 생성 오류 수정 및 안정성 개선" --notes-file /tmp/release-notes.md
+          fi
+          test "$(gh api repos/bohe76/boss-alarm/git/ref/tags/v3.0.5 --jq .object.sha)" = bedfbb00ba5d23f7d70c3352b80c4cc832e70d60
+          gh release view v3.0.5 --json url,tagName,isDraft,isPrerelease
