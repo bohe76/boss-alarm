@@ -2,29 +2,7 @@
 
 ## 1. 절대 원칙
 
-### 1.1. 핵심 로직 수정 금지
-다음 파일들의 **핵심 로직**은 사용자님의 **명시적 승인 없이 절대 수정하지 않는다:**
-
-| 파일 | 핵심 영역 |
-|------|----------|
-| `src/db.js` | `DB` 싱글톤 전체 (save/importAll/subscribe/FK 검증) |
-| `src/data-managers.js` | `BossDataManager`, `LocalStorageManager` 전체 |
-| `src/app.js` | `processBossItems`, `loadInitialData` |
-| `src/screens/boss-scheduler.js` | `handleApplyBossSettings` |
-| `src/ui-renderer.js` | `renderBossInputs`, `updateBossListTextarea` |
-| `src/share-encoder.js` | `decodeV3Data`, `decodeShareData` — **영구 삭제 금지** (v3.0.x 발급 링크 영구 호환), `encodeV4Data` |
-| `src/preset-loader.js` | `syncPresetsToDb` (cascade 정리 로직) |
-
-### 1.2. 수정 전 필수 절차
-1. **변경 의도 설명:** 무엇을, 왜 바꾸려는지 사용자님께 먼저 설명
-2. **영향 범위 분석:** 해당 변경이 다른 기능에 미치는 영향 분석 제시
-3. **사용자 승인:** 사용자님의 명시적 `진행` 승인 후에만 코드 수정
-
-### 1.3. 금지 행위
-- 린트 오류 수정을 구실로 핵심 로직 변경
-- "최적화"를 이유로 기존 동작 방식 변경
-- 사용자 요청 없이 리팩토링 진행
-- 기존 함수의 역할/책임 변경
+보호 영역 표(수정 금지 파일·함수), 수정 전 필수 절차, 금지 행위는 저장소 루트 `AGENTS.md`의 `Critical Code Policy` 섹션에만 둔다. 에이전트가 매 세션 읽는 파일이 그쪽이고, 같은 표를 두 곳에 두면 내용이 갈라지기 때문이다. 이 문서는 그 정책이 지키려는 SSOT 규칙을 설명한다.
 
 ## 2. SSOT 원칙 (절대 불변)
 

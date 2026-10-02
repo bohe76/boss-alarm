@@ -168,7 +168,7 @@ DB에 저장된 보스 스케줄을 다른 사람과 공유하는 기능. v4 `#d
 
 ### 워크트리 (Worktree)
 Git 워크트리를 활용한 병렬 개발 환경. 메인 브랜치와 별도 디렉터리에서 기능 개발 후 병합한다.  
-출현 위치: `.omc/state/`, `CLAUDE.md`  
+출현 위치: `.omc/state/`  
 관련 용어: [세션 로그](#세션-로그), [핸드오프](#핸드오프)
 
 ### 세션 로그 (Session Log)
@@ -183,7 +183,7 @@ Git 워크트리를 활용한 병렬 개발 환경. 메인 브랜치와 별도 �
 
 ### OMC (Oh-My-ClaudeCode)
 Claude Code AI 에이전트 멀티-에이전트 오케스트레이션 레이어. Executor, Planner, Architect 등 역할별 에이전트를 조율한다.  
-출현 위치: `.omc/`, `CLAUDE.md`, `~/.claude/CLAUDE.md`  
+출현 위치: `.omc/`, `~/.claude/CLAUDE.md`  
 관련 용어: [메모리 시스템](#메모리-시스템)
 
 ### 메모리 시스템 (Memory System)

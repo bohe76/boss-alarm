@@ -171,4 +171,4 @@ graph TD
 | `LICENSE` | ISC |
 | `CHANGELOG.md` | Keep a Changelog (v3.0.0 + 30 백필) |
 | `CONTRIBUTING.md` | 셋업·브랜치·커밋·PR·테스트·이슈 가이드 |
-| `CLAUDE.md` / `GEMINI.md` | AI 에이전트 작업 지침 |
+| `AGENTS.md` | AI 에이전트 작업 지침 (에이전트 공통 단일 파일) |
