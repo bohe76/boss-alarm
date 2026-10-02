@@ -29,14 +29,15 @@ npm test
 ```
 boss-alarm/
 ├── index.html          # 앱 진입점
-├── src/                # 소스 코드 (ES Module)
-│   ├── core/           # 핵심 비즈니스 로직 (DB 엔진, 스케줄러)
-│   ├── components/     # UI 컴포넌트
-│   ├── workers/        # Web Worker (백그라운드 알림)
-│   └── utils/          # 공통 유틸리티
-├── data/               # 정적 데이터 (보스 프리셋, 버전 이력)
+├── src/                # 소스 코드 (ES Module) — DB, 스케줄러, 렌더러 등 모듈이 바로 아래에 위치
+│   ├── screens/        # 화면별 모듈
+│   ├── workers/        # Web Worker (백그라운드 타이머)
+│   ├── styles/         # CSS
+│   └── data/           # 앱 데이터 (보스 프리셋, 첫 방문 샘플, 업데이트 공지)
+├── data/               # 정적 데이터 (버전 이력, 가이드·FAQ)
 ├── docs/               # 프로젝트 문서 (docs/README.md 참조)
-├── tests/              # Vitest 테스트 코드
+├── test/               # Vitest 단위 테스트
+├── e2e/                # Playwright E2E 테스트
 └── package.json
 ```
 
@@ -46,7 +47,7 @@ boss-alarm/
 
 ## 브랜치 전략
 
-- `main` 브랜치는 보호되어 있으며 직접 푸시는 금지됩니다.
+- 외부 기여는 `main`에 직접 푸시하지 않고, 브랜치를 만들어 PR로 제출합니다.
 - 기능 개발은 `feature/<기능명>` 브랜치를 생성하거나 Git 워크트리를 활용합니다.
 
 ```bash
@@ -129,9 +130,12 @@ npm test
 
 # 감시 모드
 npx vitest
+
+# E2E 테스트 (Playwright, Chromium)
+npm run e2e
 ```
 
-테스트 파일은 `tests/` 디렉토리에 위치합니다. 기능 추가 시 관련 테스트를 함께 작성해 주세요. 현재 베이스라인은 132개 테스트입니다.
+단위 테스트 파일은 `test/`, E2E 스펙은 `e2e/` 디렉토리에 위치합니다. 기능 추가 시 관련 테스트를 함께 작성해 주세요.
 
 ---
 

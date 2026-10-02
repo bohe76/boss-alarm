@@ -22,14 +22,14 @@
 ## 2. 배포 흐름
 
 ```
-기능 브랜치 개발 → npm test 통과 → npm run lint 통과
-→ PR 생성/갱신 → Share validation 전체 통과 → 릴리즈 정보 확인
-→ 승인 후 main 병합
+로컬 main 작업 → npm test 통과 → npm run lint 통과 → E2E 통과
+→ 릴리즈 정보 갱신·확인 → release 커밋 + 태그
+→ main 푸시
 → GitHub Pages 자동 재배포 (수 분 소요)
 → 배포 후 검증
 ```
 
-`Share validation`은 `main` 대상 PR에서 실행된다. GitHub Pages는 `main` 브랜치 루트(`/`)를 소스로 자동 배포한다. PR 검증 성공만으로 운영 배포가 이루어지는 것은 아니다.
+릴리즈는 로컬 `main`에서 직접 커밋·푸시하는 방식이 기본이다. 이 경로는 PR 검증을 거치지 않으므로 3.1의 항목을 로컬에서 모두 통과시킨 뒤 푸시한다. PR 경유(v3.0.5)는 예외적 처리였으며, 그 경우 `main` 대상 PR에서 `Share validation`이 실행된다. GitHub Pages는 `main` 브랜치 루트(`/`)를 소스로 자동 배포한다. PR 검증 성공만으로 운영 배포가 이루어지는 것은 아니다.
 
 ---
 
@@ -68,16 +68,21 @@ LIVE_SHARE_E2E=1 npm run e2e -- --workers=1
 ## 4. 배포 절차
 
 ```bash
-# 로컬에서 최종 확인
+# 로컬 main에서 최종 확인 (3.1 전체)
 npm test && npm run lint
+LIVE_SHARE_E2E=1 npm run e2e -- --workers=1
 
-# 기능 브랜치에 릴리즈 준비 커밋 및 푸시
+# release 커밋 + 태그
 git add <변경파일>
-git commit -m "chore(release): vX.Y.Z 릴리즈 설명"
-git push origin <작업-브랜치>
+git commit -m "chore(release): vX.Y.Z — 릴리즈 설명"
+git tag vX.Y.Z
+
+# 푸시 (lightweight 태그는 따로 푸시)
+git push origin main
+git push origin vX.Y.Z
 ```
 
-PR에서 최종 검증 결과를 확인하고 승인 후 `main`에 병합한다. 버전 태그 및 GitHub Release 발행은 승인된 릴리즈 절차에 따라 진행하며, 준비 커밋이나 PR 생성 자체를 발행 완료로 기록하지 않는다.
+푸시 후 GitHub Release를 발행한다. release 커밋이나 태그 생성만으로 발행 완료로 기록하지 않는다. PR 경유로 낼 때는 PR의 최종 검증 결과를 확인하고 승인 후 `main`에 병합한 뒤 병합 커밋에 태그를 붙인다.
 
 GitHub Pages는 push 수신 후 자동으로 사이트를 재빌드한다. 완료까지 통상 1~3분 소요.
 
