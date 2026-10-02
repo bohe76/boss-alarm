@@ -92,7 +92,7 @@ v3.0.0~v3.0.1에서 사용하던 `?v3data=` 파라미터는 수신 호환을 위
 
 - [`issue-036`](../issues/issue-036-share-url-v3data-reimplementation.md): ✅ 해결 완료 (v3data 공유 URL 재구현)
 - [`issue-037`](../issues/issue-037-share-url-length-414.md): ✅ 해결 완료 (v4 포맷 + fragment 전환으로 414 해결)
-- [`issue-038`](../issues/issue-038-custom-list-share-not-restored.md): 커스텀 목록 공유 시 수신 측에 목록이 나타나지 않던 문제 (v4 선택 필드 `b` 추가)
+- [`issue-038`](../issues/resolved/issue-038-custom-list-share-not-restored.md): ✅ 해결 완료 (커스텀 목록 공유 시 수신 측에 목록이 나타나지 않던 문제, v4 선택 필드 `b` 추가)
 - `v2` `?data=` 파라미터 레거시 디코딩 지원 종료 — 이전 버전 공유 링크 사용 불가 안내 UI 검토(TBD)
 - `b`가 없는 옛 커스텀 목록 링크는 젠 주기 정보가 없어 수신 측에서 건너뛴다 (기존 동작 유지)
 
