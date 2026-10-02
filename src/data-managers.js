@@ -494,6 +494,8 @@ export const BossDataManager = (() => {
 
             const gameBosses = DB.getBossesByGameId(gameId);
             const bossNameMap = new Map(gameBosses.map(b => [b.name, b]));
+            // 프리셋 보스의 젠 주기는 프리셋이 정한다. 커스텀 목록만 Draft에서 수정한 주기를 반영한다. (issue-039)
+            const isPreset = DB.getGame(gameId)?.type === 'preset';
 
             const newSchedules = [];
             bossItems.forEach(item => {
@@ -503,6 +505,9 @@ export const BossDataManager = (() => {
                         interval: item.interval || 0,
                         isInvasion: false
                     });
+                    bossNameMap.set(item.name, boss);
+                } else if (!isPreset && Number.isFinite(item.interval) && item.interval !== (boss.interval || 0)) {
+                    boss = DB.updateBoss(boss.id, { interval: item.interval });
                     bossNameMap.set(item.name, boss);
                 }
                 newSchedules.push({

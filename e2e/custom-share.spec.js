@@ -165,6 +165,46 @@ test('a same-named list with different bosses is kept and the shared list gets a
   }
 });
 
+test('a zen interval edited after the first save is stored and carried by the share link', async ({ browser }) => {
+  // issue-039: 처음 저장한 뒤 주기를 고치면 DB에 반영되지 않던 문제
+  const sender = await browser.newContext({ permissions: ['clipboard-read', 'clipboard-write'] });
+  try {
+    await prepareContext(sender);
+    const page = await openPage(sender);
+    expect((await addCustomList(page, LIST_NAME, '커스텀보스A')).success).toBe(true);
+
+    await page.locator('#nav-boss-scheduler').click();
+    await page.locator('#gameSelect').selectOption(LIST_NAME);
+    const row = page.locator('#bossInputsContainer .boss-input-item').first();
+    await row.locator('.remaining-time-input').fill('00:10');
+    await page.locator('#moveToBossSettingsButton').click();
+    await expect(page.locator('#timetable-screen')).toHaveClass(/active/);
+    expect((await readState(page, LIST_NAME)).bosses).toEqual([{ name: '커스텀보스A', interval: 0 }]);
+
+    await page.locator('#nav-boss-scheduler').click();
+    await expect(row.locator('.calculated-spawn-time')).not.toHaveText('--:--:--');
+    await row.locator('.interval-hh').fill('1');
+    await row.locator('.interval-mm').fill('30');
+    await page.locator('#moveToBossSettingsButton').click();
+    await expect(page.locator('#timetable-screen')).toHaveClass(/active/);
+
+    const saved = await readState(page, LIST_NAME);
+    expect(saved.bosses).toEqual([{ name: '커스텀보스A', interval: 90 }]);
+    expect(saved.schedules.length).toBeGreaterThan(1); // 새 주기로 48h 확장됨
+
+    const requestPromise = page.waitForRequest('https://da.gd/s');
+    await page.locator('#nav-share').click();
+    const longUrl = new URLSearchParams((await requestPromise).postData()).get('url');
+    const sent = await page.evaluate(async url => {
+      const { decodeShareData } = await import('./src/share-encoder.js');
+      return decodeShareData(new URL(url).hash.slice(3));
+    }, longUrl);
+    expect(sent.bosses).toEqual([{ name: '커스텀보스A', interval: 90 }]);
+  } finally {
+    await sender.close();
+  }
+});
+
 test('a preset share link still loads exactly as before', async ({ browser }) => {
   const context = await browser.newContext();
   try {

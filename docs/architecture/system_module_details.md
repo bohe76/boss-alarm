@@ -205,7 +205,7 @@
     *   `updateExistingScheduleState(items)`: `void`. 기존 DB schedule id를 가진 항목의 알림 상태와 메모만 갱신합니다. `bossId`와 `scheduledDate`는 변경하지 않습니다.
     *   `getDraftSchedule()`: `Array`. **현재 선택된 보스 목록(listId)에 격리된** Draft 스케줄을 반환합니다. 이를 통해 여러 게임(오딘, 리니지 등)을 번갈아 작업해도 사용자의 입력 데이터가 서로 섞이지 않는 **Workspace Isolation**을 실현합니다.
     *   `setDraftSchedule(newDraft)`: `void`. 현재 선택된 보스 목록 전용 키로 Draft를 설정하고 localStorage에 저장합니다.
-    *   `commitDraft()`: `void`. Draft 데이터를 **48시간 분량으로 자동 확장 및 정규화하여** Main SSOT에 적용(Commit)합니다. Draft를 Main SSOT로 병합하고 즉시 다시 Draft를 동기화하여 연속성 확보. **이 과정에서 'validateBossSchedule'은 더 이상 검증 오류를 반환하지 않으며 사용자 입력을 신뢰합니다.**
+    *   `commitDraft()`: `void`. Draft 데이터를 **48시간 분량으로 자동 확장 및 정규화하여** Main SSOT에 적용(Commit)합니다. Draft를 Main SSOT로 병합하고 즉시 다시 Draft를 동기화하여 연속성 확보. **이 과정에서 'validateBossSchedule'은 더 이상 검증 오류를 반환하지 않으며 사용자 입력을 신뢰합니다.** Draft의 보스가 DB에 없으면 젠 주기와 함께 새로 등록하고, 이미 있는 **커스텀 목록** 보스는 Draft의 주기가 DB와 다를 때 주기를 갱신합니다(issue-039). 프리셋(`games.type === 'preset'`) 보스의 주기는 Draft 값으로 바꾸지 않습니다.
     *   `clearDraft()`: `void`. 현재 보스 목록의 Draft 스케줄을 초기화합니다.
     *   `getNextBossInfo()`: `{ nextBoss, minTimeDiff }`. 현재 가장 가까운 다음 보스 정보와 남은 시간을 반환합니다.
     *   `setNextBossInfo(nextBoss, minTimeDiff)`: `void`. 다음 보스 정보를 실시간으로 설정(Worker TICK 연동)하며, **`notifyUI()`**를 명시적으로 호출하여 불필요한 스케줄 동기화 없이 대시보드만 즉시 갱신합니다.

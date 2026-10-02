@@ -137,6 +137,88 @@ describe('BossDataManager', () => {
             expect(DB.getSchedulesByGameId('g1')).toHaveLength(0);
         });
 
+        // issue-039: 이미 저장된 커스텀 보스의 젠 주기 수정
+        describe('젠 주기 수정 반영', () => {
+            const draftItem = (name, interval, hour = 10) => ({
+                type: 'boss',
+                name,
+                scheduledDate: makeLocalDate(2026, 3, 20, hour, 0, 0).toISOString(),
+                memo: '',
+                ...(interval === undefined ? {} : { interval })
+            });
+            const gapsInMinutes = (gameId) => {
+                const times = DB.getSchedulesByGameId(gameId)
+                    .map(s => new Date(s.scheduledDate).getTime())
+                    .sort((a, b) => a - b);
+                return [...new Set(times.slice(1).map((t, i) => (t - times[i]) / 60000))];
+            };
+
+            it('커스텀 보스의 주기를 바꿔 저장하면 DB와 48h 확장에 반영되어야 한다', () => {
+                setupGame('g1');
+                const boss = setupBoss('g1', '보스A', 60);
+                setDraft('g1', [draftItem('보스A', 150)]);
+
+                BossDataManager.commitDraft('g1');
+
+                expect(DB.findBoss('g1', '보스A')).toMatchObject({ id: boss.id, interval: 150 });
+                expect(gapsInMinutes('g1')).toEqual([150]);
+            });
+
+            it('games 행이 없는 커스텀 목록(실제 앱의 형태)도 주기가 갱신되어야 한다', () => {
+                DB.setSetting('lastSelectedGame', '내 목록');
+                setDraft('내 목록', [draftItem('보스A', 0)]);
+                BossDataManager.commitDraft('내 목록'); // 처음 저장: 주기 없이
+                expect(DB.findBoss('내 목록', '보스A').interval).toBe(0);
+
+                setDraft('내 목록', [draftItem('보스A', 150)]);
+                BossDataManager.commitDraft('내 목록'); // 주기를 넣어 다시 저장
+                expect(DB.findBoss('내 목록', '보스A').interval).toBe(150);
+                expect(gapsInMinutes('내 목록')).toEqual([150]);
+            });
+
+            it('주기를 0으로 비우면 확장을 멈춰야 한다', () => {
+                setupGame('g1');
+                setupBoss('g1', '보스A', 60);
+                setDraft('g1', [draftItem('보스A', 0)]);
+
+                BossDataManager.commitDraft('g1');
+
+                expect(DB.findBoss('g1', '보스A').interval).toBe(0);
+                expect(DB.getSchedulesByGameId('g1')).toHaveLength(1);
+            });
+
+            it('프리셋 보스의 주기는 Draft 값으로 바뀌지 않아야 한다', () => {
+                setupGame('g1', 'preset');
+                setupBoss('g1', '프리셋보스', 120);
+                setDraft('g1', [draftItem('프리셋보스', 0)]);
+
+                BossDataManager.commitDraft('g1');
+
+                expect(DB.findBoss('g1', '프리셋보스').interval).toBe(120);
+                expect(gapsInMinutes('g1')).toEqual([120]);
+            });
+
+            it('Draft 항목에 주기 값이 없으면 기존 주기를 유지해야 한다', () => {
+                setupGame('g1');
+                setupBoss('g1', '보스A', 60);
+                setDraft('g1', [draftItem('보스A', undefined)]);
+
+                BossDataManager.commitDraft('g1');
+
+                expect(DB.findBoss('g1', '보스A').interval).toBe(60);
+            });
+
+            it('isInvasion 등 보스의 다른 속성은 유지해야 한다', () => {
+                setupGame('g1');
+                setupBoss('g1', '침공보스', 60, true);
+                setDraft('g1', [draftItem('침공보스', 90)]);
+
+                BossDataManager.commitDraft('g1');
+
+                expect(DB.findBoss('g1', '침공보스')).toMatchObject({ interval: 90, isInvasion: true });
+            });
+        });
+
         it('Draft가 없으면 commitDraft는 아무것도 하지 않아야 한다', () => {
             setupGame('g1');
 
