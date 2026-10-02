@@ -171,7 +171,7 @@ SSOT 세부 규칙(공유 URL 포맷, 과거 데이터 정제, 시간 역전·�
 
 ## Session Continuity
 
-- 세션 인수인계는 `docs/session-log/`의 세션 로그로 한다 (v3 이전 핸드오프는 `docs/session-log/archive/pre-v3-handoff.md`).
+- 세션 인수인계는 `docs/session-log/`의 세션 로그로 한다.
 - `업무준비` 지시를 받으면 최신 세션 로그로 맥락을 복원하고 짧게 보고한 뒤 대기한다. 이전 세션의 할 일을 지시 없이 시작하지 않는다.
 
 ## Security & Deployment
