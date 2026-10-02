@@ -176,16 +176,16 @@ describe('BossDataManager', () => {
                 expect(gapsInMinutes('내 목록')).toEqual([150]);
             });
 
-            it('주기 0(입력 화면의 빈칸)은 변경 없음으로 보고 저장된 주기를 유지해야 한다', () => {
-                // 입력 화면은 Draft에 없던 보스의 주기 칸을 비워 보여 준다. 그 빈칸이 저장된 주기를 지우면 안 된다.
+            it('주기를 0으로 비워 저장하면 주기 없음으로 바뀌고 확장을 멈춰야 한다', () => {
+                // 입력 화면이 저장된 주기를 칸에 채워 보여 주므로, Draft의 0은 사용자가 지운 것이다.
                 setupGame('g1');
                 setupBoss('g1', '보스A', 150);
                 setDraft('g1', [draftItem('보스A', 0)]);
 
                 BossDataManager.commitDraft('g1');
 
-                expect(DB.findBoss('g1', '보스A').interval).toBe(150);
-                expect(gapsInMinutes('g1')).toEqual([150]);
+                expect(DB.findBoss('g1', '보스A').interval).toBe(0);
+                expect(DB.getSchedulesByGameId('g1')).toHaveLength(1);
             });
 
             it('프리셋 보스의 주기는 Draft 값으로 바뀌지 않아야 한다', () => {

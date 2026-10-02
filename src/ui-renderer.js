@@ -4,6 +4,7 @@ import { getIsAlarmRunning } from './alarm-scheduler.js'; // Import getIsAlarmRu
 import { log, getLogs } from './logger.js'; // Import log and getLogs
 // import { loadJsonContent } from './api-service.js'; // loadJsonContent is no longer needed here
 import { getGameNames, getBossNamesForGame } from './boss-scheduler-data.js';
+import { DB } from './db.js';
 import { escapeHtml } from './html-utils.js';
 import { formatMonthDay, getKoreanDayOfWeek, padNumber, formatTimeDifference, formatSpawnTime, calculateNearestFutureTime } from './utils.js';
 
@@ -804,7 +805,9 @@ export function renderBossInputs(DOM, gameName, remainingTimes = {}, memoInputs 
         }
 
         // 젠 주기(interval)를 시/분으로 환산 (0인 경우 입력창을 비워 플레이스홀더 노출)
-        const totalInterval = existingBoss && existingBoss.interval ? existingBoss.interval : 0;
+        // Draft에 주기가 없으면(일정 없이 공유받은 보스 등) 이 목록에 저장된 주기를 보여 준다.
+        // 저장은 화면의 값을 그대로 쓰므로, 칸이 비어 있으면 저장된 주기가 지워진다. (issue-039)
+        const totalInterval = (existingBoss && existingBoss.interval) || DB.findBoss(gameName, bossName)?.interval || 0;
         const hh = totalInterval > 0 ? Math.floor(totalInterval / 60) : "";
         const mm = totalInterval > 0 ? totalInterval % 60 : "";
         const mmDisplay = (mm !== "" && mm !== 0) ? padNumber(mm) : "";

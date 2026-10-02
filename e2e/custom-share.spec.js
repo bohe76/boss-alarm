@@ -200,6 +200,15 @@ test('a zen interval edited after the first save is stored and carried by the sh
       return decodeShareData(new URL(url).hash.slice(3));
     }, longUrl);
     expect(sent.bosses).toEqual([{ name: '커스텀보스A', interval: 90 }]);
+
+    // 주기 칸을 비워 저장하면 주기 없음으로 돌아간다
+    await page.locator('#nav-boss-scheduler').click();
+    await expect(row.locator('.interval-hh')).toHaveValue('1');
+    await row.locator('.interval-hh').fill('');
+    await row.locator('.interval-mm').fill('');
+    await page.locator('#moveToBossSettingsButton').click();
+    await expect(page.locator('#timetable-screen')).toHaveClass(/active/);
+    expect((await readState(page, LIST_NAME)).bosses).toEqual([{ name: '커스텀보스A', interval: 0 }]);
   } finally {
     await sender.close();
   }
@@ -296,8 +305,9 @@ test('a crafted link packed with long memos still boots when storage runs out', 
   }
 });
 
-test('a stored zen interval survives a save while its input is blank', async ({ browser }) => {
-  // issue-039: 일정 없이 공유받은 보스는 입력 화면의 주기 칸이 비어 있다. 그 상태로 저장해도 받은 주기가 지워지면 안 된다.
+test('a boss shared without a schedule shows its stored zen interval and keeps it on save', async ({ browser }) => {
+  // issue-039: 일정 없이 공유받은 보스는 Draft 항목이 없다. 입력 화면이 저장된 주기를 칸에 보여 줘야 하고,
+  // 시간만 넣어 저장해도 받은 주기가 지워지면 안 된다.
   const context = await browser.newContext();
   try {
     await prepareContext(context);
@@ -320,6 +330,8 @@ test('a stored zen interval survives a save while its input is blank', async ({ 
     await expect(page.locator('#gameSelect')).toHaveValue(LIST_NAME);
     const rowB = page.locator('#bossInputsContainer .boss-input-item').nth(1);
     await expect(rowB.locator('.boss-name')).toHaveText('커스텀보스B');
+    await expect(rowB.locator('.interval-hh')).toHaveValue('1');
+    await expect(rowB.locator('.interval-mm')).toHaveValue('30');
     await rowB.locator('.remaining-time-input').fill('00:10');
     await page.locator('#moveToBossSettingsButton').click();
     await expect(page.locator('#timetable-screen')).toHaveClass(/active/);

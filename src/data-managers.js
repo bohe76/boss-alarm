@@ -550,8 +550,8 @@ export const BossDataManager = (() => {
             const gameBosses = DB.getBossesByGameId(gameId);
             const bossNameMap = new Map(gameBosses.map(b => [b.name, b]));
             // 프리셋 보스의 젠 주기는 프리셋이 정한다. 커스텀 목록만 Draft에서 수정한 주기를 반영한다. (issue-039)
-            // 주기 0(빈칸)은 "변경 없음"으로 본다 — 입력 화면은 Draft에 없던 보스의 주기 칸을 비워 보여 주므로,
-            // 빈칸을 0으로 저장하면 사용자가 본 적 없는 주기가 지워진다.
+            // 주기 0은 "주기 없음"으로 저장한다 — 입력 화면(renderBossInputs)이 저장된 주기를 칸에 채워 보여 주므로
+            // 빈칸은 사용자가 지운 것이다.
             const isPreset = DB.getGame(gameId)?.type === 'preset';
 
             const newSchedules = [];
@@ -563,7 +563,7 @@ export const BossDataManager = (() => {
                         isInvasion: false
                     });
                     bossNameMap.set(item.name, boss);
-                } else if (!isPreset && item.interval > 0 && item.interval !== (boss.interval || 0)) {
+                } else if (!isPreset && Number.isFinite(item.interval) && item.interval !== (boss.interval || 0)) {
                     boss = DB.updateBoss(boss.id, { interval: item.interval });
                     bossNameMap.set(item.name, boss);
                 }
