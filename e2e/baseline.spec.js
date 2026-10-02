@@ -157,6 +157,13 @@ test('scheduler input updates timetable, export modal, and share link', async ({
   expect(shareRequest.method()).toBe('POST');
   const originalUrl = new URLSearchParams(shareRequest.postData()).get('url');
   expect(originalUrl).toContain('#d=');
+  // 프리셋 공유에는 커스텀 목록 정의(b)가 실리지 않는다 (issue-038)
+  const sharedPayload = await page.evaluate(async url => {
+    const { decodeShareData } = await import('./src/share-encoder.js');
+    return decodeShareData(new URL(url).hash.slice(3));
+  }, originalUrl);
+  expect(sharedPayload).not.toHaveProperty('bosses');
+  expect(sharedPayload.schedules.length).toBeGreaterThan(0);
   await expect(page.locator('#share-screen')).toHaveClass(/active/);
   await expect(page.locator('#shareMessage')).toContainText(/클립보드|공유 링크/);
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('https://da.gd/boss-alarm-e2e');

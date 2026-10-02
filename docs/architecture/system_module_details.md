@@ -369,9 +369,16 @@
 
 - **역할:** v3/v4 공유 payload를 인코딩/디코딩합니다. v3.0.2부터 발신은 v4 포맷(`#d=` fragment + URL-safe base64)을 사용하며, 수신은 v3·v4 모두 영구 지원합니다.
 - **주요 함수:**
-    - `encodeV4Data({ gameId, schedules })`: JSON 키를 단축(`g`/`s`/`n`/`d`/`m`)하고 ISO 날짜를 epoch 초로 변환한 뒤 URL-safe base64로 인코딩하여 반환합니다.
-    - `decodeShareData(encoded)`: v3/v4를 자동 판별하는 통합 디코더입니다. `payload.v === '4'`이면 v4 경로, 그 외이면 `decodeV3Data()`에 위임합니다.
+    - `encodeV4Data({ gameId, schedules, bosses })`: JSON 키를 단축(`g`/`s`/`n`/`d`/`m`)하고 ISO 날짜를 epoch 초로 변환한 뒤 URL-safe base64로 인코딩하여 반환합니다. `bosses`(커스텀 목록의 보스 정의)가 있으면 선택 필드 `b: [{ n, i }]`로 싣고, 없으면 `b` 키를 넣지 않아 출력이 이전과 동일합니다.
+    - `decodeShareData(encoded)`: v3/v4를 자동 판별하는 통합 디코더입니다. `payload.v === 4`이면 v4 경로, `'3'`이면 `decodeV3Data()`에 위임합니다. v4 payload에 `b`가 있으면 타입·길이·범위(이름 64자, 주기 0~525600분, 최대 200개)를 강제해 `bosses`로 반환합니다.
     - `decodeV3Data(encoded)`: v3 전용 디코더. base64 → JSON 파싱 후 `payload.v !== '3'`이면 `null`을 반환합니다. **영구 보존** — v3 공유 링크 수신 호환성을 위해 절대 삭제하지 않습니다.
+
+## 13.3. `src/share-custom-list.js` (커스텀 보스 목록 공유)
+
+- **역할:** 커스텀 보스 목록을 공유할 때 발신 쪽의 목록 정의 추출과 수신 쪽의 목록 생성을 담당합니다 (issue-038).
+- **주요 함수:**
+    - `getSharedBossDefinitions(gameId)`: 커스텀 목록이면 목록 순서대로 `{ name, interval }` 배열을 반환합니다. 시간을 입력하지 않은 보스도 포함하며(주기 0), 프리셋이거나 커스텀 목록이 아니면 `null`을 반환합니다.
+    - `importSharedCustomList(sharedName, sharedBosses, sharedSchedules)`: 수신 쪽에 커스텀 목록과 보스(젠 주기 포함)를 만들고 실제로 적재할 목록 이름을 반환합니다. 같은 이름·같은 보스 구성이면 기존 목록을 재사용하고, 구성이 다르거나 프리셋 이름·자가 치유 슬롯 이름과 겹치면 `이름 (2)` 식으로 다른 이름을 씁니다. 이름 유효성은 `CustomListManager.addCustomList()`에 맡기며, 만들 수 없으면 `null`을 반환합니다. 받은 주기로 48h 확장이 만들 건수를 추정해 5000건을 넘으면 건수가 큰 보스부터 주기를 0으로 낮춥니다.
 
 ## 14. `src/boss-scheduler-data.js`
 

@@ -2,8 +2,10 @@ import { initShareScreen } from '../src/screens/share.js';
 import { getShortUrl } from '../src/api-service.js';
 import { DB } from '../src/db.js';
 import { decodeShareData } from '../src/share-encoder.js';
+import { getSharedBossDefinitions } from '../src/share-custom-list.js';
 
 vi.mock('../src/api-service.js', () => ({ getShortUrl: vi.fn() }));
+vi.mock('../src/share-custom-list.js', () => ({ getSharedBossDefinitions: vi.fn() }));
 vi.mock('../src/logger.js', () => ({ log: vi.fn() }));
 vi.mock('../src/analytics.js', () => ({ trackEvent: vi.fn() }));
 vi.mock('../src/db.js', () => ({ DB: { getSetting: vi.fn(), getSchedulesByGameId: vi.fn(), getBossesByGameId: vi.fn() } }));
@@ -22,8 +24,26 @@ beforeEach(() => {
         { bossId: 'missing', scheduledDate: '2026-09-30T18:00:00.000Z' }
     ]);
     getShortUrl.mockResolvedValue('https://da.gd/test');
+    getSharedBossDefinitions.mockReturnValue(null);
 });
 afterEach(() => vi.unstubAllGlobals());
+
+test('preset share carries no boss definitions', async () => {
+    await initShareScreen(DOM);
+    expect(getSharedBossDefinitions).toHaveBeenCalledWith('test-game');
+    const decoded = decodeShareData(new URL(getShortUrl.mock.calls[0][0]).hash.slice(3));
+    expect(decoded).not.toHaveProperty('bosses');
+});
+
+test('custom list share carries boss names and intervals', async () => {
+    const bosses = [{ name: '테스트 보스', interval: 120 }, { name: '시간 미입력 보스', interval: 0 }];
+    getSharedBossDefinitions.mockReturnValue(bosses);
+    await initShareScreen(DOM);
+    const decoded = decodeShareData(new URL(getShortUrl.mock.calls[0][0]).hash.slice(3));
+    expect(decoded.gameId).toBe('test-game');
+    expect(decoded.bosses).toEqual(bosses);
+    expect(decoded.schedules).toHaveLength(1);
+});
 
 test('copies short URL and preserves v4 schedule contents, excluding unknown bosses', async () => {
     await initShareScreen(DOM);

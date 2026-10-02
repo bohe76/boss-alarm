@@ -140,7 +140,7 @@
 *   **처리 흐름:**
     1.  `DB.getSetting('lastSelectedGame')`으로 현재 게임 ID를 확인합니다.
     2.  `DB.getSchedulesByGameId(gameId)`와 `DB.getBossesByGameId(gameId)`로 스케줄 및 보스 데이터를 조회합니다.
-    3.  `share-encoder.js`의 `encodeV4Data({ gameId, schedules })`로 URL-safe base64 인코딩합니다 (키 단축 + epoch 초).
+    3.  `share-encoder.js`의 `encodeV4Data({ gameId, schedules, bosses })`로 URL-safe base64 인코딩합니다 (키 단축 + epoch 초). 커스텀 목록이면 `share-custom-list.js`의 `getSharedBossDefinitions(gameId)`가 반환한 보스 이름·젠 주기가 `bosses`로 함께 실립니다 (프리셋이면 `null`).
     4.  `#d=<encoded>` fragment로 긴 URL을 구성하고, `api-service.js`의 `getShortUrl()`을 통해 단축 URL을 생성합니다.
     5.  클립보드에 복사 후 `DOM.shareMessage`에 결과를 표시합니다.
 *   **데이터 흐름 요약:** DB에서 보스 스케줄을 읽어 `encodeV4Data()`로 URL-safe base64 인코딩한 뒤 `#d=` fragment로 URL을 구성하고, da.gd API로 단축하여 클립보드에 복사합니다. (고정 알림은 공유되지 않습니다.)

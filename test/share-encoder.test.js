@@ -334,3 +334,77 @@ describe('share-encoder v4', () => {
         expect(decoded.schedules[0].memo.length).toBe(200);
     });
 });
+
+// ─── v4 커스텀 목록 보스 정의(b) — issue-038 ─────────────────────────────────
+describe('share-encoder v4 custom list bosses', () => {
+    const schedules = [{ bossName: '커스텀보스A', scheduledDate: '2026-10-02T05:00:00.000Z', memo: '' }];
+    const encodeRaw = (payload) => {
+        const utf8Bytes = new TextEncoder().encode(JSON.stringify(payload));
+        let binary = '';
+        for (let i = 0; i < utf8Bytes.length; i++) binary += String.fromCharCode(utf8Bytes[i]);
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    };
+
+    it('round-trips boss names and intervals, including bosses without schedules', () => {
+        const bosses = [{ name: '커스텀보스A', interval: 120 }, { name: '시간 미입력 보스', interval: 0 }];
+        const decoded = decodeShareData(encodeV4Data({ gameId: '내 목록', schedules, bosses }));
+        expect(decoded).toEqual({ gameId: '내 목록', schedules, bosses });
+    });
+
+    it('produces the same output as before when bosses is absent, null or empty', () => {
+        const base = encodeV4Data({ gameId: 'odin-main', schedules });
+        expect(encodeV4Data({ gameId: 'odin-main', schedules, bosses: null })).toBe(base);
+        expect(encodeV4Data({ gameId: 'odin-main', schedules, bosses: [] })).toBe(base);
+        expect(decodeShareData(base)).not.toHaveProperty('bosses');
+    });
+
+    it('keeps the preset share output byte-identical to v3.0.5', () => {
+        // v3.0.5(커밋 88e5378 시점)의 encodeV4Data 로 만든 값. 프리셋 공유 URL 은 바뀌면 안 된다.
+        const encoded = encodeV4Data({
+            gameId: 'odin-main',
+            schedules: [
+                { bossName: '파르바', scheduledDate: '2026-04-19T15:11:00.000Z', memo: '우선순위' },
+                { bossName: '셀로비아', scheduledDate: '2026-04-20T00:00:00.000Z', memo: '' }
+            ]
+        });
+        expect(encoded).toBe('eyJ2Ijo0LCJnIjoib2Rpbi1tYWluIiwicyI6W3sibiI6Iu2MjOultOuwlCIsImQiOjE3NzY2MTE0NjAsIm0iOiLsmrDshKDsiJzsnIQifSx7Im4iOiLshYDroZzruYTslYQiLCJkIjoxNzc2NjQzMjAwLCJtIjoiIn1dfQ');
+    });
+
+    it('drops malformed boss entries and clamps intervals', () => {
+        const decoded = decodeShareData(encodeRaw({
+            v: 4,
+            g: '내 목록',
+            s: [],
+            b: [
+                null,
+                'string-item',
+                [1, 2],
+                { n: 42, i: 60 },
+                { n: '', i: 60 },
+                { n: '음수 주기', i: -5 },
+                { n: '문자열 주기', i: '60' },
+                { n: '소수 주기', i: 90.7 },
+                { n: '과도한 주기', i: 99999999 },
+                { n: '가'.repeat(100), i: 30 }
+            ]
+        }));
+        expect(decoded.bosses).toEqual([
+            { name: '음수 주기', interval: 0 },
+            { name: '문자열 주기', interval: 0 },
+            { name: '소수 주기', interval: 90 },
+            { name: '과도한 주기', interval: 525600 },
+            { name: '가'.repeat(64), interval: 30 }
+        ]);
+    });
+
+    it('ignores a non-array b field', () => {
+        const decoded = decodeShareData(encodeRaw({ v: 4, g: '내 목록', s: [], b: 'not-an-array' }));
+        expect(decoded).toEqual({ gameId: '내 목록', schedules: [] });
+        expect(decoded).not.toHaveProperty('bosses');
+    });
+
+    it('caps the number of bosses at 200', () => {
+        const b = Array.from({ length: 300 }, (_, i) => ({ n: `보스${i}`, i: 1 }));
+        expect(decodeShareData(encodeRaw({ v: 4, g: '내 목록', s: [], b })).bosses).toHaveLength(200);
+    });
+});

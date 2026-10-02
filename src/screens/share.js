@@ -4,6 +4,7 @@ import { log } from '../logger.js';
 import { trackEvent } from '../analytics.js';
 import { DB } from '../db.js';
 import { encodeV4Data } from '../share-encoder.js';
+import { getSharedBossDefinitions } from '../share-custom-list.js';
 
 let shareRequestId = 0;
 
@@ -26,7 +27,9 @@ export async function initShareScreen(DOM) {
             }))
             .filter(s => !!s.bossName); // FK 끊긴 항목은 제외
 
-        const encoded = encodeV4Data({ gameId, schedules: serialized });
+        // 커스텀 목록이면 받는 쪽이 목록을 만들 수 있게 보스 정의(이름·젠 주기)를 함께 싣는다. 프리셋이면 null.
+        const bosses = getSharedBossDefinitions(gameId);
+        const encoded = encodeV4Data({ gameId, schedules: serialized, bosses });
         const baseUrl = window.location.href.split(/[?#]/)[0];
         const longUrl = `${baseUrl}#d=${encoded}`;
 

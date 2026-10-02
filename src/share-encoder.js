@@ -66,10 +66,11 @@ export function decodeV3Data(encoded) {
 /**
  * v4 공유 payload 를 base64 로 인코딩한다.
  * v3 대비 키를 단축해 URL 길이를 대폭 줄인다.
- * @param {{ gameId: string, schedules: Array<{bossName: string, scheduledDate: string|Date, memo?: string}> }} payload
+ * bosses(커스텀 목록의 보스 정의)는 커스텀 목록 공유에서만 넘긴다. 없으면 payload에 b 키를 넣지 않는다.
+ * @param {{ gameId: string, schedules: Array<{bossName: string, scheduledDate: string|Date, memo?: string}>, bosses?: Array<{name: string, interval?: number}>|null }} payload
  * @returns {string} URL-safe base64 문자열
  */
-export function encodeV4Data({ gameId, schedules }) {
+export function encodeV4Data({ gameId, schedules, bosses }) {
     const normalized = {
         v: 4, // number (v3의 string '3'과 구분)
         g: gameId,
@@ -83,6 +84,9 @@ export function encodeV4Data({ gameId, schedules }) {
             m: s.memo !== undefined ? s.memo : ''
         }))
     };
+    if (Array.isArray(bosses) && bosses.length > 0) {
+        normalized.b = bosses.map(b => ({ n: b.name, i: b.interval || 0 }));
+    }
     const json = JSON.stringify(normalized);
     const utf8Bytes = new TextEncoder().encode(json);
     let binary = '';
@@ -91,10 +95,14 @@ export function encodeV4Data({ gameId, schedules }) {
     return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+const MAX_SHARED_BOSSES = 200;
+const MAX_SHARED_INTERVAL_MINUTES = 525600; // 1년
+
 /**
  * 공유 payload 를 디코딩한다 (v3/v4 자동 분기).
+ * bosses 는 v4 payload 에 b(커스텀 목록의 보스 정의)가 있을 때만 포함된다.
  * @param {string} encoded
- * @returns {{ gameId: string, schedules: Array<{bossName: string, scheduledDate: string, memo: string}> } | null}
+ * @returns {{ gameId: string, schedules: Array<{bossName: string, scheduledDate: string, memo: string}>, bosses?: Array<{name: string, interval: number}> } | null}
  */
 export function decodeShareData(encoded) {
     if (!encoded || typeof encoded !== 'string') return null;
@@ -114,7 +122,7 @@ export function decodeShareData(encoded) {
         if (payload.v === 4) {
             // v4 디코딩 — schedules 항목 타입/길이 강제 (다층 방어)
             if (typeof payload.g !== 'string' || !Array.isArray(payload.s)) return null;
-            return {
+            const decoded = {
                 gameId: payload.g,
                 schedules: payload.s
                     .filter(s => s && typeof s === 'object' && !Array.isArray(s))
@@ -124,6 +132,19 @@ export function decodeShareData(encoded) {
                         memo: typeof s.m === 'string' ? s.m.slice(0, 200) : ''
                     }))
             };
+            // 커스텀 목록 공유: 보스 정의(이름 + 젠 주기). 스케줄과 같은 수준으로 타입/길이/범위를 강제한다.
+            if (Array.isArray(payload.b)) {
+                decoded.bosses = payload.b
+                    .filter(b => b && typeof b === 'object' && !Array.isArray(b) && typeof b.n === 'string' && b.n !== '')
+                    .slice(0, MAX_SHARED_BOSSES)
+                    .map(b => ({
+                        name: b.n.slice(0, 64),
+                        interval: Number.isFinite(b.i) && b.i > 0
+                            ? Math.min(Math.floor(b.i), MAX_SHARED_INTERVAL_MINUTES)
+                            : 0
+                    }));
+            }
+            return decoded;
         } else if (payload.v === '3') {
             // v3 위임
             return decodeV3Data(encoded);

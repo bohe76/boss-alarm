@@ -11,6 +11,7 @@ import { getRoute, registerRoute } from './router.js';
 import { initializeCoreServices } from './services.js';
 import { DB } from './db.js';
 import { decodeShareData } from './share-encoder.js';
+import { importSharedCustomList } from './share-custom-list.js';
 import { initGlobalEventListeners } from './global-event-listeners.js';
 import { togglePipWindow } from './pip-manager.js';
 import { trackPageView, trackEvent } from './analytics.js'; // Added GA imports
@@ -305,7 +306,13 @@ async function loadInitialData(DOM) {
     if (sharedEncoded) {
         const payload = decodeShareData(sharedEncoded);
         if (payload) {
-            const targetBosses = DB.getBossesByGameId(payload.gameId);
+            // 커스텀 목록 공유(payload.bosses)는 수신자 쪽에 목록·보스를 먼저 만든 뒤 아래 공통 경로로 적재한다.
+            // 이름이 겹치면 다른 이름으로 만들어지므로 실제 적재 대상은 반환된 이름이다 (만들지 못하면 null → 건너뜀). issue-038
+            const isCustomListShare = payload.bosses?.length > 0;
+            const sharedGameId = isCustomListShare
+                ? importSharedCustomList(payload.gameId, payload.bosses, payload.schedules)
+                : payload.gameId;
+            const targetBosses = sharedGameId ? DB.getBossesByGameId(sharedGameId) : [];
             if (targetBosses.length > 0) {
                 const bossIdByName = new Map(targetBosses.map(b => [b.name, b.id]));
                 const newSchedules = payload.schedules
@@ -316,13 +323,19 @@ async function loadInitialData(DOM) {
                         memo: s.memo || ''
                     }));
 
-                LocalStorageManager.set('lastSelectedGame', payload.gameId);
-                storedListId = payload.gameId;
-                DB.replaceSchedulesByGameId(payload.gameId, newSchedules);
-                BossDataManager.clearDraft(payload.gameId);
+                LocalStorageManager.set('lastSelectedGame', sharedGameId);
+                storedListId = sharedGameId;
+                DB.replaceSchedulesByGameId(sharedGameId, newSchedules);
+                if (isCustomListShare) {
+                    // 스케줄러 화면은 커스텀 목록의 Draft가 비어 있어도 DB에서 다시 만들지 않는다(프리셋만 복원).
+                    // Draft를 비우면 받은 시간·젠 주기가 입력 화면에 안 보이므로 받은 스케줄로 채운다.
+                    BossDataManager.syncDraftWithMain();
+                } else {
+                    BossDataManager.clearDraft(sharedGameId);
+                }
                 loadSuccess = true;
                 // 로그는 logger.js가 innerHTML로 출력하므로 HTML 메타문자 sanitize
-                const safeGameId = String(payload.gameId).replace(/[<>&"']/g, '?').slice(0, 64);
+                const safeGameId = String(sharedGameId).replace(/[<>&"']/g, '?').slice(0, 64);
                 log(`URL에서 '${safeGameId}' 스케줄 ${newSchedules.length}건을 불러왔습니다.`);
 
                 // T2.3: 디코딩 + DB 반영 모두 성공 시에만 hash cleanup

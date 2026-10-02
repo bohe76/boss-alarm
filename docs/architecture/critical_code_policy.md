@@ -11,6 +11,7 @@
 [boss-presets.json] → syncPresetsToDb() → [DB: v3_games, v3_bosses]
 [사용자 입력 (폼)] → DB.upsertSchedule() → [DB: v3_schedules] → BossDataManager → [UI]
 [공유 URL #d= (v4)] → decodeShareData() → DB.replaceSchedulesByGameId() → [DB]
+[공유 URL #d= (v4, 커스텀 목록 b 포함)] → decodeShareData() → importSharedCustomList() → [customBossLists, v3_bosses] → DB.replaceSchedulesByGameId() → [DB]
 [공유 URL ?v3data= (v3 호환)] → decodeShareData() → DB.replaceSchedulesByGameId() → [DB]
 ```
 
@@ -18,7 +19,7 @@
 - **v3 DB 규칙**: `DB.save()` 실패(QuotaExceededError) 시 `false` 반환 처리 필수. `DB.importAll()` 호출 시 FK 검증 수행됨. `DB.subscribe()`는 unsubscribe 함수를 반환하므로 cleanup 시 반드시 호출할 것.
 - **버전 데이터 표준화 (SSOT)**: `window.APP_VERSION` 값은 **숫자로만 관리**한다 (예: `"3.0.0"`). 출력 시 'v' 접두사는 UI 레이어에서 처리한다.
 - **출력은 항상 DB/SSOT를 바탕으로**: 화면 로딩 시 분 단위 남은 시간에서 역계산하지 말고, `scheduledDate`를 직접 읽어 출력하여 1ms의 오차도 허용하지 않음.
-- **공유 URL 포맷**: v4부터 `#d=<URL-safe base64>` fragment 방식을 정식 사용한다. v3의 `?v3data=` 파라미터는 영구 호환 수신을 유지한다. 발신은 `encodeV4Data`, 수신은 `decodeShareData`(v3/v4 자동 판별)를 사용한다.
+- **공유 URL 포맷**: v4부터 `#d=<URL-safe base64>` fragment 방식을 정식 사용한다. v3의 `?v3data=` 파라미터는 영구 호환 수신을 유지한다. 발신은 `encodeV4Data`, 수신은 `decodeShareData`(v3/v4 자동 판별)를 사용한다. 커스텀 목록 공유는 v4 payload의 선택 필드 `b`(보스 이름·젠 주기)로 목록 정의를 싣는다. 새 정보는 버전을 올리지 않고 선택 필드로 추가한다 — 이전 버전 앱이 모르는 키를 무시하고 기존대로 동작해야 하기 때문이다.
 - **단방향 누적 원칙**: 발신 포맷은 v4로 전환되어도 수신 디코더(`decodeV3Data`, `decodeShareData`)는 영구 보존한다. v3.0.x에서 발급된 링크는 항상 수신 가능해야 한다.
 - **텍스트 모드 제거**: v3에서 텍스트 영역 직접 입력 방식(boss-parser.js, syncInputToText, syncTextToInput)은 완전히 제거되었다. 보스 데이터 입력은 폼 기반 단일 방식으로만 처리한다.
 - **프리셋 DB 동기화 필수**: 앱 초기화 시 `loadBossSchedulerData()` 내에서 `syncPresetsToDb()`가 자동 호출된다. 프리셋 변경 시 DB cascade 정리(deleteBoss)가 수행된다.
