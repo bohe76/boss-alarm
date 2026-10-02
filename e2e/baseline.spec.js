@@ -128,12 +128,12 @@ test('current release notice and release history render the matching version', a
   const modal = page.locator('#version-update-modal');
   await expect(modal).toBeVisible();
   await expect(modal).toContainText(`v${appVersion} 패치 업데이트입니다.`);
-  await expect(modal).toContainText('da.gd');
+  await expect(modal).toContainText('커스텀 보스 목록');
   await modal.getByRole('button', { name: '×', exact: true }).click();
   await expect(modal).not.toBeVisible();
   await page.locator('#nav-version-info').click();
   await expect(page.locator('#versionHistoryContent')).toContainText(`v${appVersion}`);
-  await expect(page.locator('#versionHistoryContent')).toContainText('공유 링크 생성 오류 해결');
+  await expect(page.locator('#versionHistoryContent')).toContainText('커스텀 보스 목록 공유 오류 해결');
   expect(errors).toEqual([]);
 });
 
