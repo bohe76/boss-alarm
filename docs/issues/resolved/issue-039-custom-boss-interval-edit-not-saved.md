@@ -1,7 +1,7 @@
 ---
 id: issue-039
 title: "커스텀 보스의 젠 주기를 수정해도 저장되지 않음"
-status: "진행 중"
+status: "해결됨"
 priority: "High"
 assignee: "Claude"
 labels:
@@ -9,7 +9,7 @@ labels:
   - scheduler
   - custom-list
 created_date: "2026-10-02"
-resolved_date: ""
+resolved_date: "2026-10-02"
 ---
 
 # Issue-039: 커스텀 보스의 젠 주기를 수정해도 저장되지 않음
@@ -31,3 +31,12 @@ resolved_date: ""
 - 프리셋 여부는 `DB.getGame(gameId)?.type === 'preset'`으로 판별한다(`isPresetNamesMatching`과 같은 기준). 커스텀 목록은 `games` 행이 없다.
 - 주기 0은 "주기 없음(확장 안 함)"으로 그대로 저장한다 — 사용자가 주기 입력을 비운 경우다.
 - **범위 밖:** 시간을 입력하지 않은 보스의 주기만 바꾼 경우는 여전히 저장되지 않는다. 입력 화면이 시간이 있는 행만 Draft에 넣기 때문이며(`syncInputToText`), 스케줄이 없는 보스는 확장 대상도 아니다. 시간을 입력해 저장하는 시점에 주기도 함께 저장된다.
+
+## 4. 해결 과정 및 최종 결과
+
+- **브랜치**: `main` (로컬 작업, 2026-10-02). 보호 영역(`BossDataManager.commitDraft`) 수정은 사용자 승인 후 진행.
+- **구현**: `src/data-managers.js`의 `commitDraft`에 분기 하나를 추가했다. 보스가 이미 있고, 게임이 프리셋이 아니며, Draft 항목에 숫자 주기가 있고 DB 값과 다르면 `DB.updateBoss(boss.id, { interval })`로 갱신한다. `isInvasion` 등 다른 속성은 건드리지 않는다. Draft 항목에 주기 값이 없으면 기존 주기를 유지한다.
+- **검증**
+  - 단위 테스트 6건(`test/data-managers.test.js` "젠 주기 수정 반영"): 커스텀 보스 주기 변경이 DB와 48h 확장 간격에 반영, `games` 행이 없는 커스텀 목록, 주기 0으로 비우기, 프리셋 보스 주기 불변, 주기 값 없는 Draft, 다른 속성 유지.
+  - E2E 1건(`e2e/custom-share.spec.js`): 화면에서 시간만 넣어 저장 → 주기를 1:30으로 고쳐 다시 저장 → DB 주기 90분, 48h 확장, 공유 링크에 90분이 실리는 것까지 확인.
+  - `npm run lint` 통과.
