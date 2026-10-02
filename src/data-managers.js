@@ -27,7 +27,12 @@ function loadDraftFromLs(gameId) {
 }
 
 function saveDraftToLs(gameId, draft) {
-    localStorage.setItem(`${DRAFT_KEY_PREFIX}${gameId}`, JSON.stringify(draft));
+    try {
+        localStorage.setItem(`${DRAFT_KEY_PREFIX}${gameId}`, JSON.stringify(draft));
+    } catch (error) {
+        // 용량 초과 등으로 Draft 저장이 실패해도 부팅·확장 흐름을 끊지 않는다 (DB 의 save 와 같은 정책)
+        console.error('[BossDataManager] Draft 저장 실패', { gameId, key: `${DRAFT_KEY_PREFIX}${gameId}` }, error);
+    }
 }
 
 export const BossDataManager = (() => {
@@ -133,10 +138,11 @@ export const BossDataManager = (() => {
         return result;
     };
 
-    // 한 번의 48h 확장이 훑는 걸음 수 상한 (게임 단위). issue-040
-    // 정상 사용에서는 닿지 않는다: 보스 30개 × 10분 주기가 8,640걸음이다.
-    // 상한까지 만들어도 1건 약 150바이트 × 10,000 = 약 1.5MB로 localStorage(약 5MB) 안에 든다.
-    const MAX_EXPANSION_STEPS = 10000;
+    // 48h 확장의 상한 (게임 단위). issue-040
+    // 정상 사용에서는 닿지 않는다: 보스 30개 × 10분 주기가 8,640걸음·8,670행이다.
+    const WINDOW_MS = 48 * 60 * 60 * 1000;
+    const MAX_EXPANSION_STEPS = 10000; // 한 번의 확장이 훑는 걸음 수
+    const MAX_SCHEDULE_ROWS = 10000;   // 확장이 채울 수 있는 게임의 스케줄 행 수 (보존 행 포함, Keeper 행은 별도로 보스당 최대 2건)
 
     // --- 48h expansion for a game ---
     const _expandAndReconstruct = (gameId) => {
@@ -150,7 +156,7 @@ export const BossDataManager = (() => {
         const todayStart = new Date(now);
         todayStart.setHours(0, 0, 0, 0);
         const startTime = todayStart.getTime();
-        const endTime = startTime + (48 * 60 * 60 * 1000);
+        const endTime = startTime + WINDOW_MS;
 
         const schedulesByBoss = new Map();
         schedules.forEach(s => {
@@ -160,15 +166,31 @@ export const BossDataManager = (() => {
 
         const expandedSchedules = [];
         const addedKeys = new Set();
-        let expansionSteps = 0;
 
         const addUnique = (entry) => {
             const key = `${entry.bossId}_${new Date(entry.scheduledDate).getTime()}`;
-            if (!addedKeys.has(key)) {
-                addedKeys.add(key);
-                expandedSchedules.push(entry);
-            }
+            if (addedKeys.has(key)) return false;
+            addedKeys.add(key);
+            expandedSchedules.push(entry);
+            return true;
         };
+
+        const isPreserved = (sTime) => sTime >= startTime || sTime > now;
+
+        // 행 예산: 이번에 새로 만들 수 있는 행 수. 이전 확장이 만든 행도 다음 확장에서는 보존 대상이 되므로,
+        // 걸음 수만 막으면 확장을 거듭할수록 행이 쌓일 수 있다.
+        let remainingRows = MAX_SCHEDULE_ROWS
+            - schedules.filter(s => isPreserved(new Date(s.scheduledDate).getTime())).length;
+
+        // 걸음 예산: 전체 필요량이 상한을 넘을 때만 보스마다 같은 몫으로 나눈다 (앞 순서 보스가 다 써 버리지 않게).
+        const expandingBosses = bosses.filter(b => (b.interval || 0) > 0 && schedulesByBoss.has(b.id));
+        const stepsNeeded = expandingBosses.reduce(
+            (sum, b) => sum + Math.floor(WINDOW_MS / (b.interval * 60 * 1000)) + 1, 0
+        );
+        const stepsPerBoss = stepsNeeded > MAX_EXPANSION_STEPS
+            ? Math.floor(MAX_EXPANSION_STEPS / expandingBosses.length)
+            : Infinity;
+        let limitReached = false;
 
         const isSameDay = (d1, d2) =>
             d1.getFullYear() === d2.getFullYear() &&
@@ -198,7 +220,7 @@ export const BossDataManager = (() => {
             // Preserve user-defined instances in range or future
             bossSchedules.forEach(s => {
                 const sTime = new Date(s.scheduledDate).getTime();
-                if (sTime >= startTime || sTime > now) {
+                if (isPreserved(sTime)) {
                     addUnique({
                         bossId: boss.id,
                         scheduledDate: s.scheduledDate,
@@ -223,46 +245,65 @@ export const BossDataManager = (() => {
                     };
                 };
 
-                // Expand backward
-                // 앵커가 윈도우보다 뒤에 있으면 윈도우 끝 이전의 첫 걸음으로 건너뛴다.
-                // 윈도우 밖(endTime 이후) 인스턴스는 만들지 않는다 — 앵커가 멀수록 걸음 수가 끝없이 늘기 때문이다.
-                let t = anchorTime - interval;
-                if (t > endTime) t -= interval * Math.ceil((t - endTime) / interval);
-                while (t >= startTime && expansionSteps < MAX_EXPANSION_STEPS) {
-                    expansionSteps++;
+                let bossSteps = 0;
+                const canStep = () => {
+                    if (bossSteps < stepsPerBoss && remainingRows > 0) return true;
+                    limitReached = true;
+                    return false;
+                };
+                const isAllowedDay = (time) => !isTodayOnly || isSameDay(new Date(time), new Date(now));
+
+                const scheduleTimes = bossSchedules.map(s => new Date(s.scheduledDate).getTime());
+                let hasFuture = scheduleTimes.some(sTime => sTime > now);
+
+                // 앵커 격자에서 현재 이후 첫 지점. 확장은 앵커가 아니라 여기서 시작한다:
+                // 앵커가 아무리 멀어도 걸음 수가 `48시간 ÷ 주기`를 넘지 않고, 윈도우 밖 인스턴스를 만들지 않는다.
+                const nextTime = anchorTime > now
+                    ? anchorTime - interval * (Math.ceil((anchorTime - now) / interval) - 1)
+                    : anchorTime + interval * (Math.floor((now - anchorTime) / interval) + 1);
+
+                // Expand forward (예산이 모자랄 때 앞으로 올 젠부터 채우도록 앞쪽을 먼저 돈다)
+                for (let t = nextTime; t <= endTime && canStep(); t += interval) {
+                    bossSteps++;
                     const inst = createInstance(t);
-                    if (inst && (!isTodayOnly || isSameDay(new Date(t), new Date(now)))) {
-                        addUnique(inst);
+                    if (inst && isAllowedDay(t)) {
+                        if (addUnique(inst)) remainingRows--;
+                        hasFuture = true;
                     }
-                    t -= interval;
                 }
 
-                // Expand forward
-                // 앵커가 윈도우보다 앞에 있으면 윈도우 시작 이후의 첫 걸음으로 건너뛴다 (오늘 0시 이전 인스턴스는 만들지 않는다).
-                t = anchorTime + interval;
-                if (t < startTime) t += interval * Math.ceil((startTime - t) / interval);
-                let hasFuture = expandedSchedules.some(s =>
-                    s.bossId === boss.id && new Date(s.scheduledDate).getTime() > now
+                // Expand backward (현재 이전 ~ 오늘 0시)
+                for (let t = nextTime - interval; t >= startTime && canStep(); t -= interval) {
+                    bossSteps++;
+                    const inst = createInstance(t);
+                    if (inst && isAllowedDay(t)) {
+                        if (addUnique(inst)) remainingRows--;
+                    }
+                }
+
+                // Future Anchor Keeper: 걸음·행 상한과 무관하게 둔다.
+                // 1) 미래 인스턴스가 하나도 없으면 현재 이후 첫 젠 1건.
+                // 2) 같은 격자의 더 먼 미래에 일정이 있으면(여러 주기 뒤에 넣은 일정) 그 사이의 다음 젠 2건.
+                //    예전에는 뒤쪽 확장이 앵커부터 오늘까지 훑으며 이 사슬을 전부 만들었다. 2건이면 다음 확장(늦어도 자정)까지
+                //    "다음 젠"이 비지 않는다 — 첫 번째가 지나가도 두 번째가 남아 있다.
+                const lastOnLattice = scheduleTimes.reduce(
+                    (last, sTime) => ((sTime - anchorTime) % interval === 0 && sTime > last ? sTime : last), anchorTime
                 );
-                while (t <= endTime && expansionSteps < MAX_EXPANSION_STEPS) {
-                    expansionSteps++;
-                    const inst = createInstance(t);
-                    if (inst && (!isTodayOnly || isSameDay(new Date(t), new Date(now)))) {
-                        addUnique(inst);
-                        if (t > now) hasFuture = true;
+                [nextTime, nextTime + interval].forEach((time, index) => {
+                    const noFuture = index === 0 && !hasFuture;
+                    const towardLaterSchedule = time < lastOnLattice && isAllowedDay(time);
+                    if (noFuture || towardLaterSchedule) {
+                        const inst = createInstance(time);
+                        if (inst) addUnique(inst);
                     }
-                    t += interval;
-                }
-
-                // Future Anchor Keeper (걸음 상한과 무관하게 보스마다 다음 젠 1건은 보장한다)
-                if (!hasFuture) {
-                    const futureTime = anchorTime > now
-                        ? anchorTime
-                        : anchorTime + interval * (Math.floor((now - anchorTime) / interval) + 1);
-                    const inst = createInstance(futureTime);
-                    if (inst) addUnique(inst);
-                }
+                });
             }
+        }
+
+        if (limitReached) {
+            console.warn('[BossDataManager] 48h 확장 상한에 도달해 일부 인스턴스를 만들지 않았습니다.', {
+                gameId, bosses: expandingBosses.length, stepsNeeded, rows: expandedSchedules.length
+            });
         }
 
         // GC: 과거이면서 0min 알림 완료된 스케줄 제거 (보스별 최소 1개 보존)
@@ -509,6 +550,8 @@ export const BossDataManager = (() => {
             const gameBosses = DB.getBossesByGameId(gameId);
             const bossNameMap = new Map(gameBosses.map(b => [b.name, b]));
             // 프리셋 보스의 젠 주기는 프리셋이 정한다. 커스텀 목록만 Draft에서 수정한 주기를 반영한다. (issue-039)
+            // 주기 0(빈칸)은 "변경 없음"으로 본다 — 입력 화면은 Draft에 없던 보스의 주기 칸을 비워 보여 주므로,
+            // 빈칸을 0으로 저장하면 사용자가 본 적 없는 주기가 지워진다.
             const isPreset = DB.getGame(gameId)?.type === 'preset';
 
             const newSchedules = [];
@@ -520,7 +563,7 @@ export const BossDataManager = (() => {
                         isInvasion: false
                     });
                     bossNameMap.set(item.name, boss);
-                } else if (!isPreset && Number.isFinite(item.interval) && item.interval !== (boss.interval || 0)) {
+                } else if (!isPreset && item.interval > 0 && item.interval !== (boss.interval || 0)) {
                     boss = DB.updateBoss(boss.id, { interval: item.interval });
                     bossNameMap.set(item.name, boss);
                 }

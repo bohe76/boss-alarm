@@ -176,15 +176,16 @@ describe('BossDataManager', () => {
                 expect(gapsInMinutes('내 목록')).toEqual([150]);
             });
 
-            it('주기를 0으로 비우면 확장을 멈춰야 한다', () => {
+            it('주기 0(입력 화면의 빈칸)은 변경 없음으로 보고 저장된 주기를 유지해야 한다', () => {
+                // 입력 화면은 Draft에 없던 보스의 주기 칸을 비워 보여 준다. 그 빈칸이 저장된 주기를 지우면 안 된다.
                 setupGame('g1');
-                setupBoss('g1', '보스A', 60);
+                setupBoss('g1', '보스A', 150);
                 setDraft('g1', [draftItem('보스A', 0)]);
 
                 BossDataManager.commitDraft('g1');
 
-                expect(DB.findBoss('g1', '보스A').interval).toBe(0);
-                expect(DB.getSchedulesByGameId('g1')).toHaveLength(1);
+                expect(DB.findBoss('g1', '보스A').interval).toBe(150);
+                expect(gapsInMinutes('g1')).toEqual([150]);
             });
 
             it('프리셋 보스의 주기는 Draft 값으로 바뀌지 않아야 한다', () => {
@@ -426,18 +427,136 @@ describe('BossDataManager', () => {
             expect(schedules.some(s => s.time > NOW.getTime())).toBe(true);
         });
 
-        it('게임 전체 걸음 수가 상한(10,000)을 넘지 않고, 상한에 걸린 보스도 다음 젠 1건은 가져야 한다', () => {
-            setupGame('g1');
-            const names = ['보스1', '보스2', '보스3', '보스4', '보스5']; // 1분 주기 × 5 = 14,400걸음 필요
-            const schedules = commit('g1', names.map(name => ({
-                name, interval: 1, scheduledDate: new Date(NOW.getTime() + HOUR).toISOString()
-            })));
+        describe('상한을 넘는 목록 (1분 주기 보스 5개 = 14,400걸음 필요)', () => {
+            const names = ['보스1', '보스2', '보스3', '보스4', '보스5'];
+            let warn;
+            beforeEach(() => { warn = vi.spyOn(console, 'warn').mockImplementation(() => {}); });
+            afterEach(() => warn.mockRestore());
 
-            expect(schedules.length).toBeLessThanOrEqual(10000 + names.length * 2);
-            expect(schedules.length).toBeGreaterThan(9000);
-            DB.getBossesByGameId('g1').forEach(boss => {
-                expect(schedules.some(s => s.bossId === boss.id && s.time > NOW.getTime())).toBe(true);
+            it('전체 행 수가 상한을 넘지 않고 보스마다 같은 몫을 받아야 한다', () => {
+                setupGame('g1');
+                const schedules = commit('g1', names.map(name => ({
+                    name, interval: 1, scheduledDate: new Date(NOW.getTime() + HOUR).toISOString()
+                })));
+
+                expect(schedules.length).toBeLessThanOrEqual(10000 + names.length);
+                expect(schedules.length).toBeGreaterThan(9900);
+                // 걸음 몫은 같다. 행 예산이 먼저 닳으면 보존 행 수(보스당 1건)만큼까지 차이가 날 수 있다
+                const perBoss = DB.getBossesByGameId('g1').map(b => schedules.filter(s => s.bossId === b.id).length);
+                expect(Math.max(...perBoss) - Math.min(...perBoss)).toBeLessThanOrEqual(names.length);
+                expect(Math.min(...perBoss)).toBeGreaterThan(1900);
+                expect(warn).toHaveBeenCalled();
             });
+
+            it('모자란 예산은 현재 시각 바로 다음 젠부터 빈 곳 없이 채워야 한다', () => {
+                setupGame('g1');
+                const schedules = commit('g1', names.map(name => ({
+                    name, interval: 1, scheduledDate: new Date(NOW.getTime() + HOUR).toISOString()
+                })));
+
+                DB.getBossesByGameId('g1').forEach(boss => {
+                    const times = schedules.filter(s => s.bossId === boss.id).map(s => s.time).sort((a, b) => a - b);
+                    expect(times[0]).toBe(NOW.getTime() + 60000); // 과거 쪽이 아니라 다음 젠부터
+                    expect(times[times.length - 1] - times[0]).toBe((times.length - 1) * 60000); // 1분 간격, 빈 곳 없음
+                    expect(times).toContain(NOW.getTime() + HOUR); // 사용자가 넣은 시각
+                });
+            });
+
+            it('행 예산이 다 찼어도 모든 보스가 다음 젠 1건은 가져야 한다 (Future Anchor Keeper)', () => {
+                // 한 보스의 일정이 행 상한을 다 채운 목록. 다른 보스는 어제 일정 1건뿐이라 확장 없이는 미래 일정이 없다.
+                setupGame('g1');
+                const farFuture = NOW.getTime() + 30 * DAY;
+                const full = Array.from({ length: 10000 }, (_, i) => ({
+                    name: '가득찬보스', interval: 0, scheduledDate: new Date(farFuture + i * 60000).toISOString()
+                }));
+                const yesterday = NOW.getTime() - 20 * HOUR; // 어제 13:00
+                const schedules = commit('g1', [...full, { name: '굶는보스', interval: 60, scheduledDate: new Date(yesterday).toISOString() }]);
+
+                const starved = DB.findBoss('g1', '굶는보스');
+                expect(schedules.filter(s => s.bossId === starved.id).map(s => s.time)).toEqual([NOW.getTime() + HOUR]);
+                expect(warn).toHaveBeenCalled();
+            }, 20000);
+
+            it('날이 바뀌며 확장을 거듭해도 행 수가 상한을 넘어 쌓이지 않고 다음 젠이 이어져야 한다', () => {
+                setupGame('g1');
+                commit('g1', names.map(name => ({
+                    name, interval: 1, scheduledDate: new Date(NOW.getTime() + HOUR).toISOString()
+                })));
+
+                for (let i = 1; i <= 2; i++) {
+                    const later = NOW.getTime() + i * DAY + i * 7 * HOUR;
+                    vi.setSystemTime(new Date(later));
+                    BossDataManager.expandSchedule('g1');
+                    const rows = DB.getSchedulesByGameId('g1');
+                    expect(rows.length).toBeGreaterThan(9000);
+                    expect(rows.length).toBeLessThanOrEqual(10000 + names.length);
+                    DB.getBossesByGameId('g1').forEach(boss => {
+                        const next = Math.min(...rows.filter(s => s.bossId === boss.id)
+                            .map(s => new Date(s.scheduledDate).getTime()).filter(t => t > later));
+                        expect(next).toBe(later + 60000);
+                    });
+                }
+            }, 20000); // 10,000행 확장을 여러 번 돌린다
+        });
+
+        describe('긴 주기 보스의 일정이 여러 주기 뒤에 있을 때 (72시간 주기, 21일 뒤)', () => {
+            // 다음 젠은 48h 윈도우 밖이지만 대시보드의 "다음 보스"가 이를 읽는다.
+            const anchor = NOW.getTime() + 21 * DAY;
+            const upcomingAt = (now) => DB.getSchedulesByGameId('g1')
+                .map(s => new Date(s.scheduledDate).getTime()).filter(t => t > now).sort((a, b) => a - b);
+            beforeEach(() => {
+                setupGame('g1');
+                commit('g1', [{ name: '긴주기보스', interval: 72 * 60, scheduledDate: new Date(anchor).toISOString() }]);
+            });
+
+            it('현재 이후의 젠 2건을 만들어야 한다', () => {
+                expect(upcomingAt(NOW.getTime())).toEqual([NOW.getTime() + 3 * DAY, NOW.getTime() + 6 * DAY, anchor]);
+                expect(BossDataManager.getAllUpcomingBosses(NOW.getTime())[0].timestamp).toBe(NOW.getTime() + 3 * DAY);
+            });
+
+            it('다음 젠이 지나간 직후에도(재확장 전) 그다음 젠이 남아 있어야 한다', () => {
+                const later = NOW.getTime() + 3 * DAY + 60000;
+                vi.setSystemTime(new Date(later));
+
+                expect(BossDataManager.getAllUpcomingBosses(later)[0].timestamp).toBe(NOW.getTime() + 6 * DAY);
+            });
+
+            it('젠이 지나가며 재확장을 거듭해도 사슬이 끊기지 않아야 한다', () => {
+                for (let day = 1; day <= 13; day++) {
+                    const later = NOW.getTime() + day * DAY - 8 * HOUR; // 매일 01:00
+                    vi.setSystemTime(new Date(later));
+                    BossDataManager.expandSchedule('g1');
+
+                    const next = NOW.getTime() + Math.ceil((later - NOW.getTime()) / (3 * DAY)) * 3 * DAY;
+                    expect(upcomingAt(later).slice(0, 2)).toEqual([next, next + 3 * DAY]);
+                }
+            });
+        });
+
+        it('격자가 다른 먼 일정을 향해서는 사슬을 만들지 않아야 한다', () => {
+            // 어제 일정(오늘 0시 이전이라 버려짐)과 위상이 다른 21일 뒤 일정. 가까운 쪽 격자로 행을 만들면
+            // 그 행이 앵커로 굳어, 먼 일정의 격자를 따르던 이전 동작과 다음 젠이 달라진다.
+            setupGame('g1');
+            const far = NOW.getTime() + 21 * DAY + 5 * HOUR;
+            const schedules = commit('g1', [
+                { name: '섞인보스', interval: 72 * 60, scheduledDate: new Date(NOW.getTime() - 13 * HOUR).toISOString() },
+                { name: '섞인보스', interval: 72 * 60, scheduledDate: new Date(far).toISOString() }
+            ]);
+            expect(schedules.map(s => s.time)).toEqual([far]);
+
+            BossDataManager.expandSchedule('g1'); // 이제 먼 일정이 앵커다
+            const upcoming = DB.getSchedulesByGameId('g1').map(s => new Date(s.scheduledDate).getTime()).sort((a, b) => a - b);
+            expect(upcoming).toEqual([NOW.getTime() + 5 * HOUR, NOW.getTime() + 77 * HOUR, far]);
+        });
+
+        it('침공 보스는 다음 젠이 오늘이 아니면 미리 만들지 않아야 한다', () => {
+            // 앵커 20일 뒤 → 현재 이후 첫 격자점은 2일 뒤(오늘이 아님)
+            setupGame('g1');
+            DB.upsertBoss('g1', '침공보스', { interval: 72 * 60, isInvasion: true });
+            const anchor = NOW.getTime() + 20 * DAY;
+            const schedules = commit('g1', [{ name: '침공보스', interval: 72 * 60, scheduledDate: new Date(anchor).toISOString() }]);
+
+            expect(schedules.map(s => s.time)).toEqual([anchor]);
         });
 
         it('상한 이내의 큰 목록(보스 30개 × 10분 주기)은 전부 확장되어야 한다', () => {
@@ -448,6 +567,25 @@ describe('BossDataManager', () => {
             const schedules = commit('g1', items);
 
             expect(schedules).toHaveLength(30 * 289); // 0시 ~ +48h 를 10분 간격으로 (양 끝 포함)
+        });
+
+        it('상한 이내의 큰 목록은 자정이 지나 윈도우가 넘어가도 새 윈도우를 전부 채워야 한다', () => {
+            // 남아 있는 행(새 윈도우의 앞쪽 절반)이 행 예산을 차지해도 내일 분량이 모자라면 안 된다
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            setupGame('g1');
+            commit('g1', Array.from({ length: 30 }, (_, i) => ({
+                name: `보스${i}`, interval: 10, scheduledDate: new Date(NOW.getTime() + HOUR).toISOString()
+            })));
+
+            vi.setSystemTime(new Date(NOW.getTime() + DAY + 3 * 60 * 1000));
+            BossDataManager.expandSchedule('g1');
+
+            const times = DB.getSchedulesByGameId('g1').map(s => new Date(s.scheduledDate).getTime());
+            expect(times).toHaveLength(30 * 289);
+            expect(Math.min(...times)).toBe(windowStart + DAY);
+            expect(Math.max(...times)).toBe(windowEnd + DAY);
+            expect(warn).not.toHaveBeenCalled();
+            warn.mockRestore();
         });
     });
 

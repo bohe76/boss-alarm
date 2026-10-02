@@ -230,14 +230,103 @@ test('a crafted link with 1-minute intervals and far-future dates cannot flood t
     const state = await readState(page, LIST_NAME);
     expect(state.lastSelectedGame).toBe(LIST_NAME);
     expect(state.bosses).toHaveLength(5);
+    expect(state.schedules.length).toBeGreaterThan(9000); // 상한까지는 확장됨
     expect(state.schedules.length).toBeLessThanOrEqual(10010);
 
     // 다음 부팅에서도 늘어나지 않고 정상 동작한다
     await page.reload();
     await expect(page.locator('body')).not.toHaveClass(/loading/);
-    expect((await readState(page, LIST_NAME)).schedules.length).toBeLessThanOrEqual(10010);
+    const reloaded = (await readState(page, LIST_NAME)).schedules.length;
+    expect(reloaded).toBeGreaterThan(9000);
+    expect(reloaded).toBeLessThanOrEqual(10010);
     await page.locator('#nav-timetable').click();
     await expect(page.locator('#timetable-screen')).toHaveClass(/active/);
+    await receiver.close();
+  } finally {
+    await context.close();
+  }
+});
+
+test('a crafted link packed with long memos still boots when storage runs out', async ({ browser }) => {
+  // issue-040: 확장된 행마다 200자 메모가 붙으면 스케줄(약 340만 자)에 Draft 사본을 더한 크기가 localStorage 용량을 넘긴다.
+  // 수정 전에는 Draft 저장이 던진 예외가 그대로 올라와 부팅이 멈췄다.
+  const context = await browser.newContext();
+  try {
+    await prepareContext(context);
+    const source = await openPage(context);
+    const url = await source.evaluate(async listName => {
+      const { encodeV4Data } = await import('./src/share-encoder.js');
+      const names = ['폭주1', '폭주2', '폭주3', '폭주4', '폭주5'];
+      const soon = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+      const encoded = encodeV4Data({
+        gameId: listName,
+        schedules: names.map(bossName => ({ bossName, scheduledDate: soon, memo: 'x'.repeat(200) })),
+        bosses: names.map(name => ({ name, interval: 1 }))
+      });
+      return `${location.origin}/#d=${encoded}`;
+    }, LIST_NAME);
+    await source.close();
+
+    const receiver = await browser.newContext();
+    await prepareContext(receiver);
+    const pageErrors = [];
+    const page = await receiver.newPage();
+    page.on('pageerror', error => pageErrors.push(error.message));
+    page.on('dialog', dialog => dialog.accept());
+    await page.goto(url);
+    await expect(page.locator('body')).not.toHaveClass(/loading/);
+
+    const state = await readState(page, LIST_NAME);
+    expect(state.lastSelectedGame).toBe(LIST_NAME);
+    expect(state.schedules.length).toBeGreaterThan(9000); // 상한까지 확장됨
+    expect(state.schedules.length).toBeLessThanOrEqual(10010);
+    expect(state.schedules.every(s => s.memo.length === 200)).toBe(true);
+
+    await page.reload();
+    await expect(page.locator('body')).not.toHaveClass(/loading/);
+    const reloaded = (await readState(page, LIST_NAME)).schedules.length;
+    expect(reloaded).toBeGreaterThan(9000);
+    expect(reloaded).toBeLessThanOrEqual(10010);
+    await page.locator('#nav-timetable').click();
+    await expect(page.locator('#timetable-screen')).toHaveClass(/active/);
+    expect(pageErrors).toEqual([]);
+    await receiver.close();
+  } finally {
+    await context.close();
+  }
+});
+
+test('a stored zen interval survives a save while its input is blank', async ({ browser }) => {
+  // issue-039: 일정 없이 공유받은 보스는 입력 화면의 주기 칸이 비어 있다. 그 상태로 저장해도 받은 주기가 지워지면 안 된다.
+  const context = await browser.newContext();
+  try {
+    await prepareContext(context);
+    const source = await openPage(context);
+    const url = await source.evaluate(async listName => {
+      const { encodeV4Data } = await import('./src/share-encoder.js');
+      const encoded = encodeV4Data({
+        gameId: listName,
+        schedules: [{ bossName: '커스텀보스A', scheduledDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(), memo: '' }],
+        bosses: [{ name: '커스텀보스A', interval: 150 }, { name: '커스텀보스B', interval: 90 }]
+      });
+      return `${location.origin}/#d=${encoded}`;
+    }, LIST_NAME);
+    await source.close();
+
+    const receiver = await browser.newContext();
+    await prepareContext(receiver);
+    const page = await openPage(receiver, url);
+    await page.locator('#nav-boss-scheduler').click();
+    await expect(page.locator('#gameSelect')).toHaveValue(LIST_NAME);
+    const rowB = page.locator('#bossInputsContainer .boss-input-item').nth(1);
+    await expect(rowB.locator('.boss-name')).toHaveText('커스텀보스B');
+    await rowB.locator('.remaining-time-input').fill('00:10');
+    await page.locator('#moveToBossSettingsButton').click();
+    await expect(page.locator('#timetable-screen')).toHaveClass(/active/);
+
+    const saved = await readState(page, LIST_NAME);
+    expect(saved.bosses).toEqual([{ name: '커스텀보스A', interval: 150 }, { name: '커스텀보스B', interval: 90 }]);
+    expect(saved.schedules.filter(s => s.bossName === '커스텀보스B').length).toBeGreaterThan(1); // 90분 주기로 확장됨
     await receiver.close();
   } finally {
     await context.close();

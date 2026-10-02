@@ -95,6 +95,7 @@ export function encodeV4Data({ gameId, schedules, bosses }) {
     return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+const MAX_SHARED_SCHEDULES = 10000; // BossDataManager 의 게임당 스케줄 행 상한과 같은 값
 const MAX_SHARED_BOSSES = 200;
 const MAX_SHARED_INTERVAL_MINUTES = 525600; // 1년
 
@@ -126,6 +127,7 @@ export function decodeShareData(encoded) {
                 gameId: payload.g,
                 schedules: payload.s
                     .filter(s => s && typeof s === 'object' && !Array.isArray(s))
+                    .slice(0, MAX_SHARED_SCHEDULES)
                     .map(s => ({
                         bossName: typeof s.n === 'string' ? s.n.slice(0, 64) : '',
                         scheduledDate: new Date(Number(s.d) * 1000).toISOString(),

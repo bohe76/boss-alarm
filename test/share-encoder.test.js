@@ -403,6 +403,11 @@ describe('share-encoder v4 custom list bosses', () => {
         expect(decoded).not.toHaveProperty('bosses');
     });
 
+    it('caps the number of schedules at 10000', () => {
+        const s = Array.from({ length: 12000 }, (_, i) => ({ n: '보스', d: 1790000000 + i, m: '' }));
+        expect(decodeShareData(encodeRaw({ v: 4, g: 'odin-main', s })).schedules).toHaveLength(10000);
+    });
+
     it('caps the number of bosses at 200', () => {
         const b = Array.from({ length: 300 }, (_, i) => ({ n: `보스${i}`, i: 1 }));
         expect(decodeShareData(encodeRaw({ v: 4, g: '내 목록', s: [], b })).bosses).toHaveLength(200);
