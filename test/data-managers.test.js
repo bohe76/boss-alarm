@@ -388,6 +388,70 @@ describe('BossDataManager', () => {
     });
 
     // ──────────────────────────────────────────────
+    // 48h 확장 상한 (issue-040)
+    // ──────────────────────────────────────────────
+    describe('48h expansion bound', () => {
+        const HOUR = 60 * 60 * 1000;
+        const DAY = 24 * HOUR;
+        const windowStart = makeLocalDate(2026, 3, 20).getTime();
+        const windowEnd = windowStart + 2 * DAY;
+        const commit = (gameId, items) => {
+            setDraft(gameId, items.map(item => ({ type: 'boss', memo: '', ...item })));
+            BossDataManager.commitDraft(gameId);
+            return DB.getSchedulesByGameId(gameId).map(s => ({ bossId: s.bossId, time: new Date(s.scheduledDate).getTime() }));
+        };
+
+        it('먼 미래 앵커 + 짧은 주기여도 윈도우 밖 인스턴스를 만들지 않아야 한다', () => {
+            setupGame('g1');
+            const anchor = NOW.getTime() + 365 * DAY;
+            const schedules = commit('g1', [{ name: '폭주보스', interval: 1, scheduledDate: new Date(anchor).toISOString() }]);
+
+            const generated = schedules.filter(s => s.time !== anchor);
+            expect(schedules.some(s => s.time === anchor)).toBe(true); // 사용자가 넣은 앵커는 보존
+            expect(generated.length).toBeGreaterThan(2800); // 윈도우는 1분 간격으로 채워짐
+            expect(generated.length).toBeLessThanOrEqual(2881);
+            expect(generated.every(s => s.time >= windowStart && s.time <= windowEnd)).toBe(true);
+            // 건너뛴 뒤에도 앵커와 같은 격자 위에 있어야 한다
+            expect(generated.every(s => (anchor - s.time) % 60000 === 0)).toBe(true);
+        });
+
+        it('오래된 과거 앵커는 오늘 0시 이전 인스턴스를 만들지 않고 윈도우를 채워야 한다', () => {
+            setupGame('g1');
+            const anchor = NOW.getTime() - 30 * DAY - 7 * 60 * 1000;
+            const schedules = commit('g1', [{ name: '복귀보스', interval: 10, scheduledDate: new Date(anchor).toISOString() }]);
+
+            expect(schedules.every(s => s.time >= windowStart && s.time <= windowEnd)).toBe(true);
+            expect(schedules).toHaveLength(288); // 48h ÷ 10분
+            expect(schedules.every(s => (s.time - anchor) % (10 * 60000) === 0)).toBe(true);
+            expect(schedules.some(s => s.time > NOW.getTime())).toBe(true);
+        });
+
+        it('게임 전체 걸음 수가 상한(10,000)을 넘지 않고, 상한에 걸린 보스도 다음 젠 1건은 가져야 한다', () => {
+            setupGame('g1');
+            const names = ['보스1', '보스2', '보스3', '보스4', '보스5']; // 1분 주기 × 5 = 14,400걸음 필요
+            const schedules = commit('g1', names.map(name => ({
+                name, interval: 1, scheduledDate: new Date(NOW.getTime() + HOUR).toISOString()
+            })));
+
+            expect(schedules.length).toBeLessThanOrEqual(10000 + names.length * 2);
+            expect(schedules.length).toBeGreaterThan(9000);
+            DB.getBossesByGameId('g1').forEach(boss => {
+                expect(schedules.some(s => s.bossId === boss.id && s.time > NOW.getTime())).toBe(true);
+            });
+        });
+
+        it('상한 이내의 큰 목록(보스 30개 × 10분 주기)은 전부 확장되어야 한다', () => {
+            setupGame('g1');
+            const items = Array.from({ length: 30 }, (_, i) => ({
+                name: `보스${i}`, interval: 10, scheduledDate: new Date(NOW.getTime() + HOUR).toISOString()
+            }));
+            const schedules = commit('g1', items);
+
+            expect(schedules).toHaveLength(30 * 289); // 0시 ~ +48h 를 10분 간격으로 (양 끝 포함)
+        });
+    });
+
+    // ──────────────────────────────────────────────
     // checkAndUpdateSchedule 테스트
     // ──────────────────────────────────────────────
     describe('checkAndUpdateSchedule', () => {

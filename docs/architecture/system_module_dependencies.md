@@ -66,7 +66,7 @@
 | **`BossDataManager`** | `LocalStorageManager.js`, `utils.js` (날짜 계산 및 MM.DD 포매팅 보조), `boss-presets.json`, `logger.js` (데이터 처리 로그 기록) | `getUpcomingBosses` 함수 내에서 고정 알림 데이터를 가져오고, `calculateNextOccurrence`를 사용하여 다음 발생 시간을 계산합니다. 또한 프리셋의 메타데이터(`isInvasion`, `interval`)를 참조하여 일정 확장 및 자동 필터링을 수행합니다. |
 | **`custom-list-manager.js`** | `data-managers.js`, `logger.js`, `boss-scheduler-data.js` | 커스텀 목록 영구 저장, 유효성 검사, 미리 정의된 게임 이름 조회 |
 | **`share-encoder.js`** | 없음 | v3/v4 공유 payload 인코딩/디코딩. `encodeV4Data()`(v4 발신), `decodeShareData()`(v3/v4 자동 판별 수신), `decodeV3Data()`(v3 전용, 영구 보존)를 export합니다. |
-| **`share-custom-list.js`** | `db.js`, `custom-list-manager.js`, `boss-scheduler-data.js` | 커스텀 보스 목록 공유. `getSharedBossDefinitions()`(발신: 목록의 보스 이름·젠 주기 추출), `importSharedCustomList()`(수신: 목록·보스 생성, 이름 충돌 처리, 확장량 상한)를 export합니다. |
+| **`share-custom-list.js`** | `db.js`, `custom-list-manager.js`, `boss-scheduler-data.js` | 커스텀 보스 목록 공유. `getSharedBossDefinitions()`(발신: 목록의 보스 이름·젠 주기 추출), `importSharedCustomList()`(수신: 목록·보스 생성, 이름 충돌 처리)를 export합니다. |
 | **`preset-loader.js`** | `db.js` | `syncPresetsToDb(presets)`: 프리셋 데이터를 DB에 동기화. 제거된 보스는 cascade 정리. |
 | **`global-event-listeners.js`** | `event-bus.js` (전역 이벤트 공유), `data-managers.js` (데이터 변경 구독 관리), `ui-renderer.js` [Dynamic Import] (데이터 변경 시 대시보드 및 시간표 인터페이스 갱신 트리거), `screens/alarm-log.js` | 전역 EventBus 리스너를 정의하고, `BossDataManager`의 데이터 변경 및 `log-updated` 이벤트에 반응합니다. |
 | **`boss-scheduler-data.js`** | `logger.js`, `custom-list-manager.js`, `api-service.js` | 보스 프리셋 및 초기 데이터 JSON 로딩, 커스텀 목록과 조합하여 제공 |

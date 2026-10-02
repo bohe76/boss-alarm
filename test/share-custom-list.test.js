@@ -150,39 +150,9 @@ describe('share-custom-list', () => {
             expect(DB.findBoss('공유 목록', '보스B')).toMatchObject({ interval: 0, isInvasion: false });
         });
 
-        describe('expansion limit for crafted links', () => {
-            const at = offsetMs => new Date(Date.now() + offsetMs).toISOString();
-            const DAY = 24 * 60 * 60 * 1000;
-
-            it('keeps intervals for an ordinary share', () => {
-                const schedules = [{ bossName: '보스A', scheduledDate: at(60 * 60 * 1000) }];
-                importSharedCustomList('공유 목록', [{ name: '보스A', interval: 1 }], schedules);
-                expect(DB.findBoss('공유 목록', '보스A').interval).toBe(1); // 48h ÷ 1분 = 2880건, 상한 이내
-            });
-
-            it('zeroes the interval of a boss whose schedule is far away with a short interval', () => {
-                const schedules = [
-                    { bossName: '폭주 보스', scheduledDate: at(365 * DAY) },
-                    { bossName: '정상 보스', scheduledDate: at(60 * 60 * 1000) }
-                ];
-                importSharedCustomList('공유 목록', [{ name: '폭주 보스', interval: 1 }, { name: '정상 보스', interval: 120 }], schedules);
-                expect(DB.findBoss('공유 목록', '폭주 보스').interval).toBe(0);
-                expect(DB.findBoss('공유 목록', '정상 보스').interval).toBe(120);
-            });
-
-            it('zeroes intervals largest-first until many short-interval bosses fit the budget', () => {
-                const bosses = Array.from({ length: 10 }, (_, i) => ({ name: `보스${i}`, interval: 1 }));
-                const schedules = bosses.map(b => ({ bossName: b.name, scheduledDate: at(60 * 60 * 1000) }));
-                importSharedCustomList('공유 목록', bosses, schedules);
-                const kept = DB.getBossesByGameId('공유 목록').filter(b => b.interval > 0);
-                expect(kept).toHaveLength(1); // 2880건짜리 10개 중 1개만 상한(5000) 안에 남는다
-            });
-
-            it('ignores bosses without schedules and invalid dates', () => {
-                const schedules = [{ bossName: '보스A', scheduledDate: 'not-a-date' }, null];
-                importSharedCustomList('공유 목록', [{ name: '보스A', interval: 1 }, { name: '보스B', interval: 1 }], schedules);
-                expect(DB.getBossesByGameId('공유 목록').map(b => b.interval)).toEqual([1, 1]);
-            });
+        it('keeps short shared intervals as sent (the 48h expansion bound lives in BossDataManager)', () => {
+            importSharedCustomList('공유 목록', [{ name: '보스A', interval: 1 }, { name: '보스B', interval: 5 }]);
+            expect(DB.getBossesByGameId('공유 목록').map(b => b.interval)).toEqual([1, 5]);
         });
     });
 });

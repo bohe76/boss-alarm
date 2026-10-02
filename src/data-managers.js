@@ -133,6 +133,11 @@ export const BossDataManager = (() => {
         return result;
     };
 
+    // 한 번의 48h 확장이 훑는 걸음 수 상한 (게임 단위). issue-040
+    // 정상 사용에서는 닿지 않는다: 보스 30개 × 10분 주기가 8,640걸음이다.
+    // 상한까지 만들어도 1건 약 150바이트 × 10,000 = 약 1.5MB로 localStorage(약 5MB) 안에 든다.
+    const MAX_EXPANSION_STEPS = 10000;
+
     // --- 48h expansion for a game ---
     const _expandAndReconstruct = (gameId) => {
         const bosses = DB.getBossesByGameId(gameId);
@@ -155,6 +160,7 @@ export const BossDataManager = (() => {
 
         const expandedSchedules = [];
         const addedKeys = new Set();
+        let expansionSteps = 0;
 
         const addUnique = (entry) => {
             const key = `${entry.bossId}_${new Date(entry.scheduledDate).getTime()}`;
@@ -218,8 +224,12 @@ export const BossDataManager = (() => {
                 };
 
                 // Expand backward
+                // 앵커가 윈도우보다 뒤에 있으면 윈도우 끝 이전의 첫 걸음으로 건너뛴다.
+                // 윈도우 밖(endTime 이후) 인스턴스는 만들지 않는다 — 앵커가 멀수록 걸음 수가 끝없이 늘기 때문이다.
                 let t = anchorTime - interval;
-                while (t >= startTime) {
+                if (t > endTime) t -= interval * Math.ceil((t - endTime) / interval);
+                while (t >= startTime && expansionSteps < MAX_EXPANSION_STEPS) {
+                    expansionSteps++;
                     const inst = createInstance(t);
                     if (inst && (!isTodayOnly || isSameDay(new Date(t), new Date(now)))) {
                         addUnique(inst);
@@ -228,11 +238,14 @@ export const BossDataManager = (() => {
                 }
 
                 // Expand forward
+                // 앵커가 윈도우보다 앞에 있으면 윈도우 시작 이후의 첫 걸음으로 건너뛴다 (오늘 0시 이전 인스턴스는 만들지 않는다).
                 t = anchorTime + interval;
+                if (t < startTime) t += interval * Math.ceil((startTime - t) / interval);
                 let hasFuture = expandedSchedules.some(s =>
                     s.bossId === boss.id && new Date(s.scheduledDate).getTime() > now
                 );
-                while (t <= endTime) {
+                while (t <= endTime && expansionSteps < MAX_EXPANSION_STEPS) {
+                    expansionSteps++;
                     const inst = createInstance(t);
                     if (inst && (!isTodayOnly || isSameDay(new Date(t), new Date(now)))) {
                         addUnique(inst);
@@ -241,10 +254,11 @@ export const BossDataManager = (() => {
                     t += interval;
                 }
 
-                // Future Anchor Keeper
+                // Future Anchor Keeper (걸음 상한과 무관하게 보스마다 다음 젠 1건은 보장한다)
                 if (!hasFuture) {
-                    let futureTime = anchorTime;
-                    while (futureTime <= now) futureTime += interval;
+                    const futureTime = anchorTime > now
+                        ? anchorTime
+                        : anchorTime + interval * (Math.floor((now - anchorTime) / interval) + 1);
                     const inst = createInstance(futureTime);
                     if (inst) addUnique(inst);
                 }

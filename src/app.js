@@ -310,7 +310,7 @@ async function loadInitialData(DOM) {
             // 이름이 겹치면 다른 이름으로 만들어지므로 실제 적재 대상은 반환된 이름이다 (만들지 못하면 null → 건너뜀). issue-038
             const isCustomListShare = payload.bosses?.length > 0;
             const sharedGameId = isCustomListShare
-                ? importSharedCustomList(payload.gameId, payload.bosses, payload.schedules)
+                ? importSharedCustomList(payload.gameId, payload.bosses)
                 : payload.gameId;
             const targetBosses = sharedGameId ? DB.getBossesByGameId(sharedGameId) : [];
             if (targetBosses.length > 0) {

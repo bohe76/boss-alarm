@@ -205,6 +205,45 @@ test('a zen interval edited after the first save is stored and carried by the sh
   }
 });
 
+test('a crafted link with 1-minute intervals and far-future dates cannot flood the schedule table', async ({ browser }) => {
+  // issue-040: 수정 전에는 보스 하나가 스케줄 50만 건 이상을 만들어 앱이 멈췄다
+  const context = await browser.newContext();
+  try {
+    await prepareContext(context);
+    const source = await openPage(context);
+    const url = await source.evaluate(async listName => {
+      const { encodeV4Data } = await import('./src/share-encoder.js');
+      const names = ['폭주1', '폭주2', '폭주3', '폭주4', '폭주5'];
+      const farFuture = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+      const encoded = encodeV4Data({
+        gameId: listName,
+        schedules: names.map(bossName => ({ bossName, scheduledDate: farFuture, memo: '' })),
+        bosses: names.map(name => ({ name, interval: 1 }))
+      });
+      return `${location.origin}/#d=${encoded}`;
+    }, LIST_NAME);
+    await source.close();
+
+    const receiver = await browser.newContext();
+    await prepareContext(receiver);
+    const page = await openPage(receiver, url);
+    const state = await readState(page, LIST_NAME);
+    expect(state.lastSelectedGame).toBe(LIST_NAME);
+    expect(state.bosses).toHaveLength(5);
+    expect(state.schedules.length).toBeLessThanOrEqual(10010);
+
+    // 다음 부팅에서도 늘어나지 않고 정상 동작한다
+    await page.reload();
+    await expect(page.locator('body')).not.toHaveClass(/loading/);
+    expect((await readState(page, LIST_NAME)).schedules.length).toBeLessThanOrEqual(10010);
+    await page.locator('#nav-timetable').click();
+    await expect(page.locator('#timetable-screen')).toHaveClass(/active/);
+    await receiver.close();
+  } finally {
+    await context.close();
+  }
+});
+
 test('a preset share link still loads exactly as before', async ({ browser }) => {
   const context = await browser.newContext();
   try {

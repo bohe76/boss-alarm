@@ -38,13 +38,13 @@
 ### 3.1 필수 통과 항목
 
 ```bash
-# 1. 전체 단위 테스트 실행 — 현재 220개, 최종 실행 결과 기준 전부 통과 필수
+# 1. 전체 단위 테스트 실행 — 현재 227개, 최종 실행 결과 기준 전부 통과 필수
 npm test
 
 # 2. ESLint 검사 — 0 errors 필수
 npm run lint
 
-# 3. 브라우저 준비 및 전체 E2E — 기본·릴리즈 안내 6개 + 커스텀 목록 공유 3개 + 실연동 1개
+# 3. 브라우저 준비 및 전체 E2E — 기본·릴리즈 안내 6개 + 커스텀 목록 공유 5개 + 실연동 1개
 npx playwright install --with-deps chromium
 LIVE_SHARE_E2E=1 npm run e2e -- --workers=1
 ```
