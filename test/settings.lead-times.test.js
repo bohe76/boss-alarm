@@ -133,6 +133,17 @@ describe('알림 시간 설정', () => {
         expect(listLabels()).toEqual(['1분 전', '정각 (항상 알림)']);
     });
 
+    it('수정하던 값이 다른 탭에서 지워졌으면 같은 값으로 저장해도 되살리지 않고 알린다', () => {
+        rowButton('edit', 5).click();
+        DB.setSetting('alarmLeadTimes', [1]);
+
+        saveInModal('5');
+
+        expect(alert).toHaveBeenCalledWith('알림 시간 목록이 바뀌어 저장하지 못했습니다. 목록을 확인한 뒤 다시 시도해주세요.');
+        expect(storedLeadTimes()).toEqual([1]);
+        expect(listLabels()).toEqual(['1분 전', '정각 (항상 알림)']);
+    });
+
     it('수정·삭제 버튼의 이름에 몇 분 알림인지 넣는다', () => {
         expect(rowButton('edit', 5).title).toBe('5분 전 알림 수정');
         expect(rowButton('delete', 1).title).toBe('1분 전 알림 삭제');

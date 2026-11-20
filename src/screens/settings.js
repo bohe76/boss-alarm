@@ -143,7 +143,7 @@ function saveLeadTimeFromModal(DOM) {
         alert(`알림 시간은 ${MIN_ALARM_LEAD_MINUTES}~${MAX_ALARM_LEAD_MINUTES} 사이의 숫자(분)로 입력해주세요.`);
         return;
     }
-    if (hasEditing && minutes === editingMinutes) {
+    if (hasEditing && minutes === editingMinutes && current.includes(editingMinutes)) {
         closeLeadTimeModal(DOM);
         return;
     }
