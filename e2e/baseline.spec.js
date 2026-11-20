@@ -127,7 +127,7 @@ test('current release notice and release history render the matching version', a
   await openApp(page, { skipUpdateNotice: false });
   const modal = page.locator('#version-update-modal');
   await expect(modal).toBeVisible();
-  await expect(modal).toContainText(`v${appVersion} 패치 업데이트입니다.`);
+  await expect(modal).toContainText(new RegExp(`v${appVersion.replaceAll('.', '\\.')} (패치 )?업데이트입니다\\.`));
   await expect(modal).toContainText('커스텀 보스 목록');
   await modal.getByRole('button', { name: '×', exact: true }).click();
   await expect(modal).not.toBeVisible();

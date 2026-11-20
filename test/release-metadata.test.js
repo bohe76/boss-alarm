@@ -15,6 +15,7 @@ test('release version, cache URLs, changelog and user notices stay in sync', () 
     styles.forEach(match => expect(match[1]).toBe(pkg.version));
     expect(history[0].fullVersion).toBe(`v${pkg.version} (${history[0].date})`);
     expect(read('CHANGELOG.md')).toContain(`## [${pkg.version}] - ${history[0].date}`);
-    expect(notice.developerMessage).toContain(`v${pkg.version} 패치 업데이트입니다.`);
+    // 패치 릴리즈는 「v버전 패치 업데이트입니다.」, 기능 릴리즈는 「v버전 업데이트입니다.」로 시작한다.
+    expect(notice.developerMessage).toMatch(new RegExp(`v${pkg.version.replaceAll('.', '\\.')} (패치 )?업데이트입니다\\.`));
     expect(notice.summaryItems.length).toBeGreaterThan(0);
 });
