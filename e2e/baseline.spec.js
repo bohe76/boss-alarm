@@ -128,12 +128,12 @@ test('current release notice and release history render the matching version', a
   const modal = page.locator('#version-update-modal');
   await expect(modal).toBeVisible();
   await expect(modal).toContainText(new RegExp(`v${appVersion.replaceAll('.', '\\.')} (패치 )?업데이트입니다\\.`));
-  await expect(modal).toContainText('커스텀 보스 목록');
+  await expect(modal).toContainText('알림 시간 설정 추가');
   await modal.getByRole('button', { name: '×', exact: true }).click();
   await expect(modal).not.toBeVisible();
   await page.locator('#nav-version-info').click();
   await expect(page.locator('#versionHistoryContent')).toContainText(`v${appVersion}`);
-  await expect(page.locator('#versionHistoryContent')).toContainText('커스텀 보스 목록 공유 오류 해결');
+  await expect(page.locator('#versionHistoryContent')).toContainText('알림 시간을 직접 설정');
   expect(errors).toEqual([]);
 });
 
