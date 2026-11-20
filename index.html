@@ -660,16 +660,37 @@
 
             <section id="settings-screen" class="screen">
                 <h2>설정</h2>
-                <div class="card-standard card-size-list">
-                    <div class="card-header">
-                        <h3>고정 알림</h3>
-                        <button id="add-fixed-alarm-button" class="button primary-button">추가</button>
+                <div class="card-size-list">
+                    <div id="settings-tabs" class="modal-tabs"> <!-- Reusing class for styling -->
+                        <button class="tab-button active" data-tab="settings-fixed-alarm-tab">고정 알림</button>
+                        <button class="tab-button" data-tab="settings-lead-time-tab">알림 시간</button>
                     </div>
-                    <div id="fixedAlarmList" class="card-list-content">
-                        <!-- Fixed alarms will be rendered here by JavaScript -->
+                    <div id="settings-fixed-alarm-tab" class="custom-list-tab-content active">
+                        <div class="card-standard card-size-list">
+                            <div class="card-header">
+                                <h3>고정 알림</h3>
+                                <button id="add-fixed-alarm-button" class="button primary-button">추가</button>
+                            </div>
+                            <div id="fixedAlarmList" class="card-list-content">
+                                <!-- Fixed alarms will be rendered here by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    <div id="settings-lead-time-tab" class="custom-list-tab-content">
+                        <div class="card-standard card-size-list">
+                            <div class="card-header">
+                                <h3>알림 시간</h3>
+                                <div class="card-header-actions">
+                                    <button id="reset-lead-times-button" class="button">기본값</button>
+                                    <button id="add-lead-time-button" class="button primary-button">추가</button>
+                                </div>
+                            </div>
+                            <div id="alarmLeadTimeList" class="card-list-content">
+                                <!-- Alarm lead times will be rendered here by JavaScript -->
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <!-- Other notification settings will go here -->
             </section>
 
             <section id="alarm-log-screen" class="screen">
@@ -780,6 +801,26 @@
             <div class="modal-footer">
                 <button id="cancel-fixed-alarm-modal-button" class="button">취소</button>
                 <button id="save-fixed-alarm-button" class="button primary-button">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alarm Lead Time Add/Edit Modal -->
+    <div id="lead-time-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="lead-time-modal-title">알림 시간 추가</h2>
+                <button id="close-lead-time-modal" class="close-button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="control-group">
+                    <label for="lead-time-input">몇 분 전에 알릴까요? (1~60)</label>
+                    <input type="text" id="lead-time-input" inputmode="numeric" maxlength="2" placeholder="분 (예: 10)">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-lead-time-modal-button" class="button">취소</button>
+                <button id="save-lead-time-button" class="button primary-button">저장</button>
             </div>
         </div>
     </div>

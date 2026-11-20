@@ -385,6 +385,12 @@ input:checked+.slider:before {
     color: #1D3557;
 }
 
+/* 카드 헤더 우측에 버튼이 둘 이상일 때 */
+.card-header-actions {
+    display: flex;
+    gap: 8px;
+}
+
 /* List Items within Cards */
 .list-item {
     padding: 12px 0;

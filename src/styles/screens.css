@@ -903,6 +903,17 @@ section#settings-screen h3 {
     color: #333;
 }
 
+/* .alarm-time 안의 단위 글자(알림 시간의 "분 전", "정각"). 숫자만 크게 두고 단위는 .alarm-name 크기(1.1em ÷ 1.8em)로 맞춘다. */
+.alarm-time-unit {
+    font-size: 0.61em;
+    font-weight: normal;
+    color: #333;
+}
+
+.alarm-time-unit:not(:first-child) {
+    margin-left: 4px;
+}
+
 .alarm-days {
     display: flex;
     justify-content: center;

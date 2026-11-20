@@ -84,7 +84,7 @@
 ### 5.2. 카드 (`.card-standard`)
 
 *   **스타일:** `background-color: #fff`, `padding: 20px`, `border-radius: 8px`, `box-shadow: 0 4px 8px rgba(0,0,0,0.15)`.
-*   **헤더 (`.card-header`):** 제목(`h3`)과 우측 컨트롤(버튼 등)을 양쪽 정렬.
+*   **헤더 (`.card-header`):** 제목(`h3`)과 우측 컨트롤(버튼 등)을 양쪽 정렬. 우측 버튼이 둘 이상이면 `.card-header-actions`(`display: flex`, `gap: 8px`)로 묶는다(예: 설정 > 알림 시간의 기본값·추가).
 
 ### 5.3. 리스트 아이템 (`.list-item`)
 
@@ -117,7 +117,7 @@
     *   **Default:** `width: 90%`, `max-width: 460px` (대부분의 입력/설정용 모달).
     *   **Wide (`.modal-content--wide`):** `max-width: 800px` (커스텀 보스 목록 관리 등 데이터량이 많은 경우).
 *   **내부 대칭:** 고정 알림 모달 등에서 요일 버튼 그룹(`.alarm-days`)은 반드시 `justify-content: center`와 패딩 보정을 통해 시각적 좌우 대칭을 완성함.
-*   **탭 UI:** 모달 내부에서 화면 전환을 위한 탭 버튼(`tab-button`) 제공.
+*   **탭 UI:** 모달 내부에서 화면 전환을 위한 탭 버튼(`tab-button`) 제공. 같은 클래스(`.modal-tabs` + `.tab-button` + `.custom-list-tab-content`)를 화면 본문 탭에도 쓴다(도움말: 사용 가이드/FAQ, 설정: 고정 알림/알림 시간).
 
 ## 6. 레이아웃 시스템
 

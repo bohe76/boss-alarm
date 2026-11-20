@@ -59,6 +59,9 @@ schedules: { id: number(PK), bossId: number(FK→bosses), scheduledDate: string(
 settings:  { key: string(PK), value: any }
 ```
 
+- `alerted_*`의 실제 값은 `false` 또는 알림을 울린 `targetTime`(숫자)이다.
+- 사용자가 추가한 알림 시간(`settings.alarmLeadTimes`)의 발화 기록은 스케줄 행에 `alerted_${분}min` 키로 덧붙는다. 고정 칸이 아니어서 48h 재구축 때 사라진다 (이유와 안전 근거는 `docs/architecture/db_schema.md` §2.3).
+
 ### 이벤트 기반 렌더링
 
 `EventBus` (pub-sub) + `DB.subscribe()` / `BossDataManager.subscribe()`로 상태 변경 시에만 UI 갱신:

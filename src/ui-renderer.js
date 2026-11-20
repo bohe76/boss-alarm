@@ -6,10 +6,13 @@ import { log, getLogs } from './logger.js'; // Import log and getLogs
 import { getGameNames, getBossNamesForGame } from './boss-scheduler-data.js';
 import { DB } from './db.js';
 import { escapeHtml } from './html-utils.js';
+import { getAlarmLeadTimes } from './alarm-lead-times.js';
 import { formatMonthDay, getKoreanDayOfWeek, padNumber, formatTimeDifference, formatSpawnTime, calculateNearestFutureTime } from './utils.js';
 
 const MUTE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`;
 const UNMUTE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>`;
+const EDIT_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .642.642l3.155-1.262a2 2 0 0 0 .733-.503l11.04-11.04a2 2 0 0 0 0-2.828l-1.414-1.414a2 2 0 0 0-2.828 0L2.192 12.602a2 2 0 0 0-.503.733Z" /><path d="M11.695 3.332 14.668 6.305 16.546 4.427a1 1 0 0 0 0-1.414l-1.414-1.414a1 1 0 0 0-1.414 0l-1.878 1.878Z" /></svg>`;
+const DELETE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" /></svg>`;
 
 // Function to display toast messages
 export function showToast(DOM, message) {
@@ -490,16 +493,11 @@ export function renderFixedAlarms(DOM) {
                 </div>
                 <div class="button-group">
                     <button class="button edit-fixed-alarm-button icon-button" data-id="${escapeHtml(alarm.id)}" title="수정">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .642.642l3.155-1.262a2 2 0 0 0 .733-.503l11.04-11.04a2 2 0 0 0 0-2.828l-1.414-1.414a2 2 0 0 0-2.828 0L2.192 12.602a2 2 0 0 0-.503.733Z" />
-                            <path d="M11.695 3.332 14.668 6.305 16.546 4.427a1 1 0 0 0 0-1.414l-1.414-1.414a1 1 0 0 0-1.414 0l-1.878 1.878Z" />
-                        </svg>
+                        ${EDIT_ICON}
                         <span class="btn-text">수정</span>
                     </button>
                     <button class="button delete-fixed-alarm-button icon-button" data-id="${escapeHtml(alarm.id)}" title="삭제">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
-                        </svg>
+                        ${DELETE_ICON}
                         <span class="btn-text">삭제</span>
                     </button>
                 </div>
@@ -522,6 +520,39 @@ export function updateFixedAlarmVisuals(DOM) {
             }
         }
     });
+}
+
+// --- 5.4. 알림 시간 목록 (설정 화면 '알림 시간' 탭) ---
+// 행 모양은 고정 알림 행의 클래스를 그대로 쓴다. 정각 알림은 항상 울리므로 버튼 없이 맨 아래에 둔다.
+export function renderAlarmLeadTimes(DOM) {
+    if (!DOM.alarmLeadTimeListDiv) return;
+    const rows = getAlarmLeadTimes().map(minutes => `
+        <div class="list-item fixed-alarm-item">
+            <div class="alarm-item-line1">
+                <span class="alarm-info">
+                    <span class="alarm-time">${minutes}<span class="alarm-time-unit">분 전</span></span>
+                </span>
+                <div class="button-group">
+                    <button class="button edit-lead-time-button icon-button" data-minutes="${minutes}" title="${minutes}분 전 알림 수정">
+                        ${EDIT_ICON}
+                        <span class="btn-text">수정</span>
+                    </button>
+                    <button class="button delete-lead-time-button icon-button" data-minutes="${minutes}" title="${minutes}분 전 알림 삭제">
+                        ${DELETE_ICON}
+                        <span class="btn-text">삭제</span>
+                    </button>
+                </div>
+            </div>
+        </div>`);
+    rows.push(`
+        <div class="list-item fixed-alarm-item">
+            <div class="alarm-item-line1">
+                <span class="alarm-info">
+                    <span class="alarm-time"><span class="alarm-time-unit">정각 (항상 알림)</span></span>
+                </span>
+            </div>
+        </div>`);
+    DOM.alarmLeadTimeListDiv.innerHTML = rows.join('');
 }
 
 export function renderVersionInfo(DOM, versionData) {

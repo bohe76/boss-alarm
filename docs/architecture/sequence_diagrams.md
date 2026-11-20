@@ -87,7 +87,7 @@ sequenceDiagram
     app.js->>alarm-scheduler.js: startAlarm(DOM)
     alarm-scheduler.js->>alarm-scheduler.js: LocalStorageManager.setAlarmRunningState(true)
     alarm-scheduler.js->>alarm-scheduler.js: syncScheduleToWorker()
-    Note over alarm-scheduler.js: getAllUpcomingBosses()로 flatSchedule 생성
+    Note over alarm-scheduler.js: getAllUpcomingBosses() × (getAlarmLeadTimes() + 정각)으로 flatSchedule 생성. 아래는 기본 알림 시간(5분·1분) 기준
     alarm-scheduler.js->>Worker: UPDATE_SCHEDULE payload flatSchedule
     alarm-scheduler.js->>Worker: START
 

@@ -5,6 +5,7 @@ import { speak } from './speech.js';
 import { BossDataManager, LocalStorageManager } from './data-managers.js';
 import { renderAlarmStatusSummary } from './ui-renderer.js';
 import { DB } from './db.js';
+import { getAlarmLeadTimes } from './alarm-lead-times.js';
 
 let worker = null;
 
@@ -39,9 +40,11 @@ export function syncScheduleToWorker() {
     // Use the centralized engine to get all sorted upcoming bosses
     const allUpcoming = BossDataManager.getAllUpcomingBosses(now);
 
+    // 알림 시각 = 설정한 알림 시간(분 전) + 정각. 정각(0)은 항상 포함한다.
+    const leadMinutes = [...getAlarmLeadTimes(), 0];
     const flatSchedule = [];
     allUpcoming.forEach(boss => {
-        addAlarmsToFlatSchedule(flatSchedule, boss);
+        addAlarmsToFlatSchedule(flatSchedule, boss, leadMinutes);
     });
 
     worker.postMessage({
@@ -50,19 +53,25 @@ export function syncScheduleToWorker() {
     });
 }
 
-function addAlarmsToFlatSchedule(list, boss) {
+// 알림 유형은 `${분}min`이고 발화 기록은 `alerted_${분}min`에 남긴다 (5min·1min·0min은 기존 이름 그대로).
+function addAlarmsToFlatSchedule(list, boss, leadMinutes) {
     const bossScheduledTime = boss.timestamp;
     const isFixed = boss.isFixed;
 
-    if (!boss.alerted_5min || boss.alerted_5min !== bossScheduledTime - 5 * 60 * 1000) {
-        list.push({ id: boss.id, name: boss.name, type: '5min', targetTime: bossScheduledTime - 5 * 60 * 1000, isFixed: isFixed });
-    }
-    if (!boss.alerted_1min || boss.alerted_1min !== bossScheduledTime - 1 * 60 * 1000) {
-        list.push({ id: boss.id, name: boss.name, type: '1min', targetTime: bossScheduledTime - 1 * 60 * 1000, isFixed: isFixed });
-    }
-    if (!boss.alerted_0min || boss.alerted_0min !== bossScheduledTime) {
-        list.push({ id: boss.id, name: boss.name, type: '0min', targetTime: bossScheduledTime, isFixed: isFixed });
-    }
+    leadMinutes.forEach(minutes => {
+        const type = `${minutes}min`;
+        const targetTime = bossScheduledTime - minutes * 60 * 1000;
+        if (!boss[`alerted_${type}`] || boss[`alerted_${type}`] !== targetTime) {
+            list.push({ id: boss.id, name: boss.name, type, targetTime, isFixed: isFixed });
+        }
+    });
+}
+
+function buildAlarmMessage(type, name) {
+    const minutes = parseInt(type, 10);
+    if (minutes > 0) return `${minutes}분 전, ${name}`;
+    if (minutes === 0) return `${name} 젠 입니다.`;
+    return '';
 }
 
 BossDataManager.subscribe(() => {
@@ -104,10 +113,7 @@ function handleAlarm({ id, name, type, isFixed, targetTime }) {
         if (!currentBoss) return;
         if (currentBoss[`alerted_${type}`] === targetTime) return;
 
-        let msg = '';
-        if (type === '5min') msg = `5분 전, ${name}`;
-        else if (type === '1min') msg = `1분 전, ${name}`;
-        else if (type === '0min') msg = `${name} 젠 입니다.`;
+        const msg = buildAlarmMessage(type, name);
 
         log(msg, true);
         speak(msg);
@@ -124,10 +130,7 @@ function handleAlarm({ id, name, type, isFixed, targetTime }) {
         if (!schedule) return;
         if (schedule[`alerted_${type}`] === targetTime) return;
 
-        let msg = '';
-        if (type === '5min') msg = `5분 전, ${name}`;
-        else if (type === '1min') msg = `1분 전, ${name}`;
-        else if (type === '0min') msg = `${name} 젠 입니다.`;
+        const msg = buildAlarmMessage(type, name);
 
         log(msg, true);
         speak(msg);

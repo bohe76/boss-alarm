@@ -207,6 +207,51 @@ test('fixed alarm can be added and appears in timetable', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test('a custom alarm lead time is kept after reload and fires before the boss spawns', async ({ page }) => {
+  const errors = watchUnexpectedErrors(page);
+  await openApp(page);
+
+  await page.locator('#nav-settings').click();
+  await expect(page.locator('#settings-fixed-alarm-tab')).toBeVisible();
+  await page.locator('#settings-tabs .tab-button', { hasText: '알림 시간' }).click();
+  await expect(page.locator('#settings-fixed-alarm-tab')).not.toBeVisible();
+  const leadTimes = page.locator('#alarmLeadTimeList .alarm-time');
+  await expect(leadTimes).toHaveText(['5분 전', '1분 전', '정각 (항상 알림)']);
+
+  await page.locator('#add-lead-time-button').click();
+  await expect(page.locator('#lead-time-modal')).toBeVisible();
+  await page.locator('#lead-time-input').fill('7');
+  await page.locator('#save-lead-time-button').click();
+  await expect(page.locator('#lead-time-modal')).not.toBeVisible();
+  await expect(leadTimes).toHaveText(['7분 전', '5분 전', '1분 전', '정각 (항상 알림)']);
+  await page.screenshot({ path: screenshotPath('alarm-lead-times'), fullPage: true });
+
+  // 새로고침해도 유지된다 (localStorage)
+  await page.reload();
+  await expect(page.locator('body')).not.toHaveClass(/loading/);
+  await page.locator('#nav-settings').click();
+  await page.locator('#settings-tabs .tab-button', { hasText: '알림 시간' }).click();
+  await expect(leadTimes).toHaveText(['7분 전', '5분 전', '1분 전', '정각 (항상 알림)']);
+
+  // 실제 타이머 워커로 발화를 확인한다: 알림을 켠 뒤, 7분 전 시각이 4초 뒤에 오도록 일정을 넣고 워커에 보낸다.
+  // (일정을 넣고 워커에 보내는 것을 한 번에 해서, 그 사이가 벌어져 시각을 놓치는 일이 없게 한다.)
+  await page.locator('#alarmToggleButton').click();
+  await expect(page.locator('#alarmToggleButton')).toHaveClass(/alarm-on/);
+  const bossName = await page.evaluate(async () => {
+    const { DB } = await import('./src/db.js');
+    const { syncScheduleToWorker } = await import('./src/alarm-scheduler.js');
+    const boss = DB.getBossesByGameId(DB.getSetting('lastSelectedGame'))[0];
+    DB.addSchedule({ bossId: boss.id, scheduledDate: new Date(Date.now() + 7 * 60 * 1000 + 4000).toISOString() });
+    syncScheduleToWorker();
+    return boss.name;
+  });
+  await expect.poll(() => page.evaluate(async () => {
+    const { getLogs } = await import('./src/logger.js');
+    return getLogs().map(entry => entry.html).join('\n');
+  }), { timeout: 15_000 }).toContain(`7분 전, ${bossName}`);
+
+  expect(errors).toEqual([]);
+});
 
 test('share retains the original link when shortening and clipboard both fail', async ({ page }) => {
   await openApp(page);

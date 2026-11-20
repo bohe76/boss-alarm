@@ -71,6 +71,18 @@ export function initDomElements() {
         fixedAlarmNameInput: document.getElementById('fixed-alarm-name-input'),
         fixedAlarmModalDays: document.getElementById('fixed-alarm-modal-days'),
 
+        // Settings Screen: 탭과 알림 시간
+        settingsTabs: document.getElementById('settings-tabs'),
+        alarmLeadTimeListDiv: document.getElementById('alarmLeadTimeList'),
+        addLeadTimeButton: document.getElementById('add-lead-time-button'),
+        resetLeadTimesButton: document.getElementById('reset-lead-times-button'),
+        leadTimeModal: document.getElementById('lead-time-modal'),
+        leadTimeModalTitle: document.getElementById('lead-time-modal-title'),
+        closeLeadTimeModal: document.getElementById('close-lead-time-modal'),
+        cancelLeadTimeModalButton: document.getElementById('cancel-lead-time-modal-button'),
+        saveLeadTimeButton: document.getElementById('save-lead-time-button'),
+        leadTimeInput: document.getElementById('lead-time-input'),
+
         // Elements within Alarm Log Screen
         alarmLogCard: document.getElementById('alarmLogCard'), // New
         viewMoreLogsButton: document.getElementById('viewMoreLogsButton'), // New

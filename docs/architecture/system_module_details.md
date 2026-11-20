@@ -158,6 +158,7 @@
 *   `updateBossListTextarea(DOM)`: `BossDataManager`의 데이터를 기반으로 보스 목록 텍스트 영역을 업데이트합니다. `bossSchedule` 배열을 순회하며 날짜 마커를 출력하고, 각 `boss` 객체에 저장된 `timeFormat` 속성('hm' 또는 'hms')에 따라 시간 형식을 동적으로 포맷팅하여 출력합니다.
 *   **`renderFixedAlarms(DOM)`**: 고정 알림 목록을 렌더링합니다. 각 아이템은 2줄 구조로 구성되며, 특히 2행에서 요일 버튼과 기능 버튼이 시각적으로 일직선상에 위치하도록 **수직 중앙 정렬 및 개별 마진 제거**를 통한 정밀 보정 로직이 적용되어 있습니다.
 *   `updateFixedAlarmVisuals(DOM)`: 고정 알림의 활성화/비활성화 상태에 따라 시각적 효과를 업데이트합니다.
+*   `renderAlarmLeadTimes(DOM)`: 설정 화면 '알림 시간' 탭의 목록을 렌더링합니다. `getAlarmLeadTimes()`의 값마다 "N분 전" 행(수정·삭제 버튼)을 만들고, 맨 아래에 버튼 없는 "정각 (항상 알림)" 행을 둡니다. 행 모양은 고정 알림 행의 클래스(`.fixed-alarm-item`)를 그대로 써서 PC(글자 버튼)·모바일(아이콘 버튼) 표시가 같습니다.
 *   `renderCalculatorScreen(DOM)`: 계산기 화면(젠 계산기 및 광 계산기)의 초기 상태를 렌더링합니다.
 *   `renderBossSchedulerScreen(DOM, remainingTimes)`: 보스 스케줄러 화면을 초기화하고 게임 선택 드롭다운 및 보스 입력 필드를 렌더링합니다.
 *   `renderBossInputs(DOM, gameName, remainingTimes)`: 선택된 게임에 따라 보스 입력 필드를 동적으로 렌더링합니다. **지능형 UI 동기화** 기술을 적용하여, 현재 시각 기준 가장 가까운 미래의 보스 인스턴스 정보를 실시간으로 매핑하여 표시합니다.
@@ -260,12 +261,28 @@
 - **반환값:** `void`
 
 #### `syncScheduleToWorker()`
-- **설명:** `BossDataManager`와 `LocalStorageManager`의 데이터를 기반으로 알림 예정 시간을 미리 계산하여 단순화된 목록(`flatSchedule`)을 워커로 전송합니다. 고정 알림의 경우 `src/utils.js`의 `calculateNextOccurrence` 함수를 사용하여 요일별 다음 발생 시간을 계산합니다. **Smart Main, Dumb Worker** 패턴을 따릅니다.
+- **설명:** `BossDataManager`와 `LocalStorageManager`의 데이터를 기반으로 알림 예정 시간을 미리 계산하여 단순화된 목록(`flatSchedule`)을 워커로 전송합니다. 보스·고정 알림 하나마다 `getAlarmLeadTimes()`의 각 값(분 전)과 정각에 대해 `{ id, name, type: `${분}min`, targetTime, isFixed }` 항목을 만듭니다(정각은 `0min`). 이미 울린 항목(`alerted_${분}min === targetTime`)은 뺍니다. 고정 알림의 경우 `src/utils.js`의 `calculateNextOccurrence` 함수를 사용하여 요일별 다음 발생 시간을 계산합니다. **Smart Main, Dumb Worker** 패턴을 따릅니다.
 
 #### `calculateNextBoss(now)`
 - **설명:** 현재 시간을 기준으로 대시보드에 표시할 '다음 보스' 정보를 계산합니다. 고정 알림의 경우 `calculateNextOccurrence` 함수를 사용하여 요일을 고려한 다음 발생 시간을 결정합니다.
 - **인자:** `now` (`Date`): 현재 시간 `Date` 객체.
 - **반환값:** `{ nextBoss, minTimeDiff }`. 현재 가장 가까운 다음 보스 정보와 남은 시간을 반환합니다.
+
+#### 알림 문구와 발화 기록 (내부 `handleAlarm`, `buildAlarmMessage`)
+- 워커의 `ALARM`을 받으면 유형에서 분을 읽어 `N분 전, 이름`(정각은 `이름 젠 입니다.`)을 로그·음성·시스템 알림으로 내고, `alerted_${분}min`에 `targetTime`을 기록합니다(보스는 `DB.updateSchedule`, 고정 알림은 `LocalStorageManager.updateFixedAlarm`).
+
+---
+
+## 6-0. `src/alarm-lead-times.js` (알림 시간 설정)
+
+### 역할
+보스 출현·고정 알림 시각의 몇 분 전에 미리 알릴지를 읽고 씁니다. 저장 위치는 `v3_settings.alarmLeadTimes`입니다. 정각 알림은 이 설정과 무관하게 항상 울립니다.
+
+### 주요 `export`
+- `getAlarmLeadTimes()`: 알림 시간 목록(분, 큰 값부터). 저장된 값이 없으면 `[5, 1]`. 빈 배열은 사용자가 모두 지운 것이므로 그대로 반환합니다. 값이 들어 있는데 쓸 수 있는 것이 하나도 없으면 손상으로 보고 기본값을 반환합니다(미리 알림이 말없이 꺼지지 않게). 저장 값은 믿지 않고 읽을 때마다 걸러 냅니다(1~60 정수, 중복 제거, 최대 5개) — 스케줄러와 설정 화면이 같은 값을 보게 하려고 읽는 곳을 하나로 뒀습니다.
+- `saveAlarmLeadTimes(list)`: 같은 규칙으로 걸러 저장합니다.
+- `isValidAlarmLeadMinutes(minutes)`, `DEFAULT_ALARM_LEAD_TIMES`, `MAX_ALARM_LEAD_TIMES`(5), `MIN_ALARM_LEAD_MINUTES`(1), `MAX_ALARM_LEAD_MINUTES`(60).
+- 기본값을 `LocalStorageManager.init()`에서 저장해 두지 않는 이유: 키가 없는 기존 사용자가 그대로 기본값을 쓰게 되고, 보호 영역을 건드리지 않아도 됩니다.
 
 ---
 

@@ -25,6 +25,7 @@ npm run e2e
 | 대시보드/도움말 | clean browser state에서 앱 로드, 알림 정책 dialog 처리, 도움말 JSON 렌더링 | `dashboard.png`, `help.png` |
 | 스케줄러 → 시간표 → 내보내기 → 공유 | 보스 남은 시간 입력, 메모 반영, 시간표 이동, export modal 열기/닫기, TinyURL stub과 clipboard 복사 | `scheduler-input.png`, `timetable-after-scheduler.png`, `export-modal.png`, `share.png` |
 | 고정 알림 | 설정에서 고정 알림 추가, 목록 렌더링, 시간표 병합 표시 | `fixed-alarm-settings.png`, `timetable-fixed-alarm.png` |
+| 알림 시간 | 설정의 '알림 시간' 탭 전환, 7분 전 추가, 새로고침 후 유지, 실제 타이머 워커로 "7분 전, 보스명" 발화(일정을 7분 4초 뒤로 넣고 알림을 켬) | `alarm-lead-times.png` |
 
 ## 네트워크와 브라우저 경계
 

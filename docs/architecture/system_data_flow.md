@@ -56,7 +56,7 @@
     *   워커(`src/workers/timer-worker.js`)에 `START` 메시지를 보냅니다.
 4.  **`src/workers/timer-worker.js` (백그라운드 스레드):**
     *   `START` 메시지를 받으면 1초 간격의 `setInterval`을 시작합니다.
-    *   매초(`tick`)마다 `flatSchedule`을 순회하며 현재 시간과 비교하여 알림 조건(5분 전, 1분 전, 정각)이 충족되었는지 확인합니다.
+    *   매초(`tick`)마다 `flatSchedule`을 순회하며 현재 시간과 비교하여 알림 조건(설정한 알림 시간 — 기본 5분 전·1분 전 — 과 정각)이 충족되었는지 확인합니다. 어떤 시각에 알릴지는 메인 스레드가 `getAlarmLeadTimes()`로 정해 `flatSchedule`에 담아 보내며, 워커는 시각만 비교합니다.
     *   조건 충족 시 메인 스레드로 `ALARM` 메시지를 보냅니다.
     *   매초 메인 스레드로 `TICK` 메시지를 보냅니다.
 5.  **`alarm-scheduler.js: worker.onmessage` (메인 스레드):**
@@ -181,7 +181,8 @@
 
 ### 3.10. 설정 화면 (`src/screens/settings.js`)
 
-*   **초기화:** `app.js`의 `showScreen` 함수를 통해 'settings-screen'으로 내비게이션될 때 `initSettingsScreen(DOM)`이 호출되어 '고정 알림' 관련 이벤트 리스너(모달 열기/닫기, 저장, 요일 버튼 상호작용 등)가 설정됩니다.
+*   **초기화:** `app.js`의 `showScreen` 함수를 통해 'settings-screen'으로 내비게이션될 때 `initSettingsScreen(DOM)`이 호출되어 탭 전환(고정 알림 / 알림 시간), '고정 알림' 관련 이벤트 리스너(모달 열기/닫기, 저장, 요일 버튼 상호작용 등), '알림 시간' 관련 이벤트 리스너(추가·수정 모달, 삭제, 기본값)가 설정되고 알림 시간 목록이 렌더링됩니다(`renderAlarmLeadTimes(DOM)`).
+*   **알림 시간 변경 흐름:** 추가·수정·삭제·기본값 → `saveAlarmLeadTimes()`가 `v3_settings.alarmLeadTimes`에 저장 → `renderAlarmLeadTimes(DOM)`로 목록 갱신 → 알람이 실행 중이면 `syncScheduleToWorker()`로 워커의 알림 예정 목록을 새 알림 시간으로 교체합니다. 이미 지난 시각은 울리지 않습니다.
 *   **고정 알림 추가/편집 흐름:**
     1.  **모달 열기:**
         *   '고정 알림' 카드의 '추가' 버튼 클릭 또는 기존 알림 항목의 '편집' 버튼 클릭 시 `openFixedAlarmModal(DOM, alarmId)` 함수가 호출됩니다.

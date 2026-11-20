@@ -68,6 +68,7 @@
 | `memo` | `string` | NotNull, default `""` | 메모 |
 
 - `alerted_*` 필드: `false`(미완료) 또는 `targetTime`(Unix ms 숫자, 완료) 이중 상태
+- 사용자가 추가한 알림 시간(`alarmLeadTimes`, §2.4)의 발화 기록은 같은 방식으로 `alerted_${분}min` 키(예: `alerted_10min`)에 남는다. 표의 3개 칸과 달리 고정 칸이 아니다 — `DB.updateSchedule()`이 행에 덧붙이고, 48시간 재구축(`_expandAndReconstruct()`)은 3개 칸만 복사하므로 그때 사라진다. 사라져도 다시 울리지 않는다: 타이머 워커는 직전 tick 이후에 지난 시각만 알린다. 이 기록은 같은 순간 여러 탭이 함께 울리는 것을 막는 데만 쓰인다.
 - GC 정책: `alerted_0min`이 완료된 **과거** 레코드는 `_expandAndReconstruct()` 실행 시 자동 삭제 (단, 보스당 최소 1개는 보존)
 - `replaceSchedulesByGameId(gameId, newSchedules)`: 해당 게임의 모든 스케줄을 원자적으로 교체
 
@@ -82,6 +83,7 @@
 | `lastSelectedGame` | `string` | — | 마지막으로 선택한 게임 ID |
 | `lastAutoUpdateTimestamp` | `number` | — | 마지막 자동 업데이트 시각 (Unix ms) |
 | `fixedAlarms` | `Array` | 기본 5개 | 고정 알림 목록 (LocalStorageManager 관리) |
+| `alarmLeadTimes` | `number[]` | 키 없음 → `[5, 1]` | 알림 시간(분 전) 목록. 1~60 정수, 중복 없음, 큰 값부터, 최대 5개. 빈 배열은 "정각만 알림". 읽을 때 `src/alarm-lead-times.js`가 걸러 낸다(기본값을 저장해 두지 않는다). 값이 들어 있는데 쓸 수 있는 것이 하나도 없으면 손상으로 보고 기본값을 쓴다 |
 | `logVisibilityState` | `boolean` | `true` | 로그 패널 표시 여부 |
 | `alarmRunningState` | `boolean` | `false` | 알람 실행 상태 |
 | `muteState` | `boolean` | `false` | 음소거 상태 |
