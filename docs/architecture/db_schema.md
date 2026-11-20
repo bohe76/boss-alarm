@@ -59,7 +59,7 @@
 
 | 컬럼 | 타입 | 제약 | 설명 |
 |---|---|---|---|
-| `id` | `number` | PK, NotNull, AutoIncrement | `DB.nextId()`로 자동 발급 |
+| `id` | `number` | PK, NotNull, AutoIncrement | `v3_uid_counter`에서 자동 발급 (1건은 `DB.nextId()`, 여러 건은 일괄 할당 — §5) |
 | `bossId` | `number` | FK → bosses.id, NotNull | 대상 보스 ID |
 | `scheduledDate` | `string` | NotNull | 출현 예정 시각 (ISO 8601, 예: `"2026-04-19T12:00:00.000Z"`) |
 | `alerted_5min` | `boolean \| number` | NotNull, default `false` | 5분 전 알림 완료 여부 (완료 시 targetTime 숫자로 저장) |
@@ -154,6 +154,8 @@ erDiagram
 
 `DB.nextId()`는 `v3_uid_counter` 값을 1 증가시킨 후 저장하고 반환합니다.  
 `bosses`와 `schedules`가 동일한 카운터를 공유하므로, PK 값은 테이블 간 전역 유일(globally unique)입니다.
+
+스케줄을 여러 건 쓰는 `DB.replaceSchedulesByGameId()`와 `DB.addSchedulesBulk()`는 `nextId()`를 행마다 부르지 않습니다. `src/db.js`의 모듈 내부 함수 `createIdBatch()`가 카운터를 한 번 읽고, 배열 순서대로 ID를 배정하고, 스케줄을 저장하기 전에 카운터를 한 번만 저장합니다 (issue-041). 배정되는 ID 값·순서와 마지막에 남는 카운터 값은 행마다 `nextId()`를 부를 때와 같습니다. 새로 배정한 ID가 없으면 카운터를 쓰지 않습니다. 이렇게 하는 이유는 localStorage 쓰기 횟수를 행 수와 무관하게 만들기 위해서입니다 — 주소창에 긴 공유 URL이 남아 있는 동안에는 쓰기 한 번이 느려져, 행마다 저장하면 수천 건 적재가 분 단위로 걸립니다.
 
 ---
 

@@ -32,6 +32,26 @@ function save(key, data) {
     return true;
 }
 
+// 여러 행에 ID를 줄 때 쓴다. 카운터를 한 번 읽고 commit()에서 한 번만 저장한다. (issue-041)
+// next()가 내주는 값과 commit()이 남기는 카운터는 그만큼 DB.nextId()를 부른 결과와 같다.
+function createIdBatch() {
+    let counter = load(KEYS.UID_COUNTER) || 0;
+    let lastId;
+    let allocated = false;
+    return {
+        next() {
+            lastId = ++counter;
+            allocated = true;
+            // nextId()는 매번 저장하고 다시 읽는다. 유한하지 않은 값(손상된 카운터)은 null로 저장돼 다음 호출이 0부터 다시 센다.
+            if (!Number.isFinite(counter)) counter = 0;
+            return lastId;
+        },
+        commit() {
+            if (allocated) save(KEYS.UID_COUNTER, lastId);
+        }
+    };
+}
+
 const structuralSubscribers = [];
 const uiSubscribers = [];
 
@@ -169,14 +189,16 @@ export const DB = {
 
     addSchedulesBulk(newSchedules) {
         const schedules = this.getSchedules();
+        const ids = createIdBatch();
         const added = newSchedules.map(s => ({
             ...s,
-            id: this.nextId(),
+            id: ids.next(),
             alerted_5min: s.alerted_5min || false,
             alerted_1min: s.alerted_1min || false,
             alerted_0min: s.alerted_0min || false,
             memo: s.memo || ''
         }));
+        ids.commit();
         save(KEYS.SCHEDULES, [...schedules, ...added]);
         return added;
     },
@@ -211,14 +233,16 @@ export const DB = {
     replaceSchedulesByGameId(gameId, newSchedules) {
         const bossIds = new Set(this.getBossesByGameId(gameId).map(b => b.id));
         const otherSchedules = this.getSchedules().filter(s => !bossIds.has(s.bossId));
+        const ids = createIdBatch();
         const prepared = newSchedules.map(s => ({
             ...s,
-            id: s.id || this.nextId(),
+            id: s.id || ids.next(),
             alerted_5min: s.alerted_5min || false,
             alerted_1min: s.alerted_1min || false,
             alerted_0min: s.alerted_0min || false,
             memo: s.memo || ''
         }));
+        ids.commit();
         save(KEYS.SCHEDULES, [...otherSchedules, ...prepared]);
         return prepared;
     },
